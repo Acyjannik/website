@@ -137,7 +137,12 @@ async function loadPublicContent() {
       heroImage.src = settings.hero_image_url;
     }
 
-    const socials = Array.isArray(payload.socials) ? payload.socials : [];
+    const fallbackSocials = [
+      { platform: 'twitch', label: 'Twitch', url: 'https://www.twitch.tv/acyjannik' },
+      { platform: 'tiktok', label: 'TikTok', url: 'https://www.tiktok.com/@acyjannik' },
+      { platform: 'whatsapp', label: 'WhatsApp', url: 'https://www.whatsapp.com/channel/0029VazFA8UIXnlmgPliHQ10' }
+    ];
+    const socials = Array.isArray(payload.socials) && payload.socials.length ? payload.socials : fallbackSocials;
     const socialGrid = document.getElementById('social-grid');
     if (socialGrid && socials.length) {
       const icons = {
@@ -154,7 +159,13 @@ async function loadPublicContent() {
       }).join('');
     }
 
-    const games = Array.isArray(payload.games) ? payload.games : [];
+    const fallbackGames = [
+      { name: 'Fortnite', description: 'Main Game · Ranked · Community', image_url: '/assets/games/fortnite.svg', featured: true },
+      { name: 'GTA V', description: 'Open World · Aktuell · Fun', image_url: '/assets/games/gta-v.svg', featured: false },
+      { name: 'Meccha Chameleon', description: 'Variety · Hide & Seek · Community', image_url: '/assets/games/meccha-chameleon.svg', featured: false },
+      { name: 'Thick As Thieves', description: 'Stealth · Heist · Community', image_url: '/assets/games/thick-as-thieves.svg', featured: false }
+    ];
+    const games = Array.isArray(payload.games) && payload.games.length ? payload.games : fallbackGames;
     const gamesGrid = document.getElementById('games-grid');
     if (gamesGrid && games.length) {
       gamesGrid.innerHTML = games.map((game, index) => {

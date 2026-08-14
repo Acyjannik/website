@@ -96,35 +96,44 @@ async function ensureDefaultContent() {
     { name: 'Thick As Thieves', description: 'Stealth · Heist · Community', tag: 'VARIETY', image_url: '/assets/games/thick-as-thieves.svg', featured: false, sort_order: 4 }
   ];
 
-  const { data: existingSocials } = await supabaseClient.from('social_links').select('platform');
-  const existingSocialSet = new Set((existingSocials || []).map(x => x.platform));
-  const missingSocials = defaultSocials.filter(x => !existingSocialSet.has(x.platform));
-  if (missingSocials.length) {
-    await supabaseClient.from('social_links').insert(missingSocials);
+  const { data: existingSocials } = await supabaseClient.from('social_links').select('*');
+  const socialByPlatform = new Map((existingSocials || []).map(x => [x.platform, x]));
+  for (const seed of defaultSocials) {
+    const current = socialByPlatform.get(seed.platform);
+    if (!current) {
+      await supabaseClient.from('social_links').insert({ ...seed, enabled: true });
+    } else {
+      const patch = {};
+      if (!current.url) patch.url = seed.url;
+      if (!current.label) patch.label = seed.label;
+      if (current.enabled === false) {
+        // Don't force an intentionally disabled admin item back on.
+      }
+      if (Object.keys(patch).length) {
+        patch.updated_at = new Date().toISOString();
+        await supabaseClient.from('social_links').update(patch).eq('id', current.id);
+      }
+    }
   }
 
-  const { data: existingGames } = await supabaseClient.from('games').select('name');
-  const existingGameSet = new Set((existingGames || []).map(x => x.name));
-  const missingGames = defaultGames.filter(x => !existingGameSet.has(x.name));
-  if (missingGames.length) {
-    await supabaseClient.from('games').insert(missingGames);
-  }
+  const { data: existingGames } = await supabaseClient.from('games').select('*');
+  const gameByName = new Map((existingGames || []).map(x => [x.name, x]));
+  for (const seed of defaultGames) {
+    const current = gameByName.get(seed.name);
+    if (!current) {
+      await supabaseClient.from('games').insert({ ...seed, enabled: true });
+      continue;
+    }
 
-  // Repair existing rows that lost their cover artwork.
-  const { data: currentGames } = await supabaseClient
-    .from('games')
-    .select('id,name,image_url,featured,sort_order');
-
-  const byName = new Map(defaultGames.map(g => [g.name, g]));
-  for (const row of currentGames || []) {
-    const seed = byName.get(row.name);
-    if (!seed) continue;
     const patch = {};
-    if (!row.image_url) patch.image_url = seed.image_url;
-    if (row.name === 'Fortnite' && row.featured !== true) patch.featured = true;
+    if (!current.description) patch.description = seed.description;
+    if (!current.tag) patch.tag = seed.tag;
+    if (!current.image_url) patch.image_url = seed.image_url;
+    if (current.sort_order == null) patch.sort_order = seed.sort_order;
+    if (seed.name === 'Fortnite' && current.featured !== true) patch.featured = true;
     if (Object.keys(patch).length) {
       patch.updated_at = new Date().toISOString();
-      await supabaseClient.from('games').update(patch).eq('id', row.id);
+      await supabaseClient.from('games').update(patch).eq('id', current.id);
     }
   }
 }

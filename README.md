@@ -117,3 +117,9 @@ Default social links and the four current games are restored automatically when 
 - Thick As Thieves
 
 A standalone `supabase/restore_default_content.sql` is also included for manual restoration if needed.
+
+
+## V2.4.2: Robust fallback content
+
+The public site no longer depends on Supabase being populated before the current games and social links appear.
+The API and client use bundled fallback content, and the admin login repairs missing default rows without overwriting intentional admin edits.
