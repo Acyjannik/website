@@ -135,10 +135,41 @@
               <div>
                 <div class="eyebrow">CONTENT</div>
                 <h2>Games</h2>
-                <p class="admin-muted">Reihenfolge, Sichtbarkeit und Main Game direkt verwalten.</p>
+                <p class="admin-muted">Diese drei Games sind aktuell eingerichtet. Änderungen werden direkt gespeichert.</p>
+              </div>
+              <span class="admin-chip" id="games-db-state">Lade Daten…</span>
+            </div>
+
+            <div class="admin-table" id="games-admin-list">
+              <div class="admin-table-row admin-table-head">
+                <span>Game</span><span>Beschreibung</span><span>Aktiv</span><span>Main Game</span><span>Aktionen</span>
+              </div>
+
+              <div class="admin-table-row game-admin-row" data-game="Fortnite">
+                <div class="admin-row-main"><img class="admin-social-icon" src="/assets/games/fortnite.svg" alt=""><div><strong>Fortnite</strong><small>Main Game</small></div></div>
+                <input class="game-description" value="Main Game · Ranked · Community" aria-label="Fortnite Beschreibung">
+                <label class="admin-check"><input type="checkbox" class="game-enabled" checked> sichtbar</label>
+                <label class="admin-check"><input type="radio" name="featured-game" class="game-featured" checked> Main Game</label>
+                <div class="admin-row-actions"><button class="button button-small game-save">Speichern</button><button class="button button-small button-danger game-delete">Löschen</button></div>
+              </div>
+
+              <div class="admin-table-row game-admin-row" data-game="GTA V">
+                <div class="admin-row-main"><img class="admin-social-icon" src="/assets/games/gta-v.svg" alt=""><div><strong>GTA V</strong><small>Aktuell</small></div></div>
+                <input class="game-description" value="Open World · Aktuell · Fun" aria-label="GTA V Beschreibung">
+                <label class="admin-check"><input type="checkbox" class="game-enabled" checked> sichtbar</label>
+                <label class="admin-check"><input type="radio" name="featured-game" class="game-featured"> Main Game</label>
+                <div class="admin-row-actions"><button class="button button-small game-save">Speichern</button><button class="button button-small button-danger game-delete">Löschen</button></div>
+              </div>
+
+              <div class="admin-table-row game-admin-row" data-game="Thick As Thieves">
+                <div class="admin-row-main"><img class="admin-social-icon" src="/assets/games/thick-as-thieves.svg" alt=""><div><strong>Thick As Thieves</strong><small>Variety</small></div></div>
+                <input class="game-description" value="Stealth · Heist · Community" aria-label="Thick As Thieves Beschreibung">
+                <label class="admin-check"><input type="checkbox" class="game-enabled" checked> sichtbar</label>
+                <label class="admin-check"><input type="radio" name="featured-game" class="game-featured"> Main Game</label>
+                <div class="admin-row-actions"><button class="button button-small game-save">Speichern</button><button class="button button-small button-danger game-delete">Löschen</button></div>
               </div>
             </div>
-            <div class="admin-list" id="games-list"></div>
+
             <div class="admin-inline admin-inline-add">
               <input id="new-game-name" placeholder="Neues Game">
               <input id="new-game-tag" placeholder="Tag, z. B. VARIETY">
@@ -156,10 +187,41 @@
               <div>
                 <div class="eyebrow">COMMUNITY</div>
                 <h2>Social Links</h2>
-                <p class="admin-muted">Links bearbeiten, aktivieren oder später erweitern.</p>
+                <p class="admin-muted">Die bestehenden Socials werden hier direkt bearbeitbar angezeigt.</p>
+              </div>
+              <span class="admin-chip" id="socials-db-state">Lade Daten…</span>
+            </div>
+
+            <div class="admin-table" id="social-admin-list">
+              <div class="admin-table-row admin-table-head">
+                <span>Plattform</span><span>URL</span><span>Aktiv</span><span></span><span>Aktionen</span>
+              </div>
+
+              <div class="admin-table-row social-admin-row" data-social="twitch">
+                <div class="admin-row-main"><img class="admin-social-icon" src="/assets/social/twitch.svg" alt=""><div><strong>Twitch</strong><small>twitch</small></div></div>
+                <input class="social-url" value="https://www.twitch.tv/acyjannik" aria-label="Twitch URL">
+                <label class="admin-check"><input type="checkbox" class="social-enabled" checked> aktiv</label>
+                <span></span>
+                <div class="admin-row-actions"><button class="button button-small social-save">Speichern</button><button class="button button-small button-danger social-delete">Löschen</button></div>
+              </div>
+
+              <div class="admin-table-row social-admin-row" data-social="tiktok">
+                <div class="admin-row-main"><img class="admin-social-icon" src="/assets/social/tiktok.svg" alt=""><div><strong>TikTok</strong><small>tiktok</small></div></div>
+                <input class="social-url" value="https://www.tiktok.com/@acyjannik" aria-label="TikTok URL">
+                <label class="admin-check"><input type="checkbox" class="social-enabled" checked> aktiv</label>
+                <span></span>
+                <div class="admin-row-actions"><button class="button button-small social-save">Speichern</button><button class="button button-small button-danger social-delete">Löschen</button></div>
+              </div>
+
+              <div class="admin-table-row social-admin-row" data-social="whatsapp">
+                <div class="admin-row-main"><img class="admin-social-icon" src="/assets/social/whatsapp.svg" alt=""><div><strong>WhatsApp</strong><small>whatsapp</small></div></div>
+                <input class="social-url" value="https://www.whatsapp.com/channel/0029VazFA8UIXnlmgPliHQ10" aria-label="WhatsApp URL">
+                <label class="admin-check"><input type="checkbox" class="social-enabled" checked> aktiv</label>
+                <span></span>
+                <div class="admin-row-actions"><button class="button button-small social-save">Speichern</button><button class="button button-small button-danger social-delete">Löschen</button></div>
               </div>
             </div>
-            <div id="social-list" class="admin-list"></div>
+
             <div class="admin-inline admin-inline-add">
               <input id="new-social-platform" placeholder="Plattform, z. B. discord">
               <input id="new-social-label" placeholder="Anzeigename">
@@ -171,6 +233,7 @@
         </section>
 
         <!-- Media -->
+
         <section class="admin-view" data-view="media">
           <div class="admin-grid">
             <div class="admin-card">

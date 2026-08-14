@@ -178,287 +178,124 @@ function updatePreview(settings) {
 }
 
 async function loadSocials() {
-  const fallback = [
-    { id: null, platform: 'twitch', label: 'Twitch', url: 'https://www.twitch.tv/acyjannik', enabled: true, sort_order: 1 },
-    { id: null, platform: 'tiktok', label: 'TikTok', url: 'https://www.tiktok.com/@acyjannik', enabled: true, sort_order: 2 },
-    { id: null, platform: 'whatsapp', label: 'WhatsApp', url: 'https://www.whatsapp.com/channel/0029VazFA8UIXnlmgPliHQ10', enabled: true, sort_order: 3 }
-  ];
+  const fallback = {
+    twitch: 'https://www.twitch.tv/acyjannik',
+    tiktok: 'https://www.tiktok.com/@acyjannik',
+    whatsapp: 'https://www.whatsapp.com/channel/0029VazFA8UIXnlmgPliHQ10'
+  };
 
   const { data, error } = await supabaseClient
     .from('social_links')
     .select('*')
     .order('sort_order');
 
-  const rows = (data && data.length ? data : fallback);
-  const list = $('social-list');
-  list.innerHTML = '';
-
-  const summary = document.createElement('div');
-  summary.className = 'admin-list-summary';
-  summary.innerHTML = `<span>${rows.length} Socials</span><small>${error ? 'Lokale Standardwerte angezeigt · Datenbank prüfen' : 'Aus der Datenbank geladen'}</small>`;
-  list.appendChild(summary);
-
-  for (const item of rows) {
-    const row = document.createElement('div');
-    row.className = 'admin-list-row';
-    const hasId = item.id != null;
-    const iconSrc = item.platform === 'twitch' ? 'assets/social/twitch.svg'
-      : item.platform === 'tiktok' ? 'assets/social/tiktok.svg'
-      : item.platform === 'whatsapp' ? 'assets/social/whatsapp.svg' : null;
-
-    row.innerHTML = `
-      <div class="admin-row-main">
-        ${iconSrc ? `<img class="admin-social-icon" src="${iconSrc}" alt="">` : `<span class="admin-icon">${escapeHtml(String(item.platform).slice(0,2).toUpperCase())}</span>`}
-        <div><strong>${escapeHtml(item.label)}</strong><small>${escapeHtml(item.platform)}</small></div>
-      </div>
-      <input data-social-url="${escapeAttr(item.platform)}" value="${escapeAttr(item.url)}">
-      <label class="admin-check"><input type="checkbox" data-social-enabled="${escapeAttr(item.platform)}" ${item.enabled ? 'checked' : ''}> aktiv</label>
-      <button class="button button-small" data-save-social="${escapeAttr(item.platform)}">${hasId ? 'Speichern' : 'In DB anlegen'}</button>
-      <button class="button button-small button-danger" data-delete-social="${escapeAttr(item.platform)}" ${hasId ? '' : 'disabled'}>Löschen</button>
-    `;
-    list.appendChild(row);
-  }
-
-  list.querySelectorAll('[data-save-social]').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const platform = btn.dataset.saveSocial;
-      const url = list.querySelector(`[data-social-url="${CSS.escape(platform)}"]`).value.trim();
-      const enabled = list.querySelector(`[data-social-enabled="${CSS.escape(platform)}"]`).checked;
-      if (!isSafeHttpUrl(url)) return message('social-message', 'Bitte eine gültige http(s)-URL verwenden.');
-
-      const { data: existing } = await supabaseClient.from('social_links').select('id').eq('platform', platform).maybeSingle();
-      let result;
-      if (existing?.id) {
-        result = await supabaseClient.from('social_links').update({ url, enabled, updated_at: new Date().toISOString() }).eq('id', existing.id);
-      } else {
-        const order = fallback.find(x => x.platform === platform)?.sort_order || 10;
-        result = await supabaseClient.from('social_links').upsert({ platform, label: platform, url, enabled, sort_order: order }, { onConflict: 'platform' });
-      }
-      if (result.error) message('social-message', result.error.message);
-      else {
-        message('social-message', 'Social-Link gespeichert.', true);
-        saveStamp();
-        await loadSocials();
-      }
-    });
+  const byPlatform = new Map((data || []).map(row => [row.platform, row]));
+  document.querySelectorAll('.social-admin-row').forEach(row => {
+    const platform = row.dataset.social;
+    const db = byPlatform.get(platform);
+    const url = db?.url || fallback[platform];
+    row.querySelector('.social-url').value = url;
+    row.querySelector('.social-enabled').checked = db?.enabled !== false;
+    row.dataset.dbId = db?.id || '';
   });
 
-  list.querySelectorAll('[data-delete-social]').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const platform = btn.dataset.deleteSocial;
-      const { data: existing } = await supabaseClient.from('social_links').select('id').eq('platform', platform).maybeSingle();
-      if (!existing?.id) return;
-      if (!confirm('Social-Link wirklich löschen?')) return;
-      const { error } = await supabaseClient.from('social_links').delete().eq('id', existing.id);
-      if (error) message('social-message', error.message);
-      else {
-        message('social-message', 'Social-Link gelöscht.', true);
-        saveStamp();
-        await loadSocials();
-      }
-    });
+  const state = $('socials-db-state');
+  state.textContent = error ? 'Fallback aktiv' : `${(data || []).length} Socials in DB`;
+
+  document.querySelectorAll('.social-save').forEach(btn => {
+    btn.onclick = async () => {
+      const row = btn.closest('.social-admin-row');
+      const platform = row.dataset.social;
+      const url = row.querySelector('.social-url').value.trim();
+      const enabled = row.querySelector('.social-enabled').checked;
+      if (!isSafeHttpUrl(url)) return message('social-message', 'Bitte eine gültige http(s)-URL verwenden.');
+
+      const patch = { platform, label: platform === 'twitch' ? 'Twitch' : platform === 'tiktok' ? 'TikTok' : 'WhatsApp', url, enabled, sort_order: platform === 'twitch' ? 1 : platform === 'tiktok' ? 2 : 3, updated_at: new Date().toISOString() };
+      const result = await supabaseClient.from('social_links').upsert(patch, { onConflict: 'platform' });
+      if (result.error) message('social-message', result.error.message);
+      else { message('social-message', `${patch.label} gespeichert.`, true); saveStamp(); await loadSocials(); }
+    };
+  });
+
+  document.querySelectorAll('.social-delete').forEach(btn => {
+    btn.onclick = async () => {
+      const row = btn.closest('.social-admin-row');
+      const platform = row.dataset.social;
+      if (!confirm(`${platform} wirklich löschen?`)) return;
+      const result = await supabaseClient.from('social_links').delete().eq('platform', platform);
+      if (result.error) message('social-message', result.error.message);
+      else { message('social-message', 'Social gelöscht.', true); saveStamp(); await loadSocials(); }
+    };
   });
 }
 
 async function loadGames() {
-  const fallbackGames = [
-    { id: null, name: 'Fortnite', description: 'Main Game · Ranked · Community', tag: 'MAIN GAME', image_url: 'https://cdn.startselect.com/production/blog/preview-images/new-fortnite-season.jpg', featured: true, sort_order: 1, enabled: true },
-    { id: null, name: 'GTA V', description: 'Open World · Aktuell · Fun', tag: 'AKTUELL', image_url: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/271590/header.jpg', featured: false, sort_order: 2, enabled: true },
-    { id: null, name: 'Thick As Thieves', description: 'Stealth · Heist · Community', tag: 'VARIETY', image_url: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/3341000/header.jpg', featured: false, sort_order: 3, enabled: true }
-  ];
+  const fallback = {
+    'Fortnite': { description: 'Main Game · Ranked · Community', enabled: true, featured: true, image_url: 'https://cdn.startselect.com/production/blog/preview-images/new-fortnite-season.jpg', sort_order: 1 },
+    'GTA V': { description: 'Open World · Aktuell · Fun', enabled: true, featured: false, image_url: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/271590/header.jpg', sort_order: 2 },
+    'Thick As Thieves': { description: 'Stealth · Heist · Community', enabled: true, featured: false, image_url: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/3341000/header.jpg', sort_order: 3 }
+  };
+
+  // Remove discontinued game in the current DB if it still exists.
+  await supabaseClient.from('games').delete().eq('name', 'Meccha Chameleon');
 
   const { data, error } = await supabaseClient
     .from('games')
     .select('*')
-    .neq('name', 'Meccha Chameleon')
     .order('sort_order');
 
-  cachedGames = (data && data.length ? data : fallbackGames).map((row) => {
-    const canonical = fallbackGames.find((g) => g.name === row.name);
-    return canonical ? {
-      ...canonical,
-      ...row,
-      image_url: canonical.image_url,
-      featured: row.featured ?? canonical.featured
-    } : row;
+  const byName = new Map((data || []).map(row => [row.name, row]));
+
+  document.querySelectorAll('.game-admin-row').forEach(row => {
+    const name = row.dataset.game;
+    const seed = fallback[name];
+    const db = byName.get(name);
+    if (!seed) return;
+
+    row.querySelector('.game-description').value = db?.description || seed.description;
+    row.querySelector('.game-enabled').checked = db?.enabled !== false;
+    row.querySelector('.game-featured').checked = db?.featured === true || (!db && seed.featured);
+    row.dataset.dbId = db?.id || '';
   });
 
-  renderGameOptions();
-  const list = $('games-list');
-  if (!list) return;
-  list.innerHTML = '';
+  const state = $('games-db-state');
+  state.textContent = error ? 'Fallback aktiv' : `${['Fortnite','GTA V','Thick As Thieves'].filter(n => byName.has(n)).length} Games in DB`;
 
-  const count = cachedGames.length;
-  const header = document.createElement('div');
-  header.className = 'admin-list-summary';
-  header.innerHTML = `<span>${count} Games</span><small>${error ? 'Lokale Standardwerte angezeigt · Datenbank prüfen' : 'Aus der Datenbank geladen'}</small>`;
-  list.appendChild(header);
+  document.querySelectorAll('.game-save').forEach(btn => {
+    btn.onclick = async () => {
+      const row = btn.closest('.game-admin-row');
+      const name = row.dataset.game;
+      const seed = fallback[name];
+      const description = row.querySelector('.game-description').value.trim();
+      const enabled = row.querySelector('.game-enabled').checked;
+      const featured = row.querySelector('.game-featured').checked;
 
-  for (let i = 0; i < cachedGames.length; i++) {
-    const item = cachedGames[i];
-    const row = document.createElement('div');
-    row.className = 'admin-list-row admin-game-row';
-    const hasId = item.id != null;
-    row.innerHTML = `
-      <div class="admin-row-main">
-        <span class="admin-rank">${String(i+1).padStart(2,'0')}</span>
-        <div><strong>${escapeHtml(item.name)}</strong><small>${escapeHtml(item.description || item.tag || '')}</small></div>
-      </div>
-      <input data-game-description="${escapeAttr(item.name)}" value="${escapeAttr(item.description || '')}" placeholder="Beschreibung">
-      <label class="admin-check"><input type="checkbox" data-game-enabled="${escapeAttr(item.name)}" ${item.enabled ? 'checked' : ''}> sichtbar</label>
-      <label class="admin-check"><input type="radio" name="featured-game" data-game-featured="${escapeAttr(item.name)}" ${item.featured ? 'checked' : ''}> Main Game</label>
-      <div class="admin-row-actions">
-        <button class="button button-small" data-game-up="${escapeAttr(item.name)}" ${i === 0 ? 'disabled' : ''}>↑</button>
-        <button class="button button-small" data-game-down="${escapeAttr(item.name)}" ${i === cachedGames.length-1 ? 'disabled' : ''}>↓</button>
-        <button class="button button-small" data-game-save="${escapeAttr(item.name)}">${hasId ? 'Speichern' : 'In DB anlegen'}</button>
-        <button class="button button-small button-danger" data-delete-game="${escapeAttr(item.name)}" ${hasId ? '' : 'disabled'}>Löschen</button>
-      </div>
-    `;
-    list.appendChild(row);
-  }
+      const result = await supabaseClient.from('games').upsert({
+        name,
+        description: description || seed.description,
+        tag: name === 'Fortnite' ? 'MAIN GAME' : name === 'GTA V' ? 'AKTUELL' : 'VARIETY',
+        image_url: seed.image_url,
+        enabled,
+        featured,
+        sort_order: seed.sort_order,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'name' });
 
-  list.querySelectorAll('[data-game-save]').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const name = btn.dataset.gameSave;
-      const item = cachedGames.find(g => g.name === name);
-      if (!item) return;
-      const desc = list.querySelector(`[data-game-description="${CSS.escape(name)}"]`).value.trim();
-      const enabled = list.querySelector(`[data-game-enabled="${CSS.escape(name)}"]`).checked;
-      const featured = list.querySelector(`[data-game-featured="${CSS.escape(name)}"]`).checked;
-
-      if (item.id == null) {
-        const { error } = await supabaseClient.from('games').upsert({
-          name: item.name,
-          description: desc || item.description,
-          tag: item.tag,
-          image_url: item.image_url,
-          enabled,
-          featured,
-          sort_order: item.sort_order
-        }, { onConflict: 'name' });
-        if (error) return message('games-message', error.message);
-        message('games-message', `${item.name} wurde in die Datenbank übernommen.`, true);
-      } else {
-        await updateGame(item.id, { description: desc, enabled, featured });
-        return;
-      }
-      saveStamp();
-      await loadGames();
-    });
+      if (result.error) message('games-message', result.error.message);
+      else { message('games-message', `${name} gespeichert.`, true); saveStamp(); await loadGames(); }
+    };
   });
 
-  list.querySelectorAll('[data-game-enabled], [data-game-featured]').forEach(input => {
-    input.addEventListener('change', async () => {
-      const name = input.dataset.gameEnabled || input.dataset.gameFeatured;
-      const item = cachedGames.find(g => g.name === name);
-      if (!item || item.id == null) return;
-      const enabled = list.querySelector(`[data-game-enabled="${CSS.escape(name)}"]`).checked;
-      const featured = list.querySelector(`[data-game-featured="${CSS.escape(name)}"]`).checked;
-      await updateGame(item.id, { enabled, featured });
-    });
-  });
-
-  list.querySelectorAll('[data-game-up]').forEach(btn => btn.addEventListener('click', () => moveGame(btn.dataset.gameUp, -1)));
-  list.querySelectorAll('[data-game-down]').forEach(btn => btn.addEventListener('click', () => moveGame(btn.dataset.gameDown, 1)));
-
-  list.querySelectorAll('[data-delete-game]').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const name = btn.dataset.deleteGame;
-      const item = cachedGames.find(g => g.name === name);
-      if (!item || item.id == null) return;
+  document.querySelectorAll('.game-delete').forEach(btn => {
+    btn.onclick = async () => {
+      const row = btn.closest('.game-admin-row');
+      const name = row.dataset.game;
       if (!confirm(`${name} wirklich löschen?`)) return;
-      const { error } = await supabaseClient.from('games').delete().eq('id', item.id);
-      if (error) message('games-message', error.message);
-      else {
-        message('games-message', 'Game gelöscht.', true);
-        saveStamp();
-        await loadGames();
-      }
-    });
+      const result = await supabaseClient.from('games').delete().eq('name', name);
+      if (result.error) message('games-message', result.error.message);
+      else { message('games-message', `${name} gelöscht.`, true); saveStamp(); await loadGames(); }
+    };
   });
-}
-
-async function updateGame(id, patch) {
-  const { error } = await supabaseClient
-    .from('games')
-    .update({ ...patch, updated_at: new Date().toISOString() })
-    .eq('id', id);
-
-  if (error) message('games-message', error.message);
-  else {
-    message('games-message', 'Game gespeichert.', true);
-    saveStamp();
-    await loadGames();
-  }
-}
-
-async function moveGame(name, direction) {
-  const index = cachedGames.findIndex(g => g.name === name);
-  const target = index + direction;
-  if (index < 0 || target < 0 || target >= cachedGames.length) return;
-
-  const a = cachedGames[index];
-  const b = cachedGames[target];
-  if (a.id == null || b.id == null) {
-    message('games-message', 'Bitte die Standard-Games zuerst in die Datenbank übernehmen.');
-    return;
-  }
-
-  const first = await supabaseClient.from('games').update({ sort_order: b.sort_order }).eq('id', a.id);
-  if (first.error) return message('games-message', first.error.message);
-  const second = await supabaseClient.from('games').update({ sort_order: a.sort_order }).eq('id', b.id);
-  if (second.error) return message('games-message', second.error.message);
-
-  saveStamp();
-  await loadGames();
-}
-
-async function addGame() {
-  const name = $('new-game-name').value.trim();
-  const tag = $('new-game-tag').value.trim() || 'VARIETY';
-  const description = $('new-game-description').value.trim() || tag;
-  if (!name) return message('games-message', 'Bitte einen Namen eingeben.');
-
-  const maxOrder = Math.max(0, ...cachedGames.map(g => Number(g.sort_order) || 0));
-  const { error } = await supabaseClient.from('games').insert({
-    name, tag, description, sort_order: maxOrder + 1
-  });
-
-  if (error) message('games-message', error.message);
-  else {
-    $('new-game-name').value = '';
-    $('new-game-tag').value = '';
-    $('new-game-description').value = '';
-    message('games-message', 'Game hinzugefügt.', true);
-    saveStamp();
-    await loadGames();
-  }
-}
-
-async function addSocial() {
-  const platform = $('new-social-platform').value.trim().toLowerCase();
-  const label = $('new-social-label').value.trim() || platform;
-  const url = $('new-social-url').value.trim();
-  if (!platform || !url) return message('social-message', 'Plattform und URL sind erforderlich.');
-  if (!isSafeHttpUrl(url)) return message('social-message', 'Bitte eine gültige http(s)-URL verwenden.');
-
-  const { data: maxRows } = await supabaseClient
-    .from('social_links').select('sort_order').order('sort_order', { ascending: false }).limit(1);
-  const sortOrder = Number(maxRows?.[0]?.sort_order || 0) + 1;
-
-  const { error } = await supabaseClient.from('social_links').insert({
-    platform, label, url, sort_order: sortOrder
-  });
-
-  if (error) message('social-message', error.message);
-  else {
-    $('new-social-platform').value = '';
-    $('new-social-label').value = '';
-    $('new-social-url').value = '';
-    message('social-message', 'Social-Link hinzugefügt.', true);
-    saveStamp();
-    await loadSocials();
-  }
 }
 
 async function loadTwitchStatus() {

@@ -154,3 +154,13 @@ Meccha Chameleon has been removed. The current game lineup is Fortnite, GTA V, a
 ## V2.4.7: Admin content + social icon fix
 
 The admin dashboard now always displays the three current games and three current social platforms, even when the database is empty or a read is temporarily unavailable. Standard items can be saved directly into the database from the admin UI. Social cards use local SVG icon assets for Twitch, TikTok and WhatsApp.
+
+
+## V2.4.8: Stable admin editors
+
+Games and Socials are now rendered as stable, always-visible admin rows. Supabase data hydrates these rows instead of dynamically creating the editor DOM, so the existing items remain visible even if a database read is delayed or empty.
+
+
+## V2.4.9: Social icon path fix
+
+Social SVG icons for Twitch, TikTok and WhatsApp are included in the repository and referenced with root-relative paths so they also load correctly from `/admin.html`.

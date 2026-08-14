@@ -227,3 +227,33 @@
 .admin-list-summary{display:flex;justify-content:space-between;gap:14px;align-items:center;padding:10px 12px;margin-bottom:9px;border:1px solid rgba(255,255,255,.06);border-radius:10px;background:#0b0b10;color:#d4d4d8;font-size:12px}
 .admin-list-summary small{color:#a1a1aa}
 .admin-social-icon{width:30px;height:30px;display:block;color:#d8b4fe;object-fit:contain}
+
+/* V2.4.8 stable admin tables */
+.admin-table{display:grid;gap:8px}
+.admin-table-row{display:grid;grid-template-columns:minmax(190px,1.1fr) minmax(230px,1.5fr) 90px 110px minmax(160px,auto);gap:10px;align-items:center;padding:12px;border:1px solid rgba(255,255,255,.07);border-radius:12px;background:#0d0d13}
+.admin-table-head{background:transparent;border:0;color:#71717a;font-size:11px;text-transform:uppercase;letter-spacing:.08em}
+.admin-table-head span{padding:0 6px}
+.admin-game-row .admin-row-main,.social-admin-row .admin-row-main{min-width:0}
+@media(max-width:1050px){
+  .admin-table-row{grid-template-columns:1fr 1fr;align-items:start}
+  .admin-table-head{display:none}
+  .admin-row-actions{justify-content:flex-start}
+}
+@media(max-width:680px){
+  .admin-table-row{grid-template-columns:1fr}
+}
+
+/* V2.4.9: social icon reliability */
+.admin-social-icon, .social-icon-img{
+  display:block;
+  width:30px;
+  height:30px;
+  min-width:30px;
+  min-height:30px;
+  object-fit:contain;
+  color:#d8b4fe;
+}
+.social-icon-img{
+  width:26px;
+  height:26px;
+}
