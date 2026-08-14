@@ -169,3 +169,8 @@ Social SVG icons for Twitch, TikTok and WhatsApp are included in the repository 
 ## V2.4.10: Admin initialization fix
 
 The admin login now waits for the Supabase configuration and client initialization before enabling the login button. If the configuration endpoint or Supabase library fails, the page shows a direct diagnostic instead of `Cannot read properties of null (reading 'auth')`.
+
+
+## V2.4.12: Final Meccha cleanup
+
+All Meccha-like legacy game rows are filtered from the public API and client, and the admin now removes any database row whose name contains "meccha". A manual cleanup button and SQL file are included as a final safeguard.

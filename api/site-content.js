@@ -54,7 +54,11 @@ export default async function handler(_req, res) {
 
     const settings = { ...fallback.settings, ...(settingsRows[0] || {}) };
     const socials = socialsRows.length ? socialsRows : fallback.socials;
-    const games = gamesRows.length ? gamesRows : fallback.games;
+    const games = gamesRows
+      .filter((game) => !/meccha/i.test(String(game.name || '')))
+      .length
+      ? gamesRows.filter((game) => !/meccha/i.test(String(game.name || '')))
+      : fallback.games;
 
     // Canonical artwork for the four current ACYJANNIK games.
     // This intentionally overrides legacy/placeholder image_url values stored in Supabase.
@@ -71,7 +75,7 @@ export default async function handler(_req, res) {
 
     // Prevent accidental disappearance of the required current games.
     const required = new Map(fallback.games.map(g => [g.name, g]));
-    const mergedGames = [...normalizedGames];
+    const mergedGames = normalizedGames.filter((game) => !/meccha/i.test(String(game.name || '')));
     for (const fallbackGame of fallback.games) {
       if (!mergedGames.some(g => g.name === fallbackGame.name)) {
         mergedGames.push(fallbackGame);

@@ -117,7 +117,10 @@ function bindTabs() {
 
 async function ensureDefaultContent() {
   // Remove the discontinued game from older database versions.
-  await supabaseClient.from('games').delete().eq('name', 'Meccha Chameleon');
+  await supabaseClient
+    .from('games')
+    .delete()
+    .ilike('name', '%meccha%');
 
   const defaultSocials = [
     { platform: 'twitch', label: 'Twitch', url: 'https://www.twitch.tv/acyjannik', sort_order: 1 },
@@ -270,7 +273,10 @@ async function loadGames() {
   };
 
   // Remove discontinued game in the current DB if it still exists.
-  await supabaseClient.from('games').delete().eq('name', 'Meccha Chameleon');
+  await supabaseClient
+    .from('games')
+    .delete()
+    .ilike('name', '%meccha%');
 
   const { data, error } = await supabaseClient
     .from('games')
@@ -388,6 +394,21 @@ async function addSocial() {
   }
 }
 
+
+async function cleanupMecchaRows() {
+  const { error } = await supabaseClient
+    .from('games')
+    .delete()
+    .ilike('name', '%meccha%');
+
+  if (error) {
+    message('games-message', error.message);
+    return;
+  }
+  message('games-message', 'Alte „Meccha“-Einträge wurden gelöscht.', true);
+  saveStamp();
+  await loadGames();
+}
 async function loadTwitchStatus() {
   try {
     const r = await fetch('/api/twitch-status', { cache: 'no-store' });
@@ -588,6 +609,7 @@ function bindAdminEvents() {
   });
 
   $('add-game-btn')?.addEventListener('click', addGame);
+$('cleanup-meccha-btn')?.addEventListener('click', cleanupMecchaRows);
   $('add-social-btn')?.addEventListener('click', addSocial);
   $('upload-media-btn')?.addEventListener('click', uploadMedia);
 
