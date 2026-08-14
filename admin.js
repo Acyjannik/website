@@ -83,6 +83,9 @@ function bindTabs() {
 
 
 async function ensureDefaultContent() {
+  // Remove the discontinued game from older database versions.
+  await supabaseClient.from('games').delete().eq('name', 'Meccha Chameleon');
+
   const defaultSocials = [
     { platform: 'twitch', label: 'Twitch', url: 'https://www.twitch.tv/acyjannik', sort_order: 1 },
     { platform: 'tiktok', label: 'TikTok', url: 'https://www.tiktok.com/@acyjannik', sort_order: 2 },
@@ -90,10 +93,9 @@ async function ensureDefaultContent() {
   ];
 
   const defaultGames = [
-    { name: 'Fortnite', description: 'Main Game · Ranked · Community', tag: 'MAIN GAME', image_url: 'https://commons.wikimedia.org/wiki/Special:Redirect/file/Fortnite_at_E3_2018_(42719678112).jpg', featured: true, sort_order: 1 },
+    { name: 'Fortnite', description: 'Main Game · Ranked · Community', tag: 'MAIN GAME', image_url: 'https://cdn.startselect.com/production/blog/preview-images/new-fortnite-season.jpg', featured: true, sort_order: 1 },
     { name: 'GTA V', description: 'Open World · Aktuell · Fun', tag: 'AKTUELL', image_url: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/271590/header.jpg', featured: false, sort_order: 2 },
-    { name: 'Meccha Chameleon', description: 'Variety · Hide & Seek · Community', tag: 'VARIETY', image_url: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/4704690/header.jpg', featured: false, sort_order: 3 },
-    { name: 'Thick As Thieves', description: 'Stealth · Heist · Community', tag: 'VARIETY', image_url: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/3341000/header.jpg', featured: false, sort_order: 4 }
+    { name: 'Thick As Thieves', description: 'Stealth · Heist · Community', tag: 'VARIETY', image_url: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/3341000/header.jpg', featured: false, sort_order: 3 }
   ];
 
   const { data: existingSocials } = await supabaseClient.from('social_links').select('*');
@@ -106,9 +108,6 @@ async function ensureDefaultContent() {
       const patch = {};
       if (!current.url) patch.url = seed.url;
       if (!current.label) patch.label = seed.label;
-      if (current.enabled === false) {
-        // Don't force an intentionally disabled admin item back on.
-      }
       if (Object.keys(patch).length) {
         patch.updated_at = new Date().toISOString();
         await supabaseClient.from('social_links').update(patch).eq('id', current.id);
@@ -128,7 +127,7 @@ async function ensureDefaultContent() {
     const patch = {};
     if (!current.description) patch.description = seed.description;
     if (!current.tag) patch.tag = seed.tag;
-    if (['Fortnite','GTA V','Meccha Chameleon','Thick As Thieves'].includes(current.name) && current.image_url !== seed.image_url) patch.image_url = seed.image_url;
+    if (current.image_url !== seed.image_url) patch.image_url = seed.image_url;
     if (current.sort_order == null) patch.sort_order = seed.sort_order;
     if (seed.name === 'Fortnite' && current.featured !== true) patch.featured = true;
     if (Object.keys(patch).length) {
@@ -179,64 +178,78 @@ function updatePreview(settings) {
 }
 
 async function loadSocials() {
+  const fallback = [
+    { id: null, platform: 'twitch', label: 'Twitch', url: 'https://www.twitch.tv/acyjannik', enabled: true, sort_order: 1 },
+    { id: null, platform: 'tiktok', label: 'TikTok', url: 'https://www.tiktok.com/@acyjannik', enabled: true, sort_order: 2 },
+    { id: null, platform: 'whatsapp', label: 'WhatsApp', url: 'https://www.whatsapp.com/channel/0029VazFA8UIXnlmgPliHQ10', enabled: true, sort_order: 3 }
+  ];
+
   const { data, error } = await supabaseClient
     .from('social_links')
     .select('*')
     .order('sort_order');
 
-  if (error) {
-    message('social-message', error.message);
-    return;
-  }
-
+  const rows = (data && data.length ? data : fallback);
   const list = $('social-list');
   list.innerHTML = '';
 
-  for (const item of data || []) {
+  const summary = document.createElement('div');
+  summary.className = 'admin-list-summary';
+  summary.innerHTML = `<span>${rows.length} Socials</span><small>${error ? 'Lokale Standardwerte angezeigt · Datenbank prüfen' : 'Aus der Datenbank geladen'}</small>`;
+  list.appendChild(summary);
+
+  for (const item of rows) {
     const row = document.createElement('div');
     row.className = 'admin-list-row';
+    const hasId = item.id != null;
+    const iconSrc = item.platform === 'twitch' ? 'assets/social/twitch.svg'
+      : item.platform === 'tiktok' ? 'assets/social/tiktok.svg'
+      : item.platform === 'whatsapp' ? 'assets/social/whatsapp.svg' : null;
+
     row.innerHTML = `
       <div class="admin-row-main">
-        <span class="admin-icon">${escapeHtml(String(item.platform).slice(0,2).toUpperCase())}</span>
+        ${iconSrc ? `<img class="admin-social-icon" src="${iconSrc}" alt="">` : `<span class="admin-icon">${escapeHtml(String(item.platform).slice(0,2).toUpperCase())}</span>`}
         <div><strong>${escapeHtml(item.label)}</strong><small>${escapeHtml(item.platform)}</small></div>
       </div>
-      <input data-social-url="${item.id}" value="${escapeAttr(item.url)}">
-      <label class="admin-check"><input type="checkbox" data-social-enabled="${item.id}" ${item.enabled ? 'checked' : ''}> aktiv</label>
-      <button class="button button-small" data-save-social="${item.id}">Speichern</button>
-      <button class="button button-small button-danger" data-delete-social="${item.id}">Löschen</button>
+      <input data-social-url="${escapeAttr(item.platform)}" value="${escapeAttr(item.url)}">
+      <label class="admin-check"><input type="checkbox" data-social-enabled="${escapeAttr(item.platform)}" ${item.enabled ? 'checked' : ''}> aktiv</label>
+      <button class="button button-small" data-save-social="${escapeAttr(item.platform)}">${hasId ? 'Speichern' : 'In DB anlegen'}</button>
+      <button class="button button-small button-danger" data-delete-social="${escapeAttr(item.platform)}" ${hasId ? '' : 'disabled'}>Löschen</button>
     `;
     list.appendChild(row);
   }
 
   list.querySelectorAll('[data-save-social]').forEach(btn => {
     btn.addEventListener('click', async () => {
-      const id = btn.dataset.saveSocial;
-      const url = list.querySelector(`[data-social-url="${id}"]`).value.trim();
-      const enabled = list.querySelector(`[data-social-enabled="${id}"]`).checked;
+      const platform = btn.dataset.saveSocial;
+      const url = list.querySelector(`[data-social-url="${CSS.escape(platform)}"]`).value.trim();
+      const enabled = list.querySelector(`[data-social-enabled="${CSS.escape(platform)}"]`).checked;
+      if (!isSafeHttpUrl(url)) return message('social-message', 'Bitte eine gültige http(s)-URL verwenden.');
 
-      if (!isSafeHttpUrl(url)) {
-        message('social-message', 'Bitte eine gültige http(s)-URL verwenden.');
-        return;
+      const { data: existing } = await supabaseClient.from('social_links').select('id').eq('platform', platform).maybeSingle();
+      let result;
+      if (existing?.id) {
+        result = await supabaseClient.from('social_links').update({ url, enabled, updated_at: new Date().toISOString() }).eq('id', existing.id);
+      } else {
+        const order = fallback.find(x => x.platform === platform)?.sort_order || 10;
+        result = await supabaseClient.from('social_links').upsert({ platform, label: platform, url, enabled, sort_order: order }, { onConflict: 'platform' });
       }
-
-      const { error } = await supabaseClient
-        .from('social_links')
-        .update({ url, enabled, updated_at: new Date().toISOString() })
-        .eq('id', id);
-
-      if (error) message('social-message', error.message);
+      if (result.error) message('social-message', result.error.message);
       else {
         message('social-message', 'Social-Link gespeichert.', true);
         saveStamp();
+        await loadSocials();
       }
     });
   });
 
   list.querySelectorAll('[data-delete-social]').forEach(btn => {
     btn.addEventListener('click', async () => {
-      const id = btn.dataset.deleteSocial;
+      const platform = btn.dataset.deleteSocial;
+      const { data: existing } = await supabaseClient.from('social_links').select('id').eq('platform', platform).maybeSingle();
+      if (!existing?.id) return;
       if (!confirm('Social-Link wirklich löschen?')) return;
-      const { error } = await supabaseClient.from('social_links').delete().eq('id', id);
+      const { error } = await supabaseClient.from('social_links').delete().eq('id', existing.id);
       if (error) message('social-message', error.message);
       else {
         message('social-message', 'Social-Link gelöscht.', true);
@@ -248,38 +261,57 @@ async function loadSocials() {
 }
 
 async function loadGames() {
+  const fallbackGames = [
+    { id: null, name: 'Fortnite', description: 'Main Game · Ranked · Community', tag: 'MAIN GAME', image_url: 'https://cdn.startselect.com/production/blog/preview-images/new-fortnite-season.jpg', featured: true, sort_order: 1, enabled: true },
+    { id: null, name: 'GTA V', description: 'Open World · Aktuell · Fun', tag: 'AKTUELL', image_url: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/271590/header.jpg', featured: false, sort_order: 2, enabled: true },
+    { id: null, name: 'Thick As Thieves', description: 'Stealth · Heist · Community', tag: 'VARIETY', image_url: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/3341000/header.jpg', featured: false, sort_order: 3, enabled: true }
+  ];
+
   const { data, error } = await supabaseClient
     .from('games')
     .select('*')
+    .neq('name', 'Meccha Chameleon')
     .order('sort_order');
 
-  if (error) {
-    message('games-message', error.message);
-    return;
-  }
+  cachedGames = (data && data.length ? data : fallbackGames).map((row) => {
+    const canonical = fallbackGames.find((g) => g.name === row.name);
+    return canonical ? {
+      ...canonical,
+      ...row,
+      image_url: canonical.image_url,
+      featured: row.featured ?? canonical.featured
+    } : row;
+  });
 
-  cachedGames = data || [];
   renderGameOptions();
   const list = $('games-list');
+  if (!list) return;
   list.innerHTML = '';
+
+  const count = cachedGames.length;
+  const header = document.createElement('div');
+  header.className = 'admin-list-summary';
+  header.innerHTML = `<span>${count} Games</span><small>${error ? 'Lokale Standardwerte angezeigt · Datenbank prüfen' : 'Aus der Datenbank geladen'}</small>`;
+  list.appendChild(header);
 
   for (let i = 0; i < cachedGames.length; i++) {
     const item = cachedGames[i];
     const row = document.createElement('div');
     row.className = 'admin-list-row admin-game-row';
+    const hasId = item.id != null;
     row.innerHTML = `
       <div class="admin-row-main">
         <span class="admin-rank">${String(i+1).padStart(2,'0')}</span>
         <div><strong>${escapeHtml(item.name)}</strong><small>${escapeHtml(item.description || item.tag || '')}</small></div>
       </div>
-      <input data-game-description="${item.id}" value="${escapeAttr(item.description || '')}" placeholder="Beschreibung">
-      <label class="admin-check"><input type="checkbox" data-game-enabled="${item.id}" ${item.enabled ? 'checked' : ''}> sichtbar</label>
-      <label class="admin-check"><input type="radio" name="featured-game" data-game-featured="${item.id}" ${item.featured ? 'checked' : ''}> Main Game</label>
+      <input data-game-description="${escapeAttr(item.name)}" value="${escapeAttr(item.description || '')}" placeholder="Beschreibung">
+      <label class="admin-check"><input type="checkbox" data-game-enabled="${escapeAttr(item.name)}" ${item.enabled ? 'checked' : ''}> sichtbar</label>
+      <label class="admin-check"><input type="radio" name="featured-game" data-game-featured="${escapeAttr(item.name)}" ${item.featured ? 'checked' : ''}> Main Game</label>
       <div class="admin-row-actions">
-        <button class="button button-small" data-game-up="${item.id}" ${i === 0 ? 'disabled' : ''}>↑</button>
-        <button class="button button-small" data-game-down="${item.id}" ${i === cachedGames.length-1 ? 'disabled' : ''}>↓</button>
-        <button class="button button-small" data-game-save="${item.id}">Speichern</button>
-        <button class="button button-small button-danger" data-delete-game="${item.id}">Löschen</button>
+        <button class="button button-small" data-game-up="${escapeAttr(item.name)}" ${i === 0 ? 'disabled' : ''}>↑</button>
+        <button class="button button-small" data-game-down="${escapeAttr(item.name)}" ${i === cachedGames.length-1 ? 'disabled' : ''}>↓</button>
+        <button class="button button-small" data-game-save="${escapeAttr(item.name)}">${hasId ? 'Speichern' : 'In DB anlegen'}</button>
+        <button class="button button-small button-danger" data-delete-game="${escapeAttr(item.name)}" ${hasId ? '' : 'disabled'}>Löschen</button>
       </div>
     `;
     list.appendChild(row);
@@ -287,23 +319,42 @@ async function loadGames() {
 
   list.querySelectorAll('[data-game-save]').forEach(btn => {
     btn.addEventListener('click', async () => {
-      const id = btn.dataset.gameSave;
-      const desc = list.querySelector(`[data-game-description="${id}"]`).value.trim();
-      const enabled = list.querySelector(`[data-game-enabled="${id}"]`).checked;
-      const featured = list.querySelector(`[data-game-featured="${id}"]`).checked;
-      await updateGame(id, { description: desc, enabled, featured });
+      const name = btn.dataset.gameSave;
+      const item = cachedGames.find(g => g.name === name);
+      if (!item) return;
+      const desc = list.querySelector(`[data-game-description="${CSS.escape(name)}"]`).value.trim();
+      const enabled = list.querySelector(`[data-game-enabled="${CSS.escape(name)}"]`).checked;
+      const featured = list.querySelector(`[data-game-featured="${CSS.escape(name)}"]`).checked;
+
+      if (item.id == null) {
+        const { error } = await supabaseClient.from('games').upsert({
+          name: item.name,
+          description: desc || item.description,
+          tag: item.tag,
+          image_url: item.image_url,
+          enabled,
+          featured,
+          sort_order: item.sort_order
+        }, { onConflict: 'name' });
+        if (error) return message('games-message', error.message);
+        message('games-message', `${item.name} wurde in die Datenbank übernommen.`, true);
+      } else {
+        await updateGame(item.id, { description: desc, enabled, featured });
+        return;
+      }
+      saveStamp();
+      await loadGames();
     });
   });
 
   list.querySelectorAll('[data-game-enabled], [data-game-featured]').forEach(input => {
     input.addEventListener('change', async () => {
-      const id = input.dataset.gameEnabled || input.dataset.gameFeatured;
-      const enabledEl = list.querySelector(`[data-game-enabled="${id}"]`);
-      const featuredEl = list.querySelector(`[data-game-featured="${id}"]`);
-      await updateGame(id, {
-        enabled: enabledEl.checked,
-        featured: featuredEl.checked
-      });
+      const name = input.dataset.gameEnabled || input.dataset.gameFeatured;
+      const item = cachedGames.find(g => g.name === name);
+      if (!item || item.id == null) return;
+      const enabled = list.querySelector(`[data-game-enabled="${CSS.escape(name)}"]`).checked;
+      const featured = list.querySelector(`[data-game-featured="${CSS.escape(name)}"]`).checked;
+      await updateGame(item.id, { enabled, featured });
     });
   });
 
@@ -312,8 +363,11 @@ async function loadGames() {
 
   list.querySelectorAll('[data-delete-game]').forEach(btn => {
     btn.addEventListener('click', async () => {
-      if (!confirm('Game wirklich löschen?')) return;
-      const { error } = await supabaseClient.from('games').delete().eq('id', btn.dataset.deleteGame);
+      const name = btn.dataset.deleteGame;
+      const item = cachedGames.find(g => g.name === name);
+      if (!item || item.id == null) return;
+      if (!confirm(`${name} wirklich löschen?`)) return;
+      const { error } = await supabaseClient.from('games').delete().eq('id', item.id);
       if (error) message('games-message', error.message);
       else {
         message('games-message', 'Game gelöscht.', true);
@@ -338,19 +392,21 @@ async function updateGame(id, patch) {
   }
 }
 
-async function moveGame(id, direction) {
-  const index = cachedGames.findIndex(g => String(g.id) === String(id));
+async function moveGame(name, direction) {
+  const index = cachedGames.findIndex(g => g.name === name);
   const target = index + direction;
   if (index < 0 || target < 0 || target >= cachedGames.length) return;
 
   const a = cachedGames[index];
   const b = cachedGames[target];
-  const aOrder = a.sort_order;
-  const bOrder = b.sort_order;
+  if (a.id == null || b.id == null) {
+    message('games-message', 'Bitte die Standard-Games zuerst in die Datenbank übernehmen.');
+    return;
+  }
 
-  const first = await supabaseClient.from('games').update({ sort_order: bOrder }).eq('id', a.id);
+  const first = await supabaseClient.from('games').update({ sort_order: b.sort_order }).eq('id', a.id);
   if (first.error) return message('games-message', first.error.message);
-  const second = await supabaseClient.from('games').update({ sort_order: aOrder }).eq('id', b.id);
+  const second = await supabaseClient.from('games').update({ sort_order: a.sort_order }).eq('id', b.id);
   if (second.error) return message('games-message', second.error.message);
 
   saveStamp();

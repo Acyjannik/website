@@ -168,7 +168,6 @@ async function loadPublicContent() {
     const canonicalCovers = {
       'Fortnite': 'https://cdn.startselect.com/production/blog/preview-images/new-fortnite-season.jpg',
       'GTA V': 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/271590/header.jpg',
-      'Meccha Chameleon': 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/4704690/header.jpg',
       'Thick As Thieves': 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/3341000/header.jpg'
     };
     const games = (Array.isArray(payload.games) && payload.games.length ? payload.games : fallbackGames)

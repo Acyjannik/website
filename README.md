@@ -144,3 +144,13 @@ Artwork remains owned by its respective rights holders where applicable. The web
 ## V2.4.5: Game artwork and card layout fix
 
 The current four games now use canonical artwork URLs server-side and client-side, overriding legacy placeholder image URLs that may still exist in Supabase. The cards are also rebuilt as a vertical image + content layout so titles and descriptions no longer sit beside or clip against the cover art.
+
+
+## V2.4.6: Current games cleaned up
+
+Meccha Chameleon has been removed. The current game lineup is Fortnite, GTA V, and Thick As Thieves. Older Meccha rows are automatically removed at admin login, and a cleanup SQL file is included.
+
+
+## V2.4.7: Admin content + social icon fix
+
+The admin dashboard now always displays the three current games and three current social platforms, even when the database is empty or a read is temporarily unavailable. Standard items can be saved directly into the database from the admin UI. Social cards use local SVG icon assets for Twitch, TikTok and WhatsApp.

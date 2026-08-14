@@ -61,7 +61,6 @@ insert into public.games (name, description, tag, image_url, featured, sort_orde
 values
   ('Fortnite', 'Main Game · Ranked · Community', 'MAIN GAME', null, true, 1),
   ('GTA V', 'Aktuell · Open World · Fun', 'AKTUELL', null, false, 2),
-  ('Meccha Chameleon', 'Ab und zu · Variety', 'VARIETY', null, false, 3),
   ('Thick As Thieves', 'Variety · Community · Fun', 'VARIETY', null, false, 4)
 on conflict (name) do nothing;
 
