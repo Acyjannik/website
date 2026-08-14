@@ -59,3 +59,26 @@ Add these in **Project Settings → Environment Variables**:
 Do not place the client secret in front-end files or commit it to GitHub.
 
 The public site polls `/api/twitch-status` every 60 seconds.
+
+
+## V2.3: Admin-Bereich
+
+Admin URL: `/admin.html`
+
+### Supabase setup
+
+1. Create a Supabase project.
+2. In **Authentication → Users**, create the admin email/password account.
+3. Open **SQL Editor** and run `supabase/setup.sql`.
+4. Copy the Auth user's UUID and insert it into `public.admin_users` using the commented SQL line.
+5. In Vercel → Settings → Environment Variables, add:
+   - `SUPABASE_URL`
+   - `SUPABASE_ANON_KEY`
+6. Redeploy the production deployment.
+
+The browser only receives the Supabase URL and the public anon key. Admin write access is controlled by Supabase RLS policies and the `admin_users` table. Never add the Supabase service-role key to the frontend or GitHub.
+
+
+### Public site syncing
+
+The public homepage reads the public `site_settings`, `social_links`, and `games` rows via the Supabase anon key and RLS. If Supabase is not configured yet, the homepage falls back to its built-in static content.

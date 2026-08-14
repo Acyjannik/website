@@ -94,3 +94,84 @@ async function updateTwitchStatus() {
 
 updateTwitchStatus();
 setInterval(updateTwitchStatus, 60000);
+
+
+// Public content layer: reads only public Supabase rows.
+// If Supabase is not configured yet, the static fallback content remains visible.
+async function loadPublicContent() {
+  try {
+    const configResponse = await fetch('/api/config', { cache: 'no-store' });
+    const config = await configResponse.json();
+    if (!config.configured) return;
+
+    const headers = {
+      apikey: config.supabaseAnonKey,
+      Authorization: `Bearer ${config.supabaseAnonKey}`,
+    };
+    const base = `${config.supabaseUrl}/rest/v1`;
+
+    const [settingsRes, socialsRes, gamesRes] = await Promise.all([
+      fetch(`${base}/site_settings?select=*&id=eq.true&limit=1`, { headers, cache: 'no-store' }),
+      fetch(`${base}/social_links?select=*&enabled=eq.true&order=sort_order.asc`, { headers, cache: 'no-store' }),
+      fetch(`${base}/games?select=*&enabled=eq.true&order=sort_order.asc`, { headers, cache: 'no-store' }),
+    ]);
+
+    if (settingsRes.ok) {
+      const rows = await settingsRes.json();
+      const settings = rows[0];
+      if (settings) {
+        const kicker = document.getElementById('hero-kicker-public');
+        const title = document.getElementById('hero-title-public');
+        const description = document.getElementById('hero-description-public');
+        const community = document.getElementById('community-text-public');
+        const heroImage = document.querySelector('.hero-photo');
+        if (kicker && settings.hero_kicker) kicker.innerHTML = `<span class="pulse"></span> ${escapeHtml(settings.hero_kicker)}`;
+        if (title && settings.hero_title) title.innerHTML = escapeHtml(settings.hero_title).replace(/^ACY/, 'ACY');
+        if (description && settings.hero_description) description.textContent = settings.hero_description;
+        if (community && settings.community_text) community.textContent = settings.community_text;
+        if (heroImage && settings.hero_image_url) heroImage.src = settings.hero_image_url;
+      }
+    }
+
+    if (socialsRes.ok) {
+      const socials = await socialsRes.json();
+      const grid = document.getElementById('social-grid');
+      if (grid && socials.length) {
+        grid.innerHTML = socials.map((item) => {
+          const icons = {twitch:'TW', tiktok:'TK', whatsapp:'WA', discord:'DC', instagram:'IG', youtube:'YT'};
+          const icon = icons[item.platform] || item.label.slice(0,2).toUpperCase();
+          const sub = item.platform === 'tiktok' ? '@acyjannik' : item.label;
+          return `<a class="social-card reveal" href="${escapeAttr(item.url)}" target="_blank" rel="noreferrer">
+            <span class="social-icon">${escapeHtml(icon)}</span>
+            <div><strong>${escapeHtml(item.label)}</strong><small>${escapeHtml(sub)}</small></div><b>↗</b>
+          </a>`;
+        }).join('');
+      }
+    }
+
+    if (gamesRes.ok) {
+      const games = await gamesRes.json();
+      const grid = document.getElementById('games-grid');
+      if (grid && games.length) {
+        grid.innerHTML = games.map((game, index) => {
+          const number = String(index + 1).padStart(2,'0');
+          const slug = game.name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+          const image = game.image_url ? `<img src="${escapeAttr(game.image_url)}" alt="" loading="lazy">` : '';
+          return `<article class="game-card game-${escapeAttr(slug)} reveal">
+            ${image}
+            <span>${number}</span>
+            <div><p>${escapeHtml(game.name.toUpperCase())}</p><small>${escapeHtml(game.description || game.tag || '')}</small></div>
+          </article>`;
+        }).join('');
+      }
+    }
+  } catch (error) {
+    console.debug('Public content not configured yet:', error);
+  }
+}
+
+function escapeAttr(value = '') {
+  return String(value).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+loadPublicContent();

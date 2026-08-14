@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ACYJANNIK Admin</title>
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="admin.js" defer></script>
+</head>
+<body class="admin-page">
+  <div class="admin-shell">
+    <header class="admin-topbar">
+      <div>
+        <div class="eyebrow">ACYJANNIK</div>
+        <h1>Admin</h1>
+      </div>
+      <div class="admin-actions">
+        <a class="button button-secondary" href="/">Website ↗</a>
+        <button class="button button-secondary" id="logout-btn" hidden>Abmelden</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="admin-card" id="login-card">
+        <div class="eyebrow">SECURE AREA</div>
+        <h2>Admin Login</h2>
+        <p class="admin-muted">Nur autorisierte ACYJANNIK-Admins können Inhalte ändern.</p>
+        <form id="login-form" class="admin-form">
+          <label>E-Mail<input type="email" id="email" autocomplete="username" required></label>
+          <label>Passwort<input type="password" id="password" autocomplete="current-password" required></label>
+          <button class="button button-primary" type="submit">Einloggen</button>
+        </form>
+        <p class="admin-note" id="login-message"></p>
+      </section>
+
+      <section id="dashboard" hidden>
+        <div class="admin-grid">
+          <div class="admin-card admin-span-2">
+            <div class="eyebrow">OVERVIEW</div>
+            <h2>Dashboard</h2>
+            <div class="admin-stats">
+              <div class="admin-stat"><span>Twitch</span><strong id="dash-live">–</strong></div>
+              <div class="admin-stat"><span>Game</span><strong id="dash-game">–</strong></div>
+              <div class="admin-stat"><span>Zuschauer</span><strong id="dash-viewers">–</strong></div>
+            </div>
+            <p class="admin-note" id="dash-message"></p>
+          </div>
+
+          <div class="admin-card">
+            <div class="eyebrow">WEBSITE</div>
+            <h2>Texte & Bild</h2>
+            <form id="settings-form" class="admin-form">
+              <label>Hero-Kicker<input id="hero-kicker" required></label>
+              <label>Hero-Titel<input id="hero-title" required></label>
+              <label>Hero-Beschreibung<textarea id="hero-description" rows="3" required></textarea></label>
+              <label>Über Acyjannik<textarea id="about-text" rows="4" required></textarea></label>
+              <label>ACY Club Text<textarea id="community-text" rows="4" required></textarea></label>
+              <label>Hero-Bild URL<input id="hero-image-url"></label>
+              <button class="button button-primary" type="submit">Texte speichern</button>
+            </form>
+            <p class="admin-note" id="settings-message"></p>
+          </div>
+
+          <div class="admin-card">
+            <div class="eyebrow">SOCIALS</div>
+            <h2>Social Links</h2>
+            <div id="social-list" class="admin-list"></div>
+            <p class="admin-note" id="social-message"></p>
+          </div>
+
+          <div class="admin-card admin-span-2">
+            <div class="eyebrow">GAMES</div>
+            <h2>Aktuelle Games</h2>
+            <div class="admin-list" id="games-list"></div>
+            <div class="admin-inline">
+              <input id="new-game-name" placeholder="Neues Game">
+              <input id="new-game-tag" placeholder="Tag">
+              <button class="button button-secondary" id="add-game-btn">Game hinzufügen</button>
+            </div>
+            <p class="admin-note" id="games-message"></p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

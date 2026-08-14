@@ -35,9 +35,9 @@
   <main id="top">
     <section class="hero section-pad">
       <div class="hero-copy reveal">
-        <p class="eyebrow"><span class="pulse"></span> GAMING · STREAMING · COMMUNITY</p>
-        <h1>ACY<span>JANNIK</span></h1>
-        <p class="hero-text">Willkommen im digitalen Zuhause von Acyjannik. Streams, Games und der ACY Club an einem Ort.</p>
+        <p class="eyebrow" id="hero-kicker-public"><span class="pulse"></span> GAMING · STREAMING · COMMUNITY</p>
+        <h1 id="hero-title-public">ACY<span>JANNIK</span></h1>
+        <p class="hero-text" id="hero-description-public">Willkommen im digitalen Zuhause von Acyjannik. Streams, Games und der ACY Club an einem Ort.</p>
         <div class="hero-actions">
           <a class="button button-primary" href="https://www.twitch.tv/acyjannik" target="_blank" rel="noreferrer">🔴 Auf Twitch</a>
           <a class="button button-ghost" href="#club">💜 ACY Club</a>
@@ -105,7 +105,7 @@
         <div><span class="eyebrow">PLAY</span><h2>Aktuelle Games.</h2></div>
         <span class="section-note">Mehr als nur ein Spiel.</span>
       </div>
-      <div class="game-grid">
+      <div class="game-grid" id="games-grid">
         <article class="game-card game-fortnite reveal"><span>01</span><div><p>FORTNITE</p><small>Main Game · Ranked · Community</small></div></article>
         <article class="game-card game-gta reveal"><span>02</span><div><p>GTA V</p><small>Aktuell · Open World · Fun</small></div></article>
         <article class="game-card game-meccha reveal"><span>03</span><div><p>MECCHA CHAMELEON</p><small>Ab und zu · Variety</small></div></article>
@@ -114,18 +114,18 @@
     </section>
 
     <section id="club" class="club-section section-pad">
-      <div class="club-panel reveal">
+      <div class="club-panel reveal" id="club-panel">
         <div class="club-glow"></div>
         <span class="eyebrow">WELCOME TO</span>
         <h2>THE <span>ACY CLUB</span></h2>
-        <p>Mehr als nur ein Chat. Die Community rund um Acyjannik, zusammengebracht an einem Ort.</p>
+        <p id="community-text-public">Mehr als nur ein Chat. Die Community rund um Acyjannik, zusammengebracht an einem Ort.</p>
         <button class="button button-ghost disabled" disabled>Discord kommt später</button>
       </div>
     </section>
 
     <section id="socials" class="section-pad section">
       <div class="section-heading reveal"><div><span class="eyebrow">CONNECT</span><h2>Find Acyjannik.</h2></div></div>
-      <div class="social-grid">
+      <div class="social-grid" id="social-grid">
         <a class="social-card reveal" href="https://www.twitch.tv/acyjannik" target="_blank" rel="noreferrer"><span class="social-icon">TW</span><div><strong>Twitch</strong><small>Live streams & VODs</small></div><b>↗</b></a>
         <a class="social-card reveal" href="https://www.tiktok.com/@acyjannik" target="_blank" rel="noreferrer"><span class="social-icon">TK</span><div><strong>TikTok</strong><small>@acyjannik</small></div><b>↗</b></a>
         <a class="social-card reveal" href="https://www.whatsapp.com/channel/0029VazFA8UIXnlmgPliHQ10" target="_blank" rel="noreferrer"><span class="social-icon">WA</span><div><strong>WhatsApp</strong><small>ACYJANNIK Channel</small></div><b>↗</b></a>
@@ -146,7 +146,7 @@
     <p>Gaming · Streaming · Community</p>
     <div class="footer-links"><a href="#top">Home</a><a href="#live">Live</a><a href="#club">ACY Club</a><a href="#socials">Socials</a></div>
     <small>© 2026 Acyjannik</small>
-  </footer>
+  <div class="footer-admin-link"><a href="/admin.html">Admin</a></div></footer>
 
   <script src="script.js"></script>
 </body>
