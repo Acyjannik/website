@@ -165,7 +165,14 @@ async function loadPublicContent() {
       { name: 'Meccha Chameleon', description: 'Variety · Hide & Seek · Community', image_url: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/4704690/header.jpg', featured: false },
       { name: 'Thick As Thieves', description: 'Stealth · Heist · Community', image_url: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/3341000/header.jpg', featured: false }
     ];
-    const games = Array.isArray(payload.games) && payload.games.length ? payload.games : fallbackGames;
+    const canonicalCovers = {
+      'Fortnite': 'https://cdn.startselect.com/production/blog/preview-images/new-fortnite-season.jpg',
+      'GTA V': 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/271590/header.jpg',
+      'Meccha Chameleon': 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/4704690/header.jpg',
+      'Thick As Thieves': 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/3341000/header.jpg'
+    };
+    const games = (Array.isArray(payload.games) && payload.games.length ? payload.games : fallbackGames)
+      .map(game => ({ ...game, image_url: canonicalCovers[game.name] || game.image_url }));
     const gamesGrid = document.getElementById('games-grid');
     if (gamesGrid && games.length) {
       gamesGrid.innerHTML = games.map((game, index) => {

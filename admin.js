@@ -128,7 +128,7 @@ async function ensureDefaultContent() {
     const patch = {};
     if (!current.description) patch.description = seed.description;
     if (!current.tag) patch.tag = seed.tag;
-    if (!current.image_url) patch.image_url = seed.image_url;
+    if (['Fortnite','GTA V','Meccha Chameleon','Thick As Thieves'].includes(current.name) && current.image_url !== seed.image_url) patch.image_url = seed.image_url;
     if (current.sort_order == null) patch.sort_order = seed.sort_order;
     if (seed.name === 'Fortnite' && current.featured !== true) patch.featured = true;
     if (Object.keys(patch).length) {

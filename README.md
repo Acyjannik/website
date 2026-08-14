@@ -139,3 +139,8 @@ The game cards now use recognizable game artwork rather than generated placehold
 - Thick As Thieves: Steam store header
 
 Artwork remains owned by its respective rights holders where applicable. The website should retain appropriate attribution/usage rights if the site is used commercially.
+
+
+## V2.4.5: Game artwork and card layout fix
+
+The current four games now use canonical artwork URLs server-side and client-side, overriding legacy placeholder image URLs that may still exist in Supabase. The cards are also rebuilt as a vertical image + content layout so titles and descriptions no longer sit beside or clip against the cover art.

@@ -56,9 +56,23 @@ export default async function handler(_req, res) {
     const socials = socialsRows.length ? socialsRows : fallback.socials;
     const games = gamesRows.length ? gamesRows : fallback.games;
 
+    // Canonical artwork for the four current ACYJANNIK games.
+    // This intentionally overrides legacy/placeholder image_url values stored in Supabase.
+    const canonicalCovers = {
+      "Fortnite": "https://cdn.startselect.com/production/blog/preview-images/new-fortnite-season.jpg",
+      "GTA V": "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/271590/header.jpg",
+      "Meccha Chameleon": "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/4704690/header.jpg",
+      "Thick As Thieves": "https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/3341000/header.jpg",
+    };
+
+    const normalizedGames = games.map((game) => ({
+      ...game,
+      image_url: canonicalCovers[game.name] || game.image_url || null,
+    }));
+
     // Prevent accidental disappearance of the required current games.
     const required = new Map(fallback.games.map(g => [g.name, g]));
-    const mergedGames = [...games];
+    const mergedGames = [...normalizedGames];
     for (const fallbackGame of fallback.games) {
       if (!mergedGames.some(g => g.name === fallbackGame.name)) {
         mergedGames.push(fallbackGame);
