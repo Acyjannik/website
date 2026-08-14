@@ -14,6 +14,7 @@ export default async function handler(_req, res) {
       { platform: "twitch", label: "Twitch", url: "https://www.twitch.tv/acyjannik", enabled: true, sort_order: 1 },
       { platform: "tiktok", label: "TikTok", url: "https://www.tiktok.com/@acyjannik", enabled: true, sort_order: 2 },
       { platform: "whatsapp", label: "WhatsApp", url: "https://www.whatsapp.com/channel/0029VazFA8UIXnlmgPliHQ10", enabled: true, sort_order: 3 },
+      { platform: "discord", label: "Discord", url: "https://discord.gg/74ACqBwfu", enabled: true, sort_order: 4 },
     ],
     games: [
       { name: "Fortnite", description: "Main Game · Ranked · Community", tag: "MAIN GAME", image_url: "https://commons.wikimedia.org/wiki/Special:Redirect/file/Fortnite_at_E3_2018_(42719678112).jpg", featured: true, sort_order: 1, enabled: true },

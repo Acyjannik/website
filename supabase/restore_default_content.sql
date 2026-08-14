@@ -5,7 +5,8 @@ insert into public.social_links (platform, label, url, enabled, sort_order)
 values
   ('twitch', 'Twitch', 'https://www.twitch.tv/acyjannik', true, 1),
   ('tiktok', 'TikTok', 'https://www.tiktok.com/@acyjannik', true, 2),
-  ('whatsapp', 'WhatsApp', 'https://www.whatsapp.com/channel/0029VazFA8UIXnlmgPliHQ10', true, 3)
+  ('whatsapp', 'WhatsApp', 'https://www.whatsapp.com/channel/0029VazFA8UIXnlmgPliHQ10', true, 3),
+  ('discord', 'Discord', 'https://discord.gg/74ACqBwfu', true, 4)
 on conflict (platform) do update set
   label = excluded.label,
   url = excluded.url,

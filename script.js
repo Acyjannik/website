@@ -163,20 +163,27 @@ async function loadPublicContent() {
     const fallbackSocials = [
       { platform: 'twitch', label: 'Twitch', url: 'https://www.twitch.tv/acyjannik' },
       { platform: 'tiktok', label: 'TikTok', url: 'https://www.tiktok.com/@acyjannik' },
-      { platform: 'whatsapp', label: 'WhatsApp', url: 'https://www.whatsapp.com/channel/0029VazFA8UIXnlmgPliHQ10' }
+      { platform: 'whatsapp', label: 'WhatsApp', url: 'https://www.whatsapp.com/channel/0029VazFA8UIXnlmgPliHQ10' },
+      { platform: 'discord', label: 'Discord', url: 'https://discord.gg/74ACqBwfu' }
     ];
     const socials = Array.isArray(payload.socials) && payload.socials.length ? payload.socials : fallbackSocials;
     const socialGrid = document.getElementById('social-grid');
     if (socialGrid && socials.length) {
-      const icons = {
-        twitch: 'TW', tiktok: 'TK', whatsapp: 'WA',
-        discord: 'DC', instagram: 'IG', youtube: 'YT'
+      const iconMap = {
+        twitch: '/assets/social/twitch.svg',
+        tiktok: '/assets/social/tiktok.svg',
+        whatsapp: '/assets/social/whatsapp.svg',
+        discord: '/assets/social/discord.svg'
       };
       socialGrid.innerHTML = socials.map((item) => {
-        const icon = icons[item.platform] || String(item.label || '').slice(0, 2).toUpperCase();
-        const sub = item.platform === 'tiktok' ? '@acyjannik' : item.label;
-        return `<a class="social-card reveal" href="${escapeAttr(item.url)}" target="_blank" rel="noreferrer">
-          <span class="social-icon">${escapeHtml(icon)}</span>
+        const iconSrc = iconMap[item.platform];
+        const sub = item.platform === 'tiktok' ? '@acyjannik' :
+          item.platform === 'discord' ? 'ACY Club' : item.label;
+        const iconMarkup = iconSrc
+          ? `<img class="social-icon-img" src="${iconSrc}" alt="">`
+          : `<span class="social-icon-fallback">${escapeHtml(String(item.label || '').slice(0, 2).toUpperCase())}</span>`;
+        return `<a class="social-card" href="${escapeAttr(item.url)}" target="_blank" rel="noreferrer">
+          ${iconMarkup}
           <div><strong>${escapeHtml(item.label)}</strong><small>${escapeHtml(sub)}</small></div><b>↗</b>
         </a>`;
       }).join('');
@@ -185,7 +192,7 @@ async function loadPublicContent() {
     const fallbackGames = [
       { name: 'Fortnite', description: 'Main Game · Ranked · Community', image_url: 'https://commons.wikimedia.org/wiki/Special:Redirect/file/Fortnite_at_E3_2018_(42719678112).jpg', featured: true },
       { name: 'GTA V', description: 'Open World · Aktuell · Fun', image_url: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/271590/header.jpg', featured: false },
-      { name: 'Meccha Chameleon', description: 'Variety · Hide & Seek · Community', image_url: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/4704690/header.jpg', featured: false },
+      { name: '', description: 'Variety · Hide & Seek · Community', image_url: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/4704690/header.jpg', featured: false },
       { name: 'Thick As Thieves', description: 'Stealth · Heist · Community', image_url: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/3341000/header.jpg', featured: false }
     ];
     const canonicalCovers = {

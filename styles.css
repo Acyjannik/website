@@ -287,3 +287,10 @@ button:disabled{opacity:.55;cursor:not-allowed}
   color:#d8b4fe;
   flex:0 0 auto;
 }
+
+/* V2.4.15 public social icons */
+#social-grid .social-icon-img{
+  display:block;
+  width:30px;height:30px;min-width:30px;min-height:30px;
+  object-fit:contain;color:#d8b4fe;flex:0 0 auto;
+}

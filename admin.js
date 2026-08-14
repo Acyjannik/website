@@ -125,7 +125,8 @@ async function ensureDefaultContent() {
   const defaultSocials = [
     { platform: 'twitch', label: 'Twitch', url: 'https://www.twitch.tv/acyjannik', sort_order: 1 },
     { platform: 'tiktok', label: 'TikTok', url: 'https://www.tiktok.com/@acyjannik', sort_order: 2 },
-    { platform: 'whatsapp', label: 'WhatsApp', url: 'https://www.whatsapp.com/channel/0029VazFA8UIXnlmgPliHQ10', sort_order: 3 }
+    { platform: 'whatsapp', label: 'WhatsApp', url: 'https://www.whatsapp.com/channel/0029VazFA8UIXnlmgPliHQ10', sort_order: 3 },
+    { platform: 'discord', label: 'Discord', url: 'https://discord.gg/74ACqBwfu', sort_order: 4 }
   ];
 
   const defaultGames = [
@@ -217,7 +218,8 @@ async function loadSocials() {
   const fallback = {
     twitch: 'https://www.twitch.tv/acyjannik',
     tiktok: 'https://www.tiktok.com/@acyjannik',
-    whatsapp: 'https://www.whatsapp.com/channel/0029VazFA8UIXnlmgPliHQ10'
+    whatsapp: 'https://www.whatsapp.com/channel/0029VazFA8UIXnlmgPliHQ10',
+    discord: 'https://discord.gg/74ACqBwfu'
   };
 
   const { data, error } = await supabaseClient

@@ -184,3 +184,8 @@ The homepage now initializes the Games section directly with the three current g
 ## V2.4.14: Public social icons
 
 The public Socials section now shows the bundled Twitch, TikTok and WhatsApp SVG icons immediately and keeps them when the section hydrates from Supabase.
+
+
+## V2.4.15: Social icons + Discord
+
+Fixed the public social hydration so it no longer replaces real icons with TW/TK/WA text after Supabase loads. Added Discord with the ACY Club invite `https://discord.gg/74ACqBwfu` to the public site, admin defaults, and Supabase seeds.
