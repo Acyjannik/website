@@ -14,15 +14,48 @@ const VIEW_META = {
 };
 
 async function loadConfig() {
-  const response = await fetch('/api/config', { cache: 'no-store' });
+  const response = await fetch('/api/config', {
+    cache: 'no-store',
+    headers: { 'Accept': 'application/json' }
+  });
+
+  if (!response.ok) {
+    throw new Error(`Config-Endpunkt antwortet mit HTTP ${response.status}.`);
+  }
+
   const config = await response.json();
 
-  if (!config.configured) throw new Error('Supabase ist noch nicht in Vercel konfiguriert.');
+  if (!config.configured) {
+    throw new Error('Supabase-Konfiguration fehlt in Vercel Production.');
+  }
+
+  if (!/^https?:\/\//i.test(config.supabaseUrl || '')) {
+    throw new Error('SUPABASE_URL ist keine gültige HTTP/HTTPS-URL.');
+  }
+
+  if (!config.supabaseAnonKey) {
+    throw new Error('SUPABASE_ANON_KEY fehlt in Vercel Production.');
+  }
+
+  if (!window.supabase?.createClient) {
+    throw new Error('Supabase-JavaScript-Bibliothek wurde nicht geladen.');
+  }
 
   supabaseClient = window.supabase.createClient(
     config.supabaseUrl,
-    config.supabaseAnonKey
+    config.supabaseAnonKey,
+    {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true
+      }
+    }
   );
+
+  if (!supabaseClient) {
+    throw new Error('Supabase-Client konnte nicht initialisiert werden.');
+  }
 }
 
 function message(id, text, ok = false) {
@@ -438,82 +471,98 @@ async function resetPassword() {
   }
 }
 
-$('login-form')?.addEventListener('submit', async (event) => {
-  event.preventDefault();
-  message('login-message', 'Anmeldung läuft…', true);
+function bindAdminEvents() {
+  $('login-form')?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    message('login-message', 'Anmeldung läuft…', true);
 
-  try {
-    const { data, error } = await supabaseClient.auth.signInWithPassword({
-      email: $('email').value.trim(),
-      password: $('password').value
-    });
-    if (error) throw error;
+    try {
+      const { data, error } = await supabaseClient.auth.signInWithPassword({
+        email: $('email').value.trim(),
+        password: $('password').value
+      });
+      if (error) throw error;
 
-    if (!(await isAdmin(data.user))) {
-      await supabaseClient.auth.signOut();
-      throw new Error('Dieses Konto ist nicht als Admin freigeschaltet.');
+      if (!(await isAdmin(data.user))) {
+        await supabaseClient.auth.signOut();
+        throw new Error('Dieses Konto ist nicht als Admin freigeschaltet.');
+      }
+
+      currentUser = data.user;
+      await ensureDefaultContent();
+      $('login-card').hidden = true;
+      $('dashboard').hidden = false;
+      $('logout-btn').hidden = false;
+      bindTabs();
+      await loadDashboard();
+    } catch (error) {
+      message('login-message', error.message || 'Login fehlgeschlagen.');
     }
+  });
 
-    currentUser = data.user;
-    await ensureDefaultContent();
-    $('login-card').hidden = true;
-    $('dashboard').hidden = false;
-    $('logout-btn').hidden = false;
-    bindTabs();
-    await loadDashboard();
-  } catch (error) {
-    message('login-message', error.message || 'Login fehlgeschlagen.');
-  }
-});
+  $('logout-btn')?.addEventListener('click', async () => {
+    await supabaseClient.auth.signOut();
+    location.reload();
+  });
 
-$('logout-btn')?.addEventListener('click', async () => {
-  await supabaseClient.auth.signOut();
-  location.reload();
-});
+  $('settings-form')?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const payload = {
+      hero_kicker: $('hero-kicker').value.trim(),
+      hero_title: $('hero-title').value.trim(),
+      hero_description: $('hero-description').value.trim(),
+      about_text: $('about-text').value.trim(),
+      community_text: $('community-text').value.trim(),
+      hero_image_url: $('hero-image-url').value.trim(),
+      updated_at: new Date().toISOString()
+    };
+    const { error } = await supabaseClient
+      .from('site_settings')
+      .update(payload)
+      .eq('id', true);
 
-$('settings-form')?.addEventListener('submit', async (event) => {
-  event.preventDefault();
-  const payload = {
-    hero_kicker: $('hero-kicker').value.trim(),
-    hero_title: $('hero-title').value.trim(),
-    hero_description: $('hero-description').value.trim(),
-    about_text: $('about-text').value.trim(),
-    community_text: $('community-text').value.trim(),
-    hero_image_url: $('hero-image-url').value.trim(),
-    updated_at: new Date().toISOString()
-  };
-  const { error } = await supabaseClient
-    .from('site_settings')
-    .update(payload)
-    .eq('id', true);
+    if (error) {
+      message('settings-message', error.message);
+    } else {
+      message('settings-message', 'Website-Inhalte gespeichert.', true);
+      updatePreview(payload);
+      saveStamp();
+    }
+  });
 
-  if (error) {
-    message('settings-message', error.message);
-  } else {
-    message('settings-message', 'Website-Inhalte gespeichert.', true);
-    updatePreview(payload);
-    saveStamp();
-  }
-});
+  $('add-game-btn')?.addEventListener('click', addGame);
+  $('add-social-btn')?.addEventListener('click', addSocial);
+  $('upload-media-btn')?.addEventListener('click', uploadMedia);
 
-$('add-game-btn')?.addEventListener('click', addGame);
-$('add-social-btn')?.addEventListener('click', addSocial);
-$('upload-media-btn')?.addEventListener('click', uploadMedia);
+  $('media-use')?.addEventListener('change', () => {
+    $('media-game-row').hidden = $('media-use').value !== 'game';
+  });
 
-$('media-use')?.addEventListener('change', () => {
-  $('media-game-row').hidden = $('media-use').value !== 'game';
-});
+  $('password-form')?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    await resetPassword();
+  });
 
-$('password-form')?.addEventListener('submit', async (event) => {
-  event.preventDefault();
-  await resetPassword();
-});
+}
 
-(async () => {
+async function initializeAdmin() {
+  const status = $('admin-init-status');
+  const submit = $('login-submit');
+
   try {
+    status.textContent = 'Supabase wird verbunden…';
+    status.classList.remove('error', 'success');
+
     await loadConfig();
+
+    status.textContent = 'Supabase verbunden.';
+    status.classList.add('success');
+    submit.disabled = false;
+
     const { data } = await supabaseClient.auth.getSession();
     const user = data?.session?.user;
+
+    bindAdminEvents();
 
     if (user && await isAdmin(user)) {
       currentUser = user;
@@ -527,6 +576,12 @@ $('password-form')?.addEventListener('submit', async (event) => {
       bindTabs();
     }
   } catch (error) {
-    message('login-message', error.message || 'Admin konnte nicht initialisiert werden.');
+    console.error('Admin initialization failed:', error);
+    status.textContent = error.message || 'Supabase konnte nicht initialisiert werden.';
+    status.classList.add('error');
+    submit.disabled = true;
+    message('login-message', 'Die Admin-Verbindung ist noch nicht bereit. Prüfe die Vercel-Umgebungsvariablen und lade die Seite danach neu.');
   }
-})();
+}
+
+initializeAdmin();

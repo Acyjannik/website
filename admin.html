@@ -28,10 +28,11 @@
         <div class="eyebrow">SECURE AREA</div>
         <h2>Admin Login</h2>
         <p class="admin-muted">Nur autorisierte ACYJANNIK-Admins können Inhalte ändern.</p>
+        <div class="admin-init-status" id="admin-init-status">Supabase wird verbunden…</div>
         <form id="login-form" class="admin-form">
           <label>E-Mail<input type="email" id="email" autocomplete="username" required></label>
           <label>Passwort<input type="password" id="password" autocomplete="current-password" required></label>
-          <button class="button button-primary" type="submit">Einloggen</button>
+          <button class="button button-primary" id="login-submit" type="submit" disabled>Einloggen</button>
         </form>
         <p class="admin-note" id="login-message"></p>
       </section>

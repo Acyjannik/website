@@ -164,3 +164,8 @@ Games and Socials are now rendered as stable, always-visible admin rows. Supabas
 ## V2.4.9: Social icon path fix
 
 Social SVG icons for Twitch, TikTok and WhatsApp are included in the repository and referenced with root-relative paths so they also load correctly from `/admin.html`.
+
+
+## V2.4.10: Admin initialization fix
+
+The admin login now waits for the Supabase configuration and client initialization before enabling the login button. If the configuration endpoint or Supabase library fails, the page shows a direct diagnostic instead of `Cannot read properties of null (reading 'auth')`.
