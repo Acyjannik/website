@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#09090d" />
+  <meta name="description" content="Acyjannik – Gaming, Streaming & Community. Willkommen im ACY Club." />
+  <title>Acyjannik | Gaming · Streaming · Community</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="ambient ambient-a"></div>
+  <div class="ambient ambient-b"></div>
+
+  <header class="site-header">
+    <a class="brand" href="#top" aria-label="Acyjannik Startseite">
+      <span class="brand-mark">A</span>
+      <span>ACY<span>JANNIK</span></span>
+    </a>
+    <nav class="nav" aria-label="Hauptnavigation">
+      <a href="#live">Live</a>
+      <a href="#games">Games</a>
+      <a href="#club">ACY Club</a>
+      <a href="#socials">Socials</a>
+    </nav>
+    <a class="live-pill" href="https://www.twitch.tv/acyjannik" target="_blank" rel="noreferrer">
+      <span class="live-dot"></span> Twitch
+    </a>
+    <button class="menu-button" aria-label="Menü öffnen" aria-expanded="false">☰</button>
+  </header>
+
+  <main id="top">
+    <section class="hero section-pad">
+      <div class="hero-copy reveal">
+        <p class="eyebrow"><span class="pulse"></span> GAMING · STREAMING · COMMUNITY</p>
+        <h1>ACY<span>JANNIK</span></h1>
+        <p class="hero-text">Willkommen im digitalen Zuhause von Acyjannik. Streams, Games und der ACY Club an einem Ort.</p>
+        <div class="hero-actions">
+          <a class="button button-primary" href="https://www.twitch.tv/acyjannik" target="_blank" rel="noreferrer">🔴 Auf Twitch</a>
+          <a class="button button-ghost" href="#club">💜 ACY Club</a>
+        </div>
+      </div>
+      <div class="hero-visual reveal" aria-label="Platzhalter für Acyjannik Foto">
+        <div class="orb orb-main"></div>
+        <div class="orb orb-small"></div>
+        <div class="visual-grid"></div>
+        <div class="visual-card">
+          <span class="visual-status"><span class="live-dot"></span> ACYJANNIK</span>
+          <strong>LIVE SOON</strong>
+          <small>Dein Foto kommt hier später hin.</small>
+        </div>
+      </div>
+    </section>
+
+    <section id="live" class="section-pad section">
+      <div class="section-heading reveal">
+        <div><span class="eyebrow">LIVE</span><h2>Der Stream.</h2></div>
+        <span class="section-note">Twitch · acyjannik</span>
+      </div>
+      <div class="stream-shell reveal">
+        <div class="twitch-player-wrap">
+          <div class="player-topbar">
+            <span class="status-badge"><span class="live-dot"></span><span id="stream-status">TWITCH LIVE</span></span>
+            <a href="https://www.twitch.tv/acyjannik" target="_blank" rel="noreferrer">Twitch öffnen ↗</a>
+          </div>
+          <div class="twitch-frame">
+            <iframe
+              id="twitch-player"
+              title="Acyjannik Twitch Stream"
+              src="https://player.twitch.tv/?channel=acyjannik&parent=acyjannik.de&autoplay=false&muted=true"
+              allowfullscreen
+              scrolling="no">
+            </iframe>
+          </div>
+        </div>
+        <aside class="twitch-chat">
+          <div class="chat-heading">
+            <span class="eyebrow">LIVE CHAT</span>
+            <span class="chat-dot"></span>
+          </div>
+          <iframe
+            id="twitch-chat"
+            title="Acyjannik Twitch Chat"
+            src="https://www.twitch.tv/embed/acyjannik/chat?parent=acyjannik.de&darkpopout"
+            scrolling="no">
+          </iframe>
+        </aside>
+      </div>
+    </section>
+
+    <section id="games" class="section-pad section">
+      <div class="section-heading reveal">
+        <div><span class="eyebrow">PLAY</span><h2>Aktuelle Games.</h2></div>
+        <span class="section-note">Mehr als nur ein Spiel.</span>
+      </div>
+      <div class="game-grid">
+        <article class="game-card game-fortnite reveal"><span>01</span><div><p>FORTNITE</p><small>Main Game · Ranked · Community</small></div></article>
+        <article class="game-card game-gta reveal"><span>02</span><div><p>GTA V</p><small>Aktuell · Open World · Fun</small></div></article>
+        <article class="game-card game-meccha reveal"><span>03</span><div><p>MECCHA CHAMELEON</p><small>Ab und zu · Variety</small></div></article>
+        <article class="game-card game-thick reveal"><span>04</span><div><p>THICK AS THIEVES</p><small>Variety · Community · Fun</small></div></article>
+      </div>
+    </section>
+
+    <section id="club" class="club-section section-pad">
+      <div class="club-panel reveal">
+        <div class="club-glow"></div>
+        <span class="eyebrow">WELCOME TO</span>
+        <h2>THE <span>ACY CLUB</span></h2>
+        <p>Mehr als nur ein Chat. Die Community rund um Acyjannik, zusammengebracht an einem Ort.</p>
+        <button class="button button-ghost disabled" disabled>Discord kommt später</button>
+      </div>
+    </section>
+
+    <section id="socials" class="section-pad section">
+      <div class="section-heading reveal"><div><span class="eyebrow">CONNECT</span><h2>Find Acyjannik.</h2></div></div>
+      <div class="social-grid">
+        <a class="social-card reveal" href="https://www.twitch.tv/acyjannik" target="_blank" rel="noreferrer"><span class="social-icon">TW</span><div><strong>Twitch</strong><small>Live streams & VODs</small></div><b>↗</b></a>
+        <a class="social-card reveal" href="https://www.tiktok.com/@acyjannik" target="_blank" rel="noreferrer"><span class="social-icon">TK</span><div><strong>TikTok</strong><small>@acyjannik</small></div><b>↗</b></a>
+        <a class="social-card reveal" href="https://www.whatsapp.com/channel/0029VazFA8UIXnlmgPliHQ10" target="_blank" rel="noreferrer"><span class="social-icon">WA</span><div><strong>WhatsApp</strong><small>ACYJANNIK Channel</small></div><b>↗</b></a>
+      </div>
+    </section>
+
+    <section class="about section-pad section">
+      <div class="about-card reveal">
+        <span class="eyebrow">ABOUT</span>
+        <h2>Hinter ACYJANNIK<br><span>steht Jannik.</span></h2>
+        <p>Die persönliche Story, Bilder und mehr über Jannik bekommen hier später ihren eigenen Platz. V1 hält diesen Bereich bewusst clean, bis die passenden Inhalte da sind.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-brand">ACY<span>JANNIK</span></div>
+    <p>Gaming · Streaming · Community</p>
+    <div class="footer-links"><a href="#top">Home</a><a href="#live">Live</a><a href="#club">ACY Club</a><a href="#socials">Socials</a></div>
+    <small>© 2026 Acyjannik</small>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
