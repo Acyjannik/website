@@ -125,3 +125,7 @@
   .media-preview-list{grid-template-columns:1fr}
   .admin-tabs{overflow:auto;flex-wrap:nowrap}
 }
+
+/* Content injected after page load must remain visible. */
+#games-grid .game-card,
+#social-grid .social-card { opacity: 1; transform: none; }

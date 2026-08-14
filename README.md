@@ -123,3 +123,8 @@ A standalone `supabase/restore_default_content.sql` is also included for manual 
 
 The public site no longer depends on Supabase being populated before the current games and social links appear.
 The API and client use bundled fallback content, and the admin login repairs missing default rows without overwriting intentional admin edits.
+
+
+## V2.4.3: Dynamic content visibility fix
+
+Fixed a front-end issue where games and social cards loaded from Supabase were inserted with the `reveal` class after the initial IntersectionObserver had already run. The new dynamic cards are rendered visibly and no longer depend on the initial observer.
