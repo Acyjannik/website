@@ -1,6 +1,6 @@
-# Acyjannik V2
+# Acyjannik V2.1
 
-Erste statische Konzept-/Designversion für **acyjannik.de**.
+Aktualisierte Website-Version mit Acyjannik-Portrait für **acyjannik.de**.
 
 ## Enthalten
 - Dark / Purple Design
