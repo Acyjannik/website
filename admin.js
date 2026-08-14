@@ -331,6 +331,63 @@ async function loadGames() {
   });
 }
 
+
+async function addGame() {
+  const name = $('new-game-name').value.trim();
+  const tag = $('new-game-tag').value.trim() || 'VARIETY';
+  const description = $('new-game-description').value.trim() || tag;
+  if (!name) return message('games-message', 'Bitte einen Namen eingeben.');
+
+  const maxOrder = Math.max(0, ...cachedGames.map(g => Number(g.sort_order) || 0));
+  const { error } = await supabaseClient.from('games').upsert({
+    name,
+    tag,
+    description,
+    image_url: null,
+    featured: false,
+    enabled: true,
+    sort_order: maxOrder + 1,
+    updated_at: new Date().toISOString()
+  }, { onConflict: 'name' });
+
+  if (error) message('games-message', error.message);
+  else {
+    $('new-game-name').value = '';
+    $('new-game-tag').value = '';
+    $('new-game-description').value = '';
+    message('games-message', 'Game hinzugefügt.', true);
+    saveStamp();
+    await loadGames();
+  }
+}
+
+async function addSocial() {
+  const platform = $('new-social-platform').value.trim().toLowerCase();
+  const label = $('new-social-label').value.trim() || platform;
+  const url = $('new-social-url').value.trim();
+  if (!platform || !url) return message('social-message', 'Plattform und URL sind erforderlich.');
+  if (!isSafeHttpUrl(url)) return message('social-message', 'Bitte eine gültige http(s)-URL verwenden.');
+
+  const { data: maxRows } = await supabaseClient
+    .from('social_links').select('sort_order').order('sort_order', { ascending: false }).limit(1);
+  const sortOrder = Number(maxRows?.[0]?.sort_order || 0) + 1;
+
+  const { error } = await supabaseClient.from('social_links').upsert({
+    platform, label, url, enabled: true, sort_order: sortOrder,
+    updated_at: new Date().toISOString()
+  }, { onConflict: 'platform' });
+
+  if (error) message('social-message', error.message);
+  else {
+    $('new-social-platform').value = '';
+    $('new-social-label').value = '';
+    $('new-social-url').value = '';
+    message('social-message', 'Social-Link hinzugefügt.', true);
+    saveStamp();
+    await loadSocials();
+  }
+}
+
 async function loadTwitchStatus() {
   try {
     const r = await fetch('/api/twitch-status', { cache: 'no-store' });
@@ -580,7 +637,7 @@ async function initializeAdmin() {
     status.textContent = error.message || 'Supabase konnte nicht initialisiert werden.';
     status.classList.add('error');
     submit.disabled = true;
-    message('login-message', 'Die Admin-Verbindung ist noch nicht bereit. Prüfe die Vercel-Umgebungsvariablen und lade die Seite danach neu.');
+    message('login-message', 'Admin konnte nicht gestartet werden. Prüfe die Browser-Konsole auf den genauen Fehler.');
   }
 }
 

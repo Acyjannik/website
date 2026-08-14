@@ -270,3 +270,5 @@
 .admin-init-status.success{color:#86efac;border-color:rgba(34,197,94,.22)}
 .admin-init-status.error{color:#fca5a5;border-color:rgba(239,68,68,.28)}
 button:disabled{opacity:.55;cursor:not-allowed}
+
+.admin-version{font-size:10px;color:#71717a;margin-top:4px;letter-spacing:.08em}
