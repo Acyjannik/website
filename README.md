@@ -128,3 +128,14 @@ The API and client use bundled fallback content, and the admin login repairs mis
 ## V2.4.3: Dynamic content visibility fix
 
 Fixed a front-end issue where games and social cards loaded from Supabase were inserted with the `reveal` class after the initial IntersectionObserver had already run. The new dynamic cards are rendered visibly and no longer depend on the initial observer.
+
+
+## V2.4.4: Real game artwork
+
+The game cards now use recognizable game artwork rather than generated placeholder covers:
+- Fortnite: Wikimedia Commons promotional photo (CC BY-SA 4.0 source)
+- GTA V: Steam store header
+- Meccha Chameleon: Steam store header
+- Thick As Thieves: Steam store header
+
+Artwork remains owned by its respective rights holders where applicable. The website should retain appropriate attribution/usage rights if the site is used commercially.

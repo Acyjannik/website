@@ -15,10 +15,10 @@ on conflict (platform) do update set
 
 insert into public.games (name, description, tag, image_url, featured, sort_order, enabled)
 values
-  ('Fortnite', 'Main Game · Ranked · Community', 'MAIN GAME', '/assets/games/fortnite.svg', true, 1, true),
-  ('GTA V', 'Open World · Aktuell · Fun', 'AKTUELL', '/assets/games/gta-v.svg', false, 2, true),
-  ('Meccha Chameleon', 'Variety · Hide & Seek · Community', 'VARIETY', '/assets/games/meccha-chameleon.svg', false, 3, true),
-  ('Thick As Thieves', 'Stealth · Heist · Community', 'VARIETY', '/assets/games/thick-as-thieves.svg', false, 4, true)
+  ('Fortnite', 'Main Game · Ranked · Community', 'MAIN GAME', 'https://commons.wikimedia.org/wiki/Special:Redirect/file/Fortnite_at_E3_2018_(42719678112).jpg', true, 1, true),
+  ('GTA V', 'Open World · Aktuell · Fun', 'AKTUELL', 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/271590/header.jpg', false, 2, true),
+  ('Meccha Chameleon', 'Variety · Hide & Seek · Community', 'VARIETY', 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/4704690/header.jpg', false, 3, true),
+  ('Thick As Thieves', 'Stealth · Heist · Community', 'VARIETY', 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/3341000/header.jpg', false, 4, true)
 on conflict (name) do update set
   description = excluded.description,
   tag = excluded.tag,

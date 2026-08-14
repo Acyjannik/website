@@ -129,3 +129,14 @@
 /* Content injected after page load must remain visible. */
 #games-grid .game-card,
 #social-grid .social-card { opacity: 1; transform: none; }
+
+/* V2.4.4 real game artwork */
+.game-card img {
+  aspect-ratio: 460 / 215;
+  height: auto;
+  object-fit: cover;
+  display: block;
+  width: 100%;
+}
+.game-card > div { min-width: 0; }
+.game-card > div p { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

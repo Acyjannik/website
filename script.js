@@ -160,10 +160,10 @@ async function loadPublicContent() {
     }
 
     const fallbackGames = [
-      { name: 'Fortnite', description: 'Main Game · Ranked · Community', image_url: '/assets/games/fortnite.svg', featured: true },
-      { name: 'GTA V', description: 'Open World · Aktuell · Fun', image_url: '/assets/games/gta-v.svg', featured: false },
-      { name: 'Meccha Chameleon', description: 'Variety · Hide & Seek · Community', image_url: '/assets/games/meccha-chameleon.svg', featured: false },
-      { name: 'Thick As Thieves', description: 'Stealth · Heist · Community', image_url: '/assets/games/thick-as-thieves.svg', featured: false }
+      { name: 'Fortnite', description: 'Main Game · Ranked · Community', image_url: 'https://commons.wikimedia.org/wiki/Special:Redirect/file/Fortnite_at_E3_2018_(42719678112).jpg', featured: true },
+      { name: 'GTA V', description: 'Open World · Aktuell · Fun', image_url: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/271590/header.jpg', featured: false },
+      { name: 'Meccha Chameleon', description: 'Variety · Hide & Seek · Community', image_url: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/4704690/header.jpg', featured: false },
+      { name: 'Thick As Thieves', description: 'Stealth · Heist · Community', image_url: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/3341000/header.jpg', featured: false }
     ];
     const games = Array.isArray(payload.games) && payload.games.length ? payload.games : fallbackGames;
     const gamesGrid = document.getElementById('games-grid');
