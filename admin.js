@@ -81,6 +81,54 @@ function bindTabs() {
   if (VIEW_META[initial]) switchTab(initial);
 }
 
+
+async function ensureDefaultContent() {
+  const defaultSocials = [
+    { platform: 'twitch', label: 'Twitch', url: 'https://www.twitch.tv/acyjannik', sort_order: 1 },
+    { platform: 'tiktok', label: 'TikTok', url: 'https://www.tiktok.com/@acyjannik', sort_order: 2 },
+    { platform: 'whatsapp', label: 'WhatsApp', url: 'https://www.whatsapp.com/channel/0029VazFA8UIXnlmgPliHQ10', sort_order: 3 }
+  ];
+
+  const defaultGames = [
+    { name: 'Fortnite', description: 'Main Game · Ranked · Community', tag: 'MAIN GAME', image_url: '/assets/games/fortnite.svg', featured: true, sort_order: 1 },
+    { name: 'GTA V', description: 'Open World · Aktuell · Fun', tag: 'AKTUELL', image_url: '/assets/games/gta-v.svg', featured: false, sort_order: 2 },
+    { name: 'Meccha Chameleon', description: 'Variety · Hide & Seek · Community', tag: 'VARIETY', image_url: '/assets/games/meccha-chameleon.svg', featured: false, sort_order: 3 },
+    { name: 'Thick As Thieves', description: 'Stealth · Heist · Community', tag: 'VARIETY', image_url: '/assets/games/thick-as-thieves.svg', featured: false, sort_order: 4 }
+  ];
+
+  const { data: existingSocials } = await supabaseClient.from('social_links').select('platform');
+  const existingSocialSet = new Set((existingSocials || []).map(x => x.platform));
+  const missingSocials = defaultSocials.filter(x => !existingSocialSet.has(x.platform));
+  if (missingSocials.length) {
+    await supabaseClient.from('social_links').insert(missingSocials);
+  }
+
+  const { data: existingGames } = await supabaseClient.from('games').select('name');
+  const existingGameSet = new Set((existingGames || []).map(x => x.name));
+  const missingGames = defaultGames.filter(x => !existingGameSet.has(x.name));
+  if (missingGames.length) {
+    await supabaseClient.from('games').insert(missingGames);
+  }
+
+  // Repair existing rows that lost their cover artwork.
+  const { data: currentGames } = await supabaseClient
+    .from('games')
+    .select('id,name,image_url,featured,sort_order');
+
+  const byName = new Map(defaultGames.map(g => [g.name, g]));
+  for (const row of currentGames || []) {
+    const seed = byName.get(row.name);
+    if (!seed) continue;
+    const patch = {};
+    if (!row.image_url) patch.image_url = seed.image_url;
+    if (row.name === 'Fortnite' && row.featured !== true) patch.featured = true;
+    if (Object.keys(patch).length) {
+      patch.updated_at = new Date().toISOString();
+      await supabaseClient.from('games').update(patch).eq('id', row.id);
+    }
+  }
+}
+
 async function loadDashboard() {
   const { data: settings, error: settingsError } = await supabaseClient
     .from('site_settings')
@@ -505,6 +553,7 @@ $('login-form')?.addEventListener('submit', async (event) => {
     }
 
     currentUser = data.user;
+    await ensureDefaultContent();
     $('login-card').hidden = true;
     $('dashboard').hidden = false;
     $('logout-btn').hidden = false;
@@ -566,6 +615,7 @@ $('password-form')?.addEventListener('submit', async (event) => {
 
     if (user && await isAdmin(user)) {
       currentUser = user;
+      await ensureDefaultContent();
       $('login-card').hidden = true;
       $('dashboard').hidden = false;
       $('logout-btn').hidden = false;

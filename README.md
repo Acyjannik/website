@@ -106,3 +106,14 @@ The admin panel now includes:
 
 ### Storage setup
 Run the updated `supabase/setup.sql` once. It creates the public `site-media` bucket and admin-only write policies. Supabase documents browser uploads for existing buckets and recommends standard uploads for smaller files; this UI caps uploads at 6 MB for reliable browser handling. citeturn282563search2turn282563search11
+
+
+## V2.4.1: Content restoration + game covers
+
+Default social links and the four current games are restored automatically when an authorized admin logs in. Missing game images are repaired automatically. Bundled custom SVG cover art is used for:
+- Fortnite
+- GTA V
+- Meccha Chameleon
+- Thick As Thieves
+
+A standalone `supabase/restore_default_content.sql` is also included for manual restoration if needed.

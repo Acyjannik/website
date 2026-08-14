@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-label="Thick As Thieves cover">
+  <defs>
+    
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1020"/><stop offset=".55" stop-color="#1e1b4b"/><stop offset="1" stop-color="#312e81"/>
+    </linearGradient>
+    <radialGradient id="moon" cx=".5" cy=".5" r=".5"><stop stop-color="#e9d5ff"/><stop offset="1" stop-color="#8b5cf6"/></radialGradient>
+    
+    <filter id="glow"><feGaussianBlur stdDeviation="14" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="1200" height="675" fill="url(#bg)"/>
+  
+    <circle cx="840" cy="195" r="115" fill="url(#moon)" opacity=".95" filter="url(#glow)"/>
+    <g fill="#050611" opacity=".98">
+      <path d="M0 480 L0 380 L135 420 L220 355 L310 450 L385 390 L470 460 L570 350 L690 460 L790 365 L880 460 L990 335 L1090 430 L1200 360 V675 H0Z"/>
+      <path d="M760 510 L810 340 L860 510Z"/>
+      <rect x="820" y="430" width="100" height="140" rx="12"/>
+    </g>
+    <g fill="#fbbf24" opacity=".35">
+      <rect x="100" y="425" width="10" height="18"/><rect x="155" y="445" width="10" height="18"/><rect x="272" y="430" width="10" height="18"/>
+      <rect x="875" y="445" width="10" height="18"/><rect x="1010" y="405" width="10" height="18"/><rect x="1090" y="450" width="10" height="18"/>
+    </g>
+    <path d="M620 520 C650 430 720 395 770 430 C790 445 795 470 795 500 L770 560 H650Z" fill="#03030a"/>
+    <circle cx="700" cy="405" r="30" fill="#03030a"/>
+    <path d="M680 392 Q705 378 730 392" stroke="#e9d5ff" stroke-width="4" opacity=".8"/>
+    
+  <rect x="48" y="48" width="1104" height="579" rx="28" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="3"/>
+  <rect x="66" y="500" width="1068" height="105" rx="20" fill="#09090d" fill-opacity=".80"/>
+  <text x="100" y="558" fill="#fff" font-family="Arial,Helvetica,sans-serif" font-size="52" font-weight="800" letter-spacing="2">THICK AS THIEVES</text>
+  <text x="100" y="588" fill="#e9d5ff" font-family="Arial,Helvetica,sans-serif" font-size="20" letter-spacing="4">STEALTH · HEIST · COMMUNITY</text>
+</svg>
