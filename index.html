@@ -27,7 +27,7 @@
       <a href="#socials">Socials</a>
     </nav>
     <a class="live-pill" href="https://www.twitch.tv/acyjannik" target="_blank" rel="noreferrer">
-      <span class="live-dot"></span> Twitch
+      <span class="live-dot" id="header-live-dot"></span><span id="header-live-text">Twitch</span>
     </a>
     <button class="menu-button" aria-label="Menü öffnen" aria-expanded="false">☰</button>
   </header>
@@ -46,10 +46,10 @@
       <div class="hero-visual reveal" aria-label="Acyjannik">
         <div class="hero-photo-wrap">
           <img src="assets/acyjannik-hero.png" alt="Acyjannik" class="hero-photo">
-          <div class="visual-card">
-            <span class="visual-status"><span class="live-dot"></span> ACYJANNIK</span>
-            <strong>LIVE SOON</strong>
-            <small>Auf Twitch vorbeischauen</small>
+          <div class="visual-card" id="hero-live-card">
+            <span class="visual-status"><span class="live-dot" id="hero-live-dot"></span> <span id="hero-live-label">ACYJANNIK</span></span>
+            <strong id="hero-live-title">LIVE SOON</strong>
+            <small id="hero-live-subtitle">Auf Twitch vorbeischauen</small>
           </div>
         </div>
       </div>
@@ -63,7 +63,7 @@
       <div class="stream-shell reveal">
         <div class="twitch-player-wrap">
           <div class="player-topbar">
-            <span class="status-badge"><span class="live-dot"></span><span id="stream-status">TWITCH LIVE</span></span>
+            <span class="status-badge"><span class="live-dot" id="stream-live-dot"></span><span id="stream-status">CHECKING TWITCH…</span></span>
             <a href="https://www.twitch.tv/acyjannik" target="_blank" rel="noreferrer">Twitch öffnen ↗</a>
           </div>
           <div class="twitch-frame">
@@ -88,6 +88,15 @@
             scrolling="no">
           </iframe>
         </aside>
+      </div>
+
+      <div class="status-strip reveal" id="twitch-status-panel">
+        <div>
+          <span class="eyebrow" id="twitch-status-eyebrow">TWITCH</span>
+          <strong id="twitch-status-title">Prüfe den Live-Status…</strong>
+          <p class="status-meta" id="twitch-status-meta">Die Website verbindet sich gerade mit Twitch.</p>
+        </div>
+        <a class="button button-primary" href="https://www.twitch.tv/acyjannik" target="_blank" rel="noreferrer">Kanal öffnen ↗</a>
       </div>
     </section>
 

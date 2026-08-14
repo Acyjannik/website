@@ -43,3 +43,19 @@ Twitch requires the embedding site to use HTTPS and the correct `parent` domain.
 - GTA V
 - Meccha Chameleon
 - Thick As Thieves
+
+
+## V2.2: Twitch Live API
+
+This version includes `/api/twitch-status`, a Vercel serverless function that uses Twitch's Client Credentials flow to check whether `acyjannik` is live and return the current stream title, game and viewer count.
+
+### Vercel Environment Variables
+
+Add these in **Project Settings → Environment Variables**:
+
+- `TWITCH_CLIENT_ID`
+- `TWITCH_CLIENT_SECRET`
+
+Do not place the client secret in front-end files or commit it to GitHub.
+
+The public site polls `/api/twitch-status` every 60 seconds.

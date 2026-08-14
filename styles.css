@@ -17,3 +17,12 @@
 .hero-photo-wrap::after { content:""; position:absolute; inset:0; background:linear-gradient(180deg, rgba(9,9,13,0) 48%, rgba(9,9,13,.58) 100%); pointer-events:none; }
 .hero-photo-wrap .visual-card { z-index:2; }
 @media (max-width:800px) { .hero-photo-wrap,.hero-photo { min-height:380px; } }
+
+/* V2.2 live API status */
+.live-dot.is-live,
+.chat-dot.is-live {
+  background: #22c55e;
+  box-shadow: 0 0 0 5px rgba(34,197,94,.10), 0 0 18px rgba(34,197,94,.45);
+}
+.status-meta{margin:.55rem 0 0;color:var(--muted);font-size:13px;line-height:1.5}
+.status-strip .button{white-space:nowrap}
