@@ -55,9 +55,9 @@ export default async function handler(_req, res) {
     const settings = { ...fallback.settings, ...(settingsRows[0] || {}) };
     const socials = socialsRows.length ? socialsRows : fallback.socials;
     const games = gamesRows
-      .filter((game) => !/meccha/i.test(String(game.name || '')))
+      .filter((game) => !/meccha|chameleon/i.test(String(game.name || '')))
       .length
-      ? gamesRows.filter((game) => !/meccha/i.test(String(game.name || '')))
+      ? gamesRows.filter((game) => !/meccha|chameleon/i.test(String(game.name || '')))
       : fallback.games;
 
     // Canonical artwork for the four current ACYJANNIK games.
@@ -75,7 +75,7 @@ export default async function handler(_req, res) {
 
     // Prevent accidental disappearance of the required current games.
     const required = new Map(fallback.games.map(g => [g.name, g]));
-    const mergedGames = normalizedGames.filter((game) => !/meccha/i.test(String(game.name || '')));
+    const mergedGames = normalizedGames.filter((game) => !/meccha|chameleon/i.test(String(game.name || '')));
     for (const fallbackGame of fallback.games) {
       if (!mergedGames.some(g => g.name === fallbackGame.name)) {
         mergedGames.push(fallbackGame);

@@ -272,3 +272,6 @@
 button:disabled{opacity:.55;cursor:not-allowed}
 
 .admin-version{font-size:10px;color:#71717a;margin-top:4px;letter-spacing:.08em}
+
+/* V2.4.13: no legacy fourth card flash */
+#games-grid { min-height: 250px; }

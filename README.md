@@ -174,3 +174,8 @@ The admin login now waits for the Supabase configuration and client initializati
 ## V2.4.12: Final Meccha cleanup
 
 All Meccha-like legacy game rows are filtered from the public API and client, and the admin now removes any database row whose name contains "meccha". A manual cleanup button and SQL file are included as a final safeguard.
+
+
+## V2.4.13: remove legacy game flash
+
+The homepage now initializes the Games section directly with the three current games before any Supabase/API hydration. This prevents a discontinued legacy card from flashing briefly during page load.

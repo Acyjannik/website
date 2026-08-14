@@ -1,3 +1,26 @@
+
+function preparePublicGameGrid() {
+  const grid = document.getElementById('games-grid');
+  if (!grid) return;
+  grid.innerHTML = `
+    <article class="game-card game-fortnite">
+      <img src="https://cdn.startselect.com/production/blog/preview-images/new-fortnite-season.jpg" alt="Fortnite" loading="lazy" referrerpolicy="no-referrer">
+      <span>01</span>
+      <div><p>FORTNITE</p><small>Main Game · Ranked · Community</small></div>
+    </article>
+    <article class="game-card game-gta">
+      <img src="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/271590/header.jpg" alt="GTA V" loading="lazy" referrerpolicy="no-referrer">
+      <span>02</span>
+      <div><p>GTA V</p><small>Open World · Aktuell · Fun</small></div>
+    </article>
+    <article class="game-card game-thick">
+      <img src="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/3341000/header.jpg" alt="Thick As Thieves" loading="lazy" referrerpolicy="no-referrer">
+      <span>03</span>
+      <div><p>THICK AS THIEVES</p><small>Stealth · Heist · Community</small></div>
+    </article>`;
+}
+preparePublicGameGrid();
+
 const observer = new IntersectionObserver((entries) => {
   entries.forEach((entry) => {
     if (entry.isIntersecting) entry.target.classList.add('visible');
@@ -171,7 +194,7 @@ async function loadPublicContent() {
       'Thick As Thieves': 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/3341000/header.jpg'
     };
     const games = (Array.isArray(payload.games) && payload.games.length ? payload.games : fallbackGames)
-      .filter(game => !/meccha/i.test(String(game.name || '')))
+      .filter(game => !/meccha|chameleon/i.test(String(game.name || '')))
       .map(game => ({ ...game, image_url: canonicalCovers[game.name] || game.image_url }));
     const gamesGrid = document.getElementById('games-grid');
     if (gamesGrid && games.length) {
