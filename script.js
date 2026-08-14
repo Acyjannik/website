@@ -142,6 +142,7 @@ async function loadPublicContent() {
     const title = document.getElementById('hero-title-public');
     const description = document.getElementById('hero-description-public');
     const community = document.getElementById('community-text-public');
+    const about = document.getElementById('about-text-public');
     const heroImage = document.querySelector('.hero-photo');
 
     if (kicker && settings.hero_kicker) {
@@ -155,6 +156,9 @@ async function loadPublicContent() {
     }
     if (community && settings.community_text) {
       community.textContent = settings.community_text;
+    }
+    if (about && settings.about_text) {
+      about.textContent = settings.about_text;
     }
     if (heroImage && settings.hero_image_url) {
       heroImage.src = settings.hero_image_url;

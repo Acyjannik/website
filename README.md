@@ -189,3 +189,8 @@ The public Socials section now shows the bundled Twitch, TikTok and WhatsApp SVG
 ## V2.4.15: Social icons + Discord
 
 Fixed the public social hydration so it no longer replaces real icons with TW/TK/WA text after Supabase loads. Added Discord with the ACY Club invite `https://discord.gg/74ACqBwfu` to the public site, admin defaults, and Supabase seeds.
+
+
+## V2.4.16: About text sync
+
+The "Über Jannik" text field in the admin now updates the public About section on the homepage. The field was already being saved to Supabase, but the public page had no target element and did not apply `about_text` during hydration.

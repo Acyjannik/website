@@ -604,7 +604,7 @@ function bindAdminEvents() {
     if (error) {
       message('settings-message', error.message);
     } else {
-      message('settings-message', 'Website-Inhalte gespeichert.', true);
+      message('settings-message', 'Website-Inhalte gespeichert – inklusive „Über Jannik“.', true);
       updatePreview(payload);
       saveStamp();
     }
