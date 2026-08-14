@@ -179,3 +179,8 @@ All Meccha-like legacy game rows are filtered from the public API and client, an
 ## V2.4.13: remove legacy game flash
 
 The homepage now initializes the Games section directly with the three current games before any Supabase/API hydration. This prevents a discontinued legacy card from flashing briefly during page load.
+
+
+## V2.4.14: Public social icons
+
+The public Socials section now shows the bundled Twitch, TikTok and WhatsApp SVG icons immediately and keeps them when the section hydrates from Supabase.

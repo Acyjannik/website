@@ -275,3 +275,15 @@ button:disabled{opacity:.55;cursor:not-allowed}
 
 /* V2.4.13: no legacy fourth card flash */
 #games-grid { min-height: 250px; }
+
+/* V2.4.14: public social icons */
+.social-card .social-icon-img{
+  display:block;
+  width:30px;
+  height:30px;
+  min-width:30px;
+  min-height:30px;
+  object-fit:contain;
+  color:#d8b4fe;
+  flex:0 0 auto;
+}
