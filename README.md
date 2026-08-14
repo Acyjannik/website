@@ -82,3 +82,27 @@ The browser only receives the Supabase URL and the public anon key. Admin write 
 ### Public site syncing
 
 The public homepage reads the public `site_settings`, `social_links`, and `games` rows via the Supabase anon key and RLS. If Supabase is not configured yet, the homepage falls back to its built-in static content.
+
+
+## V2.3.1: Public content sync fix
+
+The homepage now loads settings, social links and enabled games through `/api/site-content`.
+This avoids browser-side Supabase query inconsistencies and provides a single server-side read path.
+The admin dashboard also shows the last successful save time.
+
+
+## V2.4: Admin Suite
+
+The admin panel now includes:
+- tabbed dashboard navigation
+- Twitch/system status
+- website content editing with live preview
+- social link add/edit/delete
+- game reorder, visibility, Main Game flag and descriptions
+- password change for the signed-in admin
+- Supabase Storage image uploads
+- Hero image activation and game-image linking
+- recent media preview
+
+### Storage setup
+Run the updated `supabase/setup.sql` once. It creates the public `site-media` bucket and admin-only write policies. Supabase documents browser uploads for existing buckets and recommends standard uploads for smaller files; this UI caps uploads at 6 MB for reliable browser handling. citeturn282563search2turn282563search11

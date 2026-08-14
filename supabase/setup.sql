@@ -121,3 +121,57 @@ with check (exists (select 1 from public.admin_users a where a.user_id = auth.ui
 
 -- Note: admin_users itself is intentionally not writable from the client.
 -- Add/remove admin user UUIDs in the SQL editor.
+
+
+-- ------------------------------------------------------------
+-- Storage: public media bucket for admin-managed website images
+-- ------------------------------------------------------------
+insert into storage.buckets (id, name, public)
+values ('site-media', 'site-media', true)
+on conflict (id) do update set public = true;
+
+drop policy if exists "admins can upload site media" on storage.objects;
+create policy "admins can upload site media"
+on storage.objects
+for insert
+to authenticated
+with check (
+  bucket_id = 'site-media'
+  and exists (
+    select 1 from public.admin_users a
+    where a.user_id = auth.uid()
+  )
+);
+
+drop policy if exists "admins can update site media" on storage.objects;
+create policy "admins can update site media"
+on storage.objects
+for update
+to authenticated
+using (
+  bucket_id = 'site-media'
+  and exists (
+    select 1 from public.admin_users a
+    where a.user_id = auth.uid()
+  )
+)
+with check (
+  bucket_id = 'site-media'
+  and exists (
+    select 1 from public.admin_users a
+    where a.user_id = auth.uid()
+  )
+);
+
+drop policy if exists "admins can delete site media" on storage.objects;
+create policy "admins can delete site media"
+on storage.objects
+for delete
+to authenticated
+using (
+  bucket_id = 'site-media'
+  and exists (
+    select 1 from public.admin_users a
+    where a.user_id = auth.uid()
+  )
+);

@@ -96,82 +96,109 @@ updateTwitchStatus();
 setInterval(updateTwitchStatus, 60000);
 
 
-// Public content layer: reads only public Supabase rows.
-// If Supabase is not configured yet, the static fallback content remains visible.
+
+
+// Public content layer.
+// Admin changes are loaded from one serverless endpoint, so the public page
+// always reads the same normalized data source as the admin dashboard.
 async function loadPublicContent() {
   try {
-    const configResponse = await fetch('/api/config', { cache: 'no-store' });
-    const config = await configResponse.json();
-    if (!config.configured) return;
+    const response = await fetch('/api/site-content', {
+      cache: 'no-store',
+      headers: { 'Accept': 'application/json' }
+    });
 
-    const headers = {
-      apikey: config.supabaseAnonKey,
-      Authorization: `Bearer ${config.supabaseAnonKey}`,
-    };
-    const base = `${config.supabaseUrl}/rest/v1`;
+    const payload = await response.json();
 
-    const [settingsRes, socialsRes, gamesRes] = await Promise.all([
-      fetch(`${base}/site_settings?select=*&id=eq.true&limit=1`, { headers, cache: 'no-store' }),
-      fetch(`${base}/social_links?select=*&enabled=eq.true&order=sort_order.asc`, { headers, cache: 'no-store' }),
-      fetch(`${base}/games?select=*&enabled=eq.true&order=sort_order.asc`, { headers, cache: 'no-store' }),
-    ]);
-
-    if (settingsRes.ok) {
-      const rows = await settingsRes.json();
-      const settings = rows[0];
-      if (settings) {
-        const kicker = document.getElementById('hero-kicker-public');
-        const title = document.getElementById('hero-title-public');
-        const description = document.getElementById('hero-description-public');
-        const community = document.getElementById('community-text-public');
-        const heroImage = document.querySelector('.hero-photo');
-        if (kicker && settings.hero_kicker) kicker.innerHTML = `<span class="pulse"></span> ${escapeHtml(settings.hero_kicker)}`;
-        if (title && settings.hero_title) title.innerHTML = escapeHtml(settings.hero_title).replace(/^ACY/, 'ACY');
-        if (description && settings.hero_description) description.textContent = settings.hero_description;
-        if (community && settings.community_text) community.textContent = settings.community_text;
-        if (heroImage && settings.hero_image_url) heroImage.src = settings.hero_image_url;
-      }
+    if (!response.ok || !payload.configured || payload.error) {
+      throw new Error(payload.error || `HTTP ${response.status}`);
     }
 
-    if (socialsRes.ok) {
-      const socials = await socialsRes.json();
-      const grid = document.getElementById('social-grid');
-      if (grid && socials.length) {
-        grid.innerHTML = socials.map((item) => {
-          const icons = {twitch:'TW', tiktok:'TK', whatsapp:'WA', discord:'DC', instagram:'IG', youtube:'YT'};
-          const icon = icons[item.platform] || item.label.slice(0,2).toUpperCase();
-          const sub = item.platform === 'tiktok' ? '@acyjannik' : item.label;
-          return `<a class="social-card reveal" href="${escapeAttr(item.url)}" target="_blank" rel="noreferrer">
-            <span class="social-icon">${escapeHtml(icon)}</span>
-            <div><strong>${escapeHtml(item.label)}</strong><small>${escapeHtml(sub)}</small></div><b>↗</b>
-          </a>`;
-        }).join('');
-      }
+    const settings = payload.settings || {};
+    const kicker = document.getElementById('hero-kicker-public');
+    const title = document.getElementById('hero-title-public');
+    const description = document.getElementById('hero-description-public');
+    const community = document.getElementById('community-text-public');
+    const heroImage = document.querySelector('.hero-photo');
+
+    if (kicker && settings.hero_kicker) {
+      kicker.innerHTML = `<span class="pulse"></span> ${escapeHtml(settings.hero_kicker)}`;
+    }
+    if (title && settings.hero_title) {
+      title.textContent = settings.hero_title;
+    }
+    if (description && settings.hero_description) {
+      description.textContent = settings.hero_description;
+    }
+    if (community && settings.community_text) {
+      community.textContent = settings.community_text;
+    }
+    if (heroImage && settings.hero_image_url) {
+      heroImage.src = settings.hero_image_url;
     }
 
-    if (gamesRes.ok) {
-      const games = await gamesRes.json();
-      const grid = document.getElementById('games-grid');
-      if (grid && games.length) {
-        grid.innerHTML = games.map((game, index) => {
-          const number = String(index + 1).padStart(2,'0');
-          const slug = game.name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
-          const image = game.image_url ? `<img src="${escapeAttr(game.image_url)}" alt="" loading="lazy">` : '';
-          return `<article class="game-card game-${escapeAttr(slug)} reveal">
-            ${image}
-            <span>${number}</span>
-            <div><p>${escapeHtml(game.name.toUpperCase())}</p><small>${escapeHtml(game.description || game.tag || '')}</small></div>
-          </article>`;
-        }).join('');
-      }
+    const socials = Array.isArray(payload.socials) ? payload.socials : [];
+    const socialGrid = document.getElementById('social-grid');
+    if (socialGrid && socials.length) {
+      const icons = {
+        twitch: 'TW', tiktok: 'TK', whatsapp: 'WA',
+        discord: 'DC', instagram: 'IG', youtube: 'YT'
+      };
+      socialGrid.innerHTML = socials.map((item) => {
+        const icon = icons[item.platform] || String(item.label || '').slice(0, 2).toUpperCase();
+        const sub = item.platform === 'tiktok' ? '@acyjannik' : item.label;
+        return `<a class="social-card reveal" href="${escapeAttr(item.url)}" target="_blank" rel="noreferrer">
+          <span class="social-icon">${escapeHtml(icon)}</span>
+          <div><strong>${escapeHtml(item.label)}</strong><small>${escapeHtml(sub)}</small></div><b>↗</b>
+        </a>`;
+      }).join('');
     }
+
+    const games = Array.isArray(payload.games) ? payload.games : [];
+    const gamesGrid = document.getElementById('games-grid');
+    if (gamesGrid && games.length) {
+      gamesGrid.innerHTML = games.map((game, index) => {
+        const number = String(index + 1).padStart(2, '0');
+        const slug = String(game.name || '')
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-|-$/g, '');
+        const image = game.image_url
+          ? `<img src="${escapeAttr(game.image_url)}" alt="" loading="lazy">`
+          : '';
+        const featuredClass = game.featured ? ' featured-game' : '';
+        return `<article class="game-card game-${escapeAttr(slug)}${featuredClass} reveal">
+          ${image}
+          <span>${number}</span>
+          <div><p>${escapeHtml(String(game.name || '').toUpperCase())}</p>
+          <small>${escapeHtml(game.description || game.tag || '')}</small></div>
+        </article>`;
+      }).join('');
+    }
+
+    // Re-run reveal observers for freshly injected cards, if the original
+    // script exposes one; otherwise the cards simply appear normally.
+    document.dispatchEvent(new CustomEvent('acy:content-loaded', {
+      detail: payload
+    }));
+
   } catch (error) {
-    console.debug('Public content not configured yet:', error);
+    console.warn('Public content sync unavailable, using built-in fallback:', error);
   }
 }
 
+function escapeHtml(value = '') {
+  return String(value).replace(/[&<>"']/g, (ch) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;'
+  }[ch]));
+}
+
 function escapeAttr(value = '') {
-  return String(value).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return escapeHtml(value);
 }
 
 loadPublicContent();

@@ -12,9 +12,10 @@
 <body class="admin-page">
   <div class="admin-shell">
     <header class="admin-topbar">
-      <div>
+      <div class="admin-brand">
         <div class="eyebrow">ACYJANNIK</div>
         <h1>Admin</h1>
+        <p class="admin-muted">Website, Community und Content verwalten.</p>
       </div>
       <div class="admin-actions">
         <a class="button button-secondary" href="/">Website ↗</a>
@@ -36,52 +37,202 @@
       </section>
 
       <section id="dashboard" hidden>
-        <div class="admin-grid">
-          <div class="admin-card admin-span-2">
-            <div class="eyebrow">OVERVIEW</div>
-            <h2>Dashboard</h2>
-            <div class="admin-stats">
-              <div class="admin-stat"><span>Twitch</span><strong id="dash-live">–</strong></div>
-              <div class="admin-stat"><span>Game</span><strong id="dash-game">–</strong></div>
-              <div class="admin-stat"><span>Zuschauer</span><strong id="dash-viewers">–</strong></div>
+        <nav class="admin-tabs" aria-label="Adminbereiche">
+          <button class="admin-tab is-active" data-tab="overview">Dashboard</button>
+          <button class="admin-tab" data-tab="content">Website</button>
+          <button class="admin-tab" data-tab="games">Games</button>
+          <button class="admin-tab" data-tab="socials">Socials</button>
+          <button class="admin-tab" data-tab="media">Bilder</button>
+          <button class="admin-tab" data-tab="security">Sicherheit</button>
+        </nav>
+
+        <div class="admin-toolbar">
+          <div>
+            <span class="eyebrow" id="admin-view-kicker">OVERVIEW</span>
+            <h2 id="admin-view-title">Dashboard</h2>
+          </div>
+          <div class="admin-toolbar-meta">
+            <span class="admin-chip" id="db-status-chip">Datenbank verbunden</span>
+            <span class="admin-chip" id="last-saved-message">Noch keine Änderung gespeichert</span>
+          </div>
+        </div>
+
+        <!-- Overview -->
+        <section class="admin-view is-active" data-view="overview">
+          <div class="admin-grid">
+            <div class="admin-card admin-span-2">
+              <div class="eyebrow">TWITCH</div>
+              <h2>Live-Status</h2>
+              <div class="admin-stats">
+                <div class="admin-stat"><span>Status</span><strong id="dash-live">–</strong></div>
+                <div class="admin-stat"><span>Game</span><strong id="dash-game">–</strong></div>
+                <div class="admin-stat"><span>Zuschauer</span><strong id="dash-viewers">–</strong></div>
+              </div>
+              <p class="admin-note" id="dash-message"></p>
             </div>
-            <p class="admin-note" id="dash-message"></p>
-          </div>
 
+            <div class="admin-card">
+              <div class="eyebrow">QUICK ACTIONS</div>
+              <h2>Schnellzugriff</h2>
+              <div class="quick-actions">
+                <button class="button button-secondary" data-jump="content">Website bearbeiten</button>
+                <button class="button button-secondary" data-jump="games">Games verwalten</button>
+                <button class="button button-secondary" data-jump="media">Bild hochladen</button>
+                <a class="button button-secondary" href="https://www.twitch.tv/acyjannik" target="_blank" rel="noreferrer">Twitch öffnen ↗</a>
+              </div>
+            </div>
+
+            <div class="admin-card">
+              <div class="eyebrow">SYSTEM</div>
+              <h2>Status</h2>
+              <div class="system-list">
+                <div><span>Supabase</span><strong id="system-db">OK</strong></div>
+                <div><span>Twitch API</span><strong id="system-twitch">–</strong></div>
+                <div><span>Public Sync</span><strong id="system-sync">OK</strong></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Content -->
+        <section class="admin-view" data-view="content">
+          <div class="admin-grid">
+            <div class="admin-card">
+              <div class="eyebrow">HERO</div>
+              <h2>Startseite</h2>
+              <form id="settings-form" class="admin-form">
+                <label>Hero-Kicker<input id="hero-kicker" required></label>
+                <label>Hero-Titel<input id="hero-title" required></label>
+                <label>Hero-Beschreibung<textarea id="hero-description" rows="4" required></textarea></label>
+                <label>Über Acyjannik<textarea id="about-text" rows="5" required></textarea></label>
+                <label>ACY Club Text<textarea id="community-text" rows="4" required></textarea></label>
+                <label>Hero-Bild URL<input id="hero-image-url"></label>
+                <button class="button button-primary" type="submit">Website speichern</button>
+              </form>
+              <p class="admin-note" id="settings-message"></p>
+            </div>
+
+            <div class="admin-card">
+              <div class="eyebrow">PREVIEW</div>
+              <h2>Hero-Vorschau</h2>
+              <div class="admin-preview" id="hero-preview">
+                <div class="admin-preview-glow"></div>
+                <img id="hero-preview-image" src="/assets/acyjannik-hero.png" alt="Acyjannik Vorschau">
+                <div class="admin-preview-caption">
+                  <strong id="hero-preview-title">ACYJANNIK</strong>
+                  <span id="hero-preview-description">Willkommen im digitalen Zuhause von Acyjannik.</span>
+                </div>
+              </div>
+              <p class="admin-note">Für ein neues Foto kannst du den Bereich „Bilder“ benutzen.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Games -->
+        <section class="admin-view" data-view="games">
           <div class="admin-card">
-            <div class="eyebrow">WEBSITE</div>
-            <h2>Texte & Bild</h2>
-            <form id="settings-form" class="admin-form">
-              <label>Hero-Kicker<input id="hero-kicker" required></label>
-              <label>Hero-Titel<input id="hero-title" required></label>
-              <label>Hero-Beschreibung<textarea id="hero-description" rows="3" required></textarea></label>
-              <label>Über Acyjannik<textarea id="about-text" rows="4" required></textarea></label>
-              <label>ACY Club Text<textarea id="community-text" rows="4" required></textarea></label>
-              <label>Hero-Bild URL<input id="hero-image-url"></label>
-              <button class="button button-primary" type="submit">Texte speichern</button>
-            </form>
-            <p class="admin-note" id="settings-message"></p>
-          </div>
-
-          <div class="admin-card">
-            <div class="eyebrow">SOCIALS</div>
-            <h2>Social Links</h2>
-            <div id="social-list" class="admin-list"></div>
-            <p class="admin-note" id="social-message"></p>
-          </div>
-
-          <div class="admin-card admin-span-2">
-            <div class="eyebrow">GAMES</div>
-            <h2>Aktuelle Games</h2>
+            <div class="section-heading">
+              <div>
+                <div class="eyebrow">CONTENT</div>
+                <h2>Games</h2>
+                <p class="admin-muted">Reihenfolge, Sichtbarkeit und Main Game direkt verwalten.</p>
+              </div>
+            </div>
             <div class="admin-list" id="games-list"></div>
-            <div class="admin-inline">
+            <div class="admin-inline admin-inline-add">
               <input id="new-game-name" placeholder="Neues Game">
-              <input id="new-game-tag" placeholder="Tag">
+              <input id="new-game-tag" placeholder="Tag, z. B. VARIETY">
+              <input id="new-game-description" placeholder="Kurze Beschreibung">
               <button class="button button-secondary" id="add-game-btn">Game hinzufügen</button>
             </div>
             <p class="admin-note" id="games-message"></p>
           </div>
-        </div>
+        </section>
+
+        <!-- Socials -->
+        <section class="admin-view" data-view="socials">
+          <div class="admin-card">
+            <div class="section-heading">
+              <div>
+                <div class="eyebrow">COMMUNITY</div>
+                <h2>Social Links</h2>
+                <p class="admin-muted">Links bearbeiten, aktivieren oder später erweitern.</p>
+              </div>
+            </div>
+            <div id="social-list" class="admin-list"></div>
+            <div class="admin-inline admin-inline-add">
+              <input id="new-social-platform" placeholder="Plattform, z. B. discord">
+              <input id="new-social-label" placeholder="Anzeigename">
+              <input id="new-social-url" placeholder="https://...">
+              <button class="button button-secondary" id="add-social-btn">Social hinzufügen</button>
+            </div>
+            <p class="admin-note" id="social-message"></p>
+          </div>
+        </section>
+
+        <!-- Media -->
+        <section class="admin-view" data-view="media">
+          <div class="admin-grid">
+            <div class="admin-card">
+              <div class="eyebrow">MEDIA</div>
+              <h2>Bild hochladen</h2>
+              <p class="admin-muted">Bilder werden in Supabase Storage gespeichert und können direkt für die Website verwendet werden.</p>
+              <div class="upload-box">
+                <label class="upload-drop">
+                  <input type="file" id="media-file" accept="image/png,image/jpeg,image/webp,image/avif">
+                  <span class="upload-icon">＋</span>
+                  <strong>Datei auswählen</strong>
+                  <small>PNG, JPG, WebP oder AVIF · empfohlen unter 6 MB</small>
+                </label>
+                <label>Verwendung
+                  <select id="media-use">
+                    <option value="hero">Hero-Bild</option>
+                    <option value="game">Game-Bild</option>
+                    <option value="generic">Sonstiges</option>
+                  </select>
+                </label>
+                <label id="media-game-row" hidden>Game
+                  <select id="media-game"></select>
+                </label>
+                <button class="button button-primary" id="upload-media-btn">Bild hochladen</button>
+              </div>
+              <p class="admin-note" id="media-message"></p>
+            </div>
+
+            <div class="admin-card">
+              <div class="eyebrow">MEDIA LIBRARY</div>
+              <h2>Zuletzt verwendet</h2>
+              <div id="media-preview" class="media-preview-list"></div>
+              <p class="admin-note">Aktuell werden hochgeladene Bilder vor allem für Hero- und Game-Inhalte verwendet.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Security -->
+        <section class="admin-view" data-view="security">
+          <div class="admin-grid">
+            <div class="admin-card">
+              <div class="eyebrow">ACCOUNT</div>
+              <h2>Sicherheit</h2>
+              <p class="admin-muted">Du bist als freigeschalteter ACYJANNIK-Admin angemeldet.</p>
+              <div class="system-list">
+                <div><span>Admin-ID</span><strong id="admin-user-id">–</strong></div>
+                <div><span>Session</span><strong id="admin-session-status">Aktiv</strong></div>
+              </div>
+            </div>
+
+            <div class="admin-card">
+              <div class="eyebrow">PASSWORD</div>
+              <h2>Passwort ändern</h2>
+              <form id="password-form" class="admin-form">
+                <label>Neues Passwort<input type="password" id="new-password" minlength="10" autocomplete="new-password" required></label>
+                <label>Neues Passwort wiederholen<input type="password" id="new-password-confirm" minlength="10" autocomplete="new-password" required></label>
+                <button class="button button-primary" type="submit">Passwort aktualisieren</button>
+              </form>
+              <p class="admin-note" id="password-message"></p>
+            </div>
+          </div>
+        </section>
       </section>
     </main>
   </div>
