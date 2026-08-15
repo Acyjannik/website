@@ -282,7 +282,8 @@ $('profile-form')?.addEventListener('submit', async (event) => {
 $('avatar-input')?.addEventListener('change', async (event) => {
   const file = event.target.files?.[0];
   if (!file) return;
-  if (!['image/jpeg','image/png','image/webp'].includes(file.type)) {
+
+  if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
     return setStatus('Bitte JPG, PNG oder WebP verwenden.', 'error');
   }
   if (file.size > 4 * 1024 * 1024) {
@@ -291,35 +292,49 @@ $('avatar-input')?.addEventListener('change', async (event) => {
 
   try {
     setStatus('Profilbild wird hochgeladen…');
-    const extension = file.type.split('/')[1].replace('jpeg','jpg');
-    const path = `avatars/${currentUser.id}.${extension}`;
 
-    const { error: uploadError } = await supabaseClient
-      .storage
-      .from('site-media')
-      .upload(path, file, { upsert: true, contentType: file.type, cacheControl: '3600' });
+    const extension = file.type === 'image/jpeg' ? 'jpg' : file.type.split('/')[1];
+    const path = `${currentUser.id}/${crypto.randomUUID()}.${extension}`;
+
+    const { error: uploadError } = await supabaseClient.storage
+      .from('club-avatars')
+      .upload(path, file, {
+        upsert: false,
+        contentType: file.type,
+        cacheControl: '3600'
+      });
 
     if (uploadError) throw uploadError;
 
     const { data: publicData } = supabaseClient.storage
-      .from('site-media')
+      .from('club-avatars')
       .getPublicUrl(path);
 
     const avatarUrl = `${publicData.publicUrl}?v=${Date.now()}`;
-    const { error } = await supabaseClient
+
+    const { error: profileError } = await supabaseClient
       .from('profiles')
-      .update({ avatar_url: avatarUrl, updated_at: new Date().toISOString() })
+      .update({
+        avatar_url: avatarUrl,
+        updated_at: new Date().toISOString()
+      })
       .eq('id', currentUser.id);
 
-    if (error) throw error;
+    if (profileError) throw profileError;
 
-    if ($('member-avatar-img')) $('member-avatar-img').src = avatarUrl;
-    if ($('member-avatar-img')) $('member-avatar-img').hidden = false;
-    if ($('member-avatar')) $('member-avatar').hidden = true;
+    if ($('member-avatar-img')) {
+      $('member-avatar-img').src = avatarUrl;
+      $('member-avatar-img').hidden = false;
+    }
+    if ($('member-avatar')) {
+      $('member-avatar').hidden = true;
+    }
+
     await awardProgression('avatar_added');
     setStatus('Profilbild gespeichert.', 'success');
   } catch (error) {
-    setStatus(error.message || 'Upload fehlgeschlagen.', 'error');
+    console.error('Avatar upload failed:', error);
+    setStatus(error.message || 'Profilbild-Upload fehlgeschlagen. Bitte prüfe den Supabase-Bucket club-avatars.', 'error');
   }
 });
 

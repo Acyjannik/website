@@ -298,3 +298,8 @@ Run `supabase/club_progression.sql` once in Supabase SQL Editor.
 The profile avatar now uses a dedicated `club-avatars` Supabase Storage bucket with per-user folder policies. This avoids the `new row violates row-level security policy` error caused by the old storage path/policy setup.
 
 Run `supabase/club_storage.sql` once in the Supabase SQL Editor.
+
+
+## V2.8.2: Avatar upload code fix
+
+Fixed the actual browser upload code to use the dedicated `club-avatars` bucket. The previous build still referenced `site-media` despite the new storage SQL. Re-run `supabase/club_storage.sql` once.
