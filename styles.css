@@ -579,3 +579,30 @@ button:disabled{opacity:.55;cursor:not-allowed}
   .clip-edit-full{grid-column:auto}
   .clip-admin-header{align-items:flex-start;flex-direction:column}
 }
+
+/* V3.4 prominent ACY Club CTA */
+.nav-club-cta{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  margin-left:10px;
+  padding:8px 12px;
+  border-radius:999px;
+  border:1px solid rgba(168,85,247,.35);
+  background:rgba(168,85,247,.10);
+  color:#e9d5ff;
+  text-decoration:none;
+  font-size:11px;
+  font-weight:800;
+  box-shadow:0 0 0 1px rgba(168,85,247,.03),0 8px 24px rgba(0,0,0,.16);
+  transition:transform .15s ease,background .15s ease,border-color .15s ease;
+}
+.nav-club-cta:hover{
+  transform:translateY(-1px);
+  background:rgba(168,85,247,.17);
+  border-color:rgba(168,85,247,.55);
+}
+.nav-club-cta span{font-size:12px}
+@media(max-width:900px){
+  .nav-club-cta{display:none}
+}

@@ -418,3 +418,13 @@ Removed the seeded demo clip. Running `supabase/club_clips.sql` now also deletes
 ## V3.3.2: Full clip management
 
 The Admin Clips section now supports opening, editing, saving, resetting, enabling/disabling, and deleting existing clips. Editing includes title, category, clip URL, thumbnail URL and description.
+
+
+## V3.3.3: Existing clip list fix
+
+Fixed the Admin Clips list failing before render because `escapeAttr()` / `escapeHtml()` were missing from `admin.js`. Existing clips can now render and be opened/edited/deleted.
+
+
+## V3.4: ACY Club header CTA
+
+Added a prominent `ACY Club beitreten` call-to-action in the desktop header/navigation. It links directly to `/club.html` and hides on small screens to avoid crowding the mobile navigation.

@@ -4,6 +4,20 @@ let cachedGames = [];
 
 const $ = (id) => document.getElementById(id);
 
+function escapeHtml(value = '') {
+  return String(value).replace(/[&<>"']/g, (ch) => ({
+    '&':'&amp;',
+    '<':'&lt;',
+    '>':'&gt;',
+    '"':'&quot;',
+    "'":'&#039;'
+  }[ch]));
+}
+
+function escapeAttr(value = '') {
+  return escapeHtml(value);
+}
+
 const VIEW_META = {
   overview: ['OVERVIEW', 'Dashboard'],
   content: ['WEBSITE', 'Website'],
