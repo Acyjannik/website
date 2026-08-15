@@ -380,3 +380,18 @@ The member directory now reads profiles directly through the authenticated Supab
 ## V3.1.2: Member directory render fix
 
 Defined the missing `escapeAttr()` helper used by member avatar URLs. This fixes the `escapeAttr is not defined` error that prevented the directory from rendering.
+
+
+## V3.2: Public member profiles
+
+Clicking a member in the directory now opens `/member.html?id=...`.
+Authenticated club members can see:
+- profile image
+- display name + username
+- bio
+- member since
+- XP + level
+- Discord connection state
+- badges
+
+Emails and auth-provider data are never exposed.

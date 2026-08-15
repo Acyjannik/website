@@ -385,7 +385,7 @@ async function loadMemberDirectory(search = '') {
       const badges = (Array.isArray(member.badges) ? member.badges : []).slice(0, 3)
         .map(b => `${badgeIcon[b] || '✦'} ${escapeHtml(b)}`).join(' · ');
 
-      return `<article class="member-directory-item">
+      return `<article class="member-directory-item member-directory-clickable" data-member-id="${escapeAttr(member.id)}">
         <div class="member-directory-avatar">${avatar}</div>
         <div class="member-directory-main">
           <div class="member-directory-name">${escapeHtml(member.display_name || member.username)}</div>
@@ -399,6 +399,13 @@ async function loadMemberDirectory(search = '') {
         </div>
       </article>`;
     }).join('');
+
+    list.querySelectorAll('.member-directory-clickable').forEach(card => {
+      card.addEventListener('click', () => {
+        const id = card.dataset.memberId;
+        if (id) window.location.href = `/member.html?id=${encodeURIComponent(id)}`;
+      });
+    });
   } catch (error) {
     console.warn('Member directory unavailable:', error);
     if (countEl) countEl.textContent = '– Mitglieder';
