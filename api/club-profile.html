@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Mein ACY Club · Acyjannik</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="club-profile.js?v=3.9.2" defer></script>
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
+  <link rel="shortcut icon" href="/assets/favicon.svg">
+  <link rel="apple-touch-icon" href="/assets/favicon.svg">
+</head>
+<body class="club-auth-page">
+  <div class="club-auth-shell">
+    <header class="club-auth-header">
+      <a class="brand" href="/"><span class="brand-mark">A</span><strong>ACY<span>JANNIK</span></strong></a>
+      <div class="member-header-actions">
+        <button class="notification-bell" id="notification-bell" type="button" aria-label="Benachrichtigungen">
+          🔔<span class="notification-count" id="notification-count" hidden></span>
+        </button>
+        <a class="button button-secondary" href="/club-account.html">Account</a>
+        <a class="button button-secondary" href="/">Website</a>
+        <button class="button button-secondary" id="logout">Abmelden</button>
+      </div>
+
+      <div class="notification-panel" id="notification-panel" hidden>
+        <div class="notification-panel-head"><strong>Benachrichtigungen</strong><button id="notification-close" type="button">×</button></div>
+        <div id="notifications-list"><div class="club-content-empty">Keine neuen Benachrichtigungen.</div></div>
+      </div>
+    </header>
+
+    <main class="member-dashboard">
+      <section class="member-hero-card">
+        <div class="member-identity">
+          <div class="member-avatar-wrap">
+            <img id="member-avatar-img" class="member-avatar-img" alt="Profilbild" hidden>
+            <div class="member-avatar" id="member-avatar">A</div>
+            <label class="avatar-edit" title="Profilbild ändern">
+              <input id="avatar-input" type="file" accept="image/jpeg,image/png,image/webp">
+              ✎
+            </label>
+          </div>
+          <div>
+            <span class="eyebrow">ACY CLUB MEMBER</span>
+            <h1>Hey, <span id="member-name">ACY Member</span>.</h1>
+            <p id="member-bio">Willkommen in deinem persönlichen ACY Club.</p>
+            <small id="member-handle">@member</small>
+          </div>
+        </div>
+
+        <div class="member-quick">
+          <div><span>Mitglied seit</span><strong id="member-since">–</strong></div>
+          <div><span>Level</span><strong id="member-level">1</strong></div>
+          <div><span>XP</span><strong id="member-xp">0</strong></div>
+        </div>
+      </section>
+
+      <section class="member-hub member-hub-visible" id="member-hub">
+        <div class="hub-main-card">
+          <div class="eyebrow">DEIN ACY CLUB</div>
+          <h2 id="hub-greeting">Hey, Member.</h2>
+          <p id="hub-summary">Dein persönlicher Überblick.</p>
+          <div class="hub-progress">
+            <div class="hub-progress-head"><span id="hub-level-title">ACY Rookie</span><strong id="hub-level-xp">0 XP</strong></div>
+            <div class="xp-bar"><div id="hub-xp-fill"></div></div>
+            <small id="hub-next-level">Noch 100 XP bis zum nächsten Level.</small>
+          </div>
+        </div>
+
+        <div class="hub-live-card" id="hub-live-card">
+          <div class="eyebrow">TWITCH</div>
+          <div class="hub-live-state"><span class="live-dot" id="hub-live-dot"></span><strong id="hub-live-label">OFFLINE</strong></div>
+          <p id="hub-live-game">Kein Stream aktiv.</p>
+          <a class="button button-primary" href="https://www.twitch.tv/acyjannik" target="_blank" rel="noreferrer">Jetzt zuschauen ↗</a>
+        </div>
+
+        <div class="hub-events-card">
+          <div class="eyebrow">DEINE NÄCHSTEN EVENTS</div>
+          <div id="hub-events-list"><div class="club-content-empty">Wird geladen…</div></div>
+        </div>
+
+        <div class="hub-achievements-card">
+          <div class="eyebrow">LETZTE ERFOLGE</div>
+          <div id="hub-achievements-list"><div class="club-content-empty">Wird geladen…</div></div>
+        </div>
+      </section>
+
+      <section class="member-card member-span-2 spotlight-card" id="member-spotlight">
+        <div class="member-card-head">
+          <div>
+            <div class="eyebrow">COMMUNITY SPOTLIGHT</div>
+            <h2>Member of the Month</h2>
+            <p>Ein Mitglied, das diesen Monat besonders aktiv ist.</p>
+          </div>
+        </div>
+        <div id="spotlight-content"><div class="club-content-empty">Noch kein Spotlight gesetzt.</div></div>
+      </section>
+
+      <div class="member-grid">
+        <!-- Profile -->
+        <section class="member-card">
+          <div class="eyebrow">PROFIL</div>
+          <h2>Dein Profil</h2>
+          <form id="profile-form" class="member-form">
+            <label>Anzeigename
+              <input id="edit-display-name" maxlength="40" required>
+            </label>
+            <label>Bio
+              <textarea id="edit-bio" maxlength="180" rows="3" placeholder="Erzähl etwas über dich…"></textarea>
+            </label>
+            <button class="button button-primary" type="submit">Profil speichern</button>
+            <p class="club-auth-status" id="profile-save-status"></p>
+          </form>
+        </section>
+
+        <!-- Twitch -->
+        <section class="member-card member-twitch-card">
+          <div class="eyebrow">TWITCH</div>
+          <div class="member-card-head">
+            <div>
+              <h2 id="twitch-member-title">ACYJANNIK</h2>
+              <p id="twitch-member-sub">Live-Status wird geladen…</p>
+            </div>
+            <span class="member-live-pill" id="member-live-pill"><span class="live-dot" id="member-live-dot"></span><span id="member-live-text">CHECKING</span></span>
+          </div>
+          <div class="member-twitch-stats">
+            <div><span>Game</span><strong id="member-twitch-game">–</strong></div>
+            <div><span>Zuschauer</span><strong id="member-twitch-viewers">–</strong></div>
+          </div>
+          <a class="button button-primary" href="https://www.twitch.tv/acyjannik" target="_blank" rel="noreferrer">Twitch öffnen ↗</a>
+        </section>
+
+        <!-- Level + badges -->
+        <section class="member-card member-span-2">
+          <div class="eyebrow">PROGRESSION</div>
+          <div class="member-card-head">
+            <div>
+              <h2 id="level-title">ACY Rookie</h2>
+              <p>Dein Fortschritt im ACY Club.</p>
+            </div>
+            <div class="level-chip">LEVEL <span id="level-number">1</span></div>
+          </div>
+
+          <div class="xp-row">
+            <div class="xp-labels"><span id="xp-current">0 XP</span><span id="xp-next">100 XP</span></div>
+            <div class="xp-bar"><div id="xp-bar-fill"></div></div>
+          </div>
+
+          <div>
+            <div class="section-mini-title">DEINE BADGES</div>
+            <div class="badge-grid" id="badge-grid"></div>
+          </div>
+        </section>
+
+        <section class="member-card member-span-2">
+          <div class="eyebrow">COMMUNITY</div>
+          <div class="member-card-head">
+            <div><h2>Events</h2><p>Was im ACY Club als Nächstes ansteht.</p></div>
+          </div>
+          <div class="club-content-list" id="member-events-list"><div class="club-content-empty">Events werden geladen…</div></div>
+        </section>
+
+        <section class="member-card member-span-2">
+          <div class="eyebrow">ACY NEWS</div>
+          <div class="member-card-head">
+            <div><h2>Neuigkeiten</h2><p>Updates aus dem ACY Club.</p></div>
+          </div>
+          <div class="club-content-list" id="member-news-list"><div class="club-content-empty">News werden geladen…</div></div>
+        </section>
+
+        <section class="member-card member-span-2 member-directory-card">
+          <div class="member-card-head">
+            <div>
+              <div class="eyebrow">COMMUNITY</div>
+              <h2>ACY Club Mitglieder</h2>
+              <p>Finde andere Mitglieder, sieh ihre Profile und entdeckt, wer alles dabei ist.</p>
+            </div>
+            <span class="member-count-chip" id="member-directory-count">– Mitglieder</span>
+          </div>
+
+          <div class="member-directory-toolbar">
+            <input id="member-directory-search" type="search" placeholder="Mitglieder suchen…" aria-label="Mitglieder suchen">
+          </div>
+
+          <div class="member-directory-list" id="member-directory-list">
+            <div class="club-content-empty">Mitglieder werden geladen…</div>
+          </div>
+        </section>
+
+        <!-- Discord -->
+        <section class="member-card member-span-2">
+          <div class="member-card-head">
+            <div>
+              <div class="eyebrow">ACY CLIPS</div>
+              <h2>Die besten Momente.</h2>
+              <p>Ausgewählte Clips aus den Streams.</p>
+            </div>
+          </div>
+          <div class="clip-grid" id="member-clips-list">
+            <div class="club-content-empty">Clips werden geladen…</div>
+          </div>
+        </section>
+
+        <section class="member-card member-span-2">
+          <div class="member-card-head">
+            <div>
+              <div class="eyebrow">LEADERBOARD</div>
+              <h2>ACY Club Ranking</h2>
+              <p>Wer sammelt aktuell die meisten XP?</p>
+            </div>
+            <span class="member-count-chip" id="leaderboard-count">– Mitglieder</span>
+          </div>
+          <div class="leaderboard-list" id="member-leaderboard-list">
+            <div class="club-content-empty">Ranking wird geladen…</div>
+          </div>
+        </section>
+
+        <section class="member-card member-span-2">
+          <div class="eyebrow">DEINE STATISTIK</div>
+          <h2>Dein Club-Fortschritt.</h2>
+          <div class="member-stats-grid" id="member-stats-grid">
+            <div><span>Events</span><strong id="stat-events">0</strong></div>
+            <div><span>Badges</span><strong id="stat-badges">0</strong></div>
+            <div><span>XP</span><strong id="stat-xp">0</strong></div>
+            <div><span>Mitgliedstage</span><strong id="stat-days">0</strong></div>
+          </div>
+        </section>
+
+        <section class="member-card member-span-2 member-discord-card">
+          <div>
+            <div class="eyebrow">COMMUNITY</div>
+            <h2>ACY Club auf Discord</h2>
+            <p>Verknüpfe deinen Discord-Account mit deinem ACY Club Profil.</p>
+            <div class="discord-link-state" id="discord-link-state"><span class="discord-state-dot"></span><span id="discord-link-text">Nicht verbunden</span></div>
+          </div>
+          <div class="member-discord-actions">
+            <button class="button button-primary" id="discord-connect-btn" type="button">Discord verbinden</button>
+            <a class="button button-secondary" href="https://discord.gg/74ACqBwfu" target="_blank" rel="noreferrer">Server öffnen ↗</a>
+          </div>
+          <p class="club-auth-status" id="discord-link-status"></p><p class="discord-xp-note" id="discord-xp-note">Discord verbunden = +50 XP und Badge „Discord Member“.</p>
+        </section>
+      </div>
+    </main>
+  </div>
+<footer class="legal-footer"><a href="/impressum.html">Impressum</a><span>·</span><a href="/datenschutz.html">Datenschutz</a></footer></body>
+</html>

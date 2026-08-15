@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ACY Club Member · Acyjannik</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="member.js?v=3.9.3" defer></script>
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
+  <link rel="shortcut icon" href="/assets/favicon.svg">
+  <link rel="apple-touch-icon" href="/assets/favicon.svg">
+</head>
+<body class="club-auth-page">
+  <div class="club-auth-shell">
+    <header class="club-auth-header">
+      <a class="brand" href="/"><span class="brand-mark">A</span><strong>ACY<span>JANNIK</span></strong></a>
+      <div class="member-header-actions">
+        <a class="button button-secondary" href="/club-profile.html">Mein Club</a>
+        <button class="button button-secondary" id="logout">Abmelden</button>
+      </div>
+    </header>
+
+    <main class="public-member-main">
+      <a class="member-back" href="/club-profile.html">← Zur Mitgliederübersicht</a>
+
+      <section class="public-member-card">
+        <div class="public-member-top">
+          <div class="public-member-avatar-wrap">
+            <img id="public-avatar" alt="" hidden>
+            <div class="public-member-avatar-fallback" id="public-avatar-fallback">A</div>
+          </div>
+
+          <div class="public-member-identity">
+            <span class="eyebrow">ACY CLUB MEMBER</span>
+            <h1 id="public-name">ACY Member</h1>
+            <div id="public-handle">@member</div>
+            <p id="public-bio">ACY Club Member</p>
+          </div>
+
+          <div class="public-member-level">
+            <span>LEVEL</span>
+            <strong id="public-level">1</strong>
+            <small id="public-level-title">ACY Rookie</small>
+            <b id="public-xp">0 XP</b>
+          </div>
+        </div>
+
+        <div class="public-member-stats">
+          <div><span>DABEI SEIT</span><strong id="public-since">–</strong></div>
+          <div><span>DISCORD</span><strong id="public-discord">Nicht verbunden</strong></div>
+        </div>
+
+        <div class="public-member-badges">
+          <div class="eyebrow">BADGES</div>
+          <div class="badge-grid" id="public-badges"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+<footer class="legal-footer"><a href="/impressum.html">Impressum</a><span>·</span><a href="/datenschutz.html">Datenschutz</a></footer></body>
+</html>

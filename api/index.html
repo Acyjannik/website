@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#09090d" />
+  <meta name="description" content="Acyjannik – Gaming, Streaming & Community. Willkommen im ACY Club." />
+  <title>Acyjannik | Gaming · Streaming · Community</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
+  <link rel="shortcut icon" href="/assets/favicon.svg">
+  <link rel="apple-touch-icon" href="/assets/favicon.svg">
+</head>
+<body>
+  <div class="ambient ambient-a"></div>
+  <div class="ambient ambient-b"></div>
+
+  <header class="site-header">
+    <a class="brand" href="#top" aria-label="Acyjannik Startseite">
+      <span class="brand-mark">A</span>
+      <span>ACY<span>JANNIK</span></span>
+    </a>
+    <nav class="nav" aria-label="Hauptnavigation">
+      <a href="#live">Live</a>
+      <a href="#games">Games</a>
+      <a href="#club">ACY Club</a>
+      <a href="#socials">Socials</a>
+      <a class="nav-club-cta" href="/club.html">ACY Club beitreten <span>↗</span></a>
+    </nav>
+    <a class="live-pill" href="https://www.twitch.tv/acyjannik" target="_blank" rel="noreferrer">
+      <span class="live-dot" id="header-live-dot"></span><span id="header-live-text">Twitch</span>
+    </a>
+    <button class="menu-button" aria-label="Menü öffnen" aria-expanded="false">☰</button>
+  </header>
+
+  <main id="top">
+    <section class="hero section-pad">
+      <div class="hero-copy reveal">
+        <p class="eyebrow" id="hero-kicker-public"><span class="pulse"></span> GAMING · STREAMING · COMMUNITY</p>
+        <h1 id="hero-title-public">ACY<span>JANNIK</span></h1>
+        <p class="hero-text" id="hero-description-public">Willkommen im digitalen Zuhause von Acyjannik. Streams, Games und der ACY Club an einem Ort.</p>
+        <div class="hero-actions">
+          <a class="button button-primary" href="https://www.twitch.tv/acyjannik" target="_blank" rel="noreferrer">🔴 Auf Twitch</a>
+          <a class="button button-ghost" href="#club">💜 ACY Club</a>
+        </div>
+      </div>
+      <div class="hero-visual reveal" aria-label="Acyjannik">
+        <div class="hero-photo-wrap">
+          <img loading="lazy" referrerpolicy="no-referrer" src="assets/acyjannik-hero.png" alt="Acyjannik" class="hero-photo">
+          <div class="visual-card" id="hero-live-card">
+            <span class="visual-status"><span class="live-dot" id="hero-live-dot"></span> <span id="hero-live-label">ACYJANNIK</span></span>
+            <strong id="hero-live-title">LIVE SOON</strong>
+            <small id="hero-live-subtitle">Auf Twitch vorbeischauen</small>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="live" class="section-pad section">
+      <div class="section-heading reveal">
+        <div><span class="eyebrow">LIVE</span><h2>Der Stream.</h2></div>
+        <span class="section-note">Twitch · acyjannik</span>
+      </div>
+      <div class="stream-shell reveal">
+        <div class="twitch-player-wrap">
+          <div class="player-topbar">
+            <span class="status-badge"><span class="live-dot" id="stream-live-dot"></span><span id="stream-status">CHECKING TWITCH…</span></span>
+            <a href="https://www.twitch.tv/acyjannik" target="_blank" rel="noreferrer">Twitch öffnen ↗</a>
+          </div>
+          <div class="twitch-frame">
+            <iframe
+              id="twitch-player"
+              title="Acyjannik Twitch Stream"
+              src="https://player.twitch.tv/?channel=acyjannik&parent=acyjannik.de&autoplay=false&muted=true"
+              allowfullscreen
+              scrolling="no">
+            </iframe>
+          </div>
+        </div>
+        <aside class="twitch-chat">
+          <div class="chat-heading">
+            <span class="eyebrow">LIVE CHAT</span>
+            <span class="chat-dot"></span>
+          </div>
+          <iframe
+            id="twitch-chat"
+            title="Acyjannik Twitch Chat"
+            src="https://www.twitch.tv/embed/acyjannik/chat?parent=acyjannik.de&darkpopout"
+            scrolling="no">
+          </iframe>
+        </aside>
+      </div>
+
+      <div class="status-strip reveal" id="twitch-status-panel">
+        <div>
+          <span class="eyebrow" id="twitch-status-eyebrow">TWITCH</span>
+          <strong id="twitch-status-title">Prüfe den Live-Status…</strong>
+          <p class="status-meta" id="twitch-status-meta">Die Website verbindet sich gerade mit Twitch.</p>
+        </div>
+        <a class="button button-primary" href="https://www.twitch.tv/acyjannik" target="_blank" rel="noreferrer">Kanal öffnen ↗</a>
+      </div>
+    </section>
+
+    <section id="games" class="section-pad section">
+      <div class="section-heading reveal">
+        <div><span class="eyebrow">PLAY</span><h2>Aktuelle Games.</h2></div>
+        <span class="section-note">Mehr als nur ein Spiel.</span>
+      </div>
+      <div class="game-grid" id="games-grid">
+        <article class="game-card game-fortnite reveal"><img loading="lazy" referrerpolicy="no-referrer" src="https://commons.wikimedia.org/wiki/Special:Redirect/file/Fortnite_at_E3_2018_(42719678112).jpg" alt="Fortnite"><span>01</span><div><p>FORTNITE</p><small>Main Game · Ranked · Community</small></div></article>
+        <article class="game-card game-gta reveal"><img loading="lazy" referrerpolicy="no-referrer" src="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/271590/header.jpg" alt="GTA V"><span>02</span><div><p>GTA V</p><small>Aktuell · Open World · Fun</small></div></article>
+        <article class="game-card game-thick reveal"><img loading="lazy" referrerpolicy="no-referrer" src="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/3341000/header.jpg" alt="Thick As Thieves"><span>04</span><div><p>THICK AS THIEVES</p><small>Stealth · Heist · Community</small></div></article>
+      </div>
+    </section>
+
+    <section id="club" class="club-section section-pad">
+      <div class="club-panel reveal" id="club-panel">
+        <div class="club-glow"></div>
+        <span class="eyebrow">WELCOME TO</span>
+        <h2>THE <span>ACY CLUB</span></h2>
+        <p id="community-text-public">Mehr als nur ein Chat. Die Community rund um Acyjannik, zusammengebracht an einem Ort.</p>
+        <div class="club-cta">
+          <a class="button button-primary" href="/club.html">ACY Club beitreten</a>
+          <a class="button button-secondary" href="https://discord.gg/74ACqBwfu" target="_blank" rel="noreferrer">Discord beitreten ↗</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="socials" class="section-pad section">
+      <div class="section-heading reveal">
+        <div>
+          <span c<span class="eyebrow">CONNECT</span>
+          <h2>Find Acyjannik.</h2>
+        </div>
+      </div>
+
+      <div class="social-grid" id="social-grid">
+        <a class="social-card reveal" href="https://www.twitch.tv/acyjannik" target="_blank" rel="noreferrer"><img class="social-icon-img" src="/assets/social/twitch.svg" alt=""><div><strong>Twitch</strong><small>Live streams &amp; VODs</small></div><b>↗</b></a>
+        <a class="social-card reveal" href="https://www.tiktok.com/@acyjannik" target="_blank" rel="noreferrer"><img class="social-icon-img" src="/assets/social/tiktok.svg" alt=""><div><strong>TikTok</strong><small>@acyjannik</small></div><b>↗</b></a>
+        <a class="social-card reveal" href="https://www.whatsapp.com/channel/0029VazFA8UIXnlmgPliHQ10" target="_blank" rel="noreferrer"><img class="social-icon-img" src="/assets/social/whatsapp.svg" alt=""><div><strong>WhatsApp</strong><small>ACYJANNIK Channel</small></div><b>↗</b></a>
+        <a class="social-card reveal" href="https://discord.gg/74ACqBwfu" target="_blank" rel="noreferrer"><img class="social-icon-img" src="/assets/social/discord.svg" alt=""><div><strong>Discord</strong><small>ACY Club</small></div><b>↗</b></a>
+      </div>
+    </section>
+
+    <section id="schedule" class="section-pad section schedule-section">
+      <div class="section-heading reveal">
+        <div>
+          <span class="eyebrow">NEXT UP</span>
+          <h2>Jeden Tag um <span>20:30 Uhr.</span></h2>
+          <p>Fortnite, Community und eine gute Portion Chaos. 🎮</p>
+        </div>
+        <span class="schedule-badge">TÄGLICH</span>
+      </div>
+
+      <div class="schedule-card reveal">
+        <div class="schedule-icon" aria-hidden="true">▶</div>
+        <div class="schedule-copy">
+          <span class="schedule-label">FORTNITE</span>
+          <strong>Jeden Tag · 20:30 Uhr</strong>
+          <small>Schau auf Twitch vorbei und sei beim nächsten Stream dabei.</small>
+        </div>
+        <a class="button button-primary" href="https://www.twitch.tv/acyjannik" target="_blank" rel="noreferrer">Twitch öffnen ↗</a>
+      </div>
+    </section>
+
+<section class="about section-pad section">
+      <div class="about-card reveal">
+        <span class="eyebrow">ABOUT</span>
+        <h2>Hinter ACYJANNIK<br><span>steht Jannik.</span></h2>
+        <p id="about-text-public">Die persönliche Story, Bilder und mehr über Jannik bekommen hier später ihren eigenen Platz. V1 hält diesen Bereich bewusst clean, bis die passenden Inhalte da sind.</p>
+      </div>
+    </section>
+      <section class="section-pad section public-spotlight-section" id="public-spotlight">
+      <div class="section-heading reveal">
+        <div><span class="eyebrow">COMMUNITY</span><h2>ACY Member of the Month.</h2></div>
+      </div>
+      <div class="public-spotlight-card" id="public-spotlight-card">
+        <div class="club-content-empty">Spotlight wird geladen…</div>
+      </div>
+    </section>
+</main>
+
+  <footer class="footer">
+    <div class="footer-brand">ACY<span>JANNIK</span></div>
+    <p>Gaming · Streaming · Community</p>
+    <div class="footer-links"><a href="#top">Home</a><a href="#live">Live</a><a href="#club">ACY Club</a><a href="#socials">Socials</a></div>
+    <small>© 2026 Acyjannik</small>
+  <div class="footer-admin-link"><a href="/admin.html">Admin</a></div></footer>
+
+  <script src="script.js"></script>
+<footer class="legal-footer"><a href="/impressum.html">Impressum</a><span>·</span><a href="/datenschutz.html">Datenschutz</a></footer></body>
+</html>
