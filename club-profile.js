@@ -1009,6 +1009,86 @@ function renderPet(pet) {
   if ($('pet-rename-input')) $('pet-rename-input').value = pet.name;
 }
 
+
+async function loadNotificationPreferences() {
+  const { data, error } = await supabaseClient.rpc('get_my_notification_preferences');
+  if (error) throw error;
+
+  const p = data || {};
+  const setChecked = (id, value) => {
+    const el = $(id);
+    if (el) el.checked = value !== false;
+  };
+
+  setChecked('pref-in-app', p.in_app_enabled);
+  setChecked('pref-email-enabled', p.email_enabled);
+
+  const map = {
+    'email-votes': 'email_votes',
+    'email-events': 'email_events',
+    'email-news': 'email_news',
+    'email-live': 'email_live',
+    'email-achievements': 'email_achievements',
+    'email-direct-messages': 'email_direct_messages',
+    'email-spotlight': 'email_spotlight',
+    'email-rewards': 'email_rewards',
+    'email-pet': 'email_pet'
+  };
+
+  for (const [id, key] of Object.entries(map)) {
+    const el = document.querySelector(`[data-pref="${id}"]`);
+    if (el) el.checked = Boolean(p[key]);
+  }
+
+  setText('notification-settings-email', currentUser?.email || '–');
+  setText('notification-settings-status', p.email_enabled ? 'E-Mail aktiviert' : 'E-Mail deaktiviert');
+}
+
+$('save-notification-settings')?.addEventListener('click', async () => {
+  const checked = id => Boolean($(id)?.checked);
+  const pref = id => Boolean(document.querySelector(`[data-pref="${id}"]`)?.checked);
+  const button = $('save-notification-settings');
+  const status = $('notification-settings-message');
+
+  if (button) {
+    button.disabled = true;
+    button.textContent = 'Speichert…';
+  }
+
+  try {
+    const { data, error } = await supabaseClient.rpc('save_my_notification_preferences', {
+      p_in_app_enabled: checked('pref-in-app'),
+      p_email_enabled: checked('pref-email-enabled'),
+      p_email_votes: pref('email-votes'),
+      p_email_events: pref('email-events'),
+      p_email_news: pref('email-news'),
+      p_email_live: pref('email-live'),
+      p_email_achievements: pref('email-achievements'),
+      p_email_direct_messages: pref('email-direct-messages'),
+      p_email_spotlight: pref('email-spotlight'),
+      p_email_rewards: pref('email-rewards'),
+      p_email_pet: pref('email-pet')
+    });
+    if (error) throw error;
+
+    setText('notification-settings-status', data?.email_enabled ? 'E-Mail aktiviert' : 'Gespeichert');
+    if (status) {
+      status.textContent = 'Benachrichtigungseinstellungen gespeichert.';
+      status.className = 'club-auth-status success';
+    }
+  } catch (error) {
+    if (status) {
+      status.textContent = error?.message || 'Einstellungen konnten nicht gespeichert werden.';
+      status.className = 'club-auth-status error';
+    }
+  } finally {
+    if (button) {
+      button.disabled = false;
+      button.textContent = 'Einstellungen speichern';
+    }
+  }
+});
+
 async function loadPet() {
   if (!supabaseClient || !currentUser) return;
   try {
@@ -1194,6 +1274,7 @@ async function init() {
 
     currentUser = data.session.user;
     initMemberSectionNavigation();
+    await loadNotificationPreferences();
 
     const dmTarget = new URLSearchParams(window.location.search).get('dm');
 

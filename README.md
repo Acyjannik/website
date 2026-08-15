@@ -825,3 +825,12 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Pet action buttons now show their main reward directly in the UI.
 - The 72-hour-at-zero death rule remains unchanged.
 - Run `supabase/club_pets_repair.sql` again after deployment.
+
+
+## V7.0 — Notification Center
+- Added granular member notification preferences.
+- In-app and email switches are separate.
+- Categories: Community Votes, Events, News, Live, Achievements, DMs, Spotlight, Rewards and Pet.
+- Email is off by default.
+- Added `supabase/club_notification_preferences.sql`.
+- This version intentionally stops at preferences. The actual mail dispatch will be added as the next small step.
