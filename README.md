@@ -395,3 +395,16 @@ Authenticated club members can see:
 - badges
 
 Emails and auth-provider data are never exposed.
+
+
+## V3.3: ACY Clips
+
+Added:
+- ACY Clips section in the Member dashboard
+- admin Clip management
+- title, Twitch clip URL, thumbnail URL, category and description
+- enable/disable, edit and delete
+- responsive clip cards
+- direct links to Twitch clips
+
+Run `supabase/club_clips.sql` once in Supabase SQL Editor.

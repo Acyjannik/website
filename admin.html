@@ -46,6 +46,7 @@
           <button class="admin-tab" data-tab="events">Events</button>
           <button class="admin-tab" data-tab="news">News</button>
           <button class="admin-tab" data-tab="progression">XP & Badges</button>
+          <button class="admin-tab" data-tab="clips">Clips</button>
           <button class="admin-tab" data-tab="media">Bilder</button>
           <button class="admin-tab" data-tab="security">Sicherheit</button>
         </nav>
@@ -291,6 +292,24 @@
               <div><strong>+150 XP</strong><span>30 Tage Mitglied</span></div>
             </div>
             <p class="admin-note">Die automatische Vergabe wird serverseitig abgesichert und kann nicht einfach durch Browser-Manipulation beliebig erhöht werden.</p>
+          </div>
+        </section>
+
+        <section class="admin-view" data-view="clips">
+          <div class="admin-card">
+            <div class="section-heading">
+              <div><div class="eyebrow">ACY CLIPS</div><h2>Clips</h2><p class="admin-muted">Twitch-Clips im Member-Bereich verwalten.</p></div>
+            </div>
+            <div class="admin-table" id="clips-admin-list"></div>
+            <div class="admin-form admin-form-grid">
+              <label>Titel<input id="clip-title" placeholder="Der komplett unnötige Fortnite-Fail"></label>
+              <label>Clip-URL<input id="clip-url" placeholder="https://www.twitch.tv/.../clip/..."></label>
+              <label>Thumbnail-URL<input id="clip-thumbnail" placeholder="https://..."></label>
+              <label>Kategorie<input id="clip-category" value="Fortnite"></label>
+              <label>Beschreibung<textarea id="clip-description" rows="2" placeholder="Was ist hier passiert?"></textarea></label>
+              <button class="button button-primary" id="add-clip-btn" type="button">Clip hinzufügen</button>
+            </div>
+            <p class="admin-note" id="clips-message"></p>
           </div>
         </section>
 

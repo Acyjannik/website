@@ -6,7 +6,7 @@
   <title>Mein ACY Club · Acyjannik</title>
   <link rel="stylesheet" href="styles.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="club-profile.js?v=3.1.2" defer></script>
+  <script src="club-profile.js?v=3.3.0" defer></script>
 </head>
 <body class="club-auth-page">
   <div class="club-auth-shell">
@@ -136,6 +136,19 @@
         </section>
 
         <!-- Discord -->
+        <section class="member-card member-span-2">
+          <div class="member-card-head">
+            <div>
+              <div class="eyebrow">ACY CLIPS</div>
+              <h2>Die besten Momente.</h2>
+              <p>Ausgewählte Clips aus den Streams.</p>
+            </div>
+          </div>
+          <div class="clip-grid" id="member-clips-list">
+            <div class="club-content-empty">Clips werden geladen…</div>
+          </div>
+        </section>
+
         <section class="member-card member-span-2 member-discord-card">
           <div>
             <div class="eyebrow">COMMUNITY</div>

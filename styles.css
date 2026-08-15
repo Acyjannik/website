@@ -509,3 +509,15 @@ button:disabled{opacity:.55;cursor:not-allowed}
 .public-member-stats span,.public-member-stats strong{display:block}.public-member-stats span{font-size:9px;color:#71717a}.public-member-stats strong{margin-top:5px;font-size:13px}
 .public-member-badges{margin-top:22px}
 @media(max-width:720px){.public-member-top{grid-template-columns:1fr}.public-member-level{max-width:180px}.public-member-stats{grid-template-columns:1fr}}
+
+/* V3.3 ACY Clips */
+.clip-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:15px}
+.clip-card{display:block;text-decoration:none;color:inherit;border-radius:15px;overflow:hidden;background:#0d0d12;border:1px solid rgba(255,255,255,.06);transition:transform .15s ease,border-color .15s ease}
+.clip-card:hover{transform:translateY(-2px);border-color:rgba(168,85,247,.28)}
+.clip-thumb{position:relative;aspect-ratio:16/9;background:linear-gradient(135deg,rgba(124,58,237,.3),rgba(8,8,12,.9));overflow:hidden}
+.clip-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.clip-placeholder{height:100%;display:grid;place-items:center;color:#d8b4fe;font-size:34px}
+.clip-play{position:absolute;left:12px;bottom:10px;width:34px;height:34px;display:grid;place-items:center;border-radius:50%;background:rgba(168,85,247,.9);color:#fff;font-size:13px}
+.clip-card-body{padding:13px}.clip-category{display:block;margin-bottom:5px;color:#c084fc;font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}.clip-card-body strong{display:block;font-size:14px}.clip-card-body p{margin:5px 0 0;font-size:11px;color:#a1a1aa;line-height:1.45}
+@media(max-width:900px){.clip-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.clip-grid{grid-template-columns:1fr}}

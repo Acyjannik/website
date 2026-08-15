@@ -139,6 +139,7 @@ async function init() {
     await loadTwitch();
     await loadClubContent();
     await loadMemberDirectory();
+    await loadClubClips();
   } catch (error) {
     const msg = error?.message || 'Profil konnte nicht geladen werden.';
     const status = $('profile-save-status');
@@ -337,6 +338,37 @@ function applyEventAttendanceState(item, attending) {
   if (!btn) return;
   btn.className = `button button-small ${attending ? 'button-secondary' : 'button-primary'} event-attend-btn`;
   btn.textContent = attending ? 'Dabei ✓' : 'Teilnehmen';
+}
+
+async function loadClubClips(){
+  const list=$('member-clips-list');
+  if(!list)return;
+  try{
+    const response=await fetch(`/api/club-clips?_=${Date.now()}`,{cache:'no-store'});
+    const payload=await response.json();
+    if(!response.ok)throw new Error(payload.error||'Clips konnten nicht geladen werden.');
+    const clips=Array.isArray(payload.clips)?payload.clips:[];
+    if(!clips.length){
+      list.innerHTML='<div class="club-content-empty">Noch keine Clips.</div>';
+      return;
+    }
+    list.innerHTML=clips.map(c=>{
+      const thumb=c.thumbnail_url
+        ? `<img src="${escapeAttr(c.thumbnail_url)}" alt="" loading="lazy">`
+        : `<div class="clip-placeholder"><span>▶</span></div>`;
+      return `<a class="clip-card" href="${escapeAttr(c.clip_url)}" target="_blank" rel="noreferrer">
+        <div class="clip-thumb">${thumb}<span class="clip-play">▶</span></div>
+        <div class="clip-card-body">
+          <span class="clip-category">${escapeHtml(c.category||'ACY Clip')}</span>
+          <strong>${escapeHtml(c.title)}</strong>
+          <p>${escapeHtml(c.description||'')}</p>
+        </div>
+      </a>`;
+    }).join('');
+  }catch(error){
+    console.warn('Club clips unavailable:',error);
+    list.innerHTML=`<div class="club-content-empty">${escapeHtml(error?.message||'Clips momentan nicht verfügbar.')}</div>`;
+  }
 }
 
 async function loadMemberDirectory(search = '') {

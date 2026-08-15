@@ -12,6 +12,7 @@ const VIEW_META = {
   events: ['COMMUNITY', 'Events'],
   news: ['CONTENT', 'News'],
   progression: ['MEMBERS', 'XP & Badges'],
+  clips: ['ACY CLIPS', 'Clips'],
   media: ['MEDIA', 'Bilder'],
   security: ['SECURITY', 'Sicherheit'],
 };
@@ -208,6 +209,7 @@ async function loadDashboard() {
     loadTwitchStatus(),
     loadEventsAdmin(),
     loadNewsAdmin(),
+    loadClipsAdmin(),
   ]);
 
   await loadMediaPreview();
@@ -463,6 +465,52 @@ async function addNewsAdmin(){
   if(error)message('news-message',error.message);else{$('news-title').value='';$('news-body').value='';message('news-message','News veröffentlicht.',true);saveStamp();loadNewsAdmin();}
 }
 
+async function loadClipsAdmin(){
+  const list=$('clips-admin-list'); if(!list)return;
+  const {data,error}=await supabaseClient.from('club_clips').select('*').order('published_at',{ascending:false});
+  if(error){list.innerHTML=`<div class="admin-empty">Clips noch nicht eingerichtet: ${escapeHtml(error.message)}</div>`;return;}
+  list.innerHTML=(data||[]).length?(data||[]).map(c=>`<div class="admin-table-row content-admin-row" data-id="${c.id}">
+    <div><strong>${escapeHtml(c.title)}</strong><small>${escapeHtml(c.category||'ACY Clip')}</small></div>
+    <input class="content-inline-title" value="${escapeAttr(c.title)}">
+    <input class="content-inline-body" value="${escapeAttr(c.clip_url)}">
+    <label class="admin-check"><input class="content-inline-enabled" type="checkbox" ${c.enabled?'checked':''}> aktiv</label>
+    <div class="admin-row-actions"><button class="button button-small content-save-clip">Speichern</button><button class="button button-small button-danger content-delete-clip">Löschen</button></div>
+  </div>`).join(''):'<div class="admin-empty">Noch keine Clips.</div>';
+
+  list.querySelectorAll('.content-save-clip').forEach(btn=>btn.onclick=async()=>{
+    const row=btn.closest('.content-admin-row');
+    const {error}=await supabaseClient.from('club_clips').update({
+      title:row.querySelector('.content-inline-title').value.trim(),
+      clip_url:row.querySelector('.content-inline-body').value.trim(),
+      enabled:row.querySelector('.content-inline-enabled').checked,
+      updated_at:new Date().toISOString()
+    }).eq('id',row.dataset.id);
+    if(error)message('clips-message',error.message);else{message('clips-message','Clip gespeichert.',true);saveStamp();loadClipsAdmin();}
+  });
+  list.querySelectorAll('.content-delete-clip').forEach(btn=>btn.onclick=async()=>{
+    const id=btn.closest('.content-admin-row').dataset.id;
+    if(!confirm('Clip wirklich löschen?'))return;
+    const {error}=await supabaseClient.from('club_clips').delete().eq('id',id);
+    if(error)message('clips-message',error.message);else{message('clips-message','Clip gelöscht.',true);saveStamp();loadClipsAdmin();}
+  });
+}
+
+async function addClipAdmin(){
+  const title=$('clip-title').value.trim();
+  const clip_url=$('clip-url').value.trim();
+  const thumbnail_url=$('clip-thumbnail').value.trim();
+  const category=$('clip-category').value.trim()||'Fortnite';
+  const description=$('clip-description').value.trim();
+  if(!title||!clip_url)return message('clips-message','Titel und Clip-URL sind erforderlich.');
+  if(!isSafeHttpUrl(clip_url))return message('clips-message','Bitte eine gültige Clip-URL verwenden.');
+  if(thumbnail_url && !isSafeHttpUrl(thumbnail_url))return message('clips-message','Bitte eine gültige Thumbnail-URL verwenden.');
+  const {error}=await supabaseClient.from('club_clips').insert({title,clip_url,thumbnail_url,category,description,enabled:true});
+  if(error)message('clips-message',error.message);else{
+    $('clip-title').value='';$('clip-url').value='';$('clip-thumbnail').value='';$('clip-description').value='';
+    message('clips-message','Clip hinzugefügt.',true);saveStamp();loadClipsAdmin();
+  }
+}
+
 async function loadTwitchStatus() {
   try {
     const r = await fetch('/api/twitch-status', { cache: 'no-store' });
@@ -663,6 +711,7 @@ function bindAdminEvents() {
   });
 
   $('add-game-btn')?.addEventListener('click', addGame);
+$('add-clip-btn')?.addEventListener('click', addClipAdmin);
 $('add-event-btn')?.addEventListener('click', addEventAdmin);
 $('add-news-btn')?.addEventListener('click', addNewsAdmin);
 $('cleanup-meccha-btn')?.addEventListener('click', cleanupMecchaRows);
