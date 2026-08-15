@@ -771,3 +771,11 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Kept the generated master sheet as `assets/pets/pet-sheet-generated.png` for provenance/reference.
 - Pet selection cards and the active pet view now render the corresponding artwork automatically.
 - No new database migration is required for the artwork change.
+
+
+## V6.4.3 — Flat Pet Assets
+- Added every pet image directly under `assets/` as `pet-<species>.webp`.
+- Updated the Club profile to reference the flat asset paths instead of `assets/pets/`.
+- This avoids deployment/upload tools that fail to preserve nested asset folders.
+- Updated the club-profile.js cache-busting version to 6.4.3.
+- The original `assets/pets/` files are retained as a backup, but the live UI no longer depends on that folder.
