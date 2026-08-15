@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Mein ACY Club · Acyjannik</title>
   <link rel="stylesheet" href="styles.css">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="/pet-companion.js?v=6.5.0" defer></script>
-  <script src="club-profile.js?v=6.5.1" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="/pet-companion.js?v=6.6.0" defer></script>
+  <script src="club-profile.js?v=6.6.0" defer></script>
   <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
   <link rel="shortcut icon" href="/assets/favicon.svg">
   <link rel="apple-touch-icon" href="/assets/favicon.svg">
@@ -189,6 +189,21 @@
               <input id="pet-rename-input" maxlength="18" minlength="2" placeholder="Neuer Name" required>
               <button class="button button-secondary" type="submit">Speichern</button>
             </form>
+
+            <div class="pet-progression">
+              <div class="pet-progression-head">
+                <span class="eyebrow">PET PROGRESSION</span>
+                <strong id="pet-progression-title">Kleiner Begleiter</strong>
+              </div>
+              <div class="pet-progression-steps">
+                <div class="pet-prog-step is-current" data-pet-level="1"><span>1</span><small>Begleiter</small></div>
+                <div class="pet-prog-step" data-pet-level="2"><span>2</span><small>Freund</small></div>
+                <div class="pet-prog-step" data-pet-level="3"><span>3</span><small>Gefährte</small></div>
+                <div class="pet-prog-step" data-pet-level="4"><span>4</span><small>Sidekick</small></div>
+                <div class="pet-prog-step" data-pet-level="5"><span>5</span><small>Legende</small></div>
+              </div>
+              <div class="pet-progression-bar"><span id="pet-progression-fill"></span></div>
+            </div>
 
             <div class="pet-stats">
               <div class="pet-stat">

@@ -1321,3 +1321,31 @@ button:disabled{opacity:.55;cursor:not-allowed}
   .pet-manage-actions{width:100%;justify-content:flex-start}
   .pet-manage-actions .button{flex:1;min-width:0}
 }
+
+/* V6.6 — Pet progression visuals */
+.pet-progression{padding:14px 15px 12px;border:1px solid rgba(168,85,247,.16);border-radius:15px;background:rgba(168,85,247,.035)}
+.pet-progression-head{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:11px}
+.pet-progression-head strong{font-size:12px;color:#d8b4fe}
+.pet-progression-steps{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}
+.pet-prog-step{display:grid;justify-items:center;gap:5px;color:#71717a;text-align:center}
+.pet-prog-step span{width:27px;height:27px;display:grid;place-items:center;border-radius:50%;border:1px solid rgba(255,255,255,.08);background:#0d0d12;font-size:10px;font-weight:800}
+.pet-prog-step small{font-size:8px;white-space:nowrap}
+.pet-prog-step.is-current{color:#fff}
+.pet-prog-step.is-current span{border-color:rgba(168,85,247,.65);background:rgba(168,85,247,.15);color:#e9d5ff;box-shadow:0 0 18px rgba(168,85,247,.18)}
+.pet-progression-bar{height:4px;border-radius:999px;background:#07070a;margin-top:11px;overflow:hidden}
+.pet-progression-bar span{display:block;width:0;height:100%;border-radius:999px;background:linear-gradient(90deg,#7c3aed,#c084fc);transition:width .35s ease}
+.pet-avatar{transition:box-shadow .25s ease,transform .25s ease}
+.pet-avatar.pet-level-2{box-shadow:0 0 28px rgba(96,165,250,.18)}
+.pet-avatar.pet-level-3{box-shadow:0 0 32px rgba(192,132,252,.28)}
+.pet-avatar.pet-level-4{box-shadow:0 0 36px rgba(250,204,21,.24);transform:translateY(-1px)}
+.pet-avatar.pet-level-5{box-shadow:0 0 42px rgba(251,191,36,.34),0 0 70px rgba(168,85,247,.18);transform:translateY(-2px)}
+.pet-effect-sparkle::after,.pet-effect-crown::after,.pet-effect-legendary::after{position:absolute;right:-3px;top:-3px;font-size:15px;line-height:1}
+.pet-effect-sparkle::after{content:'✦';color:#d8b4fe;filter:drop-shadow(0 0 5px rgba(192,132,252,.8))}
+.pet-effect-crown::after{content:'♛';color:#fde68a;filter:drop-shadow(0 0 5px rgba(250,204,21,.7))}
+.pet-effect-legendary::after{content:'✦';color:#fef3c7;filter:drop-shadow(0 0 7px rgba(250,204,21,.9));animation:petLegendPulse 1.6s ease-in-out infinite}
+.acy-pet-float-art{position:relative}
+.acy-pet-float-art.pet-effect-sparkle::after{position:absolute;right:0;top:0}
+.acy-pet-float-art.pet-effect-crown::after{position:absolute;right:0;top:-2px}
+.acy-pet-float-art.pet-effect-legendary::after{position:absolute;right:0;top:-2px}
+@keyframes petLegendPulse{50%{transform:scale(1.15);opacity:.65}}
+@media(max-width:600px){.pet-progression-steps{gap:4px}.pet-prog-step small{font-size:7px}}

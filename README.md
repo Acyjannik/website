@@ -804,3 +804,12 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - When a member returns after a death, the UI explains what happened and allows a new adoption.
 - Pet artwork references are normalized to the flat `assets/pet-*.webp` files.
 - Run `supabase/club_pets_repair.sql` again after deployment.
+
+
+## V6.6 — Pet Progression
+- Added five pet progression levels at 0, 100, 250, 500 and 1,000 pet-care XP.
+- Each level now has its own title and subtle visual treatment:
+  Level 2 glow, Level 3 sparkle, Level 4 crown aura, Level 5 legendary glow.
+- The active pet card shows a visual progression track and progress to the next pet level.
+- The global companion widget shows pet level and progression title and reflects higher-level visual effects.
+- No database schema changes required.

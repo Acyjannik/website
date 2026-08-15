@@ -907,15 +907,20 @@ function handleDiscordOAuthCallback() {
 }
 
 function petLevelForXp(xp = 0) {
-  const thresholds = [0, 100, 250, 500, 1000];
-  let level = 1;
-  for (let i = 0; i < thresholds.length; i++) {
-    if (xp >= thresholds[i]) level = i + 1;
-  }
+  const levels = [
+    { min: 0, level: 1, title: 'Kleiner Begleiter', effect: 'basic' },
+    { min: 100, level: 2, title: 'Vertrauter Freund', effect: 'glow' },
+    { min: 250, level: 3, title: 'Treuer Gefährte', effect: 'sparkle' },
+    { min: 500, level: 4, title: 'ACY Sidekick', effect: 'crown' },
+    { min: 1000, level: 5, title: 'ACY Legende', effect: 'legendary' }
+  ];
+  let current = levels[0];
+  for (const entry of levels) if (xp >= entry.min) current = entry;
+  const nextEntry = levels.find(entry => entry.min > xp);
   return {
-    level,
-    next: thresholds[level] ?? null,
-    title: ['Kleiner Begleiter','Vertrauter Freund','Treuer Gefährte','ACY Sidekick','ACY Legende'][level - 1]
+    ...current,
+    next: nextEntry ? nextEntry.min : null,
+    nextTitle: nextEntry?.title || null
   };
 }
 
@@ -959,10 +964,13 @@ function renderPet(pet) {
   const level = petLevelForXp(Number(pet.pet_xp || 0));
 
   const petAvatar = $('pet-avatar');
-  if (petAvatar) petAvatar.innerHTML = `<img src="assets/pet-${escapeAttr(pet.species)}.webp" alt="${escapeAttr(species.label)}">`;
+  if (petAvatar) {
+    petAvatar.className = `pet-avatar pet-level-${level.level} pet-effect-${level.effect}`;
+    petAvatar.innerHTML = `<img src="assets/pet-${escapeAttr(pet.species)}.webp" alt="${escapeAttr(species.label)}">`;
+  }
   setText('pet-species-label', species.label.toUpperCase());
   setText('pet-display-name', pet.name);
-  setText('pet-level-text', `Level ${level.level} · ${Number(pet.pet_xp || 0)} Pflege-XP`);
+  setText('pet-level-text', `Level ${level.level} · ${Number(pet.pet_xp || 0)} Pflege-XP · ${level.title}`);
   chip.textContent = `Level ${level.level} · ${level.title}`;
 
   const stats = [
@@ -978,7 +986,25 @@ function renderPet(pet) {
   });
 
   const next = level.next;
-  setText('pet-xp-note', next ? `Noch ${Math.max(0, next - Number(pet.pet_xp || 0))} Pflege-XP bis Level ${level.level + 1}` : 'Maximales Tier-Level erreicht.');
+  setText('pet-xp-note', next
+    ? `Noch ${Math.max(0, next - Number(pet.pet_xp || 0))} XP bis ${level.nextTitle}`
+    : 'Maximales Tier-Level erreicht.');
+
+  setText('pet-progression-title', level.title);
+  const fill = $('pet-progression-fill');
+  if (fill) {
+    const thresholds = [0,100,250,500,1000];
+    const base = thresholds[level.level - 1];
+    const nextThreshold = level.next ?? base + 1;
+    const progress = level.next
+      ? Math.max(0, Math.min(100, ((Number(pet.pet_xp || 0) - base) / Math.max(1, nextThreshold - base)) * 100))
+      : 100;
+    fill.style.width = `${progress}%`;
+  }
+  document.querySelectorAll('[data-pet-level]').forEach(step => {
+    step.classList.toggle('is-current', Number(step.dataset.petLevel) === level.level);
+    step.classList.toggle('is-complete', Number(step.dataset.petLevel) < level.level);
+  });
   setText('pet-care-note', 'Die Werte sinken langsam. Bleibt ein Wert 72 Stunden auf 0, stirbt dein Begleiter.');
   if ($('pet-rename-input')) $('pet-rename-input').value = pet.name;
 }
