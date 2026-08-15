@@ -66,6 +66,7 @@ export default async function handler(_req, res) {
 
     return res.status(200).json({
       live: stream.type === "live",
+      id: stream.id,
       channel: stream.user_login,
       title: stream.title,
       game: stream.game_name,

@@ -83,57 +83,86 @@ async function updateTwitchStatus() {
     alert: document.getElementById('live-alert'),
     alertTitle: document.getElementById('live-alert-title'),
     alertMeta: document.getElementById('live-alert-meta'),
+    hubGrid: document.getElementById('live-hub-grid'),
+    hubThumb: document.getElementById('live-hub-thumb'),
+    hubKicker: document.getElementById('live-hub-kicker'),
+    hubTitle: document.getElementById('live-hub-title'),
+    hubGame: document.getElementById('live-hub-game'),
+    statStatus: document.getElementById('live-stat-status'),
+    statStatusSub: document.getElementById('live-stat-status-sub'),
+    statViewers: document.getElementById('live-stat-viewers'),
+    statViewersSub: document.getElementById('live-stat-viewers-sub'),
+    statStart: document.getElementById('live-stat-start'),
+    statStartSub: document.getElementById('live-stat-start-sub'),
+    statGame: document.getElementById('live-stat-game'),
+    statGameSub: document.getElementById('live-stat-game-sub'),
   };
+
+  const setDot = (el, active) => el?.classList.toggle('is-live', active);
+  const formatViewers = n => Number.isFinite(n) ? n.toLocaleString('de-DE') : '–';
+  const formatStart = value => value
+    ? new Date(value).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })
+    : '–';
 
   try {
     const response = await fetch('/api/twitch-status', { cache: 'no-store' });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const data = await response.json();
-
     const live = Boolean(data.live);
-
-    const setDot = (el, active) => {
-      if (!el) return;
-      el.classList.toggle('is-live', active);
-    };
+    const streamId = data.id ? String(data.id) : '';
+    const game = data.game || 'Twitch';
+    const title = data.title || 'ACYJANNIK ist live';
 
     setDot(els.headerDot, live);
     setDot(els.heroDot, live);
     setDot(els.streamDot, live);
 
     if (live) {
+      const viewers = Number.isFinite(data.viewerCount) ? data.viewerCount : null;
+      const startTime = formatStart(data.startedAt);
+
       if (els.headerText) els.headerText.textContent = 'LIVE';
       if (els.heroLabel) els.heroLabel.textContent = 'ACYJANNIK · LIVE';
-      if (els.heroTitle) els.heroTitle.textContent = data.game || 'LIVE AUF TWITCH';
-      if (els.heroSubtitle) els.heroSubtitle.textContent = data.title || 'Jetzt live auf Twitch';
+      if (els.heroTitle) els.heroTitle.textContent = game;
+      if (els.heroSubtitle) els.heroSubtitle.textContent = title;
       if (els.streamStatus) els.streamStatus.textContent = 'TWITCH LIVE';
       if (els.statusEyebrow) els.statusEyebrow.textContent = '🔴 LIVE';
-      if (els.statusTitle) els.statusTitle.textContent = data.title || 'Acyjannik ist live';
-      if (els.statusMeta) {
-        const viewerText = Number.isFinite(data.viewerCount)
-          ? `${data.viewerCount.toLocaleString('de-DE')} Zuschauer`
-          : 'Live auf Twitch';
-        els.statusMeta.textContent = [data.game, viewerText].filter(Boolean).join(' · ');
-      }
+      if (els.statusTitle) els.statusTitle.textContent = title;
+      if (els.statusMeta) els.statusMeta.textContent = [game, viewers !== null ? `${formatViewers(viewers)} Zuschauer` : 'Live auf Twitch'].filter(Boolean).join(' · ');
       if (els.liveDetails) els.liveDetails.hidden = false;
-      if (els.liveViewers) {
-        els.liveViewers.textContent = Number.isFinite(data.viewerCount)
-          ? `👥 ${data.viewerCount.toLocaleString('de-DE')} Zuschauer`
-          : '🔴 Live';
-      }
-      if (els.liveStart) {
-        els.liveStart.textContent = data.startedAt
-          ? `Seit ${new Date(data.startedAt).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })} Uhr`
+      if (els.liveViewers) els.liveViewers.textContent = viewers !== null ? `👥 ${formatViewers(viewers)} Zuschauer` : '🔴 Live';
+      if (els.liveStart) els.liveStart.textContent = data.startedAt ? `Seit ${startTime} Uhr` : '';
+
+      if (els.hubKicker) els.hubKicker.textContent = '🔴 JETZT LIVE';
+      if (els.hubTitle) els.hubTitle.textContent = title;
+      if (els.hubGame) els.hubGame.textContent = `${game}${viewers !== null ? ` · ${formatViewers(viewers)} Zuschauer` : ''}`;
+      if (els.statStatus) els.statStatus.textContent = 'LIVE';
+      if (els.statStatusSub) els.statStatusSub.textContent = 'auf Twitch';
+      if (els.statViewers) els.statViewers.textContent = viewers !== null ? formatViewers(viewers) : '–';
+      if (els.statViewersSub) els.statViewersSub.textContent = 'Zuschauer jetzt';
+      if (els.statStart) els.statStart.textContent = startTime;
+      if (els.statStartSub) els.statStartSub.textContent = 'Streamstart';
+      if (els.statGame) els.statGame.textContent = game;
+      if (els.statGameSub) els.statGameSub.textContent = 'Kategorie';
+
+      if (els.hubThumb) {
+        const thumb = data.thumbnailUrl
+          ? data.thumbnailUrl.replace('{width}', '1280').replace('{height}', '720')
           : '';
+        els.hubThumb.style.backgroundImage = thumb ? `url("${thumb}")` : '';
+        els.hubThumb.classList.toggle('has-image', Boolean(thumb));
       }
+
       if (els.alert) {
-        els.alert.hidden = false;
-        if (els.alertTitle) els.alertTitle.textContent = data.title || 'ACYJANNIK ist live';
-        if (els.alertMeta) {
-          els.alertMeta.textContent = [data.game, Number.isFinite(data.viewerCount) ? `${data.viewerCount.toLocaleString('de-DE')} Zuschauer` : 'Jetzt auf Twitch']
-            .filter(Boolean).join(' · ');
-        }
+        const dismissed = sessionStorage.getItem('acy_live_alert_dismissed');
+        const shouldShow = dismissed !== streamId;
+        els.alert.hidden = !shouldShow;
+        if (els.alertTitle) els.alertTitle.textContent = title;
+        if (els.alertMeta) els.alertMeta.textContent = [game, viewers !== null ? `${formatViewers(viewers)} Zuschauer` : 'Jetzt auf Twitch'].filter(Boolean).join(' · ');
+        els.alert.dataset.streamId = streamId;
       }
+
+      document.title = `🔴 ${title} · ACYJANNIK`;
     } else {
       if (els.headerText) els.headerText.textContent = 'Twitch';
       if (els.heroLabel) els.heroLabel.textContent = 'ACYJANNIK';
@@ -144,19 +173,45 @@ async function updateTwitchStatus() {
       if (els.statusTitle) els.statusTitle.textContent = 'Acyjannik ist gerade offline';
       if (els.statusMeta) els.statusMeta.textContent = 'Schau später wieder vorbei oder folge dem Kanal auf Twitch.';
       if (els.liveDetails) els.liveDetails.hidden = true;
-      if (els.alert) els.alert.hidden = true;
+      if (els.alert) {
+        els.alert.hidden = true;
+        els.alert.dataset.streamId = '';
+      }
+      if (els.hubKicker) els.hubKicker.textContent = 'TWITCH';
+      if (els.hubTitle) els.hubTitle.textContent = 'Gerade offline';
+      if (els.hubGame) els.hubGame.textContent = 'Beim nächsten Stream wieder vorbeischauen.';
+      if (els.statStatus) els.statStatus.textContent = 'OFFLINE';
+      if (els.statStatusSub) els.statStatusSub.textContent = 'auf Twitch';
+      if (els.statViewers) els.statViewers.textContent = '–';
+      if (els.statViewersSub) els.statViewersSub.textContent = 'nicht live';
+      if (els.statStart) els.statStart.textContent = '–';
+      if (els.statStartSub) els.statStartSub.textContent = 'kein aktiver Stream';
+      if (els.statGame) els.statGame.textContent = '–';
+      if (els.statGameSub) els.statGameSub.textContent = 'Kategorie';
+      if (els.hubThumb) {
+        els.hubThumb.style.backgroundImage = '';
+        els.hubThumb.classList.remove('has-image');
+      }
+      document.title = 'Acyjannik | Gaming · Streaming · Community';
     }
   } catch (error) {
     console.error('Twitch status error:', error);
     if (els.statusTitle) els.statusTitle.textContent = 'Twitch-Status momentan nicht verfügbar';
-    if (els.statusMeta) els.statusMeta.textContent = 'Der Live-Player bleibt verfügbar. Die Statusanzeige wartet auf die API-Konfiguration.';
+    if (els.statusMeta) els.statusMeta.textContent = 'Der Live-Player bleibt verfügbar. Die Statusanzeige wartet auf die API.';
+    if (els.statStatus) els.statStatus.textContent = 'UNVERFÜGBAR';
+    if (els.hubTitle) els.hubTitle.textContent = 'Live-Status nicht verfügbar';
+    if (els.hubGame) els.hubGame.textContent = 'Der Twitch-Player bleibt erreichbar.';
   }
 }
 
 updateTwitchStatus();
 setInterval(updateTwitchStatus, 30000);
 document.getElementById('live-alert-close')?.addEventListener('click', () => {
-  document.getElementById('live-alert')?.setAttribute('hidden', '');
+  const alert = document.getElementById('live-alert');
+  if (!alert) return;
+  const streamId = alert.dataset.streamId || '';
+  if (streamId) sessionStorage.setItem('acy_live_alert_dismissed', streamId);
+  alert.hidden = true;
 });
 
 

@@ -103,11 +103,47 @@
         </aside>
       </div>
 
+      <div class="live-hub-grid reveal" id="live-hub-grid">
+        <article class="live-hub-card live-hub-feature" id="live-hub-feature">
+          <div class="live-hub-thumb" id="live-hub-thumb" aria-hidden="true"></div>
+          <div class="live-hub-overlay"></div>
+          <div class="live-hub-content">
+            <span class="live-hub-kicker" id="live-hub-kicker">TWITCH</span>
+            <h3 id="live-hub-title">Live-Status wird geladen…</h3>
+            <p id="live-hub-game">Wir prüfen gerade, ob Acyjannik live ist.</p>
+            <a class="button button-primary" href="https://www.twitch.tv/acyjannik" target="_blank" rel="noreferrer">Stream öffnen ↗</a>
+          </div>
+        </article>
+        <div class="live-hub-stats">
+          <div class="live-stat">
+            <span>STATUS</span>
+            <strong id="live-stat-status">Prüfe…</strong>
+            <small id="live-stat-status-sub">Twitch</small>
+          </div>
+          <div class="live-stat">
+            <span>ZUSCHAUER</span>
+            <strong id="live-stat-viewers">–</strong>
+            <small id="live-stat-viewers-sub">aktuell</small>
+          </div>
+          <div class="live-stat">
+            <span>SEIT</span>
+            <strong id="live-stat-start">–</strong>
+            <small id="live-stat-start-sub">Streamstart</small>
+          </div>
+          <div class="live-stat">
+            <span>GAME</span>
+            <strong id="live-stat-game">–</strong>
+            <small id="live-stat-game-sub">Kategorie</small>
+          </div>
+        </div>
+      </div>
+
       <div class="status-strip reveal" id="twitch-status-panel">
         <div>
           <span class="eyebrow" id="twitch-status-eyebrow">TWITCH</span>
           <strong id="twitch-status-title">Prüfe den Live-Status…</strong>
           <p class="status-meta" id="twitch-status-meta">Die Website verbindet sich gerade mit Twitch.</p>
+          <div class="twitch-live-details" id="twitch-live-details" hidden><span id="twitch-live-viewers"></span><span id="twitch-live-start"></span></div>
         </div>
         <a class="button button-primary" href="https://www.twitch.tv/acyjannik" target="_blank" rel="noreferrer">Kanal öffnen ↗</a>
       </div>
@@ -202,6 +238,6 @@
   <div class="footer-admin-link"><a href="/admin.html">Admin</a></div></footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="script.js?v=6.0.0"></script>
+  <script src="script.js?v=6.0.0"></script>></script>
 <footer class="legal-footer"><a href="/impressum.html">Impressum</a><span>·</span><a href="/datenschutz.html">Datenschutz</a></footer></body>
 </html>

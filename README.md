@@ -689,3 +689,15 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Shows the five current ACY Club levels and their XP thresholds.
 - No new database migration is required.
 - Pet/Tamagotchi functionality is intentionally not included; that remains a later feature.
+
+
+## V6.0 — Live Hub
+- Prominent live experience on the public homepage.
+- Dynamic Twitch stream title, category, viewer count and start time.
+- Uses Twitch stream thumbnail as a live visual when available.
+- Header, hero, player status and Live Hub stay synchronized.
+- Browser title changes while Acyjannik is live.
+- Live alert can be dismissed for the current stream and returns for a new stream.
+- Twitch status refreshes every 30 seconds.
+- Twitch credentials remain server-side.
+- No database migration required.
