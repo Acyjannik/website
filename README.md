@@ -636,3 +636,15 @@ Added Impressum, Datenschutzerklärung, Account & Datenschutz page, account dele
 - Added a proper mobile dropdown/panel containing Live, Games, ACY Club, Socials and the Club CTA.
 - The menu button now changes between ☰ and ✕ and has the correct accessible label.
 - Tapping a navigation link closes the mobile menu.
+
+
+## V5.1 — Private messages
+- Added member-to-member direct messaging with Supabase RLS.
+- Added conversation list, live message delivery, timestamps and own-message deletion.
+- Added a “Nachricht senden” button on member profiles.
+- Member-profile links can open a new DM directly via `?dm=<user_id>`.
+- New DMs create an in-app notification for the recipient.
+- Added Realtime for direct messages.
+
+
+V5.1 uses Supabase RLS directly for DM reads/writes; no service-role key is exposed in the browser.

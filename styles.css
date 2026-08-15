@@ -892,3 +892,43 @@ button:disabled{opacity:.55;cursor:not-allowed}
   }
   .live-pill{margin-left:auto;margin-right:4px}
 }
+
+/* V5.1 Direct Messages */
+.member-dm-card{overflow:hidden}
+.dm-shell{display:grid;grid-template-columns:280px minmax(0,1fr);min-height:520px;border:1px solid rgba(255,255,255,.08);border-radius:18px;overflow:hidden;background:rgba(0,0,0,.12)}
+.dm-conversations{border-right:1px solid rgba(255,255,255,.08);padding:8px;overflow:auto}
+.dm-conversation{width:100%;display:flex;align-items:center;gap:10px;padding:11px;border:0;border-radius:13px;background:transparent;color:inherit;text-align:left;cursor:pointer}
+.dm-conversation:hover,.dm-conversation.is-active{background:rgba(168,85,247,.10)}
+.dm-avatar{width:40px;height:40px;min-width:40px;border-radius:50%;object-fit:cover;background:rgba(255,255,255,.06);display:grid;place-items:center}
+.dm-avatar-fallback{font-weight:800;color:#fff}
+.dm-conversation-main{min-width:0;display:flex;flex-direction:column;gap:3px;flex:1}
+.dm-conversation-main strong{font-size:14px}
+.dm-conversation-main small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:.58}
+.dm-conversation time{font-size:10px;opacity:.45}
+.dm-empty,.dm-empty-thread,.dm-thread-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;height:100%;min-height:180px;text-align:center;padding:24px;opacity:.7}
+.dm-thread{display:grid;grid-template-rows:auto minmax(0,1fr) auto auto;min-width:0}
+.dm-thread-head{padding:13px 16px;border-bottom:1px solid rgba(255,255,255,.08)}
+.dm-thread-person{display:flex;align-items:center;gap:10px}
+.dm-thread-person>div:last-child{display:flex;flex-direction:column}
+.dm-thread-person span{font-size:12px;opacity:.55}
+.dm-messages{padding:18px;overflow:auto;display:flex;flex-direction:column;gap:9px}
+.dm-message{display:flex;align-items:flex-end;gap:7px;max-width:78%;position:relative}
+.dm-message.is-own{margin-left:auto;flex-direction:row-reverse}
+.dm-bubble{padding:10px 13px;border-radius:15px 15px 15px 5px;background:rgba(255,255,255,.07);white-space:normal;word-break:break-word}
+.dm-message.is-own .dm-bubble{border-radius:15px 15px 5px 15px;background:rgba(168,85,247,.18)}
+.dm-message time{font-size:10px;opacity:.4;white-space:nowrap}
+.dm-delete{border:0;background:none;color:inherit;opacity:.35;cursor:pointer}
+.dm-composer{padding:12px 14px;border-top:1px solid rgba(255,255,255,.08)}
+.dm-composer textarea{width:100%;resize:none;min-height:58px;border:1px solid rgba(255,255,255,.10);border-radius:13px;padding:11px;background:rgba(0,0,0,.18);color:inherit;font:inherit;box-sizing:border-box}
+.dm-composer-foot{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:7px}
+.dm-composer-foot span{font-size:11px;opacity:.5}
+.dm-status{min-height:22px;padding:0 14px 10px;font-size:12px}
+.dm-status.error{color:#fca5a5}
+.dm-status.success{color:#86efac}
+.public-member-actions{margin:18px 0 0}
+@media(max-width:760px){
+  .dm-shell{grid-template-columns:1fr;min-height:0}
+  .dm-conversations{border-right:0;border-bottom:1px solid rgba(255,255,255,.08);max-height:210px}
+  .dm-conversation{padding:9px}
+  .dm-message{max-width:88%}
+}

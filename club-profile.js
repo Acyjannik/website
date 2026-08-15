@@ -186,6 +186,307 @@ document.getElementById('notification-read-all')?.addEventListener('click', asyn
   }
 });
 
+
+// ------------------------------------------------------------
+// V5.1 Direct Messages
+// ------------------------------------------------------------
+let dmMessages = [];
+let dmConversations = new Map();
+let dmActiveUserId = null;
+let dmChannel = null;
+
+function dmDisplayName(profile) {
+  return profile?.display_name || profile?.username || 'ACY Member';
+}
+
+function dmAvatar(profile, className = 'dm-avatar') {
+  const name = dmDisplayName(profile);
+  if (profile?.avatar_url) {
+    return `<img class="${className}" src="${escapeAttr(profile.avatar_url)}" alt="" loading="lazy">`;
+  }
+  return `<div class="${className} dm-avatar-fallback">${escapeHtml(name.charAt(0).toUpperCase())}</div>`;
+}
+
+function dmSetStatus(message = '', type = '') {
+  const el = $('dm-status');
+  if (!el) return;
+  el.textContent = message;
+  el.className = `dm-status ${type}`.trim();
+}
+
+async function dmProfiles(ids) {
+  const unique = [...new Set(ids.filter(Boolean))];
+  if (!unique.length) return new Map();
+  const { data, error } = await supabaseClient
+    .from('profiles')
+    .select('id,username,display_name,avatar_url')
+    .in('id', unique);
+  if (error) throw error;
+  return new Map((data || []).map(p => [p.id, p]));
+}
+
+function dmOtherId(message) {
+  return message.sender_id === currentUser.id ? message.recipient_id : message.sender_id;
+}
+
+function dmLastMessage(messages) {
+  return messages.slice().sort((a,b) => new Date(b.created_at) - new Date(a.created_at))[0];
+}
+
+function renderDmConversations() {
+  const list = $('dm-conversations');
+  if (!list) return;
+
+  const rows = [...dmConversations.values()]
+    .sort((a,b) => new Date(b.last.created_at) - new Date(a.last.created_at));
+
+  if (!rows.length) {
+    list.innerHTML = `
+      <div class="dm-empty">
+        <strong>Noch keine Nachrichten.</strong>
+        <span>Öffne ein Mitgliedsprofil und starte eine Unterhaltung.</span>
+      </div>`;
+    return;
+  }
+
+  list.innerHTML = rows.map(row => {
+    const active = row.userId === dmActiveUserId ? ' is-active' : '';
+    const profile = row.profile || {};
+    return `<button class="dm-conversation${active}" type="button" data-dm-user="${escapeAttr(row.userId)}">
+      ${dmAvatar(profile)}
+      <span class="dm-conversation-main">
+        <strong>${escapeHtml(dmDisplayName(profile))}</strong>
+        <small>${escapeHtml(row.last.message)}</small>
+      </span>
+      <time>${formatChatTime(row.last.created_at)}</time>
+    </button>`;
+  }).join('');
+
+  list.querySelectorAll('[data-dm-user]').forEach(button => {
+    button.addEventListener('click', () => openDmConversation(button.dataset.dmUser));
+  });
+}
+
+function renderDmThread() {
+  const messagesEl = $('dm-messages');
+  const head = $('dm-thread-head');
+  const form = $('dm-form');
+  if (!messagesEl || !head || !form) return;
+
+  if (!dmActiveUserId) {
+    form.hidden = true;
+    head.innerHTML = `<div class="dm-thread-placeholder"><strong>Private Nachricht</strong><span>Wähle links ein Mitglied aus.</span></div>`;
+    messagesEl.innerHTML = '<div class="club-content-empty">Noch keine Unterhaltung ausgewählt.</div>';
+    return;
+  }
+
+  const conversation = dmConversations.get(dmActiveUserId);
+  const profile = conversation?.profile || {};
+  head.innerHTML = `<div class="dm-thread-person">${dmAvatar(profile)}<div><strong>${escapeHtml(dmDisplayName(profile))}</strong><span>@${escapeHtml(profile.username || '')}</span></div></div>`;
+  form.hidden = false;
+
+  const messages = dmMessages
+    .filter(m => dmOtherId(m) === dmActiveUserId)
+    .sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
+
+  if (!messages.length) {
+    messagesEl.innerHTML = '<div class="dm-empty-thread"><strong>Neue Unterhaltung</strong><span>Schreib die erste Nachricht.</span></div>';
+  } else {
+    messagesEl.innerHTML = messages.map(m => {
+      const own = m.sender_id === currentUser.id;
+      return `<article class="dm-message ${own ? 'is-own' : ''}" data-dm-message="${escapeAttr(m.id)}">
+        <div class="dm-bubble">${escapeHtml(m.message).replace(/\n/g,'<br>')}</div>
+        <time>${formatChatTime(m.created_at)}</time>
+        ${own ? `<button type="button" class="dm-delete" data-dm-delete="${escapeAttr(m.id)}" aria-label="Nachricht löschen" title="Nachricht löschen">×</button>` : ''}
+      </article>`;
+    }).join('');
+  }
+
+  messagesEl.querySelectorAll('[data-dm-delete]').forEach(button => {
+    button.addEventListener('click', async () => {
+      const id = button.dataset.dmDelete;
+      if (!id || !confirm('Diese Nachricht wirklich löschen?')) return;
+      const { error } = await supabaseClient
+        .from('club_direct_messages')
+        .delete()
+        .eq('id', id)
+        .eq('sender_id', currentUser.id);
+      if (error) dmSetStatus(error.message || 'Nachricht konnte nicht gelöscht werden.', 'error');
+    });
+  });
+
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+async function loadDirectMessages(initialUserId = '') {
+  const list = $('dm-conversations');
+  if (!list || !supabaseClient || !currentUser) return;
+
+  try {
+    const { data: messages, error } = await supabaseClient
+      .from('club_direct_messages')
+      .select('id,sender_id,recipient_id,message,created_at')
+      .or(`sender_id.eq.${currentUser.id},recipient_id.eq.${currentUser.id}`)
+      .order('created_at', { ascending: true })
+      .limit(500);
+
+    if (error) throw error;
+
+    dmMessages = Array.isArray(messages) ? messages : [];
+    const ids = dmMessages.map(dmOtherId);
+    if (initialUserId) ids.push(initialUserId);
+
+    const profiles = await dmProfiles(ids);
+    dmConversations = new Map();
+
+    dmMessages.forEach(message => {
+      const userId = dmOtherId(message);
+      const existing = dmConversations.get(userId);
+      if (!existing || new Date(message.created_at) > new Date(existing.last.created_at)) {
+        dmConversations.set(userId, {
+          userId,
+          profile: profiles.get(userId) || {},
+          last: message
+        });
+      }
+    });
+
+    if (initialUserId && !dmConversations.has(initialUserId)) {
+      const profile = profiles.get(initialUserId);
+      if (profile) {
+        dmConversations.set(initialUserId, {
+          userId: initialUserId,
+          profile,
+          last: { created_at: new Date().toISOString(), message: 'Neue Unterhaltung' }
+        });
+      }
+    }
+
+    renderDmConversations();
+
+    if (initialUserId && initialUserId !== currentUser.id) {
+      await openDmConversation(initialUserId);
+    } else if (dmActiveUserId && dmConversations.has(dmActiveUserId)) {
+      renderDmThread();
+    }
+
+    if (dmChannel) await supabaseClient.removeChannel(dmChannel);
+    dmChannel = supabaseClient
+      .channel('acy-direct-messages')
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'club_direct_messages',
+        filter: `recipient_id=eq.${currentUser.id}`
+      }, async payload => {
+        if (!dmMessages.some(m => m.id === payload.new.id)) {
+          const profileMap = await dmProfiles([payload.new.sender_id]);
+          dmMessages.push(payload.new);
+          const userId = payload.new.sender_id;
+          dmConversations.set(userId, {
+            userId,
+            profile: profileMap.get(userId) || {},
+            last: payload.new
+          });
+          renderDmConversations();
+          if (dmActiveUserId === userId) renderDmThread();
+        }
+        await refreshNotificationBadge();
+      })
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'club_direct_messages',
+        filter: `sender_id=eq.${currentUser.id}`
+      }, payload => {
+        if (!dmMessages.some(m => m.id === payload.new.id)) {
+          dmMessages.push(payload.new);
+          const userId = payload.new.recipient_id;
+          const row = dmConversations.get(userId) || { userId, profile: {}, last: payload.new };
+          row.last = payload.new;
+          dmConversations.set(userId, row);
+          renderDmConversations();
+          if (dmActiveUserId === userId) renderDmThread();
+        }
+      })
+      .on('postgres_changes', {
+        event: 'DELETE',
+        schema: 'public',
+        table: 'club_direct_messages'
+      }, payload => {
+        dmMessages = dmMessages.filter(m => m.id !== payload.old.id);
+        loadDirectMessages(dmActiveUserId || '');
+      })
+      .subscribe();
+  } catch (error) {
+    console.warn('Direct messages unavailable:', error);
+    list.innerHTML = `<div class="club-content-empty">${escapeHtml(error?.message || 'Nachrichten konnten nicht geladen werden.')}</div>`;
+  }
+}
+
+async function openDmConversation(userId) {
+  if (!userId || userId === currentUser.id) return;
+
+  dmActiveUserId = userId;
+  renderDmConversations();
+  renderDmThread();
+
+  const input = $('dm-input');
+  input?.focus();
+}
+
+$('dm-form')?.addEventListener('submit', async event => {
+  event.preventDefault();
+  const input = $('dm-input');
+  const button = $('dm-send');
+  if (!input || !dmActiveUserId || !supabaseClient) return;
+
+  const message = input.value.trim();
+  if (!message) return;
+
+  if (message.length > 1000) {
+    dmSetStatus('Maximal 1000 Zeichen.', 'error');
+    return;
+  }
+
+  button.disabled = true;
+  dmSetStatus('');
+
+  try {
+    const { error } = await supabaseClient
+      .from('club_direct_messages')
+      .insert({
+        sender_id: currentUser.id,
+        recipient_id: dmActiveUserId,
+        message
+      });
+
+    if (error) throw error;
+
+    input.value = '';
+    updateDmCounter();
+  } catch (error) {
+    console.warn('Direct message send failed:', error);
+    dmSetStatus(error.message || 'Nachricht konnte nicht gesendet werden.', 'error');
+  } finally {
+    button.disabled = false;
+  }
+});
+
+function updateDmCounter() {
+  const input = $('dm-input');
+  const counter = $('dm-counter');
+  if (input && counter) counter.textContent = `${input.value.length} / 1000`;
+}
+
+$('dm-input')?.addEventListener('input', updateDmCounter);
+$('dm-input')?.addEventListener('keydown', event => {
+  if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) {
+    event.preventDefault();
+    $('dm-form')?.requestSubmit();
+  }
+});
+
 function handleDiscordOAuthCallback() {
   const params = new URLSearchParams(window.location.search);
   const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''));
@@ -227,6 +528,8 @@ async function init() {
 
     currentUser = data.session.user;
 
+    const dmTarget = new URLSearchParams(window.location.search).get('dm');
+
     // Supabase may finish the OAuth identity exchange immediately after the
     // initial session promise resolves. Give the auth client one turn to
     // settle, then verify the identity again.
@@ -242,6 +545,7 @@ async function init() {
     await loadTwitch();
     await loadClubContent();
     await loadMemberDirectory();
+    await loadDirectMessages(dmTarget || '');
     await loadClubChat();
     await loadClubClips();
     await checkAchievements();
@@ -616,6 +920,14 @@ async function loadMemberHub() {
   }
 }
 
+async function refreshNotificationBadge() {
+  try {
+    await loadNotifications();
+  } catch (error) {
+    console.warn('Notification badge refresh skipped:', error);
+  }
+}
+
 async function loadNotifications() {
   const container = $('notifications-list');
   const badge = $('notification-count');
@@ -639,7 +951,7 @@ async function loadNotifications() {
     container.innerHTML = notifications.length
       ? notifications.slice(0, 8).map(n => `
           <button class="notification-row ${n.read_at ? '' : 'is-unread'}" type="button" data-notification-id="${n.id}" data-link="${escapeAttr(n.link_url || '')}">
-            <span class="notification-icon">${n.notification_type === 'live' ? '🔴' : n.notification_type === 'badge' ? '🏆' : n.notification_type === 'event' ? '📅' : '💜'}</span>
+            <span class="notification-icon">${n.notification_type === 'live' ? '🔴' : n.notification_type === 'badge' ? '🏆' : n.notification_type === 'event' ? '📅' : n.notification_type === 'direct_message' ? '💌' : '💜'}</span>
             <span><strong>${escapeHtml(n.title)}</strong><small>${escapeHtml(n.body)}</small></span>
           </button>`).join('')
       : '<div class="club-content-empty">Keine neuen Benachrichtigungen.</div>';

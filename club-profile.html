@@ -6,7 +6,7 @@
   <title>Mein ACY Club · Acyjannik</title>
   <link rel="stylesheet" href="styles.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="club-profile.js?v=5.0.5" defer></script>
+  <script src="club-profile.js?v=5.1.0" defer></script>
   <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
   <link rel="shortcut icon" href="/assets/favicon.svg">
   <link rel="apple-touch-icon" href="/assets/favicon.svg">
@@ -171,6 +171,47 @@
         </section>
 
         
+        <section class="member-card member-span-2 member-dm-card" id="club-messages">
+          <div class="member-card-head">
+            <div>
+              <div class="eyebrow">PRIVATE</div>
+              <h2>Nachrichten</h2>
+              <p>Schreib anderen ACY Club Mitgliedern privat.</p>
+            </div>
+            <span class="member-count-chip" id="dm-unread-count">0 ungelesen</span>
+          </div>
+
+          <div class="dm-shell">
+            <aside class="dm-conversations" id="dm-conversations">
+              <div class="club-content-empty">Nachrichten werden geladen…</div>
+            </aside>
+
+            <div class="dm-thread">
+              <div class="dm-thread-head" id="dm-thread-head">
+                <div class="dm-thread-placeholder">
+                  <strong>Private Nachricht</strong>
+                  <span>Wähle links ein Mitglied aus.</span>
+                </div>
+              </div>
+
+              <div class="dm-messages" id="dm-messages" aria-live="polite">
+                <div class="club-content-empty">Noch keine Unterhaltung ausgewählt.</div>
+              </div>
+
+              <form class="dm-composer" id="dm-form" hidden>
+                <textarea id="dm-input" maxlength="1000" rows="2"
+                  placeholder="Private Nachricht schreiben…"
+                  aria-label="Private Nachricht"></textarea>
+                <div class="dm-composer-foot">
+                  <span id="dm-counter">0 / 1000</span>
+                  <button class="button button-primary" type="submit" id="dm-send">Senden ↗</button>
+                </div>
+              </form>
+              <div class="dm-status" id="dm-status" role="status"></div>
+            </div>
+          </div>
+        </section>
+
         <section class="member-card member-span-2 member-chat-card" id="club-chat">
           <div class="member-card-head">
             <div>

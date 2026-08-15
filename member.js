@@ -60,6 +60,15 @@ async function init(){
     }
 
     renderBadges(m.badges,m.xp,m.discord_connected);
+
+    const dmButton = $('send-direct-message');
+    if (dmButton && id === data.session.user.id) {
+      dmButton.hidden = true;
+    } else if (dmButton) {
+      dmButton.addEventListener('click', () => {
+        window.location.href = `/club-profile.html?dm=${encodeURIComponent(id)}`;
+      });
+    }
   }catch(error){
     document.querySelector('.public-member-card').innerHTML=`<div class="club-content-empty">${escapeHtml(error.message||'Mitglied konnte nicht geladen werden.')}</div>`;
   }
