@@ -521,3 +521,61 @@ button:disabled{opacity:.55;cursor:not-allowed}
 .clip-card-body{padding:13px}.clip-category{display:block;margin-bottom:5px;color:#c084fc;font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}.clip-card-body strong{display:block;font-size:14px}.clip-card-body p{margin:5px 0 0;font-size:11px;color:#a1a1aa;line-height:1.45}
 @media(max-width:900px){.clip-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:600px){.clip-grid{grid-template-columns:1fr}}
+
+/* V3.3.2 full ACY Clips admin */
+.clip-admin-card{
+  display:grid;
+  gap:14px;
+  padding:18px;
+  margin-bottom:12px;
+  border-radius:16px;
+  border:1px solid rgba(255,255,255,.07);
+  background:#0d0d12;
+}
+.clip-admin-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:14px;
+}
+.clip-admin-header strong{display:block;font-size:14px}
+.clip-admin-header small{display:block;margin-top:4px;color:#71717a;font-size:10px}
+.clip-admin-top-actions{display:flex;gap:8px}
+.clip-admin-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+}
+.clip-admin-grid label{display:grid;gap:6px;color:#d4d4d8;font-size:11px}
+.clip-admin-grid input,.clip-admin-grid textarea{
+  box-sizing:border-box;
+  width:100%;
+  padding:10px 11px;
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,.09);
+  background:#101015;
+  color:#fff;
+  outline:none;
+  font:inherit;
+}
+.clip-admin-grid input:focus,.clip-admin-grid textarea:focus{
+  border-color:rgba(168,85,247,.7);
+  box-shadow:0 0 0 3px rgba(168,85,247,.1);
+}
+.clip-edit-full{grid-column:1 / -1}
+.clip-edit-enabled{
+  display:flex!important;
+  align-items:center;
+  gap:8px!important;
+}
+.clip-edit-enabled input{width:auto}
+.clip-admin-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+@media(max-width:760px){
+  .clip-admin-grid{grid-template-columns:1fr}
+  .clip-edit-full{grid-column:auto}
+  .clip-admin-header{align-items:flex-start;flex-direction:column}
+}

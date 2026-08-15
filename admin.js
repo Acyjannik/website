@@ -466,32 +466,124 @@ async function addNewsAdmin(){
 }
 
 async function loadClipsAdmin(){
-  const list=$('clips-admin-list'); if(!list)return;
-  const {data,error}=await supabaseClient.from('club_clips').select('*').order('published_at',{ascending:false});
-  if(error){list.innerHTML=`<div class="admin-empty">Clips noch nicht eingerichtet: ${escapeHtml(error.message)}</div>`;return;}
-  list.innerHTML=(data||[]).length?(data||[]).map(c=>`<div class="admin-table-row content-admin-row" data-id="${c.id}">
-    <div><strong>${escapeHtml(c.title)}</strong><small>${escapeHtml(c.category||'ACY Clip')}</small></div>
-    <input class="content-inline-title" value="${escapeAttr(c.title)}">
-    <input class="content-inline-body" value="${escapeAttr(c.clip_url)}">
-    <label class="admin-check"><input class="content-inline-enabled" type="checkbox" ${c.enabled?'checked':''}> aktiv</label>
-    <div class="admin-row-actions"><button class="button button-small content-save-clip">Speichern</button><button class="button button-small button-danger content-delete-clip">Löschen</button></div>
-  </div>`).join(''):'<div class="admin-empty">Noch keine Clips. Füge rechts deinen ersten echten Clip hinzu.</div>';
+  const list=$('clips-admin-list');
+  if(!list)return;
+
+  const {data,error}=await supabaseClient
+    .from('club_clips')
+    .select('*')
+    .order('published_at',{ascending:false});
+
+  if(error){
+    list.innerHTML=`<div class="admin-empty">Clips konnten nicht geladen werden: ${escapeHtml(error.message)}</div>`;
+    return;
+  }
+
+  const clips=data||[];
+  if(!clips.length){
+    list.innerHTML='<div class="admin-empty">Noch keine Clips. Füge rechts deinen ersten echten Clip hinzu.</div>';
+    return;
+  }
+
+  list.innerHTML=clips.map(c=>`
+    <article class="clip-admin-card content-admin-row" data-id="${c.id}">
+      <div class="clip-admin-header">
+        <div>
+          <strong>${escapeHtml(c.title)}</strong>
+          <small>${escapeHtml(c.category||'ACY Clip')} · ${escapeHtml(c.enabled?'Aktiv':'Ausgeblendet')}</small>
+        </div>
+        <div class="clip-admin-top-actions">
+          <a class="button button-small button-secondary" href="${escapeAttr(c.clip_url)}" target="_blank" rel="noreferrer">Clip öffnen ↗</a>
+        </div>
+      </div>
+
+      <div class="clip-admin-grid">
+        <label>Titel
+          <input class="clip-edit-title" value="${escapeAttr(c.title)}">
+        </label>
+        <label>Kategorie
+          <input class="clip-edit-category" value="${escapeAttr(c.category||'Fortnite')}">
+        </label>
+        <label>Clip-URL
+          <input class="clip-edit-url" value="${escapeAttr(c.clip_url)}">
+        </label>
+        <label>Thumbnail-URL
+          <input class="clip-edit-thumb" value="${escapeAttr(c.thumbnail_url||'')}">
+        </label>
+        <label class="clip-edit-full">Beschreibung
+          <textarea class="clip-edit-description" rows="2">${escapeHtml(c.description||'')}</textarea>
+        </label>
+        <label class="admin-check clip-edit-enabled">
+          <input class="clip-edit-active" type="checkbox" ${c.enabled?'checked':''}> Aktiv auf der Website
+        </label>
+      </div>
+
+      <div class="admin-row-actions clip-admin-actions">
+        <button class="button button-small button-primary content-save-clip" type="button">Änderungen speichern</button>
+        <button class="button button-small button-secondary content-cancel-clip" type="button">Zurücksetzen</button>
+        <button class="button button-small button-danger content-delete-clip" type="button">Löschen</button>
+      </div>
+    </article>
+  `).join('');
 
   list.querySelectorAll('.content-save-clip').forEach(btn=>btn.onclick=async()=>{
-    const row=btn.closest('.content-admin-row');
+    const row=btn.closest('.clip-admin-card');
+    const id=row?.dataset.id;
+    if(!id)return;
+
+    const title=row.querySelector('.clip-edit-title')?.value.trim();
+    const category=row.querySelector('.clip-edit-category')?.value.trim()||'Fortnite';
+    const clip_url=row.querySelector('.clip-edit-url')?.value.trim();
+    const thumbnail_url=row.querySelector('.clip-edit-thumb')?.value.trim();
+    const description=row.querySelector('.clip-edit-description')?.value.trim();
+    const enabled=row.querySelector('.clip-edit-active')?.checked;
+
+    if(!title||!clip_url){
+      return message('clips-message','Titel und Clip-URL sind erforderlich.');
+    }
+    if(!isSafeHttpUrl(clip_url)){
+      return message('clips-message','Bitte eine gültige Clip-URL verwenden.');
+    }
+    if(thumbnail_url && !isSafeHttpUrl(thumbnail_url)){
+      return message('clips-message','Bitte eine gültige Thumbnail-URL verwenden.');
+    }
+
     const {error}=await supabaseClient.from('club_clips').update({
-      title:row.querySelector('.content-inline-title').value.trim(),
-      clip_url:row.querySelector('.content-inline-body').value.trim(),
-      enabled:row.querySelector('.content-inline-enabled').checked,
+      title,
+      category,
+      clip_url,
+      thumbnail_url:thumbnail_url||null,
+      description:description||null,
+      enabled,
       updated_at:new Date().toISOString()
-    }).eq('id',row.dataset.id);
-    if(error)message('clips-message',error.message);else{message('clips-message','Clip gespeichert.',true);saveStamp();loadClipsAdmin();}
+    }).eq('id',id);
+
+    if(error){
+      message('clips-message',error.message);
+    }else{
+      message('clips-message','Clip gespeichert.',true);
+      saveStamp();
+      await loadClipsAdmin();
+    }
   });
+
+  list.querySelectorAll('.content-cancel-clip').forEach(btn=>{
+    btn.onclick=()=>loadClipsAdmin();
+  });
+
   list.querySelectorAll('.content-delete-clip').forEach(btn=>btn.onclick=async()=>{
-    const id=btn.closest('.content-admin-row').dataset.id;
+    const id=btn.closest('.clip-admin-card')?.dataset.id;
+    if(!id)return;
     if(!confirm('Clip wirklich löschen?'))return;
+
     const {error}=await supabaseClient.from('club_clips').delete().eq('id',id);
-    if(error)message('clips-message',error.message);else{message('clips-message','Clip gelöscht.',true);saveStamp();loadClipsAdmin();}
+    if(error){
+      message('clips-message',error.message);
+    }else{
+      message('clips-message','Clip gelöscht.',true);
+      saveStamp();
+      await loadClipsAdmin();
+    }
   });
 }
 

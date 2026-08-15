@@ -413,3 +413,8 @@ Run `supabase/club_clips.sql` once in Supabase SQL Editor.
 ## V3.3.1: Remove demo clip
 
 Removed the seeded demo clip. Running `supabase/club_clips.sql` now also deletes the old placeholder `ACY Clip` row from V3.3. The public Member dashboard stays empty until a real clip is added.
+
+
+## V3.3.2: Full clip management
+
+The Admin Clips section now supports opening, editing, saving, resetting, enabling/disabling, and deleting existing clips. Editing includes title, category, clip URL, thumbnail URL and description.
