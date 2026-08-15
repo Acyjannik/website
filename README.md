@@ -855,3 +855,10 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Shows how many members have email enabled and how many are opted in for the active notification category.
 - Reports send failures and missing Auth email addresses.
 - No SQL changes.
+
+
+## V7.1.3 — Email Backend Version Check
+- Added an explicit API version to email dispatch responses.
+- Admin now reports which notification email backend actually answered.
+- Admin falls back to `emailEligible` when an older API is still deployed, making mixed deployments obvious.
+- No SQL changes.

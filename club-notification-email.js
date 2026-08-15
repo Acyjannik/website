@@ -1,5 +1,6 @@
 const tls = require('node:tls');
 
+const NOTIFICATION_EMAIL_API_VERSION = '7.1.3';
 const env = (name, fallback='') => String(process.env[name] || fallback);
 
 function json(res, status, payload) {
@@ -170,6 +171,7 @@ module.exports = async (req, res) => {
     if (!smtpConfigured()) {
       return json(res, 503, {
         error:'SMTP ist noch nicht konfiguriert.',
+        apiVersion: NOTIFICATION_EMAIL_API_VERSION,
         missing:['SMTP_HOST','SMTP_USER','SMTP_PASS','EMAIL_FROM'].filter(k => !env(k))
       });
     }
@@ -272,6 +274,6 @@ module.exports = async (req, res) => {
     });
   } catch (error) {
     console.error('notification email dispatch', error);
-    return json(res, 500, {error:error.message || 'E-Mails konnten nicht gesendet werden.'});
+    return json(res, 500, {apiVersion: NOTIFICATION_EMAIL_API_VERSION, error:error.message || 'E-Mails konnten nicht gesendet werden.'});
   }
 };
