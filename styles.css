@@ -443,3 +443,12 @@ button:disabled{opacity:.55;cursor:not-allowed}
 .progression-rules>div{display:flex;justify-content:space-between;gap:10px;padding:13px 14px;border-radius:11px;background:#0d0d12;border:1px solid rgba(255,255,255,.06)}
 .progression-rules strong{color:#d8b4fe}.progression-rules span{color:#a1a1aa;font-size:12px}
 @media(max-width:700px){.progression-rules{grid-template-columns:1fr}}
+
+/* V2.8.3: avatar visibility fix */
+.member-avatar-img[hidden],
+.member-avatar[hidden]{
+  display:none !important;
+}
+.member-avatar-img:not([hidden]){
+  display:block;
+}

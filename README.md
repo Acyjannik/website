@@ -303,3 +303,8 @@ Run `supabase/club_storage.sql` once in the Supabase SQL Editor.
 ## V2.8.2: Avatar upload code fix
 
 Fixed the actual browser upload code to use the dedicated `club-avatars` bucket. The previous build still referenced `site-media` despite the new storage SQL. Re-run `supabase/club_storage.sql` once.
+
+
+## V2.8.3: Avatar display cleanup
+
+Fixed the member header showing the uploaded profile image and the fallback initial at the same time. Hidden avatar elements now remain hidden regardless of CSS display rules.
