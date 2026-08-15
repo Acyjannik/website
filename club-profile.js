@@ -252,6 +252,7 @@ let dmMessages = [];
 let dmConversations = new Map();
 let dmActiveUserId = null;
 let dmChannel = null;
+let dmUnreadUsers = new Set();
 
 function dmDisplayName(profile) {
   return profile?.display_name || profile?.username || 'ACY Member';
@@ -295,16 +296,25 @@ async function loadDmUnreadCount() {
   const badge = $('dm-unread-count');
   if (!badge || !supabaseClient || !currentUser) return;
   try {
-    const { count, error } = await supabaseClient
+    const { data, error } = await supabaseClient
       .from('club_notifications')
-      .select('id', { count: 'exact', head: true })
+      .select('id,link_url,read_at')
       .eq('user_id', currentUser.id)
       .eq('notification_type', 'direct_message')
       .is('read_at', null);
     if (error) throw error;
-    const unread = Number(count || 0);
-    badge.textContent = unread === 1 ? '1 ungelesen' : `${unread} ungelesen`;
+
+    dmUnreadUsers = new Set(
+      (data || []).map(n => {
+        const match = String(n.link_url || '').match(/[?&]dm=([^&]+)/);
+        return match ? decodeURIComponent(match[1]) : null;
+      }).filter(Boolean)
+    );
+
+    const unread = Array.isArray(data) ? data.length : 0;
+    badge.textContent = unread === 1 ? '1 neue Nachricht' : `${unread} neue Nachrichten`;
     badge.hidden = unread === 0;
+    renderDmConversations();
   } catch (error) {
     console.warn('DM unread count unavailable:', error);
   }
@@ -345,13 +355,16 @@ function renderDmConversations() {
 
   list.innerHTML = rows.map(row => {
     const active = row.userId === dmActiveUserId ? ' is-active' : '';
+    const unread = dmUnreadUsers.has(row.userId);
+    const unreadClass = unread ? ' is-unread' : '';
     const profile = row.profile || {};
-    return `<button class="dm-conversation${active}" type="button" data-dm-user="${escapeAttr(row.userId)}">
+    return `<button class="dm-conversation${active}${unreadClass}" type="button" data-dm-user="${escapeAttr(row.userId)}">
       ${dmAvatar(profile)}
       <span class="dm-conversation-main">
         <strong>${escapeHtml(dmDisplayName(profile))}</strong>
         <small>${escapeHtml(row.last.message)}</small>
       </span>
+      ${unread ? '<span class="dm-unread-dot" title="Neue Nachricht">Neu</span>' : ''}
       <time>${formatChatTime(row.last.created_at)}</time>
     </button>`;
   }).join('');
@@ -508,6 +521,7 @@ async function loadDirectMessages(initialUserId = '') {
           const profileMap = await dmProfiles([payload.new.sender_id]);
           dmMessages.push(payload.new);
           const userId = payload.new.sender_id;
+          if (dmActiveUserId !== userId) dmUnreadUsers.add(userId);
           dmConversations.set(userId, {
             userId,
             profile: profileMap.get(userId) || {},
@@ -557,6 +571,8 @@ async function openDmConversation(userId) {
   openMemberFold('club-messages');
   renderDmConversations();
   await markDmNotificationsRead(userId);
+  dmUnreadUsers.delete(userId);
+  renderDmConversations();
   renderDmThread();
 
   const input = $('dm-input');

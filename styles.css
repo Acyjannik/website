@@ -1134,3 +1134,9 @@ button:disabled{opacity:.55;cursor:not-allowed}
   .member-fold-body{padding:0 16px 18px}
   .member-fold-summary-side .member-count-chip{font-size:10px}
 }
+
+/* V6.3.1 — DM unread indicators */
+.dm-unread-dot{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;padding:4px 7px;border-radius:999px;background:rgba(168,85,247,.16);border:1px solid rgba(168,85,247,.28);color:#e9d5ff;font-size:9px;font-weight:900;letter-spacing:.03em}
+.dm-conversation.is-unread{background:rgba(168,85,247,.10);box-shadow:inset 2px 0 0 rgba(168,85,247,.9)}
+.dm-conversation.is-unread .dm-conversation-main strong{color:#fff}
+@media(max-width:760px){.dm-unread-dot{font-size:8px;padding:3px 6px}}
