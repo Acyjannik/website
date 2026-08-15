@@ -356,3 +356,17 @@ Run the updated `supabase/club_progression.sql` once in Supabase SQL Editor so t
 ## V3.0.2: Attendance state persistence
 
 Event attendance is now reloaded from Supabase with the authenticated member session and explicitly re-renders the button as `Dabei ✓` after a page reload.
+
+
+## V3.1: ACY Club member directory
+
+Added an authenticated member directory to the Member dashboard:
+- member count
+- search by username/display name
+- profile image or avatar fallback
+- display name and username
+- short bio
+- XP/level
+- selected badges
+
+The directory API exposes only these public profile fields and never exposes member email addresses.

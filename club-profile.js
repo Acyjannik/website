@@ -138,6 +138,7 @@ async function init() {
     await loadDiscordLink();
     await loadTwitch();
     await loadClubContent();
+    await loadMemberDirectory();
   } catch (error) {
     const msg = error?.message || 'Profil konnte nicht geladen werden.';
     const status = $('profile-save-status');
@@ -338,6 +339,72 @@ function applyEventAttendanceState(item, attending) {
   btn.textContent = attending ? 'Dabei ✓' : 'Teilnehmen';
 }
 
+async function loadMemberDirectory(search = '') {
+  const list = $('member-directory-list');
+  const countEl = $('member-directory-count');
+  if (!list) return;
+
+  try {
+    const { data } = await supabaseClient.auth.getSession();
+    const token = data?.session?.access_token;
+    if (!token) throw new Error('Sitzung abgelaufen.');
+
+    const url = new URL('/api/club-members', window.location.origin);
+    if (search.trim()) url.searchParams.set('search', search.trim());
+
+    const response = await fetch(`${url.toString()}&_=${Date.now()}`, {
+      cache: 'no-store',
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload.error || 'Mitglieder konnten nicht geladen werden.');
+
+    const members = Array.isArray(payload.members) ? payload.members : [];
+    if (countEl) countEl.textContent = `${members.length} Mitglieder`;
+
+    if (!members.length) {
+      list.innerHTML = '<div class="club-content-empty">Keine Mitglieder gefunden.</div>';
+      return;
+    }
+
+    const badgeIcon = {
+      'ACY Rookie': '💜',
+      'ACY Member': '🎮',
+      'Discord Member': '💬',
+      'ACY OG': '👑',
+      'ACY Legend': '🏆',
+      'Early Member': '⏳'
+    };
+
+    list.innerHTML = members.map((member) => {
+      const avatar = member.avatar_url
+        ? `<img src="${escapeAttr(member.avatar_url)}" alt="" loading="lazy">`
+        : `<div class="member-directory-avatar-fallback">${escapeHtml((member.display_name || member.username || 'A').charAt(0).toUpperCase())}</div>`;
+      const level = levelForXp(Number(member.xp || 0)).title;
+      const badges = (member.badges || []).slice(0, 3).map(b => `${badgeIcon[b] || '✦'} ${escapeHtml(b)}`).join(' · ');
+
+      return `<article class="member-directory-item">
+        <div class="member-directory-avatar">${avatar}</div>
+        <div class="member-directory-main">
+          <div class="member-directory-name">${escapeHtml(member.display_name || member.username)}</div>
+          <div class="member-directory-handle">@${escapeHtml(member.username || '')}</div>
+          <p>${escapeHtml(member.bio || 'ACY Club Member')}</p>
+        </div>
+        <div class="member-directory-meta">
+          <strong>${escapeHtml(level)}</strong>
+          <small>${Number(member.xp || 0)} XP</small>
+          <span>${badges || '💜 ACY Rookie'}</span>
+        </div>
+      </article>`;
+    }).join('');
+  } catch (error) {
+    console.warn('Member directory unavailable:', error);
+    if (countEl) countEl.textContent = '– Mitglieder';
+    list.innerHTML = `<div class="club-content-empty">${escapeHtml(error.message || 'Mitglieder konnten nicht geladen werden.')}</div>`;
+  }
+}
+
 async function loadClubContent(){
   const eventsList=$('member-events-list'), newsList=$('member-news-list');
   try{
@@ -411,6 +478,13 @@ async function loadClubContent(){
     if(newsList)newsList.innerHTML='<div class="club-content-empty">News momentan nicht verfügbar.</div>';
   }
 }
+
+let memberSearchTimer = null;
+$('member-directory-search')?.addEventListener('input', (event) => {
+  clearTimeout(memberSearchTimer);
+  const value = event.target.value;
+  memberSearchTimer = setTimeout(() => loadMemberDirectory(value), 250);
+});
 
 $('profile-form')?.addEventListener('submit', async (event) => {
   event.preventDefault();
