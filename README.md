@@ -744,3 +744,30 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Fixed the compact 'Letzte Erfolge' renderer so badges no longer concatenate together.
 - Removed the repeated 'ACY Club' label from each mini achievement.
 - Added consistent icon, title and subtitle layout with responsive mobile stacking.
+
+
+## V6.4 — ACY Pet Companion
+- Added a persistent personal pet companion with five species: cat, dog, fox, axolotl and dragon.
+- Members can adopt one pet, name it, rename it, feed it, play with it and pet it.
+- Pet hunger, happiness and energy decay gently over time.
+- Pet actions use server-side Supabase functions with cooldowns and validation.
+- The first care action each day grants +5 profile XP and 5 pet-care XP.
+- Pet state is protected by RLS and security-definer RPCs instead of trusting client-side stat updates.
+- Added responsive mobile UI and a dedicated Club navigation anchor.
+- Run `supabase/club_pets.sql` once in Supabase before testing the feature.
+
+
+## V6.4.1 — Expanded Pet Catalog
+- Expanded the pet catalog from 5 to 15 companions.
+- Added Unicorn, Penguin, Panda, Bunny, Koala, Hamster, Turtle, Owl, Frog and Bee.
+- Server-side species validation was expanded to match the catalog.
+- The pet picker is scrollable so the larger selection stays compact on desktop and mobile.
+- Existing pets and pet data remain compatible.
+
+
+## V6.4.2 — ACY Pet Artwork
+- Replaced the emoji-only pet presentation with the generated ACY pet artwork from the approved 15-pet sheet.
+- Added one standalone WebP asset per pet under `assets/pets/`.
+- Kept the generated master sheet as `assets/pets/pet-sheet-generated.png` for provenance/reference.
+- Pet selection cards and the active pet view now render the corresponding artwork automatically.
+- No new database migration is required for the artwork change.

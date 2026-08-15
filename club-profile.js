@@ -14,6 +14,13 @@ function setStatus(text, type = '') {
   el.className = `club-auth-status ${type}`.trim();
 }
 
+function setPetStatus(text, type = '') {
+  const el = $('pet-status');
+  if (!el) return;
+  el.textContent = text;
+  el.className = `club-auth-status ${type}`.trim();
+}
+
 function levelForXp(xp) {
   const levels = [
     { min: 0, title: 'ACY Rookie' },
@@ -758,6 +765,26 @@ async function voteInPoll(optionId) {
 // ------------------------------------------------------------
 // V5.6 XP & Achievement Catalog
 // ------------------------------------------------------------
+const PET_SPECIES = {
+  cat:      { icon: '🐱', label: 'Katze', detail: 'Neugierig, gemütlich, leicht beleidigt.' },
+  dog:      { icon: '🐶', label: 'Hund', detail: 'Treuer Begleiter mit Energieüberschuss.' },
+  fox:      { icon: '🦊', label: 'Fuchs', detail: 'Clever, frech und ziemlich charmant.' },
+  axolotl:  { icon: '🦎', label: 'Axolotl', detail: 'Entspannt. Immer. Irgendwie.' },
+  dragon:   { icon: '🐲', label: 'Drache', detail: 'Klein angefangen. Große Pläne.' },
+  unicorn:  { icon: '🦄', label: 'Einhorn', detail: 'Magisch, selten und völlig übertrieben.' },
+  penguin:  { icon: '🐧', label: 'Pinguin', detail: 'Klein, cool und immer schick unterwegs.' },
+  panda:    { icon: '🐼', label: 'Panda', detail: 'Gemütlich, knuffig und snackorientiert.' },
+  bunny:    { icon: '🐰', label: 'Hase', detail: 'Fluffig, schnell und leicht chaotisch.' },
+  koala:    { icon: '🐨', label: 'Koala', detail: 'Professioneller Schlaf- und Kuschelexperte.' },
+  hamster:  { icon: '🐹', label: 'Hamster', detail: 'Winzig, wuselig und erstaunlich fleißig.' },
+  turtle:   { icon: '🐢', label: 'Schildkröte', detail: 'Langsam, entspannt und unbeeindruckt.' },
+  owl:      { icon: '🦉', label: 'Eule', detail: 'Weise, nachtaktiv und leicht mysteriös.' },
+  frog:     { icon: '🐸', label: 'Frosch', detail: 'Fröhlich, grün und immer für Quatsch zu haben.' },
+  bee:      { icon: '🐝', label: 'Biene', detail: 'Fleißig, klein und ständig beschäftigt.' }
+};
+
+let currentPet = null;
+
 const XP_CATALOG = [
   { key: 'registration', icon: '💜', title: 'ACY Club beitreten', xp: 50, detail: 'Einmalig bei der bestätigten Registrierung.' },
   { key: 'profile_complete', icon: '✨', title: 'Profil vervollständigen', xp: 25, detail: 'Anzeigename und Bio ausfüllen.' },
@@ -879,6 +906,188 @@ function handleDiscordOAuthCallback() {
   return params.has('code') || hash.has('access_token') || hash.has('refresh_token');
 }
 
+function petLevelForXp(xp = 0) {
+  const thresholds = [0, 100, 250, 500, 1000];
+  let level = 1;
+  for (let i = 0; i < thresholds.length; i++) {
+    if (xp >= thresholds[i]) level = i + 1;
+  }
+  return {
+    level,
+    next: thresholds[level] ?? null,
+    title: ['Kleiner Begleiter','Vertrauter Freund','Treuer Gefährte','ACY Sidekick','ACY Legende'][level - 1]
+  };
+}
+
+function renderPetChoices(selected = '') {
+  const grid = $('pet-choice-grid');
+  if (!grid) return;
+  grid.innerHTML = Object.entries(PET_SPECIES).map(([key, pet]) => `
+    <label class="pet-choice ${selected === key ? 'is-selected' : ''}">
+      <input type="radio" name="pet-species" value="${escapeAttr(key)}" ${selected === key ? 'checked' : ''}>
+      <span class="pet-choice-icon"><img src="assets/pets/${escapeAttr(key)}.webp" alt="${escapeAttr(pet.label)}"></span>
+      <span class="pet-choice-copy"><strong>${escapeHtml(pet.label)}</strong><small>${escapeHtml(pet.detail)}</small></span>
+    </label>
+  `).join('');
+
+  grid.querySelectorAll('input[name="pet-species"]').forEach(input => {
+    input.addEventListener('change', () => {
+      grid.querySelectorAll('.pet-choice').forEach(card => card.classList.toggle('is-selected', card.querySelector('input')?.checked));
+    });
+  });
+}
+
+function renderPet(pet) {
+  currentPet = pet || null;
+  const empty = $('pet-empty-state');
+  const active = $('pet-active-state');
+  const chip = $('pet-level-chip');
+  if (!empty || !active || !chip) return;
+
+  if (!pet) {
+    empty.hidden = false;
+    active.hidden = true;
+    chip.textContent = 'Noch kein Tier';
+    renderPetChoices();
+    return;
+  }
+
+  empty.hidden = true;
+  active.hidden = false;
+
+  const species = PET_SPECIES[pet.species] || { icon: '🐾', label: 'Begleiter', detail: '' };
+  const level = petLevelForXp(Number(pet.pet_xp || 0));
+
+  const petAvatar = $('pet-avatar');
+  if (petAvatar) petAvatar.innerHTML = `<img src="assets/pets/${escapeAttr(pet.species)}.webp" alt="${escapeAttr(species.label)}">`;
+  setText('pet-species-label', species.label.toUpperCase());
+  setText('pet-display-name', pet.name);
+  setText('pet-level-text', `Level ${level.level} · ${Number(pet.pet_xp || 0)} Pflege-XP`);
+  chip.textContent = `Level ${level.level} · ${level.title}`;
+
+  const stats = [
+    ['hunger', 'pet-hunger-value', 'pet-hunger-bar'],
+    ['happiness', 'pet-happiness-value', 'pet-happiness-bar'],
+    ['energy', 'pet-energy-value', 'pet-energy-bar']
+  ];
+  stats.forEach(([key, valueId, barId]) => {
+    const value = Math.max(0, Math.min(100, Number(pet[key] || 0)));
+    setText(valueId, `${value}%`);
+    const bar = $(barId);
+    if (bar) bar.style.width = `${value}%`;
+  });
+
+  const next = level.next;
+  setText('pet-xp-note', next ? `Noch ${Math.max(0, next - Number(pet.pet_xp || 0))} Pflege-XP bis Level ${level.level + 1}` : 'Maximales Tier-Level erreicht.');
+  setText('pet-care-note', 'Die Werte sinken langsam, wenn du länger weg bist.');
+  if ($('pet-rename-input')) $('pet-rename-input').value = pet.name;
+}
+
+async function loadPet() {
+  if (!supabaseClient || !currentUser) return;
+  try {
+    const { data, error } = await supabaseClient
+      .from('club_pets')
+      .select('user_id,species,name,hunger,happiness,energy,pet_xp,created_at,updated_at,last_interaction_at')
+      .eq('user_id', currentUser.id)
+      .maybeSingle();
+    if (error) throw error;
+    renderPet(data);
+  } catch (error) {
+    console.warn('Pet unavailable:', error);
+    const status = $('pet-status');
+    if (status) {
+      status.textContent = 'Tier konnte nicht geladen werden. Hast du supabase/club_pets.sql ausgeführt?';
+      status.className = 'club-auth-status error';
+    }
+  }
+}
+
+async function createPet(species, name) {
+  const { data, error } = await supabaseClient.rpc('create_club_pet', {
+    p_species: species,
+    p_name: name
+  });
+  if (error) throw error;
+  renderPet(data);
+  await loadProfile();
+  setPetStatus('Dein Begleiter ist eingezogen. 🐾', 'success');
+}
+
+async function performPetAction(action, button) {
+  if (!currentPet || !button) return;
+  button.disabled = true;
+  const original = button.textContent;
+  button.textContent = action === 'feed' ? 'Füttere…' : action === 'play' ? 'Spiele…' : 'Streicheln…';
+
+  try {
+    const { data, error } = await supabaseClient.rpc('club_pet_action', { p_action: action });
+    if (error) throw error;
+    renderPet(data);
+    if (data?.daily_xp_awarded) {
+      setPetStatus('Heute gab es +5 XP für die Tierpflege. 🐾', 'success');
+    } else {
+      setPetStatus('Dein Tier freut sich. 🐾', 'success');
+    }
+    await loadProfile();
+    await loadProgressionCatalog();
+    await checkAchievements();
+  } catch (error) {
+    setPetStatus(error?.message || 'Aktion konnte nicht ausgeführt werden.', 'error');
+  } finally {
+    button.disabled = false;
+    button.textContent = original;
+  }
+}
+
+$('pet-create-form')?.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const species = document.querySelector('input[name="pet-species"]:checked')?.value;
+  const name = $('pet-name-input')?.value.trim();
+  if (!species) return setPetStatus('Bitte zuerst ein Tier auswählen.', 'error');
+  if (!name || name.length < 2) return setPetStatus('Der Name muss mindestens 2 Zeichen lang sein.', 'error');
+
+  const button = event.currentTarget.querySelector('button[type="submit"]');
+  if (button) { button.disabled = true; button.textContent = 'Wird adoptiert…'; }
+  try {
+    await createPet(species, name);
+  } catch (error) {
+    setPetStatus(error?.message || 'Tier konnte nicht adoptiert werden.', 'error');
+  } finally {
+    if (button) { button.disabled = false; button.textContent = 'Tier adoptieren'; }
+  }
+});
+
+document.querySelectorAll('.pet-action-btn').forEach(button => {
+  button.addEventListener('click', () => performPetAction(button.dataset.petAction, button));
+});
+
+$('pet-rename-toggle')?.addEventListener('click', () => {
+  const form = $('pet-rename-form');
+  if (!form) return;
+  form.hidden = !form.hidden;
+  if (!form.hidden) $('pet-rename-input')?.focus();
+});
+
+$('pet-rename-form')?.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const name = $('pet-rename-input')?.value.trim();
+  if (!name || name.length < 2) return setPetStatus('Der Name muss mindestens 2 Zeichen lang sein.', 'error');
+  const button = event.currentTarget.querySelector('button[type="submit"]');
+  if (button) { button.disabled = true; button.textContent = 'Speichern…'; }
+  try {
+    const { data, error } = await supabaseClient.rpc('rename_club_pet', { p_name: name });
+    if (error) throw error;
+    renderPet(data);
+    $('pet-rename-form').hidden = true;
+    setPetStatus('Name gespeichert.', 'success');
+  } catch (error) {
+    setPetStatus(error?.message || 'Name konnte nicht geändert werden.', 'error');
+  } finally {
+    if (button) { button.disabled = false; button.textContent = 'Speichern'; }
+  }
+});
+
 async function init() {
   try {
     const cfg = await (await fetch('/api/config', { cache: 'no-store' })).json();
@@ -915,6 +1124,7 @@ async function init() {
     // The server-side unique constraint makes this safe to call more than once.
     await awardProgression('registration');
     await loadProfile();
+    await loadPet();
     await loadDiscordLink();
     await loadTwitch();
     await loadClubContent();
