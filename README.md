@@ -291,3 +291,10 @@ Added automatic progression badges and an Admin overview under **XP & Badges**.
 Run `supabase/club_progression.sql` once in Supabase SQL Editor.
 
 **Important:** The progression API expects `SUPABASE_SERVICE_ROLE_KEY` in Vercel Production. This key must never be exposed to the browser.
+
+
+## V2.8.1: Avatar upload fix
+
+The profile avatar now uses a dedicated `club-avatars` Supabase Storage bucket with per-user folder policies. This avoids the `new row violates row-level security policy` error caused by the old storage path/policy setup.
+
+Run `supabase/club_storage.sql` once in the Supabase SQL Editor.
