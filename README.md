@@ -519,3 +519,10 @@ Added Impressum, Datenschutzerklärung, Account & Datenschutz page, account dele
 - Confirmation links redirect to `/club-profile.html`.
 - Registration XP is awarded on the first authenticated session/login, with server-side duplicate protection.
 - Profile initialization also retries the one-time registration XP award as a safe fallback.
+
+
+## V4.1.2 Account Delete Fix
+- Account deletion now uses an explicit `action=delete_account` route in the existing notification function.
+- Auth deletion relies on the existing `ON DELETE CASCADE` relationships.
+- Frontend safely handles non-JSON server responses instead of throwing `Unexpected token`.
+- No additional Vercel Serverless Function added; remains at 12.
