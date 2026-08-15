@@ -1445,3 +1445,60 @@ button:disabled{opacity:.55;cursor:not-allowed}
 /* V7.4.1 — Online Status */
 .member-online-label{color:#86efac;font-weight:700}
 .member-online-label.is-offline{color:#71717a}
+
+/* V7.4.2 — Global layout / viewport cleanup */
+html,body{
+  width:100%;
+  max-width:100%;
+  min-height:100%;
+  overflow-x:hidden;
+}
+*,*::before,*::after{
+  box-sizing:border-box;
+}
+img,video,iframe,svg{
+  max-width:100%;
+}
+.club-auth-shell,
+.admin-shell,
+.club-shell,
+.member-main,
+.public-member-main{
+  width:100%;
+  max-width:100%;
+  margin-left:auto;
+  margin-right:auto;
+}
+.member-main,
+.public-member-main{
+  overflow-x:clip;
+}
+.admin-card,
+.member-card,
+.public-member-card,
+.public-member-pet-card,
+.public-member-friendships,
+.public-member-duo-card{
+  max-width:100%;
+}
+@media(max-width:900px){
+  .club-auth-shell,
+  .admin-shell,
+  .club-shell,
+  .member-main,
+  .public-member-main{
+    width:100%;
+    padding-left:clamp(12px,4vw,24px);
+    padding-right:clamp(12px,4vw,24px);
+  }
+}
+@media(max-width:560px){
+  .club-auth-shell,
+  .admin-shell,
+  .club-shell,
+  .member-main,
+  .public-member-main{
+    padding-left:12px;
+    padding-right:12px;
+  }
+}

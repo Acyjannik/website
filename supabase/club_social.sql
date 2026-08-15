@@ -216,10 +216,17 @@ begin
         'user_id',f.friend_user_id,
         'username',p.username,
         'display_name',coalesce(p.display_name,p.username),
-        'avatar_url',coalesce(p.avatar_url,'')
-      ) order by p.display_name nulls last,p.username)
+        'avatar_url',coalesce(p.avatar_url,''),
+        'online',coalesce(gp.updated_at > now() - interval '5 minutes',false),
+        'game_id',gp.game_id,
+        'game_name',g.name,
+        'last_seen',gp.updated_at
+      ) order by (gp.updated_at > now() - interval '5 minutes') desc,
+                  p.display_name nulls last,p.username)
       from public.club_friendships f
       join public.profiles p on p.id=f.friend_user_id
+      left join public.club_game_presence gp on gp.user_id=f.friend_user_id
+      left join public.games g on g.id=gp.game_id
       where f.user_id=auth.uid()
     ),'[]'::jsonb),
     'incoming',coalesce((
@@ -260,11 +267,6 @@ begin
 end;
 $$;
 
-revoke all on function public.send_friend_request(uuid) from public;
-revoke all on function public.respond_friend_request(uuid,boolean) from public;
-revoke all on function public.remove_friend(uuid) from public;
-revoke all on function public.block_member(uuid) from public;
-revoke all on function public.unblock_member(uuid) from public;
 revoke all on function public.get_my_social_connections() from public;
 
 grant execute on function public.send_friend_request(uuid) to authenticated;

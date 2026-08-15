@@ -970,3 +970,10 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Presence is considered online when a heartbeat was updated within the last five minutes.
 - Heartbeat refreshes every 60 seconds while the member is on the Club profile.
 - No new SQL file; uses the existing `club_game_presence` table.
+
+
+## V7.4.2 — Layout Cleanup
+- Prevents horizontal overflow and the visible right-side background strip.
+- Normalizes width/box sizing across major Club, Member and Admin containers.
+- Adds responsive side padding so content stays centered on narrow screens.
+- No SQL changes.
