@@ -983,3 +983,9 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Fixed a null `textContent` error when friend actions tried to show a status message on the profile page.
 - Status messaging now safely falls back to the social/poll status element when the profile-save status is not present.
 - No SQL changes.
+
+
+## V7.4.4 — Public Member Profile Fix
+- Fixed the missing `public-status` element that caused `Cannot set properties of null (setting 'textContent')` when opening a member profile.
+- Made the public profile text/avatar updates tolerant of missing optional elements.
+- No SQL changes.

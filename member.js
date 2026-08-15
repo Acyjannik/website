@@ -1,5 +1,11 @@
 let supabaseClient=null;
 const $=id=>document.getElementById(id);
+function setMemberText(id,value){
+  const el=$(id);
+  if(el) el.textContent=value;
+  return el;
+}
+
 
 function escapeHtml(value=''){return String(value).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]));}
 function levelForXp(xp){
@@ -145,24 +151,24 @@ async function init(){
     if(!response.ok)throw new Error(payload.error||'Mitglied konnte nicht geladen werden.');
 
     const m=payload.member;
-    $('public-name').textContent=m.display_name;
-    $('public-handle').textContent=`@${m.username}`;
-    $('public-bio').textContent=m.bio||'ACY Club Member';
-    $('public-since').textContent=new Date(m.created_at).toLocaleDateString('de-DE');
-    $('public-status').textContent=m.online ? (m.game_name ? `🟢 ${m.game_name}` : '🟢 Online') : '⚫ Offline';
-        $('public-discord').textContent=m.discord_connected?'Verbunden ✓':'Nicht verbunden';
-    $('public-xp').textContent=`${m.xp} XP`;
+    setMemberText('public-name',m.display_name);
+    setMemberText('public-handle',`@${m.username}`);
+    setMemberText('public-bio',m.bio||'ACY Club Member');
+    setMemberText('public-since',new Date(m.created_at).toLocaleDateString('de-DE'));
+    setMemberText('public-status',m.online ? (m.game_name ? `🟢 ${m.game_name}` : '🟢 Online') : '⚫ Offline');
+        setMemberText('public-discord',m.discord_connected?'Verbunden ✓':'Nicht verbunden');
+    setMemberText('public-xp',`${m.xp} XP`);
 
     const level=levelForXp(m.xp);
-    $('public-level').textContent=String([0,100,250,500,1000].filter(v=>m.xp>=v).length);
-    $('public-level-title').textContent=level.title;
+    setMemberText('public-level',String([0,100,250,500,1000].filter(v=>m.xp>=v).length));
+    setMemberText('public-level-title',level.title);
 
     if(m.avatar_url){
-      $('public-avatar').src=m.avatar_url;
-      $('public-avatar').hidden=false;
-      $('public-avatar-fallback').hidden=true;
+      if($('public-avatar')) $('public-avatar').src=m.avatar_url;
+      if($('public-avatar')) $('public-avatar').hidden=false;
+      if($('public-avatar-fallback')) $('public-avatar-fallback').hidden=true;
     }else{
-      $('public-avatar-fallback').textContent=String(m.display_name||m.username||'A').charAt(0).toUpperCase();
+      setMemberText('public-avatar-fallback',String(m.display_name||m.username||'A').charAt(0).toUpperCase());
     }
 
     renderBadges(m.badges,m.xp,m.discord_connected);
