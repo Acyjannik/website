@@ -606,3 +606,11 @@ button:disabled{opacity:.55;cursor:not-allowed}
 @media(max-width:900px){
   .nav-club-cta{display:none}
 }
+
+/* V3.4.1 ensure header CTA is visible in the real navigation */
+.site-header .nav .nav-club-cta{
+  display:inline-flex;
+  align-items:center;
+  visibility:visible;
+  opacity:1;
+}

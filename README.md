@@ -428,3 +428,8 @@ Fixed the Admin Clips list failing before render because `escapeAttr()` / `escap
 ## V3.4: ACY Club header CTA
 
 Added a prominent `ACY Club beitreten` call-to-action in the desktop header/navigation. It links directly to `/club.html` and hides on small screens to avoid crowding the mobile navigation.
+
+
+## V3.4.1: Header CTA fix
+
+The previous V3.4 attempted to insert the Club CTA only if `/club.html` was absent anywhere in the homepage. Because the link already existed in the Club section, the header insertion was skipped. V3.4.1 inserts the CTA explicitly into the actual navigation.
