@@ -584,4 +584,8 @@ function escapeHtml(value = '') {
   }[ch]));
 }
 
+function escapeAttr(value = '') {
+  return escapeHtml(value);
+}
+
 init();

@@ -375,3 +375,8 @@ The directory API exposes only these public profile fields and never exposes mem
 ## V3.1.1: Member directory fix
 
 The member directory now reads profiles directly through the authenticated Supabase client. The previous `/api/club-members` endpoint returned a Vercel HTML page instead of JSON. A dedicated authenticated RLS policy was added for directory reads.
+
+
+## V3.1.2: Member directory render fix
+
+Defined the missing `escapeAttr()` helper used by member avatar URLs. This fixes the `escapeAttr is not defined` error that prevented the directory from rendering.
