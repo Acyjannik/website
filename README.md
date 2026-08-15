@@ -813,3 +813,15 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - The active pet card shows a visual progression track and progress to the next pet level.
 - The global companion widget shows pet level and progression title and reflects higher-level visual effects.
 - No database schema changes required.
+
+
+## V6.6.1 — Pet Balance
+- Rebalanced decay: Hunger −1/hour, Happiness −0.5/hour, Energy −0.5/hour.
+- Feed: +35 Hunger and +5 Happiness.
+- Play: +25 Happiness, −15 Energy and −10 Hunger.
+- Pet: +10 Happiness.
+- Cooldowns: Feed 30 min, Play 45 min, Pet 15 min.
+- All values are capped at 100 and floored at 0.
+- Pet action buttons now show their main reward directly in the UI.
+- The 72-hour-at-zero death rule remains unchanged.
+- Run `supabase/club_pets_repair.sql` again after deployment.

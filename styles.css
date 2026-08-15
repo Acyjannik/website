@@ -1349,3 +1349,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
 .acy-pet-float-art.pet-effect-legendary::after{position:absolute;right:0;top:-2px}
 @keyframes petLegendPulse{50%{transform:scale(1.15);opacity:.65}}
 @media(max-width:600px){.pet-progression-steps{gap:4px}.pet-prog-step small{font-size:7px}}
+
+/* V6.6.1 — Pet balance UI */
+.pet-action-btn{display:flex;align-items:center;justify-content:center;gap:7px;flex-wrap:wrap}
+.pet-action-btn small{font-size:8px;color:#a1a1aa;opacity:.8}

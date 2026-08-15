@@ -1005,7 +1005,7 @@ function renderPet(pet) {
     step.classList.toggle('is-current', Number(step.dataset.petLevel) === level.level);
     step.classList.toggle('is-complete', Number(step.dataset.petLevel) < level.level);
   });
-  setText('pet-care-note', 'Die Werte sinken langsam. Bleibt ein Wert 72 Stunden auf 0, stirbt dein Begleiter.');
+  setText('pet-care-note', 'Hunger −1/h · Laune −0,5/h · Energie −0,5/h · 72h bei 0 = Tod.');
   if ($('pet-rename-input')) $('pet-rename-input').value = pet.name;
 }
 
