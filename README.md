@@ -433,3 +433,7 @@ Added a prominent `ACY Club beitreten` call-to-action in the desktop header/navi
 ## V3.4.1: Header CTA fix
 
 The previous V3.4 attempted to insert the Club CTA only if `/club.html` was absent anywhere in the homepage. Because the link already existed in the Club section, the header insertion was skipped. V3.4.1 inserts the CTA explicitly into the actual navigation.
+
+## V3.5: ACYJANNIK favicon
+
+Added a site-wide SVG favicon using the ACY monogram style. All HTML pages reference `/assets/favicon.svg`, including the login, member, public member, and admin pages.
