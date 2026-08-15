@@ -1,6 +1,6 @@
 const tls = require('node:tls');
 
-const NOTIFICATION_EMAIL_API_VERSION = '7.1.7';
+const NOTIFICATION_EMAIL_API_VERSION = '7.1.8';
 const env = (name, fallback='') => String(process.env[name] || fallback);
 
 function json(res, status, payload) {
@@ -137,7 +137,8 @@ async function smtpSend({to, subject, text, html}) {
     socket.write(`${Buffer.from(env('SMTP_PASS')).toString('base64')}\r\n`);
     await smtpResponse(socket, [235]);
 
-    socket.write(`MAIL FROM:<${env('EMAIL_FROM')}>\r\n`);
+    const envelopeFrom = env('SMTP_USER');
+    socket.write(`MAIL FROM:<${envelopeFrom}>\r\n`);
     await smtpResponse(socket, [250]);
 
     socket.write(`RCPT TO:<${to}>\r\n`);
@@ -151,7 +152,7 @@ async function smtpSend({to, subject, text, html}) {
     const fromName = env('EMAIL_FROM_NAME', 'ACYJANNIK · ACY Club');
 
     const message = [
-      `From: ${fromName} <${env('EMAIL_FROM')}>`,
+      `From: ${fromName} <${env('SMTP_USER')}>`,
       `To: <${to}>`,
       `Subject: ${encodedSubject}`,
       'MIME-Version: 1.0',
@@ -250,7 +251,8 @@ module.exports = async (req, res) => {
         apiVersion: NOTIFICATION_EMAIL_API_VERSION,
         ok: true,
         sentTo: self.email,
-        message: 'Test-Mail wurde an deinen Admin-Account übergeben.'
+        message: 'Test-Mail wurde an deinen Admin-Account übergeben.',
+        envelopeFrom: env('SMTP_USER')
       });
     }
 
