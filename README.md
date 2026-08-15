@@ -194,3 +194,18 @@ Fixed the public social hydration so it no longer replaces real icons with TW/TK
 ## V2.4.16: About text sync
 
 The "Über Jannik" text field in the admin now updates the public About section on the homepage. The field was already being saved to Supabase, but the public page had no target element and did not apply `about_text` during hydration.
+
+
+## V2.4.17: ACY Club Discord CTA
+
+The ACY Club button now links directly to the ACY Club Discord invite.
+
+
+## V2.4.18: Daily Fortnite schedule
+
+Added a public schedule card: **Jeden Tag um 20:00 Uhr** with Fortnite and a direct Twitch button.
+
+
+## V2.4.19: Schedule time update
+
+The daily Fortnite schedule is now **20:30 Uhr**.
