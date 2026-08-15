@@ -259,3 +259,13 @@ Expanded `/club-profile.html` with:
 - Discord CTA
 
 Run the updated `supabase/club_members.sql` and `supabase/club_storage.sql` once.
+
+
+## V2.6.1: Member dashboard robustness
+
+Fixed null DOM access in the member dashboard and made the Twitch card fail gracefully while still showing live/offline status. Also bumped the client script version to avoid stale browser caching.
+
+
+## V2.6.1: Twitch + null-safety fix
+
+The member dashboard now tolerates missing DOM elements, and the Twitch card updates all available fields safely. Client cache version bumped to 2.6.1.

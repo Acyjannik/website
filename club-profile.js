@@ -2,6 +2,11 @@ let supabaseClient = null;
 let currentUser = null;
 
 const $ = (id) => document.getElementById(id);
+function setText(id, value) {
+  const el = $(id);
+  if (el) el.textContent = value;
+  return el;
+}
 
 function setStatus(text, type = '') {
   const el = $('profile-save-status');
@@ -25,20 +30,24 @@ function levelForXp(xp) {
 }
 
 function renderProgress(xp) {
-  const levels = [0, 100, 250, 500, 1000, 2000];
-  const level = Math.max(1, Math.min(5, levels.findIndex(v => xp < v)));
-  const currentIndex = level === 1 && xp >= 100 ? 1 : Math.max(0, levels.findIndex(v => xp < v) - 1);
-  const base = levels[currentIndex] || 0;
-  const next = levels[currentIndex + 1] || base + 1000;
+  const thresholds = [0, 100, 250, 500, 1000, 2000];
+  let idx = 0;
+  for (let i = 0; i < thresholds.length; i++) {
+    if (xp >= thresholds[i]) idx = i;
+  }
+
+  const base = thresholds[idx];
+  const next = thresholds[idx + 1] ?? base + 1000;
   const progress = Math.max(0, Math.min(100, ((xp - base) / (next - base)) * 100));
 
-  $('member-level').textContent = String(currentIndex + 1);
-  $('level-number').textContent = String(currentIndex + 1);
-  $('member-xp').textContent = `${xp} XP`;
-  $('xp-current').textContent = `${xp} XP`;
-  $('xp-next').textContent = `${next} XP`;
-  $('xp-bar-fill').style.width = `${progress}%`;
-  $('level-title').textContent = levelForXp(xp).title;
+  setText('member-level', String(idx + 1));
+  setText('level-number', String(idx + 1));
+  setText('member-xp', `${xp} XP`);
+  setText('xp-current', `${xp} XP`);
+  setText('xp-next', `${next} XP`);
+  const bar = $('xp-bar-fill');
+  if (bar) bar.style.width = `${progress}%`;
+  setText('level-title', levelForXp(xp).title);
 }
 
 function renderBadges(badges = []) {
@@ -51,7 +60,9 @@ function renderBadges(badges = []) {
     'ACY OG': '👑',
     'ACY Legend': '🏆'
   };
-  $('badge-grid').innerHTML = list.map((badge) => `
+  const badgeGrid = $('badge-grid');
+  if (!badgeGrid) return;
+  badgeGrid.innerHTML = list.map((badge) => `
     <div class="member-badge">
       <span>${icons[badge] || '✦'}</span>
       <strong>${escapeHtml(badge)}</strong>
@@ -63,6 +74,7 @@ function renderBadges(badges = []) {
 function renderAvatar(profile) {
   const image = $('member-avatar-img');
   const fallback = $('member-avatar');
+  if (!image || !fallback) return;
   if (profile.avatar_url) {
     image.src = profile.avatar_url;
     image.hidden = false;
@@ -93,8 +105,13 @@ async function init() {
     await loadProfile();
     await loadTwitch();
   } catch (error) {
-    $('profile-save-status').textContent = error.message || 'Profil konnte nicht geladen werden.';
-    $('profile-save-status').classList.add('error');
+    const msg = error?.message || 'Profil konnte nicht geladen werden.';
+    const status = $('profile-save-status');
+    if (status) {
+      status.textContent = msg;
+      status.classList.add('error');
+    }
+    console.error('ACY Club profile init error:', error);
   }
 }
 
@@ -117,10 +134,10 @@ async function loadProfile() {
     badges: ['ACY Rookie']
   };
 
-  $('member-name').textContent = profile.display_name || profile.username;
-  $('member-handle').textContent = `@${profile.username}`;
-  $('member-bio').textContent = profile.bio || 'Willkommen in deinem persönlichen ACY Club.';
-  $('member-since').textContent = profile.created_at ? new Date(profile.created_at).toLocaleDateString('de-DE') : '–';
+  setText('member-name', profile.display_name || profile.username);
+  setText('member-handle', `@${profile.username}`);
+  setText('member-bio', profile.bio || 'Willkommen in deinem persönlichen ACY Club.');
+  setText('member-since', profile.created_at ? new Date(profile.created_at).toLocaleDateString('de-DE') : '–');
   $('edit-display-name').value = profile.display_name || profile.username;
   $('edit-bio').value = profile.bio || '';
 
@@ -132,23 +149,42 @@ async function loadProfile() {
 }
 
 async function loadTwitch() {
+  const sub = $('member-twitch-sub');
+  const game = $('member-twitch-game');
+  const viewers = $('member-twitch-viewers');
+  const title = $('twitch-member-title');
+  const pill = $('member-live-pill');
+  const dot = $('member-live-dot');
+  const text = $('member-live-text');
+
   try {
     const res = await fetch('/api/twitch-status', { cache: 'no-store' });
+    if (!res.ok) throw new Error(`Twitch API HTTP ${res.status}`);
     const data = await res.json();
     const live = !!data.live;
-    $('member-live-text').textContent = live ? 'LIVE' : 'OFFLINE';
-    $('member-live-pill').classList.toggle('is-live', live);
-    $('member-live-dot').classList.toggle('is-live', live);
-    $('member-twitch-title').textContent = live ? (data.title || 'ACYJANNIK ist live') : 'ACYJANNIK';
-    $('member-twitch-sub').textContent = live ? 'Gerade live auf Twitch' : 'Gerade nicht live';
-    $('member-twitch-game').textContent = data.game || '–';
-    $('member-twitch-viewers').textContent = Number.isFinite(data.viewerCount)
-      ? Number(data.viewerCount).toLocaleString('de-DE')
-      : '–';
-  } catch {
-    $('member-twitch-sub').textContent = 'Twitch-Status gerade nicht verfügbar';
+
+    if (text) text.textContent = live ? 'LIVE' : 'OFFLINE';
+    if (pill) pill.classList.toggle('is-live', live);
+    if (dot) dot.classList.toggle('is-live', live);
+
+    if (title) title.textContent = live ? (data.title || 'ACYJANNIK ist live') : 'ACYJANNIK';
+    if (sub) sub.textContent = live ? 'Gerade live auf Twitch' : 'Gerade nicht live';
+    if (game) game.textContent = data.game || '–';
+    if (viewers) {
+      const count = Number(data.viewerCount);
+      viewers.textContent = Number.isFinite(count) ? count.toLocaleString('de-DE') : '–';
+    }
+  } catch (error) {
+    console.warn('Twitch member status unavailable:', error);
+    if (text) text.textContent = 'OFFLINE';
+    if (pill) pill.classList.remove('is-live');
+    if (dot) dot.classList.remove('is-live');
+    if (sub) sub.textContent = 'Twitch-Status gerade nicht verfügbar';
+    if (game) game.textContent = '–';
+    if (viewers) viewers.textContent = '–';
   }
 }
+
 
 $('profile-form')?.addEventListener('submit', async (event) => {
   event.preventDefault();
@@ -170,8 +206,8 @@ $('profile-form')?.addEventListener('submit', async (event) => {
     return;
   }
 
-  $('member-name').textContent = displayName;
-  $('member-bio').textContent = bio || 'Willkommen in deinem persönlichen ACY Club.';
+  setText('member-name', displayName);
+  setText('member-bio', bio || 'Willkommen in deinem persönlichen ACY Club.');
   setStatus('Profil gespeichert.', 'success');
 });
 
@@ -209,9 +245,9 @@ $('avatar-input')?.addEventListener('change', async (event) => {
 
     if (error) throw error;
 
-    $('member-avatar-img').src = avatarUrl;
-    $('member-avatar-img').hidden = false;
-    $('member-avatar').hidden = true;
+    if ($('member-avatar-img')) $('member-avatar-img').src = avatarUrl;
+    if ($('member-avatar-img')) $('member-avatar-img').hidden = false;
+    if ($('member-avatar')) $('member-avatar').hidden = true;
     setStatus('Profilbild gespeichert.', 'success');
   } catch (error) {
     setStatus(error.message || 'Upload fehlgeschlagen.', 'error');
