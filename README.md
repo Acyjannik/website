@@ -904,3 +904,9 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - This removes ambiguity when `EMAIL_FROM` is configured differently or is an alias.
 - SMTP test result reports the envelope sender without exposing any secret.
 - No SQL changes.
+
+
+## V7.1.9 — SMTP Identity Diagnostics
+- SMTP test now reports a masked `SMTP_USER`, its domain and masked `EMAIL_FROM` on SMTP failures.
+- Passwords and full secret values are never returned.
+- No SQL changes.

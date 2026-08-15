@@ -1177,8 +1177,9 @@ $('test-email-btn')?.addEventListener('click', async () => {
     if (!response.ok) {
       const detail = payload.error
         || (payload.emailFailed != null ? `${payload.emailFailed} E-Mail-Versandfehler bei ${payload.emailEligible ?? 0} Empfängern.` : `HTTP ${response.status}`);
+      const diag = payload.smtpUserMasked ? ` · SMTP-User ${payload.smtpUserMasked} · Domain ${payload.smtpUserDomain || '–'} · From ${payload.emailFromMasked || '–'}` : '';
       message('poll-admin-message',
-        `SMTP-Test fehlgeschlagen · API ${payload.apiVersion || 'älteres Backend'} · ${detail}`);
+        `SMTP-Test fehlgeschlagen · API ${payload.apiVersion || 'älteres Backend'} · ${detail}${diag}`);
       return;
     }
 
