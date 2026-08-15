@@ -9,6 +9,8 @@ const VIEW_META = {
   content: ['WEBSITE', 'Website'],
   games: ['CONTENT', 'Games'],
   socials: ['COMMUNITY', 'Socials'],
+  events: ['COMMUNITY', 'Events'],
+  news: ['CONTENT', 'News'],
   media: ['MEDIA', 'Bilder'],
   security: ['SECURITY', 'Sicherheit'],
 };
@@ -203,6 +205,8 @@ async function loadDashboard() {
     loadSocials(),
     loadGames(),
     loadTwitchStatus(),
+    loadEventsAdmin(),
+    loadNewsAdmin(),
   ]);
 
   await loadMediaPreview();
@@ -411,6 +415,53 @@ async function cleanupMecchaRows() {
   saveStamp();
   await loadGames();
 }
+async function loadEventsAdmin(){
+  const list=$('events-admin-list'); if(!list)return;
+  const {data,error}=await supabaseClient.from('club_events').select('*').order('event_date',{ascending:true});
+  if(error){list.innerHTML=`<div class="admin-empty">Events noch nicht eingerichtet: ${escapeHtml(error.message)}</div>`;return;}
+  list.innerHTML=(data||[]).length?(data||[]).map(e=>`<div class="admin-table-row content-admin-row" data-id="${e.id}">
+    <div><strong>${escapeHtml(e.title)}</strong><small>${escapeHtml(new Date(e.event_date).toLocaleString('de-DE'))}</small></div>
+    <input class="content-inline-title" value="${escapeAttr(e.title)}">
+    <input class="content-inline-date" type="datetime-local" value="${formatDateLocal(e.event_date)}">
+    <label class="admin-check"><input class="content-inline-enabled" type="checkbox" ${e.enabled?'checked':''}> aktiv</label>
+    <div class="admin-row-actions"><button class="button button-small content-save-event">Speichern</button><button class="button button-small button-danger content-delete-event">Löschen</button></div>
+  </div>`).join(''):'<div class="admin-empty">Noch keine Events.</div>';
+  list.querySelectorAll('.content-save-event').forEach(btn=>btn.onclick=async()=>{const r=btn.closest('.content-admin-row');const {error}=await supabaseClient.from('club_events').update({title:r.querySelector('.content-inline-title').value.trim(),event_date:new Date(r.querySelector('.content-inline-date').value).toISOString(),enabled:r.querySelector('.content-inline-enabled').checked,updated_at:new Date().toISOString()}).eq('id',r.dataset.id);if(error)message('events-message',error.message);else{message('events-message','Event gespeichert.',true);saveStamp();loadEventsAdmin();}});
+  list.querySelectorAll('.content-delete-event').forEach(btn=>btn.onclick=async()=>{const id=btn.closest('.content-admin-row').dataset.id;if(!confirm('Event wirklich löschen?'))return;const {error}=await supabaseClient.from('club_events').delete().eq('id',id);if(error)message('events-message',error.message);else{message('events-message','Event gelöscht.',true);saveStamp();loadEventsAdmin();}});
+}
+
+async function loadNewsAdmin(){
+  const list=$('news-admin-list'); if(!list)return;
+  const {data,error}=await supabaseClient.from('club_news').select('*').order('published_at',{ascending:false});
+  if(error){list.innerHTML=`<div class="admin-empty">News noch nicht eingerichtet: ${escapeHtml(error.message)}</div>`;return;}
+  list.innerHTML=(data||[]).length?(data||[]).map(n=>`<div class="admin-table-row content-admin-row" data-id="${n.id}">
+    <div><strong>${escapeHtml(n.title)}</strong><small>${escapeHtml(new Date(n.published_at).toLocaleDateString('de-DE'))}</small></div>
+    <input class="content-inline-title" value="${escapeAttr(n.title)}">
+    <input class="content-inline-body" value="${escapeAttr(n.body)}">
+    <label class="admin-check"><input class="content-inline-enabled" type="checkbox" ${n.enabled?'checked':''}> aktiv</label>
+    <div class="admin-row-actions"><button class="button button-small content-save-news">Speichern</button><button class="button button-small button-danger content-delete-news">Löschen</button></div>
+  </div>`).join(''):'<div class="admin-empty">Noch keine News.</div>';
+  list.querySelectorAll('.content-save-news').forEach(btn=>btn.onclick=async()=>{const r=btn.closest('.content-admin-row');const {error}=await supabaseClient.from('club_news').update({title:r.querySelector('.content-inline-title').value.trim(),body:r.querySelector('.content-inline-body').value.trim(),enabled:r.querySelector('.content-inline-enabled').checked,updated_at:new Date().toISOString()}).eq('id',r.dataset.id);if(error)message('news-message',error.message);else{message('news-message','News gespeichert.',true);saveStamp();loadNewsAdmin();}});
+  list.querySelectorAll('.content-delete-news').forEach(btn=>btn.onclick=async()=>{const id=btn.closest('.content-admin-row').dataset.id;if(!confirm('News wirklich löschen?'))return;const {error}=await supabaseClient.from('club_news').delete().eq('id',id);if(error)message('news-message',error.message);else{message('news-message','News gelöscht.',true);saveStamp();loadNewsAdmin();}});
+}
+
+function formatDateLocal(v){const d=new Date(v),p=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;}
+
+async function addEventAdmin(){
+  const title=$('event-title').value.trim(), desc=$('event-description').value.trim(), date=$('event-date').value, url=$('event-url').value.trim()||'https://www.twitch.tv/acyjannik';
+  if(!title||!date)return message('events-message','Titel und Datum sind erforderlich.');
+  if(!isSafeHttpUrl(url))return message('events-message','Bitte einen gültigen Link verwenden.');
+  const {error}=await supabaseClient.from('club_events').insert({title,description:desc,event_date:new Date(date).toISOString(),location:'Twitch',twitch_url:url,enabled:true});
+  if(error)message('events-message',error.message);else{$('event-title').value='';$('event-description').value='';$('event-date').value='';message('events-message','Event hinzugefügt.',true);saveStamp();loadEventsAdmin();}
+}
+
+async function addNewsAdmin(){
+  const title=$('news-title').value.trim(), body=$('news-body').value.trim();
+  if(!title||!body)return message('news-message','Titel und Text sind erforderlich.');
+  const {error}=await supabaseClient.from('club_news').insert({title,body,enabled:true});
+  if(error)message('news-message',error.message);else{$('news-title').value='';$('news-body').value='';message('news-message','News veröffentlicht.',true);saveStamp();loadNewsAdmin();}
+}
+
 async function loadTwitchStatus() {
   try {
     const r = await fetch('/api/twitch-status', { cache: 'no-store' });
@@ -611,6 +662,8 @@ function bindAdminEvents() {
   });
 
   $('add-game-btn')?.addEventListener('click', addGame);
+$('add-event-btn')?.addEventListener('click', addEventAdmin);
+$('add-news-btn')?.addEventListener('click', addNewsAdmin);
 $('cleanup-meccha-btn')?.addEventListener('click', cleanupMecchaRows);
   $('add-social-btn')?.addEventListener('click', addSocial);
   $('upload-media-btn')?.addEventListener('click', uploadMedia);

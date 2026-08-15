@@ -6,7 +6,7 @@
   <title>Mein ACY Club · Acyjannik</title>
   <link rel="stylesheet" href="styles.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="club-profile.js?v=2.6.1" defer></script>
+  <script src="club-profile.js?v=2.7.0" defer></script>
 </head>
 <body class="club-auth-page">
   <div class="club-auth-shell">
@@ -98,6 +98,22 @@
             <div class="section-mini-title">DEINE BADGES</div>
             <div class="badge-grid" id="badge-grid"></div>
           </div>
+        </section>
+
+        <section class="member-card member-span-2">
+          <div class="eyebrow">COMMUNITY</div>
+          <div class="member-card-head">
+            <div><h2>Events</h2><p>Was im ACY Club als Nächstes ansteht.</p></div>
+          </div>
+          <div class="club-content-list" id="member-events-list"><div class="club-content-empty">Events werden geladen…</div></div>
+        </section>
+
+        <section class="member-card member-span-2">
+          <div class="eyebrow">ACY NEWS</div>
+          <div class="member-card-head">
+            <div><h2>Neuigkeiten</h2><p>Updates aus dem ACY Club.</p></div>
+          </div>
+          <div class="club-content-list" id="member-news-list"><div class="club-content-empty">News werden geladen…</div></div>
         </section>
 
         <!-- Discord -->

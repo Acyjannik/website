@@ -43,6 +43,8 @@
           <button class="admin-tab" data-tab="content">Website</button>
           <button class="admin-tab" data-tab="games">Games</button>
           <button class="admin-tab" data-tab="socials">Socials</button>
+          <button class="admin-tab" data-tab="events">Events</button>
+          <button class="admin-tab" data-tab="news">News</button>
           <button class="admin-tab" data-tab="media">Bilder</button>
           <button class="admin-tab" data-tab="security">Sicherheit</button>
         </nav>
@@ -244,6 +246,34 @@
         </section>
 
         <!-- Media -->
+
+        <section class="admin-view" data-view="events">
+          <div class="admin-card">
+            <div class="section-heading"><div><div class="eyebrow">COMMUNITY</div><h2>Events</h2><p class="admin-muted">Community-Abende und besondere Streams verwalten.</p></div></div>
+            <div class="admin-table" id="events-admin-list"></div>
+            <div class="admin-form admin-form-grid">
+              <label>Titel<input id="event-title" placeholder="Fortnite Community Night"></label>
+              <label>Datum & Uhrzeit<input id="event-date" type="datetime-local"></label>
+              <label>Beschreibung<textarea id="event-description" rows="2" placeholder="Gemeinsame Runden mit der Community."></textarea></label>
+              <label>Link<input id="event-url" value="https://www.twitch.tv/acyjannik"></label>
+              <button class="button button-primary" id="add-event-btn" type="button">Event hinzufügen</button>
+            </div>
+            <p class="admin-note" id="events-message"></p>
+          </div>
+        </section>
+
+        <section class="admin-view" data-view="news">
+          <div class="admin-card">
+            <div class="section-heading"><div><div class="eyebrow">CONTENT</div><h2>News</h2><p class="admin-muted">Kurze Updates für den ACY Club.</p></div></div>
+            <div class="admin-table" id="news-admin-list"></div>
+            <div class="admin-form admin-form-grid">
+              <label>Titel<input id="news-title" placeholder="Neues aus dem ACY Club"></label>
+              <label>Text<textarea id="news-body" rows="3" placeholder="Was gibt es Neues?"></textarea></label>
+              <button class="button button-primary" id="add-news-btn" type="button">News veröffentlichen</button>
+            </div>
+            <p class="admin-note" id="news-message"></p>
+          </div>
+        </section>
 
         <section class="admin-view" data-view="media">
           <div class="admin-grid">

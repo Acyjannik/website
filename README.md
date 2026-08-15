@@ -269,3 +269,8 @@ Fixed null DOM access in the member dashboard and made the Twitch card fail grac
 ## V2.6.1: Twitch + null-safety fix
 
 The member dashboard now tolerates missing DOM elements, and the Twitch card updates all available fields safely. Client cache version bumped to 2.6.1.
+
+
+## V2.7: Events + News
+
+Added ACY Club Events and ACY News to the member dashboard and Admin. Run `supabase/club_events_news.sql` once in Supabase SQL Editor.

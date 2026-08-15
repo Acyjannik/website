@@ -104,6 +104,7 @@ async function init() {
     currentUser = data.session.user;
     await loadProfile();
     await loadTwitch();
+    await loadClubContent();
   } catch (error) {
     const msg = error?.message || 'Profil konnte nicht geladen werden.';
     const status = $('profile-save-status');
@@ -185,6 +186,33 @@ async function loadTwitch() {
   }
 }
 
+
+async function loadClubContent(){
+  const eventsList=$('member-events-list'), newsList=$('member-news-list');
+  try{
+    const r=await fetch('/api/club-content',{cache:'no-store'});
+    if(!r.ok)throw new Error(`HTTP ${r.status}`);
+    const d=await r.json();
+    if(eventsList){
+      const ev=Array.isArray(d.events)?d.events:[];
+      eventsList.innerHTML=ev.length?ev.map(e=>{
+        const when=new Date(e.event_date).toLocaleString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+        return `<article class="club-content-item"><div class="club-content-date">${escapeHtml(when)}</div><div class="club-content-main"><strong>${escapeHtml(e.title)}</strong><p>${escapeHtml(e.description||'')}</p><small>${escapeHtml(e.location||'Community')}</small></div><a class="button button-small button-primary" href="${escapeAttr(e.twitch_url||'https://www.twitch.tv/acyjannik')}" target="_blank" rel="noreferrer">Dabei sein ↗</a></article>`;
+      }).join(''):'<div class="club-content-empty">Noch keine Events.</div>';
+    }
+    if(newsList){
+      const news=Array.isArray(d.news)?d.news:[];
+      newsList.innerHTML=news.length?news.map(n=>{
+        const when=new Date(n.published_at).toLocaleDateString('de-DE');
+        return `<article class="club-content-item news-item"><div class="club-content-date">${escapeHtml(when)}</div><div class="club-content-main"><strong>${escapeHtml(n.title)}</strong><p>${escapeHtml(n.body)}</p></div></article>`;
+      }).join(''):'<div class="club-content-empty">Noch keine Neuigkeiten.</div>';
+    }
+  }catch(e){
+    console.warn('Club content unavailable',e);
+    if(eventsList)eventsList.innerHTML='<div class="club-content-empty">Events momentan nicht verfügbar.</div>';
+    if(newsList)newsList.innerHTML='<div class="club-content-empty">News momentan nicht verfügbar.</div>';
+  }
+}
 
 $('profile-form')?.addEventListener('submit', async (event) => {
   event.preventDefault();
