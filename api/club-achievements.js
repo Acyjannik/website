@@ -60,29 +60,7 @@ export default async function handler(req, res) {
           const existing = existingText ? JSON.parse(existingText) : [];
           if (existing.length) continue;
           const insert = await fetch(`${url}/rest/v1/club_achievements`, { method: 'POST', headers, body: JSON.stringify({ user_id: profile.id, achievement_key: keyName }) });
-          if (insert.ok) {
-          changed = true;
-          try {
-            const siteSecret = process.env.CLUB_EVENT_HUB_SECRET || '';
-            if (siteSecret) {
-              const displayName = profile.display_name || profile.username || 'Ein Mitglied';
-              await fetch(`${process.env.PUBLIC_SITE_URL || ''}/api/club-event-hub`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  internalSecret: siteSecret,
-                  eventType: 'achievement_unlocked',
-                  title: 'Neues Achievement',
-                  payload: {
-                    message: `🏆 ${displayName} hat gerade das Achievement „${keyName}“ freigeschaltet!`,
-                    userId: profile.id,
-                    achievementKey: keyName
-                  }
-                })
-              }).catch(() => {});
-            }
-          } catch {}
-        }
+          if (insert.ok) changed = true;
         }
         if (changed) updated++;
       }

@@ -23,6 +23,50 @@ function petLabel(species=''){
   return ({cat:'Katze',dog:'Hund',fox:'Fuchs',axolotl:'Axolotl',dragon:'Drache',unicorn:'Einhorn',penguin:'Pinguin',panda:'Panda',bunny:'Hase',koala:'Koala',hamster:'Hamster',turtle:'Schildkröte',owl:'Eule',frog:'Frosch',bee:'Biene'})[species]||'Begleiter';
 }
 
+
+async function loadPetDuoAchievements(memberId, ownId){
+  const grid=$('public-pet-duo-grid');
+  const count=$('public-pet-duo-count');
+  const subtitle=$('public-pet-duo-subtitle');
+  if(!grid)return;
+  if(memberId!==ownId){
+    grid.innerHTML='<div class="public-pet-friends-empty">Duo-Achievements werden nur im eigenen Club-Profil angezeigt.</div>';
+    return;
+  }
+  try{
+    const {data:sessionData}=await supabaseClient.auth.getSession();
+    const token=sessionData?.session?.access_token;
+    const response=await fetch('/api/club-pet-duo-achievements',{
+      method:'POST',
+      headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},
+      body:'{}'
+    });
+    const payload=await response.json().catch(()=>({}));
+    if(!response.ok)throw new Error(payload.error||'Duo-Achievements konnten nicht geladen werden.');
+    const rows=Array.isArray(payload.achievements)?payload.achievements:[];
+    if(count)count.textContent=String(rows.length);
+    if(subtitle)subtitle.textContent=rows.length?`${rows.length} gemeinsame Auszeichnung${rows.length===1?'':'en'}.`:'Noch keine Duo-Achievements.';
+    if(!rows.length){
+      grid.innerHTML='<div class="public-pet-friends-empty">Sobald deine Pets miteinander aktiv sind, kommen hier besondere Auszeichnungen dazu.</div>';
+      return;
+    }
+    const meta={
+      pet_first_friend:{icon:'👋',title:'Erste Freundschaft',detail:'Das erste gemeinsame Treffen.'},
+      pet_buddy:{icon:'💜',title:'Pet Buddies',detail:'Mindestens 5 gemeinsame Begegnungen.'},
+      pet_best_friends:{icon:'👑',title:'Beste Freunde',detail:'15 gemeinsame Begegnungen.'}
+    };
+    grid.innerHTML=rows.slice(0,18).map(row=>{
+      const m=meta[row.achievement_key]||{icon:'🐾',title:row.achievement_key,detail:'Pet Duo Achievement'};
+      return `<article class="pet-duo-achievement">
+        <span class="pet-duo-achievement-icon">${m.icon}</span>
+        <div><strong>${escapeHtml(m.title)}</strong><small>${escapeHtml(m.detail)}</small><small>Mit ${escapeHtml(row.friend_pet_name||row.friend_display_name||'einem Pet')}</small></div>
+      </article>`;
+    }).join('');
+  }catch(error){
+    grid.innerHTML=`<div class="public-pet-friends-empty">${escapeHtml(error?.message||'Duo-Achievements konnten nicht geladen werden.')}</div>`;
+  }
+}
+
 async function loadPetFriendshipsForMember(memberId, ownId){
   const grid=$('public-pet-friends-grid');
   const count=$('public-pet-friends-count');
@@ -167,6 +211,7 @@ async function init(){
     renderBadges(m.badges,m.xp,m.discord_connected);
     renderMemberPet(m.pet || null, id, data.session.user.id);
     loadPetFriendshipsForMember(id, data.session.user.id);
+    loadPetDuoAchievements(id, data.session.user.id);
 
     const dmButton = $('send-direct-message');
     if (dmButton && id === data.session.user.id) {

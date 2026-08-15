@@ -933,13 +933,9 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Run `supabase/club_pets_repair.sql` again after deployment.
 
 
-## V7.3.0 — ACY Event Hub
-- Added a central Event Hub for website -> Discord/Twitch notifications.
-- Community Vote creation emits `community_vote_created`.
-- Newly unlocked achievements emit `achievement_unlocked`.
-- Added Twitch EventSub webhook handler for `stream.online` and `stream.offline`.
-- Added event delivery log in Supabase via `supabase/club_event_hub.sql`.
-- Discord notifications use `DISCORD_EVENT_WEBHOOK_URL`.
-- Twitch chat notifications use the Send Chat Message API and `TWITCH_BOT_ACCESS_TOKEN`, `TWITCH_BOT_USER_ID`, `TWITCH_BROADCASTER_ID`, `TWITCH_CLIENT_ID`.
-- Run `supabase/club_event_hub.sql` once after deployment.
-- Set `CLUB_EVENT_HUB_SECRET` and integration secrets in Vercel before external notifications are sent.
+## V7.2.2 — Pet Duo Achievements
+- Added milestone achievements for Pet friendships:
+  `Erste Freundschaft`, `Pet Buddies`, `Beste Freunde`.
+- Achievements are tied to Pet Social interactions and remain separate from member XP.
+- Added a private Duo Achievement section to the member's own profile.
+- Run `supabase/club_pets_repair.sql` again after deployment.
