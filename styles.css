@@ -614,3 +614,8 @@ button:disabled{opacity:.55;cursor:not-allowed}
   visibility:visible;
   opacity:1;
 }
+
+/* V3.5.1 password reset */
+.club-reset-main{max-width:560px;margin:70px auto}
+.club-reset-card{text-align:left}
+.club-reset-card h1{font-size:36px;margin:8px 0 10px}

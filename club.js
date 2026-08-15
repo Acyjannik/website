@@ -138,12 +138,19 @@ $('forgot-password')?.addEventListener('click', async () => {
   try {
     const origin = window.location.origin;
     const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
-      redirectTo: `${origin}/club-profile.html`
+      redirectTo: `${origin}/club-reset.html`
     });
     if (error) throw error;
     status('login-status', 'Eine E-Mail zum Zurücksetzen des Passworts wurde angefordert.', 'success');
   } catch (error) {
-    status('login-status', error.message || 'Passwort-Reset fehlgeschlagen.', 'error');
+    const msg=String(error.message||'');
+    status(
+      'login-status',
+      /rate limit|too many|email rate/i.test(msg)
+        ? 'Zu viele Reset-E-Mails wurden gerade angefordert. Bitte etwas warten und es danach erneut versuchen.'
+        : msg || 'Passwort-Reset fehlgeschlagen.',
+      'error'
+    );
   }
 });
 

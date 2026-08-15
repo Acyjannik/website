@@ -437,3 +437,12 @@ The previous V3.4 attempted to insert the Club CTA only if `/club.html` was abse
 ## V3.5: ACYJANNIK favicon
 
 Added a site-wide SVG favicon using the ACY monogram style. All HTML pages reference `/assets/favicon.svg`, including the login, member, public member, and admin pages.
+
+
+## V3.5.1: Password reset flow
+
+Added a dedicated `/club-reset.html` recovery page. Password recovery emails now redirect there, where the recovery session is used to set a new password with `updateUser({ password })`.
+
+This fixes the previous behavior where the recovery link returned the user to the normal member page without giving them a password-change form.
+
+Note: Supabase's built-in email provider currently allows only 2 auth emails per hour project-wide. Frequent password-reset testing can therefore trigger `email rate limit exceeded`. For production, configure custom SMTP to get a higher email-send allowance.
