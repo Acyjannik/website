@@ -1,6 +1,6 @@
 const tls = require('node:tls');
 
-const NOTIFICATION_EMAIL_API_VERSION = '7.1.6';
+const NOTIFICATION_EMAIL_API_VERSION = '7.1.7';
 const env = (name, fallback='') => String(process.env[name] || fallback);
 
 function json(res, status, payload) {
@@ -64,7 +64,8 @@ function smtpConfigured() {
   return Boolean(env('SMTP_HOST') && env('SMTP_USER') && env('SMTP_PASS') && env('EMAIL_FROM'));
 }
 
-function smtpResponse(socket, expected) {
+
+function smtpResponse(socket, expectedCodes) {
   return new Promise((resolve, reject) => {
     let buffer = '';
     const onData = chunk => {
@@ -72,9 +73,10 @@ function smtpResponse(socket, expected) {
       const lines = buffer.split(/\r?\n/).filter(Boolean);
       const last = lines[lines.length - 1] || '';
       if (!/^\d{3} /.test(last)) return;
+
       cleanup();
-      const code = Number(last.slice(0,3));
-      if (expected.includes(code)) resolve(code);
+      const code = Number(last.slice(0, 3));
+      if (expectedCodes.includes(code)) resolve(buffer.trim());
       else reject(new Error(`SMTP ${code}: ${buffer.trim()}`));
     };
     const onError = err => { cleanup(); reject(err); };
@@ -87,25 +89,47 @@ function smtpResponse(socket, expected) {
   });
 }
 
+function openTcpSocket(host, port) {
+  return new Promise((resolve, reject) => {
+    const socket = require('node:net').connect({ host, port }, () => resolve(socket));
+    socket.once('error', reject);
+  });
+}
+
+function upgradeToTls(socket, host) {
+  return new Promise((resolve, reject) => {
+    const secure = tls.connect({
+      socket,
+      servername: host,
+      rejectUnauthorized: true
+    }, () => resolve(secure));
+    secure.once('error', reject);
+  });
+}
+
 async function smtpSend({to, subject, text, html}) {
   const host = env('SMTP_HOST');
-  const port = Number(env('SMTP_PORT', '465'));
-  const socket = tls.connect({
-    host,
-    port,
-    servername: host,
-    rejectUnauthorized: true
-  });
+  const port = Number(env('SMTP_PORT', '587'));
+  let socket;
 
   try {
-    await new Promise((resolve, reject) => {
-      socket.once('secureConnect', resolve);
-      socket.once('error', reject);
-    });
+    // IONOS documents SMTP submission on 587 with STARTTLS.
+    socket = await openTcpSocket(host, port);
     await smtpResponse(socket, [220]);
 
     socket.write(`EHLO ${env('SMTP_HELO', 'acyjannik.de')}\r\n`);
+    const ehlo = await smtpResponse(socket, [250]);
+
+    // Request STARTTLS when using port 587.
+    socket.write('STARTTLS\r\n');
+    await smtpResponse(socket, [220]);
+
+    const secureSocket = await upgradeToTls(socket, host);
+    socket = secureSocket;
+
+    socket.write(`EHLO ${env('SMTP_HELO', 'acyjannik.de')}\r\n`);
     await smtpResponse(socket, [250]);
+
     socket.write('AUTH LOGIN\r\n');
     await smtpResponse(socket, [334]);
     socket.write(`${Buffer.from(env('SMTP_USER')).toString('base64')}\r\n`);
@@ -115,15 +139,16 @@ async function smtpSend({to, subject, text, html}) {
 
     socket.write(`MAIL FROM:<${env('EMAIL_FROM')}>\r\n`);
     await smtpResponse(socket, [250]);
+
     socket.write(`RCPT TO:<${to}>\r\n`);
     await smtpResponse(socket, [250, 251]);
+
     socket.write('DATA\r\n');
     await smtpResponse(socket, [354]);
 
     const boundary = `=_ACY_${Date.now()}_${Math.random().toString(16).slice(2)}`;
-    const site = env('PUBLIC_SITE_URL', 'https://acyjannik.de');
-    const fromName = env('EMAIL_FROM_NAME', 'ACYJANNIK · ACY Club');
     const encodedSubject = `=?UTF-8?B?${Buffer.from(subject, 'utf8').toString('base64')}?=`;
+    const fromName = env('EMAIL_FROM_NAME', 'ACYJANNIK · ACY Club');
 
     const message = [
       `From: ${fromName} <${env('EMAIL_FROM')}>`,
@@ -136,7 +161,7 @@ async function smtpSend({to, subject, text, html}) {
       'Content-Type: text/plain; charset=UTF-8',
       'Content-Transfer-Encoding: 8bit',
       '',
-      `${text}\n\n${site}`,
+      text,
       '',
       `--${boundary}`,
       'Content-Type: text/html; charset=UTF-8',
@@ -150,10 +175,11 @@ async function smtpSend({to, subject, text, html}) {
 
     socket.write(message + '\r\n.\r\n');
     await smtpResponse(socket, [250]);
+
     socket.write('QUIT\r\n');
     await smtpResponse(socket, [221, 250]);
   } finally {
-    socket.end();
+    socket?.end?.();
   }
 }
 

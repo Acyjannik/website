@@ -889,3 +889,10 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Added an explicit backend version `7.1.6`.
 - Kept the SMTP test mode on the existing route instead of introducing another API path.
 - No new SQL changes.
+
+
+## V7.1.7 — IONOS STARTTLS
+- Switched SMTP submission from direct TLS to STARTTLS on port 587.
+- Matches the IONOS settings shown in the mail-server documentation.
+- API version is 7.1.7.
+- No SQL changes.
