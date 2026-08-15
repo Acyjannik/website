@@ -596,3 +596,11 @@ Added Impressum, Datenschutzerklärung, Account & Datenschutz page, account dele
 - Adds OAuth callback error reporting instead of silently returning to the profile.
 - Adds a short callback settling delay before checking linked identities.
 - Adds an explicit `discord_callback=1` redirect marker.
+
+
+## V5.0.5 — Discord XP + OAuth redirect
+- Fixed stale `club-profile.html` cache-buster that was still loading `club-profile.js?v=3.9.2`.
+- Discord disconnect now revokes the +50 XP.
+- The XP event is kept as a zeroed one-time marker, so reconnecting cannot farm the XP repeatedly.
+- Discord OAuth still returns to `/club-profile.html?discord_callback=1`.
+- No new Supabase table is required, but the updated `supabase/club_progression.sql` must be run once to replace the revoke function.

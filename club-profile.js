@@ -352,7 +352,7 @@ async function loadDiscordLink() {
       }
     } else {
       // The Discord badge is derived from the live connection state.
-      // The one-time +50 XP progression event intentionally remains intact.
+      // The XP event is a zeroed one-time marker after disconnecting.
       renderBadges((window.__memberBadges || []), Number(
         String($('member-xp')?.textContent || '0').replace(/[^\d]/g, '') || 0
       ), false);
@@ -368,6 +368,24 @@ async function loadDiscordLink() {
       statusEl.className = 'club-auth-status error';
     }
   }
+}
+
+
+async function revokeDiscordProgression() {
+  const { data, error } = await supabaseClient.rpc('revoke_club_xp', {
+    p_user_id: currentUser.id,
+    p_event_key: 'discord_connected',
+    p_xp: 50
+  });
+
+  if (error) throw error;
+
+  if (Number.isFinite(Number(data))) {
+    renderProgress(Number(data));
+    setText('member-xp', `${Number(data)} XP`);
+  }
+
+  return Number(data);
 }
 
 async function disconnectDiscord() {
@@ -403,6 +421,10 @@ async function disconnectDiscord() {
 
     const { error: unlinkError } = await supabaseClient.auth.unlinkIdentity(discordIdentity);
     if (unlinkError) throw unlinkError;
+
+    // Discord is now actually disconnected, so revoke the one-time +50 XP.
+    // The DB keeps a zeroed event marker, preventing reconnect farming.
+    await revokeDiscordProgression();
 
     const { error: profileError } = await supabaseClient
       .from('profiles')
