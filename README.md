@@ -370,3 +370,8 @@ Added an authenticated member directory to the Member dashboard:
 - selected badges
 
 The directory API exposes only these public profile fields and never exposes member email addresses.
+
+
+## V3.1.1: Member directory fix
+
+The member directory now reads profiles directly through the authenticated Supabase client. The previous `/api/club-members` endpoint returned a Vercel HTML page instead of JSON. A dedicated authenticated RLS policy was added for directory reads.

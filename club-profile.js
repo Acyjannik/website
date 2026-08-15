@@ -345,25 +345,25 @@ async function loadMemberDirectory(search = '') {
   if (!list) return;
 
   try {
-    const { data } = await supabaseClient.auth.getSession();
-    const token = data?.session?.access_token;
-    if (!token) throw new Error('Sitzung abgelaufen.');
+    let query = supabaseClient
+      .from('profiles')
+      .select('id,username,display_name,bio,avatar_url,created_at,xp,badges')
+      .order('created_at', { ascending: true })
+      .limit(100);
 
-    const url = new URL('/api/club-members', window.location.origin);
-    if (search.trim()) url.searchParams.set('search', search.trim());
+    const value = search.trim();
+    if (value) {
+      const escaped = value.replace(/[%(),]/g, ' ');
+      query = query.or(`username.ilike.%${escaped}%,display_name.ilike.%${escaped}%`);
+    }
 
-    const response = await fetch(`${url.toString()}&_=${Date.now()}`, {
-      cache: 'no-store',
-      headers: { Authorization: `Bearer ${token}` }
-    });
+    const { data: members, error } = await query;
+    if (error) throw error;
 
-    const payload = await response.json();
-    if (!response.ok) throw new Error(payload.error || 'Mitglieder konnten nicht geladen werden.');
+    const rows = Array.isArray(members) ? members : [];
+    if (countEl) countEl.textContent = `${rows.length} Mitglieder`;
 
-    const members = Array.isArray(payload.members) ? payload.members : [];
-    if (countEl) countEl.textContent = `${members.length} Mitglieder`;
-
-    if (!members.length) {
+    if (!rows.length) {
       list.innerHTML = '<div class="club-content-empty">Keine Mitglieder gefunden.</div>';
       return;
     }
@@ -377,12 +377,13 @@ async function loadMemberDirectory(search = '') {
       'Early Member': '⏳'
     };
 
-    list.innerHTML = members.map((member) => {
+    list.innerHTML = rows.map((member) => {
       const avatar = member.avatar_url
         ? `<img src="${escapeAttr(member.avatar_url)}" alt="" loading="lazy">`
         : `<div class="member-directory-avatar-fallback">${escapeHtml((member.display_name || member.username || 'A').charAt(0).toUpperCase())}</div>`;
       const level = levelForXp(Number(member.xp || 0)).title;
-      const badges = (member.badges || []).slice(0, 3).map(b => `${badgeIcon[b] || '✦'} ${escapeHtml(b)}`).join(' · ');
+      const badges = (Array.isArray(member.badges) ? member.badges : []).slice(0, 3)
+        .map(b => `${badgeIcon[b] || '✦'} ${escapeHtml(b)}`).join(' · ');
 
       return `<article class="member-directory-item">
         <div class="member-directory-avatar">${avatar}</div>
@@ -401,7 +402,7 @@ async function loadMemberDirectory(search = '') {
   } catch (error) {
     console.warn('Member directory unavailable:', error);
     if (countEl) countEl.textContent = '– Mitglieder';
-    list.innerHTML = `<div class="club-content-empty">${escapeHtml(error.message || 'Mitglieder konnten nicht geladen werden.')}</div>`;
+    list.innerHTML = `<div class="club-content-empty">${escapeHtml(error?.message || 'Mitglieder konnten nicht geladen werden.')}</div>`;
   }
 }
 

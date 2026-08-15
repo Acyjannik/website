@@ -81,3 +81,11 @@ alter table public.profiles
 update public.profiles
 set badges = array_append(badges, 'ACY Rookie')
 where not ('ACY Rookie' = any(badges));
+
+
+drop policy if exists "club members can read member directory" on public.profiles;
+create policy "club members can read member directory"
+on public.profiles
+for select
+to authenticated
+using (auth.uid() is not null);
