@@ -308,3 +308,17 @@ Fixed the actual browser upload code to use the dedicated `club-avatars` bucket.
 ## V2.8.3: Avatar display cleanup
 
 Fixed the member header showing the uploaded profile image and the fallback initial at the same time. Hidden avatar elements now remain hidden regardless of CSS display rules.
+
+
+## V2.9: Discord account linking
+
+The member dashboard now supports linking an existing ACY Club account to a Discord identity through Supabase Auth's `linkIdentity({ provider: 'discord' })`.
+
+### One-time Supabase setup
+1. Run `supabase/club_discord.sql`.
+2. In **Authentication → Sign In / Providers → Discord**, enable Discord and configure the Discord Client ID and Client Secret.
+3. In **Authentication → URL Configuration**, allow `https://acyjannik.de/club-profile.html` as a redirect URL.
+4. Enable Supabase **Manual Linking** in Auth security settings.
+5. In the Discord Developer Portal, use the Supabase project's callback URL shown under the Discord provider (format: `https://<project-ref>.supabase.co/auth/v1/callback`).
+
+After setup, the member can click **Discord verbinden**. The OAuth identity is linked to the existing member account rather than creating a separate site account.

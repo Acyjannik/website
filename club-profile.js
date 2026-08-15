@@ -132,6 +132,7 @@ async function init() {
 
     currentUser = data.session.user;
     await loadProfile();
+    await loadDiscordLink();
     await loadTwitch();
     await loadClubContent();
   } catch (error) {
@@ -226,6 +227,75 @@ async function loadTwitch() {
   }
 }
 
+
+
+async function loadDiscordLink() {
+  const button = $('discord-connect-btn');
+  const text = $('discord-link-text');
+  const state = $('discord-link-state');
+  if (!button || !text) return;
+
+  try {
+    const { data, error } = await supabaseClient.auth.getUserIdentities();
+    if (error) throw error;
+
+    const discordIdentity = (data?.identities || []).find(identity => identity.provider === 'discord');
+    const connected = !!discordIdentity;
+
+    text.textContent = connected ? 'Discord verbunden' : 'Nicht verbunden';
+    if (state) state.classList.toggle('is-connected', connected);
+
+    button.textContent = connected ? 'Discord verbunden ✓' : 'Discord verbinden';
+    button.disabled = connected;
+
+    // Keep the profile flag in sync.
+    await supabaseClient.from('profiles').update({
+      discord_connected: connected,
+      updated_at: new Date().toISOString()
+    }).eq('id', currentUser.id);
+
+    if (connected) {
+      await awardProgression('discord_connected');
+    }
+  } catch (error) {
+    console.warn('Discord identity status unavailable:', error);
+    text.textContent = 'Discord-Verknüpfung nicht verfügbar';
+  }
+}
+
+async function connectDiscord() {
+  const button = $('discord-connect-btn');
+  if (button) {
+    button.disabled = true;
+    button.textContent = 'Discord wird verbunden…';
+  }
+
+  try {
+    const { data, error } = await supabaseClient.auth.linkIdentity({
+      provider: 'discord',
+      options: {
+        redirectTo: `${window.location.origin}/club-profile.html`
+      }
+    });
+    if (error) throw error;
+
+    // Supabase redirects to Discord automatically. This line is a fallback for custom flows.
+    if (data?.url) window.location.href = data.url;
+  } catch (error) {
+    console.error('Discord linking failed:', error);
+    if (button) {
+      button.disabled = false;
+      button.textContent = 'Discord verbinden';
+    }
+
+    if ($('profile-save-status')) {
+      setStatus(
+        'Discord konnte nicht verbunden werden. Prüfe, ob Discord in Supabase Auth aktiviert und Manual Linking eingeschaltet ist.',
+        'error'
+      );
+    }
+  }
+}
 
 async function loadClubContent(){
   const eventsList=$('member-events-list'), newsList=$('member-news-list');
@@ -337,6 +407,8 @@ $('avatar-input')?.addEventListener('change', async (event) => {
     setStatus(error.message || 'Profilbild-Upload fehlgeschlagen. Bitte prüfe den Supabase-Bucket club-avatars.', 'error');
   }
 });
+
+$('discord-connect-btn')?.addEventListener('click', connectDiscord);
 
 $('logout')?.addEventListener('click', async () => {
   if (supabaseClient) await supabaseClient.auth.signOut();
