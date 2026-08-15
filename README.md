@@ -623,3 +623,9 @@ Added Impressum, Datenschutzerklärung, Account & Datenschutz page, account dele
 - Public homepage header detects an existing Supabase session.
 - Logged-in members see their avatar (or initial) and display name instead of “ACY Club beitreten”.
 - The header member control links directly to `/club-profile.html`.
+
+
+## V5.0.9 — Public session detection fix
+- Fixed the public homepage missing the Supabase JS client.
+- The homepage now loads the same Supabase JS library used by the Club pages before `script.js`.
+- Added a short wait for a slow CDN response so the logged-in header is not silently skipped.

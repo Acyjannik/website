@@ -293,9 +293,16 @@ async function updatePublicClubHeader() {
   if (!cta) return;
 
   try {
+    // Supabase JS is loaded immediately before this script. Give a slow CDN
+    // response a moment rather than silently abandoning the logged-in state.
+    for (let i = 0; i < 30 && !window.supabase; i += 1) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    if (!window.supabase) return;
+
     const configResponse = await fetch('/api/config', { cache: 'no-store' });
     const config = await configResponse.json();
-    if (!config?.configured || !window.supabase) return;
+    if (!config?.configured) return;
 
     const client = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey, {
       auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
