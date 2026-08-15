@@ -412,6 +412,35 @@ function renderDmThread() {
   messagesEl.scrollTop = messagesEl.scrollHeight;
 }
 
+function initMemberSectionNavigation() {
+  const nav = document.querySelector('.member-section-nav');
+  if (!nav) return;
+  const links = [...nav.querySelectorAll('a[href^="#"]')];
+  const sections = links.map(link => document.getElementById(link.getAttribute('href').slice(1))).filter(Boolean);
+
+  links.forEach(link => {
+    link.addEventListener('click', () => {
+      const target = document.getElementById(link.getAttribute('href').slice(1));
+      if (target?.tagName === 'DETAILS') target.open = true;
+    });
+  });
+
+  const setActive = (id) => links.forEach(link => {
+    link.classList.toggle('active', link.getAttribute('href') === `#${id}`);
+  });
+  const observer = new IntersectionObserver(entries => {
+    const visible = entries.filter(entry => entry.isIntersecting).sort((a,b) => b.intersectionRatio - a.intersectionRatio)[0];
+    if (visible) setActive(visible.target.id);
+  }, { rootMargin: '-22% 0px -65% 0px', threshold: [0, .2, .6] });
+  sections.forEach(section => observer.observe(section));
+}
+
+function openMemberFold(id, shouldScroll = false) {
+  const target = document.getElementById(id);
+  if (target?.tagName === 'DETAILS') target.open = true;
+  if (shouldScroll && target) setTimeout(() => target.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
+}
+
 async function loadDirectMessages(initialUserId = '') {
   const list = $('dm-conversations');
   if (!list || !supabaseClient || !currentUser) return;
@@ -460,6 +489,7 @@ async function loadDirectMessages(initialUserId = '') {
     await loadDmUnreadCount();
 
     if (initialUserId && initialUserId !== currentUser.id) {
+      openMemberFold('club-messages', true);
       await openDmConversation(initialUserId);
     } else if (dmActiveUserId && dmConversations.has(dmActiveUserId)) {
       renderDmThread();
@@ -524,6 +554,7 @@ async function openDmConversation(userId) {
   if (!userId || userId === currentUser.id) return;
 
   dmActiveUserId = userId;
+  openMemberFold('club-messages');
   renderDmConversations();
   await markDmNotificationsRead(userId);
   renderDmThread();
@@ -853,6 +884,7 @@ async function init() {
     }
 
     currentUser = data.session.user;
+    initMemberSectionNavigation();
 
     const dmTarget = new URLSearchParams(window.location.search).get('dm');
 

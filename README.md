@@ -722,3 +722,13 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Existing public member profiles can also start a DM.
 - Existing RLS keeps messages limited to sender/recipient; sent messages can be deleted by their sender.
 - Uses `supabase/club_direct_messages.sql`; no additional migration beyond that file is required.
+
+
+## V6.3 — Club Dashboard Cleanup
+- Added a sticky in-page section navigation so the long member dashboard is no longer a scroll marathon.
+- Large secondary areas are now collapsible with native `<details>` sections.
+- The XP & Achievement catalog keeps its full functionality but stays compact until opened.
+- Events, News, Messages, Chat, Members, Clips, Ranking, Stats and Discord can be opened on demand.
+- Navigation automatically opens a collapsed section before scrolling to it.
+- Direct-message links (`?dm=`) automatically open and focus the Messages section.
+- Mobile navigation is horizontally scrollable and compact.

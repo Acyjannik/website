@@ -6,7 +6,7 @@
   <title>Mein ACY Club · Acyjannik</title>
   <link rel="stylesheet" href="styles.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="club-profile.js?v=6.2.0" defer></script>
+  <script src="club-profile.js?v=6.3.0" defer></script>
   <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
   <link rel="shortcut icon" href="/assets/favicon.svg">
   <link rel="apple-touch-icon" href="/assets/favicon.svg">
@@ -132,9 +132,22 @@
 
 
 
+      <nav class="member-section-nav" aria-label="Club Bereiche">
+        <span class="member-section-nav-label">BEREICHE</span>
+        <a href="#member-hub">Übersicht</a>
+        <a href="#profile-section">Profil</a>
+        <a href="#progression-catalog">Fortschritt</a>
+        <a href="#member-events-section">Events</a>
+        <a href="#member-news-section">News</a>
+        <a href="#club-messages">Nachrichten</a>
+        <a href="#club-chat">Chat</a>
+        <a href="#member-directory-section">Mitglieder</a>
+        <a href="#member-leaderboard-section">Ranking</a>
+      </nav>
+
       <div class="member-grid">
         <!-- Profile -->
-        <section class="member-card">
+        <section class="member-card" id="profile-section">
           <div class="eyebrow">PROFIL</div>
           <h2>Dein Profil</h2>
           <form id="profile-form" class="member-form">
@@ -150,7 +163,7 @@
         </section>
 
         <!-- Twitch -->
-        <section class="member-card member-twitch-card">
+        <section class="member-card member-twitch-card" id="twitch-section">
           <div class="eyebrow">TWITCH</div>
           <div class="member-card-head">
             <div>
@@ -188,201 +201,105 @@
           </div>
         </section>
 
-        <section class="member-card member-span-2 progression-catalog-card" id="progression-catalog">
-          <div class="eyebrow">XP & ACHIEVEMENTS</div>
-          <div class="member-card-head">
-            <div>
-              <h2>So funktioniert dein Fortschritt</h2>
-              <p>Verdiene XP, steige im Level auf und schalte Achievements frei.</p>
+        <details class="member-card member-span-2 progression-catalog-card member-fold" id="progression-catalog">
+          <summary class="member-fold-summary">
+            <span class="member-fold-summary-main">
+              <span class="eyebrow">XP & ACHIEVEMENTS</span>
+              <strong>So funktioniert dein Fortschritt</strong>
+              <small>Level, XP-Quellen und Achievements</small>
+            </span>
+            <span class="member-fold-summary-side"><span class="member-count-chip" id="catalog-earned-summary">Wird geladen…</span><span class="member-fold-chevron">⌄</span></span>
+          </summary>
+          <div class="member-fold-body">
+            <div class="catalog-levels">
+              <div class="catalog-level"><span>1</span><strong>ACY Rookie</strong><small>0 XP</small></div>
+              <div class="catalog-level"><span>2</span><strong>ACY Member</strong><small>100 XP</small></div>
+              <div class="catalog-level"><span>3</span><strong>ACY Regular</strong><small>250 XP</small></div>
+              <div class="catalog-level"><span>4</span><strong>ACY OG</strong><small>500 XP</small></div>
+              <div class="catalog-level"><span>5</span><strong>ACY Legend</strong><small>1.000 XP</small></div>
             </div>
-            <span class="member-count-chip" id="catalog-earned-summary">Wird geladen…</span>
-          </div>
-
-          <div class="catalog-levels">
-            <div class="catalog-level"><span>1</span><strong>ACY Rookie</strong><small>0 XP</small></div>
-            <div class="catalog-level"><span>2</span><strong>ACY Member</strong><small>100 XP</small></div>
-            <div class="catalog-level"><span>3</span><strong>ACY Regular</strong><small>250 XP</small></div>
-            <div class="catalog-level"><span>4</span><strong>ACY OG</strong><small>500 XP</small></div>
-            <div class="catalog-level"><span>5</span><strong>ACY Legend</strong><small>1.000 XP</small></div>
-          </div>
-
-          <div class="catalog-columns">
-            <div>
-              <div class="section-mini-title">XP VERDIENEN</div>
-              <div class="catalog-list" id="xp-catalog-list"></div>
+            <div class="catalog-columns">
+              <div><div class="section-mini-title">XP VERDIENEN</div><div class="catalog-list" id="xp-catalog-list"></div></div>
+              <div><div class="section-mini-title">ACHIEVEMENTS</div><div class="catalog-list" id="achievement-catalog-list"></div></div>
             </div>
-            <div>
-              <div class="section-mini-title">ACHIEVEMENTS</div>
-              <div class="catalog-list" id="achievement-catalog-list"></div>
-            </div>
+            <p class="catalog-note">XP und Achievements werden automatisch gespeichert. Manche Belohnungen sind einmalig, andere hängen von deinem aktuellen Fortschritt ab.</p>
           </div>
+        </details>
 
-          <p class="catalog-note">XP und Achievements werden automatisch gespeichert. Manche Belohnungen sind einmalig, andere hängen von deinem aktuellen Fortschritt ab.</p>
-        </section>
+        <details class="member-card member-span-2 member-fold" id="member-events-section">
+          <summary class="member-fold-summary">
+            <span class="member-fold-summary-main"><span class="eyebrow">COMMUNITY</span><strong>Events</strong><small>Was im ACY Club als Nächstes ansteht.</small></span>
+            <span class="member-fold-summary-side"><span class="member-fold-chevron">⌄</span></span>
+          </summary>
+          <div class="member-fold-body"><div class="club-content-list" id="member-events-list"><div class="club-content-empty">Events werden geladen…</div></div></div>
+        </details>
 
-        <section class="member-card member-span-2">
-          <div class="eyebrow">COMMUNITY</div>
-          <div class="member-card-head">
-            <div><h2>Events</h2><p>Was im ACY Club als Nächstes ansteht.</p></div>
-          </div>
-          <div class="club-content-list" id="member-events-list"><div class="club-content-empty">Events werden geladen…</div></div>
-        </section>
-
-        <section class="member-card member-span-2">
-          <div class="eyebrow">ACY NEWS</div>
-          <div class="member-card-head">
-            <div><h2>Neuigkeiten</h2><p>Updates aus dem ACY Club.</p></div>
-          </div>
-          <div class="club-content-list" id="member-news-list"><div class="club-content-empty">News werden geladen…</div></div>
-        </section>
+        <details class="member-card member-span-2 member-fold" id="member-news-section">
+          <summary class="member-fold-summary">
+            <span class="member-fold-summary-main"><span class="eyebrow">ACY NEWS</span><strong>Neuigkeiten</strong><small>Updates aus dem ACY Club.</small></span>
+            <span class="member-fold-summary-side"><span class="member-fold-chevron">⌄</span></span>
+          </summary>
+          <div class="member-fold-body"><div class="club-content-list" id="member-news-list"><div class="club-content-empty">News werden geladen…</div></div></div>
+        </details>
 
         
-        <section class="member-card member-span-2 member-dm-card" id="club-messages">
-          <div class="member-card-head">
-            <div>
-              <div class="eyebrow">PRIVATE</div>
-              <h2>Nachrichten</h2>
-              <p>Schreib anderen ACY Club Mitgliedern privat. Nur du und der Empfänger können die Unterhaltung sehen.</p>
-            </div>
-            <span class="member-count-chip" id="dm-unread-count" hidden>0 ungelesen</span>
-          </div>
-
-          <div class="dm-shell">
-            <aside class="dm-conversations" id="dm-conversations">
-              <div class="club-content-empty">Nachrichten werden geladen…</div>
-            </aside>
-
-            <div class="dm-thread">
-              <div class="dm-thread-head" id="dm-thread-head">
-                <div class="dm-thread-placeholder">
-                  <strong>Private Nachricht</strong>
-                  <span>Wähle links ein Mitglied aus.</span>
-                </div>
+        <details class="member-card member-span-2 member-dm-card member-fold" id="club-messages">
+          <summary class="member-fold-summary">
+            <span class="member-fold-summary-main"><span class="eyebrow">PRIVATE</span><strong>Nachrichten</strong><small>Private Unterhaltungen mit anderen Clubmitgliedern.</small></span>
+            <span class="member-fold-summary-side"><span class="member-count-chip" id="dm-unread-count" hidden>0 ungelesen</span><span class="member-fold-chevron">⌄</span></span>
+          </summary>
+          <div class="member-fold-body">
+            <p class="member-fold-helper">Nur du und der jeweilige Empfänger können eine Unterhaltung sehen.</p>
+            <div class="dm-shell">
+              <aside class="dm-conversations" id="dm-conversations"><div class="club-content-empty">Nachrichten werden geladen…</div></aside>
+              <div class="dm-thread">
+                <div class="dm-thread-head" id="dm-thread-head"><div class="dm-thread-placeholder"><strong>Private Nachricht</strong><span>Wähle links ein Mitglied aus.</span></div></div>
+                <div class="dm-messages" id="dm-messages" aria-live="polite"><div class="club-content-empty">Noch keine Unterhaltung ausgewählt.</div></div>
+                <form class="dm-composer" id="dm-form" hidden><textarea id="dm-input" maxlength="1000" rows="2" placeholder="Private Nachricht schreiben…" aria-label="Private Nachricht"></textarea><div class="dm-composer-foot"><span id="dm-counter">0 / 1000</span><button class="button button-primary" type="submit" id="dm-send">Senden ↗</button></div></form>
+                <div class="dm-status" id="dm-status" role="status"></div>
               </div>
-
-              <div class="dm-messages" id="dm-messages" aria-live="polite">
-                <div class="club-content-empty">Noch keine Unterhaltung ausgewählt.</div>
-              </div>
-
-              <form class="dm-composer" id="dm-form" hidden>
-                <textarea id="dm-input" maxlength="1000" rows="2"
-                  placeholder="Private Nachricht schreiben…"
-                  aria-label="Private Nachricht"></textarea>
-                <div class="dm-composer-foot">
-                  <span id="dm-counter">0 / 1000</span>
-                  <button class="button button-primary" type="submit" id="dm-send">Senden ↗</button>
-                </div>
-              </form>
-              <div class="dm-status" id="dm-status" role="status"></div>
             </div>
           </div>
-        </section>
+        </details>
 
-        <section class="member-card member-span-2 member-chat-card" id="club-chat">
-          <div class="member-card-head">
-            <div>
-              <div class="eyebrow">LIVE COMMUNITY</div>
-              <h2>ACY Club Chat</h2>
-              <p>Quatsch, Fragen, Stream-Talk. Nur für eingeloggte Clubmitglieder.</p>
-            </div>
-            <div class="chat-online-chip"><span class="chat-online-dot"></span><span id="chat-online-count">0 online</span></div>
+        <details class="member-card member-span-2 member-chat-card member-fold" id="club-chat">
+          <summary class="member-fold-summary">
+            <span class="member-fold-summary-main"><span class="eyebrow">LIVE COMMUNITY</span><strong>ACY Club Chat</strong><small>Quatsch, Fragen und Stream-Talk.</small></span>
+            <span class="member-fold-summary-side"><span class="chat-online-chip"><span class="chat-online-dot"></span><span id="chat-online-count">0 online</span></span><span class="member-fold-chevron">⌄</span></span>
+          </summary>
+          <div class="member-fold-body">
+            <div class="club-chat-shell"><div class="club-chat-messages" id="club-chat-messages" aria-live="polite"><div class="club-content-empty">Chat wird geladen…</div></div><div class="club-chat-status" id="club-chat-status" role="status"></div><form class="club-chat-composer" id="club-chat-form"><div class="club-chat-composer-main"><textarea id="club-chat-input" maxlength="500" rows="1" placeholder="Schreib etwas in den ACY Club Chat…" aria-label="Chat-Nachricht"></textarea><div class="club-chat-composer-meta"><span id="club-chat-counter">0 / 500</span><span>Enter zum Senden · Shift + Enter für neue Zeile</span></div></div><button class="button button-primary club-chat-send" type="submit">Senden ↗</button></form></div>
           </div>
+        </details>
 
-          <div class="club-chat-shell">
-            <div class="club-chat-messages" id="club-chat-messages" aria-live="polite">
-              <div class="club-content-empty">Chat wird geladen…</div>
-            </div>
-
-            <div class="club-chat-status" id="club-chat-status" role="status"></div>
-
-            <form class="club-chat-composer" id="club-chat-form">
-              <div class="club-chat-composer-main">
-                <textarea id="club-chat-input" maxlength="500" rows="1"
-                  placeholder="Schreib etwas in den ACY Club Chat…"
-                  aria-label="Chat-Nachricht"></textarea>
-                <div class="club-chat-composer-meta">
-                  <span id="club-chat-counter">0 / 500</span>
-                  <span>Enter zum Senden · Shift + Enter für neue Zeile</span>
-                </div>
-              </div>
-              <button class="button button-primary club-chat-send" type="submit">Senden ↗</button>
-            </form>
-          </div>
-        </section>
-
-<section class="member-card member-span-2 member-directory-card">
-          <div class="member-card-head">
-            <div>
-              <div class="eyebrow">COMMUNITY</div>
-              <h2>ACY Club Mitglieder</h2>
-              <p>Finde andere Mitglieder, sieh ihre Profile und entdeckt, wer alles dabei ist.</p>
-            </div>
-            <span class="member-count-chip" id="member-directory-count">– Mitglieder</span>
-          </div>
-
-          <div class="member-directory-toolbar">
-            <input id="member-directory-search" type="search" placeholder="Mitglieder suchen…" aria-label="Mitglieder suchen">
-          </div>
-
-          <div class="member-directory-list" id="member-directory-list">
-            <div class="club-content-empty">Mitglieder werden geladen…</div>
-          </div>
-        </section>
+<details class="member-card member-span-2 member-directory-card member-fold" id="member-directory-section">
+          <summary class="member-fold-summary">
+            <span class="member-fold-summary-main"><span class="eyebrow">COMMUNITY</span><strong>ACY Club Mitglieder</strong><small>Mitglieder suchen, Profile öffnen oder direkt schreiben.</small></span>
+            <span class="member-fold-summary-side"><span class="member-count-chip" id="member-directory-count">– Mitglieder</span><span class="member-fold-chevron">⌄</span></span>
+          </summary>
+          <div class="member-fold-body"><div class="member-directory-toolbar"><input id="member-directory-search" type="search" placeholder="Mitglieder suchen…" aria-label="Mitglieder suchen"></div><div class="member-directory-list" id="member-directory-list"><div class="club-content-empty">Mitglieder werden geladen…</div></div></div>
+        </details>
 
         <!-- Discord -->
-        <section class="member-card member-span-2">
-          <div class="member-card-head">
-            <div>
-              <div class="eyebrow">ACY CLIPS</div>
-              <h2>Die besten Momente.</h2>
-              <p>Ausgewählte Clips aus den Streams.</p>
-            </div>
-          </div>
-          <div class="clip-grid" id="member-clips-list">
-            <div class="club-content-empty">Clips werden geladen…</div>
-          </div>
-        </section>
+        <details class="member-card member-span-2 member-fold" id="clips-section">
+          <summary class="member-fold-summary"><span class="member-fold-summary-main"><span class="eyebrow">ACY CLIPS</span><strong>Die besten Momente.</strong><small>Ausgewählte Clips aus den Streams.</small></span><span class="member-fold-summary-side"><span class="member-fold-chevron">⌄</span></span></summary>
+          <div class="member-fold-body"><div class="clip-grid" id="member-clips-list"><div class="club-content-empty">Clips werden geladen…</div></div></div>
+        </details>
 
-        <section class="member-card member-span-2">
-          <div class="member-card-head">
-            <div>
-              <div class="eyebrow">LEADERBOARD</div>
-              <h2>ACY Club Ranking</h2>
-              <p>Wer sammelt aktuell die meisten XP?</p>
-            </div>
-            <span class="member-count-chip" id="leaderboard-count">– Mitglieder</span>
-          </div>
-          <div class="leaderboard-list" id="member-leaderboard-list">
-            <div class="club-content-empty">Ranking wird geladen…</div>
-          </div>
-        </section>
+        <details class="member-card member-span-2 member-fold" id="member-leaderboard-section">
+          <summary class="member-fold-summary"><span class="member-fold-summary-main"><span class="eyebrow">LEADERBOARD</span><strong>ACY Club Ranking</strong><small>Wer sammelt aktuell die meisten XP?</small></span><span class="member-fold-summary-side"><span class="member-count-chip" id="leaderboard-count">– Mitglieder</span><span class="member-fold-chevron">⌄</span></span></summary>
+          <div class="member-fold-body"><div class="leaderboard-list" id="member-leaderboard-list"><div class="club-content-empty">Ranking wird geladen…</div></div></div>
+        </details>
 
-        <section class="member-card member-span-2">
-          <div class="eyebrow">DEINE STATISTIK</div>
-          <h2>Dein Club-Fortschritt.</h2>
-          <div class="member-stats-grid" id="member-stats-grid">
-            <div><span>Events</span><strong id="stat-events">0</strong></div>
-            <div><span>Badges</span><strong id="stat-badges">0</strong></div>
-            <div><span>XP</span><strong id="stat-xp">0</strong></div>
-            <div><span>Mitgliedstage</span><strong id="stat-days">0</strong></div>
-          </div>
-        </section>
+        <details class="member-card member-span-2 member-fold" id="stats-section">
+          <summary class="member-fold-summary"><span class="member-fold-summary-main"><span class="eyebrow">DEINE STATISTIK</span><strong>Dein Club-Fortschritt.</strong><small>Events, Badges, XP und Mitgliedstage.</small></span><span class="member-fold-summary-side"><span class="member-fold-chevron">⌄</span></span></summary>
+          <div class="member-fold-body"><div class="member-stats-grid" id="member-stats-grid"><div><span>Events</span><strong id="stat-events">0</strong></div><div><span>Badges</span><strong id="stat-badges">0</strong></div><div><span>XP</span><strong id="stat-xp">0</strong></div><div><span>Mitgliedstage</span><strong id="stat-days">0</strong></div></div></div>
+        </details>
 
-        <section class="member-card member-span-2 member-discord-card">
-          <div>
-            <div class="eyebrow">COMMUNITY</div>
-            <h2>ACY Club auf Discord</h2>
-            <p>Verknüpfe deinen Discord-Account mit deinem ACY Club Profil.</p>
-            <div class="discord-link-state" id="discord-link-state"><span class="discord-state-dot"></span><span id="discord-link-text">Nicht verbunden</span></div>
-          </div>
-          <div class="member-discord-actions">
-            <button class="button button-primary" id="discord-connect-btn" type="button">Discord verbinden</button>
-            <button class="button button-secondary" id="discord-disconnect-btn" type="button" hidden>Discord trennen</button>
-            <a class="button button-secondary" href="https://discord.gg/74ACqBwfu" target="_blank" rel="noreferrer">Server öffnen ↗</a>
-          </div>
-          <p class="club-auth-status" id="discord-link-status"></p>
-          <p class="discord-xp-note" id="discord-xp-note">Discord verbunden = +50 XP und Badge „Discord Member“.</p>
-        </section>
+        <details class="member-card member-span-2 member-discord-card member-fold" id="discord-section">
+          <summary class="member-fold-summary"><span class="member-fold-summary-main"><span class="eyebrow">COMMUNITY</span><strong>ACY Club auf Discord</strong><small>Discord verbinden und +50 XP sichern.</small></span><span class="member-fold-summary-side"><span class="member-fold-chevron">⌄</span></span></summary>
+          <div class="member-fold-body"><div class="member-discord-actions"><button class="button button-primary" id="discord-connect-btn" type="button">Discord verbinden</button><button class="button button-secondary" id="discord-disconnect-btn" type="button" hidden>Discord trennen</button><a class="button button-secondary" href="https://discord.gg/74ACqBwfu" target="_blank" rel="noreferrer">Server öffnen ↗</a></div><div class="discord-link-state" id="discord-link-state"><span class="discord-state-dot"></span><span id="discord-link-text">Nicht verbunden</span></div><p class="club-auth-status" id="discord-link-status"></p><p class="discord-xp-note" id="discord-xp-note">Discord verbunden = +50 XP und Badge „Discord Member“.</p></div>
+        </details>
       </div>
     </main>
   </div>
