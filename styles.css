@@ -678,3 +678,16 @@ button:disabled{opacity:.55;cursor:not-allowed}
 
 /* V4.2 + V4.3 Community Spotlight & expanded achievements */
 .spotlight-admin-controls{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.spotlight-admin-controls .admin-input{flex:1;min-width:200px}.admin-member-list{display:grid;gap:8px;margin-top:12px}.spotlight-admin-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px;border:1px solid rgba(255,255,255,.06);border-radius:14px;background:#0d0d12}.spotlight-admin-row.is-current{border-color:rgba(168,85,247,.35)}.spotlight-admin-person{display:flex;align-items:center;gap:10px;min-width:0}.spotlight-admin-person img,.spotlight-avatar-fallback{width:42px;height:42px;border-radius:50%;object-fit:cover;background:#18181f;display:grid;place-items:center;font-weight:700}.spotlight-admin-person strong,.spotlight-admin-person small,.spotlight-admin-person p{display:block}.spotlight-admin-person small{font-size:9px;color:#71717a}.spotlight-admin-person p{font-size:10px;color:#a1a1aa;margin:3px 0 0;max-width:420px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.spotlight-current-meta{font-size:10px;color:#71717a;margin-top:12px}.achievement-admin-list{display:flex;flex-wrap:wrap;gap:7px}.achievement-admin-list span{font-size:10px;padding:7px 9px;border-radius:999px;background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.12)}@media(max-width:650px){.spotlight-admin-row{align-items:flex-start;flex-direction:column}.spotlight-admin-row .button{width:100%}}
+
+/* V4.3.2: real member badge overview */
+.admin-subsection{margin-top:22px;padding-top:18px;border-top:1px solid rgba(255,255,255,.06)}
+.admin-subsection h3{margin:5px 0 4px;font-size:16px}
+.badge-member-list{display:grid;gap:8px;margin-top:12px}
+.badge-member-row{display:grid;grid-template-columns:minmax(180px,260px) 1fr;gap:12px;align-items:center;padding:12px;border:1px solid rgba(255,255,255,.06);border-radius:14px;background:#0d0d12}
+.badge-member-person{display:flex;align-items:center;gap:10px;min-width:0}
+.badge-member-person img,.badge-member-person .spotlight-avatar-fallback{width:38px;height:38px;border-radius:50%;object-fit:cover;background:#18181f;display:grid;place-items:center;font-weight:700}
+.badge-member-person strong,.badge-member-person small{display:block}
+.badge-member-person small{font-size:9px;color:#71717a;margin-top:2px}
+.earned-badges{display:flex;flex-wrap:wrap;gap:6px}
+.earned-badge{font-size:9px;padding:6px 8px;border-radius:999px;background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.14)}
+@media(max-width:720px){.badge-member-row{grid-template-columns:1fr}}

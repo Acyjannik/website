@@ -110,6 +110,9 @@ async function isAdmin(user) {
 
 function switchTab(tab) {
   // spotlight lazy-load
+  if (tab === 'progression' && supabaseClient) {
+    loadBadgeMembers().catch(error => console.error('Badge member load error:', error));
+  }
   if (tab === 'spotlight' && supabaseClient) {
     loadSpotlightAdmin().catch(error => {
       const el = $('spotlight-admin-message');
@@ -206,12 +209,18 @@ async function loadSpotlightAdmin() {
   if (!list) return;
   list.innerHTML = '<div class="admin-note">Mitglieder werden geladen…</div>';
 
+  const { data: sessionData } = await supabaseClient.auth.getSession();
+  const token = sessionData?.session?.access_token || '';
   const [membersRes, spotlightRes] = await Promise.all([
-    supabaseClient.from('profiles').select('id,username,display_name,bio,avatar_url,xp,badges,created_at').order('xp', { ascending: false }).limit(100),
+    fetch('/api/club-members?includeAchievements=true', {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: 'no-store'
+    }),
     fetch('/api/club-spotlight', { cache: 'no-store' })
   ]);
 
-  const members = membersRes.data || [];
+  const membersPayload = membersRes.ok ? await membersRes.json() : { members: [] };
+  const members = membersPayload.members || [];
   const spotlightPayload = spotlightRes.ok ? await spotlightRes.json() : { spotlight: null };
   const current = spotlightPayload.spotlight;
   if (current?.member) {
@@ -280,6 +289,7 @@ async function setSpotlight(userId) {
     status.textContent = 'Spotlight gespeichert.';
     status.classList.add('success');
     await loadSpotlightAdmin();
+  await loadBadgeMembers();
   } catch (error) {
     status.textContent = error.message;
     status.classList.add('error');
@@ -311,6 +321,68 @@ function bindSpotlightAdmin() {
   $('spotlight-refresh')?.addEventListener('click', loadSpotlightAdmin);
   $('spotlight-clear')?.addEventListener('click', clearSpotlight);
   $('spotlight-search')?.addEventListener('input', () => loadSpotlightAdmin());
+}
+
+
+async function loadBadgeMembers() {
+  const list = $('badges-member-list');
+  if (!list || !supabaseClient) return;
+  list.innerHTML = '<div class="admin-note">Mitglieder werden geladen…</div>';
+
+  try {
+    const { data: sessionData } = await supabaseClient.auth.getSession();
+    const token = sessionData?.session?.access_token || '';
+    const response = await fetch('/api/club-members?includeAchievements=true', {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: 'no-store'
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(payload.error || 'Mitglieder konnten nicht geladen werden.');
+
+    const names = {
+      acy_rookie: 'ACY Rookie',
+      profile_complete: 'Profile Complete',
+      discord_member: 'Discord Member',
+      event_fan: 'Event Fan',
+      event_hunter: 'Event Hunter',
+      event_regular: 'Event Regular',
+      event_legend: 'Event Legend',
+      xp_100: '100 XP Club',
+      xp_500: '500 XP Club',
+      xp_1000: '1000 XP Club',
+      acy_og: 'ACY OG',
+      acy_legend: 'ACY Legend',
+      early_member: 'Early Member',
+      veteran_member: 'ACY Veteran'
+    };
+    const icons = {
+      acy_rookie:'💜', profile_complete:'✨', discord_member:'💬',
+      event_fan:'🎮', event_hunter:'🔥', event_regular:'⚡', event_legend:'🏆',
+      xp_100:'🌟', xp_500:'👑', xp_1000:'💎', acy_og:'👑', acy_legend:'🏆',
+      early_member:'⏳', veteran_member:'🛡️'
+    };
+
+    const members = (payload.members || []).sort((a,b) => Number(b.xp||0)-Number(a.xp||0));
+    if (!members.length) {
+      list.innerHTML = '<div class="admin-note">Noch keine Mitglieder vorhanden.</div>';
+      return;
+    }
+
+    list.innerHTML = members.map(member => {
+      const badges = (member.achievements || []).map(key =>
+        `<span class="earned-badge" title="${escapeAttr(names[key] || key)}">${icons[key] || '🏅'} ${escapeHtml(names[key] || key)}</span>`
+      ).join('');
+      return `<div class="badge-member-row">
+        <div class="badge-member-person">
+          ${member.avatar_url ? `<img src="${escapeAttr(member.avatar_url)}" alt="">` : `<span class="spotlight-avatar-fallback">${escapeHtml((member.display_name || member.username || 'A').charAt(0).toUpperCase())}</span>`}
+          <div><strong>${escapeHtml(member.display_name || member.username || 'Member')}</strong><small>@${escapeHtml(member.username || '')} · ${Number(member.xp||0)} XP</small></div>
+        </div>
+        <div class="earned-badges">${badges || '<span class="admin-note">Noch keine Achievements</span>'}</div>
+      </div>`;
+    }).join('');
+  } catch (error) {
+    list.innerHTML = `<div class="admin-note error">${escapeHtml(error.message || 'Achievements konnten nicht geladen werden.')}</div>`;
+  }
 }
 
 async function loadDashboard() {

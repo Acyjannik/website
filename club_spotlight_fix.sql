@@ -1,0 +1,10 @@
+-- ACYJANNIK V4.3.2
+-- Compatibility check for the existing club_spotlight table.
+-- The original V3.9 schema already contains the required columns:
+--   blurb, month_key, enabled
+-- No new table is required. If club_spotlight does not exist, run:
+--
+--   supabase/club_notifications_spotlight.sql
+--
+-- The application now writes `blurb` and a YYYY-MM `month_key`
+-- and updates the current month's row instead of inserting duplicates.

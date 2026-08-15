@@ -56,27 +56,59 @@ export default async function handler(req, res) {
       const profiles = profileCheck.ok ? await profileCheck.json() : [];
       if (!profiles.length) return res.status(404).json({ error: "Member not found." });
 
-      // Keep exactly one active spotlight.
-      await fetch(`${url}/rest/v1/club_spotlight?enabled=eq.true`, {
+      // The table uses a unique month_key, so update this month's row instead of
+      // inserting a second row. This also makes replacing the winner deterministic.
+      const monthKey = new Date().toISOString().slice(0, 7);
+
+      await fetch(`${url}/rest/v1/club_spotlight?month_key=eq.${encodeURIComponent(monthKey)}`, {
         method: "PATCH",
         headers: { ...headers, Prefer: "return=minimal" },
-        body: JSON.stringify({ enabled: false })
+        body: JSON.stringify({ enabled: false, updated_at: new Date().toISOString() })
       });
 
-      const insert = await fetch(`${url}/rest/v1/club_spotlight`, {
-        method: "POST",
-        headers: { ...headers, Prefer: "return=representation" },
-        body: JSON.stringify({
-          user_id: memberId,
-          title: "ACY Member of the Month",
-          note,
-          enabled: true
-        })
-      });
-      const text = await insert.text();
-      if (!insert.ok) return res.status(500).json({ error: text || "Could not save spotlight." });
+      const existing = await fetch(
+        `${url}/rest/v1/club_spotlight?month_key=eq.${encodeURIComponent(monthKey)}&select=id&limit=1`,
+        { headers, cache: "no-store" }
+      );
+      const existingText = await existing.text();
+      if (!existing.ok) return res.status(500).json({ error: existingText || "Could not check current spotlight." });
+      const existingRows = existingText ? JSON.parse(existingText) : [];
 
-      // Notify the selected member. Duplicate notifications are avoided by a unique-ish message window.
+      let saveResponse;
+      if (existingRows.length) {
+        saveResponse = await fetch(
+          `${url}/rest/v1/club_spotlight?id=eq.${existingRows[0].id}`,
+          {
+            method: "PATCH",
+            headers: { ...headers, Prefer: "return=representation" },
+            body: JSON.stringify({
+              user_id: memberId,
+              title: "ACY Member of the Month",
+              blurb: note,
+              month_key: monthKey,
+              enabled: true,
+              updated_at: new Date().toISOString()
+            })
+          }
+        );
+      } else {
+        saveResponse = await fetch(`${url}/rest/v1/club_spotlight`, {
+          method: "POST",
+          headers: { ...headers, Prefer: "return=representation" },
+          body: JSON.stringify({
+            user_id: memberId,
+            title: "ACY Member of the Month",
+            blurb: note,
+            month_key: monthKey,
+            enabled: true
+          })
+        });
+      }
+
+      const text = await saveResponse.text();
+      if (!saveResponse.ok) return res.status(500).json({ error: text || "Could not save spotlight." });
+
+      // Notify the selected member.
       await fetch(`${url}/rest/v1/club_notifications`, {
         method: "POST",
         headers: { ...headers, Prefer: "return=minimal" },
@@ -117,7 +149,7 @@ export default async function handler(req, res) {
     const profiles = profileText ? JSON.parse(profileText) : [];
     if (!profiles.length) return res.status(404).json({ error: "Spotlight member not found." });
 
-    return res.status(200).json({ spotlight: { ...item, member: profiles[0] } });
+    return res.status(200).json({ spotlight: { ...item, note: item.blurb || "", member: profiles[0] } });
   } catch (error) {
     console.error("club-spotlight:", error);
     return res.status(500).json({ error: "Spotlight service failed." });

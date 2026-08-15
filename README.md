@@ -535,3 +535,10 @@ Added Impressum, Datenschutzerklärung, Account & Datenschutz page, account dele
 - Selecting a member creates a Spotlight notification.
 - Expanded achievement rules: profile complete, event fan/hunter/regular/legend, 100/500/1000 XP clubs, 30/90 day membership, Discord member.
 - No additional Vercel function; API count remains 12.
+
+
+## V4.3.2
+- Fixed Spotlight persistence to match the existing `club_spotlight` schema (`blurb`, `month_key`).
+- Admin Spotlight loads members through the existing server-side member API.
+- XP & Badges now shows actual earned achievements per member.
+- No additional Vercel Function.

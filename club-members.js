@@ -81,6 +81,7 @@ export default async function handler(req, res) {
       limit: "100",
     });
 
+    const includeAchievements = String(req.query?.includeAchievements || "").toLowerCase() === "true";
     const search = String(req.query?.search || "").trim();
     if (search) {
       const safe = search.replace(/[%(),]/g, " ").slice(0, 40);
@@ -101,6 +102,27 @@ export default async function handler(req, res) {
     }
 
     const rows = text ? JSON.parse(text) : [];
+    let achievementMap = new Map();
+
+    if (includeAchievements && rows.length) {
+      const achievementsResponse = await fetch(
+        `${supabaseUrl}/rest/v1/club_achievements?select=user_id,achievement_key&user_id=in.(${rows.map(r => encodeURIComponent(r.id)).join(",")})`,
+        {
+          headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
+          cache: "no-store",
+        }
+      );
+      const achievementText = await achievementsResponse.text();
+      if (achievementsResponse.ok) {
+        const achievementRows = achievementText ? JSON.parse(achievementText) : [];
+        achievementMap = new Map();
+        for (const item of achievementRows) {
+          if (!achievementMap.has(item.user_id)) achievementMap.set(item.user_id, []);
+          achievementMap.get(item.user_id).push(item.achievement_key);
+        }
+      }
+    }
+
     const memberRows = rows.map((row) => ({
       id: row.id,
       username: row.username,
@@ -110,6 +132,7 @@ export default async function handler(req, res) {
       created_at: row.created_at,
       xp: Number(row.xp || 0),
       badges: Array.isArray(row.badges) ? row.badges.slice(0, 8) : [],
+      achievements: achievementMap.get(row.id) || [],
     }));
 
     return res.status(200).json({
