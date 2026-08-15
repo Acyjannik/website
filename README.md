@@ -229,3 +229,20 @@ Removed the duplicate Discord CTA, fixed the leaked `class="eyebrow">CONNECT` fr
 ## V2.4.23: Final ACY Club / Socials cleanup
 
 Rebuilt the Club and Socials markup cleanly: one active Discord CTA, centered Club content, and a proper CONNECT heading with no leaked HTML fragment.
+
+
+## V2.5.0: ACY Club registration + login
+
+Added:
+- `/club.html` for registration and login
+- password reset request
+- `/club-profile.html` for the signed-in member profile
+- Supabase `profiles` table with automatic profile creation
+- RLS so members can read/update only their own profile
+- ACY Club registration CTA on the homepage
+- Discord CTA for the community
+- `supabase/club_members.sql` to initialize the member profile system
+
+### One-time Supabase setup
+Run `supabase/club_members.sql` once in the Supabase SQL Editor.
+The existing `SUPABASE_URL` and `SUPABASE_ANON_KEY` Vercel variables are reused.

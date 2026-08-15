@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Mein ACY Club · Acyjannik</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="club-profile.js?v=2.5.0" defer></script>
+</head>
+<body class="club-auth-page">
+  <div class="club-auth-shell">
+    <header class="club-auth-header">
+      <a class="brand" href="/"><span class="brand-mark">A</span><strong>ACY<span>JANNIK</span></strong></a>
+      <button class="button button-secondary" id="logout">Abmelden</button>
+    </header>
+
+    <main class="member-main">
+      <section class="member-card">
+        <span class="eyebrow">ACY CLUB MEMBER</span>
+        <div class="member-avatar" id="member-avatar">A</div>
+        <h1>Hey, <span id="member-name">ACY Member</span>.</h1>
+        <p>Willkommen in deinem persönlichen ACY Club.</p>
+
+        <div class="member-stats">
+          <div><span>Username</span><strong id="member-username">–</strong></div>
+          <div><span>Dabei seit</span><strong id="member-since">–</strong></div>
+        </div>
+
+        <div class="member-actions">
+          <a class="button button-primary" href="https://discord.gg/74ACqBwfu" target="_blank" rel="noreferrer">Discord beitreten ↗</a>
+          <a class="button button-secondary" href="/">Zur Website</a>
+        </div>
+        <p class="club-auth-status" id="profile-status"></p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
