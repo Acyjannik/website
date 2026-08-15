@@ -91,9 +91,13 @@ begin
     return 0;
   end if;
 
-  delete from public.club_xp_events
+  -- Keep the event row as a zeroed marker. This prevents the user from
+  -- disconnecting/reconnecting repeatedly to farm the same one-time XP.
+  update public.club_xp_events
+  set xp = 0
   where user_id = p_user_id
-    and event_key = p_event_key;
+    and event_key = p_event_key
+    and xp > 0;
 
   get diagnostics deleted_count = row_count;
 

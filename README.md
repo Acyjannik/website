@@ -604,3 +604,8 @@ Added Impressum, Datenschutzerklärung, Account & Datenschutz page, account dele
 - The XP event is kept as a zeroed one-time marker, so reconnecting cannot farm the XP repeatedly.
 - Discord OAuth still returns to `/club-profile.html?discord_callback=1`.
 - No new Supabase table is required, but the updated `supabase/club_progression.sql` must be run once to replace the revoke function.
+
+
+## V5.0.6 — Exact Discord redirect
+- Fixed the Discord OAuth redirect to use the exact allow-listed URL `/club-profile.html`.
+- Removed the `?discord_callback=1` query parameter, which was not present in Supabase's exact redirect allow-list and could therefore fall back to the Site URL.

@@ -482,7 +482,7 @@ async function connectDiscord() {
     const { data, error } = await supabaseClient.auth.linkIdentity({
       provider: 'discord',
       options: {
-        redirectTo: `${window.location.origin}/club-profile.html?discord_callback=1`
+        redirectTo: `${window.location.origin}/club-profile.html`
       }
     });
 
