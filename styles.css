@@ -315,3 +315,17 @@ button:disabled{opacity:.55;cursor:not-allowed}
   .schedule-card{align-items:flex-start;flex-wrap:wrap}
   .schedule-copy{min-width:220px}
 }
+
+/* V2.4.20 schedule marker polish */
+.schedule-icon{
+  font-size:24px;
+  line-height:1;
+  color:#e9d5ff;
+}
+
+/* V2.4.21 ACY Club Discord CTA */
+#club .button-primary{
+  pointer-events:auto;
+  opacity:1;
+  cursor:pointer;
+}

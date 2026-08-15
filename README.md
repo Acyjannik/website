@@ -209,3 +209,13 @@ Added a public schedule card: **Jeden Tag um 20:00 Uhr** with Fortnite and a dir
 ## V2.4.19: Schedule time update
 
 The daily Fortnite schedule is now **20:30 Uhr**.
+
+
+## V2.4.20: Schedule marker polish
+
+Removed the confusing numeric "20" tile from the daily schedule card and replaced it with a simple play marker. The actual schedule remains 20:30 Uhr.
+
+
+## V2.4.21: ACY Club Discord CTA fix
+
+The ACY Club Discord button is now explicitly linked to the ACY Club invite and no longer uses the disabled/placeholder state.
