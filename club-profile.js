@@ -60,11 +60,21 @@ function renderBadges(badges = [], xp = 0, discordConnected = false) {
   const list = Array.from(new Set([...(badges || []), ...defaults]));
   const icons = {
     'ACY Rookie': '💜',
+    'Profile Complete': '✨',
     'Early Member': '⏳',
+    'ACY Veteran': '🛡️',
     'Fortnite': '🎮',
+    'Event Fan': '🎮',
+    'Event Hunter': '🔥',
+    'Event Regular': '⚡',
+    'Event Legend': '🏆',
+    '100 XP Club': '🌟',
+    '500 XP Club': '👑',
+    '1000 XP Club': '💎',
     'ACY OG': '👑',
     'ACY Legend': '🏆',
-    'Discord Member': '💬'
+    'Discord Member': '💬',
+    'Member of the Month': '👑'
   };
   const badgeGrid = $('badge-grid');
   if (!badgeGrid) return;

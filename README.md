@@ -526,3 +526,12 @@ Added Impressum, Datenschutzerklärung, Account & Datenschutz page, account dele
 - Auth deletion relies on the existing `ON DELETE CASCADE` relationships.
 - Frontend safely handles non-JSON server responses instead of throwing `Unexpected token`.
 - No additional Vercel Serverless Function added; remains at 12.
+
+
+## V4.2 + V4.3: Spotlight & Achievement Expansion
+
+- Admin Spotlight tab with member search, selection, current spotlight and clear action.
+- Active Spotlight is stored in `club_spotlight`.
+- Selecting a member creates a Spotlight notification.
+- Expanded achievement rules: profile complete, event fan/hunter/regular/legend, 100/500/1000 XP clubs, 30/90 day membership, Discord member.
+- No additional Vercel function; API count remains 12.

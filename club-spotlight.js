@@ -1,15 +1,102 @@
 export default async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store, max-age=0");
-  if (req.method !== "GET") return res.status(405).json({ error: "GET only" });
 
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) return res.status(503).json({ error: "Spotlight service is not configured." });
 
+  const headers = {
+    apikey: key,
+    Authorization: `Bearer ${key}`,
+    "Content-Type": "application/json"
+  };
+
   try {
+    // Admin can set or clear the active spotlight without adding another Vercel function.
+    if (req.method === "POST") {
+      const auth = req.headers.authorization || "";
+      if (!auth.startsWith("Bearer ")) return res.status(401).json({ error: "Unauthorized" });
+
+      const who = await fetch(`${url}/auth/v1/user`, {
+        headers: { apikey: key, Authorization: auth }
+      });
+      if (!who.ok) return res.status(401).json({ error: "Invalid session." });
+      const user = await who.json();
+
+      const adminCheck = await fetch(
+        `${url}/rest/v1/admin_users?user_id=eq.${encodeURIComponent(user.id)}&select=user_id&limit=1`,
+        { headers: { apikey: key, Authorization: `Bearer ${key}` }, cache: "no-store" }
+      );
+      const admins = adminCheck.ok ? await adminCheck.json() : [];
+      if (!admins.length) return res.status(403).json({ error: "Admin access required." });
+
+      const body = typeof req.body === "string" ? JSON.parse(req.body || "{}") : (req.body || {});
+      const memberId = String(body.userId || "").trim();
+      const note = String(body.note || "").trim().slice(0, 500);
+      const action = body.action === "clear" ? "clear" : "set";
+
+      if (action === "clear") {
+        const cleared = await fetch(`${url}/rest/v1/club_spotlight?enabled=eq.true`, {
+          method: "PATCH",
+          headers: { ...headers, Prefer: "return=minimal" },
+          body: JSON.stringify({ enabled: false })
+        });
+        if (!cleared.ok) return res.status(500).json({ error: await cleared.text() || "Could not clear spotlight." });
+        return res.status(200).json({ success: true, spotlight: null });
+      }
+
+      if (!/^[0-9a-f-]{36}$/i.test(memberId)) {
+        return res.status(400).json({ error: "Valid member id required." });
+      }
+
+      const profileCheck = await fetch(
+        `${url}/rest/v1/profiles?id=eq.${encodeURIComponent(memberId)}&select=id,username,display_name,bio,avatar_url,xp,badges&limit=1`,
+        { headers: { apikey: key, Authorization: `Bearer ${key}` }, cache: "no-store" }
+      );
+      const profiles = profileCheck.ok ? await profileCheck.json() : [];
+      if (!profiles.length) return res.status(404).json({ error: "Member not found." });
+
+      // Keep exactly one active spotlight.
+      await fetch(`${url}/rest/v1/club_spotlight?enabled=eq.true`, {
+        method: "PATCH",
+        headers: { ...headers, Prefer: "return=minimal" },
+        body: JSON.stringify({ enabled: false })
+      });
+
+      const insert = await fetch(`${url}/rest/v1/club_spotlight`, {
+        method: "POST",
+        headers: { ...headers, Prefer: "return=representation" },
+        body: JSON.stringify({
+          user_id: memberId,
+          title: "ACY Member of the Month",
+          note,
+          enabled: true
+        })
+      });
+      const text = await insert.text();
+      if (!insert.ok) return res.status(500).json({ error: text || "Could not save spotlight." });
+
+      // Notify the selected member. Duplicate notifications are avoided by a unique-ish message window.
+      await fetch(`${url}/rest/v1/club_notifications`, {
+        method: "POST",
+        headers: { ...headers, Prefer: "return=minimal" },
+        body: JSON.stringify({
+          user_id: memberId,
+          title: "Du bist Member of the Month! 👑",
+          body: note || "Du wurdest zum ACY Member of the Month gewählt.",
+          notification_type: "spotlight",
+          link_url: "/club-profile.html"
+        })
+      });
+
+      return res.status(200).json({ success: true, spotlight: text ? JSON.parse(text)[0] : null });
+    }
+
+    if (req.method !== "GET") return res.status(405).json({ error: "GET only" });
+
     const response = await fetch(
       `${url}/rest/v1/club_spotlight?enabled=eq.true&select=*&order=created_at.desc&limit=1`,
-      { headers: { apikey: key, Authorization: `Bearer ${key}` }, cache: "no-store" }
+      { headers, cache: "no-store" }
     );
     const text = await response.text();
     if (!response.ok) return res.status(500).json({ error: text || "Could not load spotlight." });
@@ -19,8 +106,8 @@ export default async function handler(req, res) {
 
     const item = rows[0];
     const profileResponse = await fetch(
-      `${url}/rest/v1/profiles?id=eq.${item.user_id}&select=id,username,display_name,bio,avatar_url,xp,badges,discord_connected,created_at&limit=1`,
-      { headers: { apikey: key, Authorization: `Bearer ${key}` }, cache: "no-store" }
+      `${url}/rest/v1/profiles?id=eq.${encodeURIComponent(item.user_id)}&select=id,username,display_name,bio,avatar_url,xp,badges,discord_connected,created_at&limit=1`,
+      { headers, cache: "no-store" }
     );
     const profileText = await profileResponse.text();
     if (!profileResponse.ok) return res.status(500).json({ error: profileText || "Could not load spotlight member." });

@@ -26,6 +26,7 @@ const VIEW_META = {
   events: ['COMMUNITY', 'Events'],
   news: ['CONTENT', 'News'],
   progression: ['MEMBERS', 'XP & Badges'],
+  spotlight: ['COMMUNITY', 'Spotlight'],
   clips: ['ACY CLIPS', 'Clips'],
   media: ['MEDIA', 'Bilder'],
   security: ['SECURITY', 'Sicherheit'],
@@ -192,6 +193,118 @@ async function ensureDefaultContent() {
   }
 }
 
+async function loadSpotlightAdmin() {
+  const list = $('spotlight-admin-list');
+  if (!list) return;
+  list.innerHTML = '<div class="admin-note">Mitglieder werden geladen…</div>';
+
+  const [membersRes, spotlightRes] = await Promise.all([
+    supabaseClient.from('profiles').select('id,username,display_name,bio,avatar_url,xp,badges,created_at').order('xp', { ascending: false }).limit(100),
+    fetch('/api/club-spotlight', { cache: 'no-store' })
+  ]);
+
+  const members = membersRes.data || [];
+  const spotlightPayload = spotlightRes.ok ? await spotlightRes.json() : { spotlight: null };
+  const current = spotlightPayload.spotlight;
+  if (current?.member) {
+    $('spotlight-current-name').textContent = current.member.display_name || current.member.username;
+    $('spotlight-current-note').textContent = current.note || 'Aktives Community Spotlight.';
+    $('spotlight-current-meta').textContent = `${Number(current.member.xp || 0)} XP · @${current.member.username || ''}`;
+  } else {
+    $('spotlight-current-name').textContent = 'Noch niemand';
+    $('spotlight-current-note').textContent = 'Kein aktives Spotlight.';
+    $('spotlight-current-meta').textContent = '–';
+  }
+
+  renderSpotlightCandidates(members, current?.user_id || '');
+}
+
+function renderSpotlightCandidates(members, currentId = '') {
+  const list = $('spotlight-admin-list');
+  if (!list) return;
+  const query = String($('spotlight-search')?.value || '').trim().toLowerCase();
+  const filtered = members.filter(m => {
+    const hay = `${m.display_name || ''} ${m.username || ''}`.toLowerCase();
+    return !query || hay.includes(query);
+  });
+
+  if (!filtered.length) {
+    list.innerHTML = '<div class="admin-note">Keine Mitglieder gefunden.</div>';
+    return;
+  }
+
+  list.innerHTML = filtered.map(m => {
+    const name = escapeHtml(m.display_name || m.username || 'Member');
+    const username = escapeHtml(m.username || '');
+    const bio = escapeHtml(m.bio || '');
+    const avatar = m.avatar_url ? `<img src="${escapeAttr(m.avatar_url)}" alt="">` : `<span class="spotlight-avatar-fallback">${escapeHtml((m.display_name || m.username || 'A').charAt(0).toUpperCase())}</span>`;
+    const active = m.id === currentId ? ' is-current' : '';
+    return `<div class="spotlight-admin-row${active}" data-member-id="${escapeAttr(m.id)}">
+      <div class="spotlight-admin-person">${avatar}<div><strong>${name}</strong><small>@${username} · ${Number(m.xp || 0)} XP</small>${bio ? `<p>${bio}</p>` : ''}</div></div>
+      <button class="button button-small spotlight-select">Als Spotlight setzen</button>
+    </div>`;
+  }).join('');
+
+  list.querySelectorAll('.spotlight-select').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const row = btn.closest('.spotlight-admin-row');
+      await setSpotlight(row.dataset.memberId);
+    });
+  });
+}
+
+async function setSpotlight(userId) {
+  const status = $('spotlight-admin-message');
+  const note = window.prompt('Kurze Begründung für das Spotlight (optional):', 'Besonders aktiv und ein großartiger Teil der ACY Community.');
+  if (note === null) return;
+  status.textContent = 'Spotlight wird gespeichert…';
+
+  try {
+    const { data } = await supabaseClient.auth.getSession();
+    const token = data?.session?.access_token;
+    const response = await fetch('/api/club-spotlight', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ userId, note, action: 'set' })
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(payload.error || 'Spotlight konnte nicht gespeichert werden.');
+    status.textContent = 'Spotlight gespeichert.';
+    status.classList.add('success');
+    await loadSpotlightAdmin();
+  } catch (error) {
+    status.textContent = error.message;
+    status.classList.add('error');
+  }
+}
+
+async function clearSpotlight() {
+  if (!window.confirm('Aktuelles Spotlight wirklich entfernen?')) return;
+  const status = $('spotlight-admin-message');
+  try {
+    const { data } = await supabaseClient.auth.getSession();
+    const token = data?.session?.access_token;
+    const response = await fetch('/api/club-spotlight', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ action: 'clear' })
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(payload.error || 'Spotlight konnte nicht entfernt werden.');
+    status.textContent = 'Spotlight entfernt.';
+    await loadSpotlightAdmin();
+  } catch (error) {
+    status.textContent = error.message;
+    status.classList.add('error');
+  }
+}
+
+function bindSpotlightAdmin() {
+  $('spotlight-refresh')?.addEventListener('click', loadSpotlightAdmin);
+  $('spotlight-clear')?.addEventListener('click', clearSpotlight);
+  $('spotlight-search')?.addEventListener('input', () => loadSpotlightAdmin());
+}
+
 async function loadDashboard() {
   const { data: settings, error: settingsError } = await supabaseClient
     .from('site_settings')
@@ -224,6 +337,7 @@ async function loadDashboard() {
     loadEventsAdmin(),
     loadNewsAdmin(),
     loadClipsAdmin(),
+    loadSpotlightAdmin(),
   ]);
 
   await loadMediaPreview();
@@ -863,7 +977,8 @@ async function initializeAdmin() {
       bindTabs();
       await loadDashboard();
     } else {
-      bindTabs();
+      bindSpotlightAdmin();
+bindTabs();
     }
   } catch (error) {
     console.error('Admin initialization failed:', error);

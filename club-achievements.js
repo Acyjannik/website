@@ -47,14 +47,23 @@ export default async function handler(req, res) {
     const xpEvents = xpText ? JSON.parse(xpText) : [];
 
     const days = Math.floor((Date.now() - new Date(profile.created_at).getTime()) / 86400000);
+    const eventCount = attendance.length;
+    const totalXp = Number(profile.xp || 0);
     const rules = [
       ["acy_rookie", true],
+      ["profile_complete", true],
       ["discord_member", !!profile.discord_connected],
-      ["event_hunter", attendance.length >= 5],
-      ["event_fan", attendance.length >= 1],
-      ["acy_og", Number(profile.xp || 0) >= 500],
-      ["acy_legend", Number(profile.xp || 0) >= 1000],
-      ["early_member", days >= 30]
+      ["event_fan", eventCount >= 1],
+      ["event_hunter", eventCount >= 5],
+      ["event_regular", eventCount >= 10],
+      ["event_legend", eventCount >= 25],
+      ["xp_100", totalXp >= 100],
+      ["xp_500", totalXp >= 500],
+      ["xp_1000", totalXp >= 1000],
+      ["acy_og", totalXp >= 500],
+      ["acy_legend", totalXp >= 1000],
+      ["early_member", days >= 30],
+      ["veteran_member", days >= 90]
     ];
 
     const newlyAwarded = [];
@@ -79,12 +88,19 @@ export default async function handler(req, res) {
 
     const badgeNames = {
       acy_rookie: "ACY Rookie",
+      profile_complete: "Profile Complete",
       discord_member: "Discord Member",
-      event_hunter: "Event Hunter",
       event_fan: "Event Fan",
+      event_hunter: "Event Hunter",
+      event_regular: "Event Regular",
+      event_legend: "Event Legend",
+      xp_100: "100 XP Club",
+      xp_500: "500 XP Club",
+      xp_1000: "1000 XP Club",
       acy_og: "ACY OG",
       acy_legend: "ACY Legend",
-      early_member: "Early Member"
+      early_member: "Early Member",
+      veteran_member: "ACY Veteran"
     };
 
     for (const keyName of newlyAwarded) {
