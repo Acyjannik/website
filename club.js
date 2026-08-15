@@ -17,6 +17,25 @@ function switchMode(mode) {
   $('show-login').classList.toggle('active', !register);
 }
 
+
+async function awardProgression(eventKey) {
+  if (!supabaseClient) return;
+  try {
+    const { data } = await supabaseClient.auth.getSession();
+    if (!data?.session?.access_token) return;
+    await fetch('/api/club-progression', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${data.session.access_token}`
+      },
+      body: JSON.stringify({ eventKey })
+    });
+  } catch (error) {
+    console.warn('Progression award skipped:', error);
+  }
+}
+
 async function init() {
   try {
     const response = await fetch('/api/config', { cache: 'no-store' });
@@ -73,6 +92,9 @@ $('register-form')?.addEventListener('submit', async (event) => {
 
     if (error) throw error;
 
+    if (data.session) {
+      await awardProgression('registration');
+    }
     $('register-form').hidden = true;
     $('club-success').hidden = false;
     $('club-success-text').textContent = data.session

@@ -50,8 +50,12 @@ function renderProgress(xp) {
   setText('level-title', levelForXp(xp).title);
 }
 
-function renderBadges(badges = []) {
-  const defaults = ['ACY Rookie'];
+function renderBadges(badges = [], xp = 0) {
+  const autoBadges = [];
+  if (xp >= 100) autoBadges.push('ACY Member');
+  if (xp >= 500) autoBadges.push('ACY OG');
+  if (xp >= 1000) autoBadges.push('ACY Legend');
+  const defaults = ['ACY Rookie', ...autoBadges];
   const list = Array.from(new Set([...(badges || []), ...defaults]));
   const icons = {
     'ACY Rookie': '💜',
@@ -84,6 +88,31 @@ function renderAvatar(profile) {
     fallback.textContent = first;
     fallback.hidden = false;
     image.hidden = true;
+  }
+}
+
+
+async function awardProgression(eventKey) {
+  try {
+    const { data } = await supabaseClient.auth.getSession();
+    const token = data?.session?.access_token;
+    if (!token) return;
+    const response = await fetch('/api/club-progression', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ eventKey })
+    });
+    if (!response.ok) return;
+    const result = await response.json();
+    if (Number.isFinite(result.totalXp)) {
+      renderProgress(result.totalXp);
+      setText('member-xp', `${result.totalXp} XP`);
+    }
+  } catch (error) {
+    console.warn('Progression award skipped:', error);
   }
 }
 
@@ -144,7 +173,18 @@ async function loadProfile() {
 
   renderAvatar(profile);
   renderProgress(Number(profile.xp || 0));
-  renderBadges(profile.badges || []);
+  renderBadges(profile.badges || [], Number(profile.xp || 0));
+  if ((profile.display_name || '').trim() && (profile.bio || '').trim()) {
+    await awardProgression('profile_complete');
+  }
+
+  const created = new Date(profile.created_at || currentUser.created_at);
+  const days = Math.floor((Date.now() - created.getTime()) / 86400000);
+  if (days >= 30) {
+    await awardProgression('member_30_days');
+  } else if (days >= 7) {
+    await awardProgression('member_7_days');
+  }
 
   $('avatar-input').dataset.currentUrl = profile.avatar_url || '';
 }
@@ -276,6 +316,7 @@ $('avatar-input')?.addEventListener('change', async (event) => {
     if ($('member-avatar-img')) $('member-avatar-img').src = avatarUrl;
     if ($('member-avatar-img')) $('member-avatar-img').hidden = false;
     if ($('member-avatar')) $('member-avatar').hidden = true;
+    await awardProgression('avatar_added');
     setStatus('Profilbild gespeichert.', 'success');
   } catch (error) {
     setStatus(error.message || 'Upload fehlgeschlagen.', 'error');

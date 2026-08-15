@@ -11,6 +11,7 @@ const VIEW_META = {
   socials: ['COMMUNITY', 'Socials'],
   events: ['COMMUNITY', 'Events'],
   news: ['CONTENT', 'News'],
+  progression: ['MEMBERS', 'XP & Badges'],
   media: ['MEDIA', 'Bilder'],
   security: ['SECURITY', 'Sicherheit'],
 };

@@ -274,3 +274,20 @@ The member dashboard now tolerates missing DOM elements, and the Twitch card upd
 ## V2.7: Events + News
 
 Added ACY Club Events and ACY News to the member dashboard and Admin. Run `supabase/club_events_news.sql` once in Supabase SQL Editor.
+
+
+## V2.8: XP + Badges
+
+Added server-side one-time XP awards for:
+- registration
+- profile completion
+- profile picture
+- Discord connection placeholder
+- event attendance placeholder
+- 7-day membership
+- 30-day membership
+
+Added automatic progression badges and an Admin overview under **XP & Badges**.
+Run `supabase/club_progression.sql` once in Supabase SQL Editor.
+
+**Important:** The progression API expects `SUPABASE_SERVICE_ROLE_KEY` in Vercel Production. This key must never be exposed to the browser.
