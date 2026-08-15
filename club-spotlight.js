@@ -1,5 +1,6 @@
 export default async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store, max-age=0");
+  res.setHeader("X-ACY-Spotlight-Version", "4.3.4");
 
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -12,6 +13,10 @@ export default async function handler(req, res) {
   };
 
   try {
+    if (req.method === "OPTIONS") {
+      return res.status(204).end();
+    }
+
     // Admin can set or clear the active spotlight without adding another Vercel function.
     if (req.method === "POST") {
       const auth = req.headers.authorization || "";

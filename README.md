@@ -542,3 +542,9 @@ Added Impressum, Datenschutzerklärung, Account & Datenschutz page, account dele
 - Admin Spotlight loads members through the existing server-side member API.
 - XP & Badges now shows actual earned achievements per member.
 - No additional Vercel Function.
+
+
+## V4.3.4
+- Fixed Spotlight action buttons to explicitly use `type=button` and prevent default clicks.
+- Spotlight API now exposes a deployment version header and handles OPTIONS.
+- POST remains the only mutation method.

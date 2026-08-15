@@ -221,6 +221,9 @@ async function loadSpotlightAdmin() {
 
   const membersPayload = membersRes.ok ? await membersRes.json() : { members: [] };
   const members = membersPayload.members || [];
+  const spotlightApiVersion = spotlightRes.headers.get('X-ACY-Spotlight-Version');
+  const versionEl = $('spotlight-api-version');
+  if (versionEl) versionEl.textContent = spotlightApiVersion ? `Spotlight-API ${spotlightApiVersion}` : 'Spotlight-API ohne Versionskennung';
   const spotlightPayload = spotlightRes.ok ? await spotlightRes.json() : { spotlight: null };
   const current = spotlightPayload.spotlight;
   if (current?.member) {
@@ -258,12 +261,14 @@ function renderSpotlightCandidates(members, currentId = '') {
     const active = m.id === currentId ? ' is-current' : '';
     return `<div class="spotlight-admin-row${active}" data-member-id="${escapeAttr(m.id)}">
       <div class="spotlight-admin-person">${avatar}<div><strong>${name}</strong><small>@${username} · ${Number(m.xp || 0)} XP</small>${bio ? `<p>${bio}</p>` : ''}</div></div>
-      <button class="button button-small spotlight-select">Als Spotlight setzen</button>
+      <button type="button" class="button button-small spotlight-select">Als Spotlight setzen</button>
     </div>`;
   }).join('');
 
   list.querySelectorAll('.spotlight-select').forEach(btn => {
-    btn.addEventListener('click', async () => {
+    btn.addEventListener('click', async (event) => {
+      event.preventDefault();
+      event.stopPropagation();
       const row = btn.closest('.spotlight-admin-row');
       await setSpotlight(row.dataset.memberId);
     });
@@ -285,7 +290,10 @@ async function setSpotlight(userId) {
       body: JSON.stringify({ userId, note, action: 'set' })
     });
     const payload = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(payload.error || 'Spotlight konnte nicht gespeichert werden.');
+    if (!response.ok) {
+      const version = response.headers.get('X-ACY-Spotlight-Version');
+      throw new Error((payload.error || 'Spotlight konnte nicht gespeichert werden.') + (version ? ` [API ${version}]` : ''));
+    }
     status.textContent = 'Spotlight gespeichert.';
     status.classList.add('success');
     await loadSpotlightAdmin();
