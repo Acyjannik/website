@@ -629,3 +629,10 @@ Added Impressum, Datenschutzerklärung, Account & Datenschutz page, account dele
 - Fixed the public homepage missing the Supabase JS client.
 - The homepage now loads the same Supabase JS library used by the Club pages before `script.js`.
 - Added a short wait for a slow CDN response so the logged-in header is not silently skipped.
+
+
+## V5.0.10 — Responsive navigation
+- Fixed the mobile hamburger menu: the nav was hidden at <=900px but had no `.nav.mobile-open` style.
+- Added a proper mobile dropdown/panel containing Live, Games, ACY Club, Socials and the Club CTA.
+- The menu button now changes between ☰ and ✕ and has the correct accessible label.
+- Tapping a navigation link closes the mobile menu.

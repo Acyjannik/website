@@ -31,10 +31,21 @@ document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
 
 const menuButton = document.querySelector('.menu-button');
 const nav = document.querySelector('.nav');
-if (menuButton) {
+if (menuButton && nav) {
   menuButton.addEventListener('click', () => {
     const open = nav.classList.toggle('mobile-open');
     menuButton.setAttribute('aria-expanded', String(open));
+    menuButton.textContent = open ? '✕' : '☰';
+    menuButton.setAttribute('aria-label', open ? 'Menü schließen' : 'Menü öffnen');
+  });
+
+  nav.querySelectorAll('a').forEach((link) => {
+    link.addEventListener('click', () => {
+      nav.classList.remove('mobile-open');
+      menuButton.setAttribute('aria-expanded', 'false');
+      menuButton.textContent = '☰';
+      menuButton.setAttribute('aria-label', 'Menü öffnen');
+    });
   });
 }
 
