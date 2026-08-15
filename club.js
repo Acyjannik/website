@@ -13,10 +13,28 @@ function switchMode(mode) {
   const register = mode === 'register';
   $('register-form').hidden = !register;
   $('login-form').hidden = register;
+  $('club-success').hidden = true;
   $('show-register').classList.toggle('active', register);
   $('show-login').classList.toggle('active', !register);
+
+  // Keep each mode focused and avoid carrying messages from the other form.
+  if (register) {
+    $('login-status').textContent = '';
+  } else {
+    $('auth-status').textContent = '';
+  }
 }
 
+function showRegistrationSuccess(email, confirmedSession = false, pending = false) {
+  $('register-form').hidden = true;
+  $('club-success').hidden = false;
+  $('auth-status').textContent = '';
+  $('club-success-text').textContent = pending
+    ? `Wir haben deine Registrierung verarbeitet. Falls du bereits die Bestätigungs-E-Mail von info@acyjannik.de erhalten hast, bestätige sie bitte. Die E-Mail wurde an ${email} gesendet.`
+    : confirmedSession
+      ? 'Dein Account ist erstellt. Willkommen im ACY Club.'
+      : `Dein Account ist erstellt. Wir haben eine Bestätigungs-E-Mail an ${email} gesendet. Bitte bestätige deine E-Mail-Adresse, bevor du dich einloggst.`;
+}
 
 async function awardProgression(eventKey) {
   if (!supabaseClient) return;
@@ -67,6 +85,10 @@ $('show-login')?.addEventListener('click', () => switchMode('login'));
 $('register-form')?.addEventListener('submit', async (event) => {
   event.preventDefault();
 
+  if (!supabaseClient) {
+    return status('auth-status', 'Die Verbindung zum ACY Club wird noch hergestellt. Bitte kurz warten.', 'error');
+  }
+
   const username = $('username').value.trim().toLowerCase();
   const displayName = $('display-name').value.trim() || username;
   const email = $('register-email').value.trim();
@@ -80,34 +102,62 @@ $('register-form')?.addEventListener('submit', async (event) => {
     return status('auth-status', 'Das Passwort muss mindestens 10 Zeichen lang sein.', 'error');
   }
 
-  $('register-submit').disabled = true;
+  const button = $('register-submit');
+  button.disabled = true;
+  button.textContent = 'Registrierung läuft…';
   status('auth-status', 'Account wird erstellt…');
 
-  try {
-    const { data, error } = await supabaseClient.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { username, display_name: displayName },
-        emailRedirectTo: `${window.location.origin}/club-profile.html`
-      }
-    });
+  const signupPromise = supabaseClient.auth.signUp({
+    email,
+    password,
+    options: {
+      data: { username, display_name: displayName },
+      emailRedirectTo: `${window.location.origin}/club-profile.html`
+    }
+  });
 
+  // Some SMTP setups can deliver the message successfully before the Auth
+  // request returns to the browser. Do not leave the user staring at a
+  // disabled button forever. Give the normal response a few seconds, then
+  // show a useful pending state while the request is allowed to finish.
+  let timedOut = false;
+  const timeout = new Promise(resolve => setTimeout(() => {
+    timedOut = true;
+    resolve({ timeout: true });
+  }, 10000));
+
+  try {
+    const result = await Promise.race([signupPromise, timeout]);
+
+    if (result?.timeout) {
+      showRegistrationSuccess(email, false, true);
+      button.textContent = 'Registrierung abgeschlossen';
+
+      // Keep observing the original request so a late real error is not lost.
+      signupPromise.then(({ data, error }) => {
+        if (error) {
+          console.error('Late signup error:', error);
+          $('club-success').hidden = true;
+          $('register-form').hidden = false;
+          button.disabled = false;
+          button.textContent = 'ACY Club beitreten';
+          status('auth-status', error.message || 'Registrierung fehlgeschlagen.', 'error');
+          return;
+        }
+        if (data?.session) awardProgression('registration');
+      }).catch(error => console.error('Late signup failure:', error));
+      return;
+    }
+
+    const { data, error } = result;
     if (error) throw error;
 
-    // With email confirmation enabled Supabase intentionally returns a user
-    // without a session. The account and confirmation mail can still be
-    // created successfully, so the UI must not wait for a session here.
     if (data.session) {
       await awardProgression('registration');
     }
 
-    $('register-form').hidden = true;
-    $('club-success').hidden = false;
-    $('auth-status').textContent = '';
-    $('club-success-text').textContent = data.session
-      ? 'Dein Account ist erstellt. Willkommen im ACY Club.'
-      : `Dein Account ist erstellt. Wir haben eine Bestätigungs-E-Mail an ${email} gesendet. Bitte bestätige deine E-Mail-Adresse, bevor du dich einloggst.`;
+    showRegistrationSuccess(email, !!data.session, false);
+    button.textContent = 'Account erstellt';
   } catch (error) {
     const msg = String(error.message || '');
     status('auth-status',
@@ -116,7 +166,8 @@ $('register-form')?.addEventListener('submit', async (event) => {
         : msg || 'Registrierung fehlgeschlagen.',
       'error'
     );
-    $('register-submit').disabled = false;
+    button.disabled = false;
+    button.textContent = 'ACY Club beitreten';
   }
 });
 
@@ -152,7 +203,7 @@ $('forgot-password')?.addEventListener('click', async () => {
     if (error) throw error;
     status('login-status', 'Eine E-Mail zum Zurücksetzen des Passworts wurde angefordert.', 'success');
   } catch (error) {
-    const msg=String(error.message||'');
+    const msg = String(error.message || '');
     status(
       'login-status',
       /rate limit|too many|email rate/i.test(msg)
