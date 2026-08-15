@@ -87,19 +87,27 @@ $('register-form')?.addEventListener('submit', async (event) => {
     const { data, error } = await supabaseClient.auth.signUp({
       email,
       password,
-      options: { data: { username, display_name: displayName } }
+      options: {
+        data: { username, display_name: displayName },
+        emailRedirectTo: `${window.location.origin}/club-profile.html`
+      }
     });
 
     if (error) throw error;
 
+    // With email confirmation enabled Supabase intentionally returns a user
+    // without a session. The account and confirmation mail can still be
+    // created successfully, so the UI must not wait for a session here.
     if (data.session) {
       await awardProgression('registration');
     }
+
     $('register-form').hidden = true;
     $('club-success').hidden = false;
+    $('auth-status').textContent = '';
     $('club-success-text').textContent = data.session
       ? 'Dein Account ist erstellt. Willkommen im ACY Club.'
-      : 'Dein Account ist erstellt. Prüfe gegebenenfalls deine E-Mail zur Bestätigung.';
+      : `Dein Account ist erstellt. Wir haben eine Bestätigungs-E-Mail an ${email} gesendet. Bitte bestätige deine E-Mail-Adresse, bevor du dich einloggst.`;
   } catch (error) {
     const msg = String(error.message || '');
     status('auth-status',
@@ -124,6 +132,7 @@ $('login-form')?.addEventListener('submit', async (event) => {
     });
     if (error) throw error;
     if (!data.session) throw new Error('Keine gültige Sitzung erhalten.');
+    await awardProgression('registration');
     window.location.href = '/club-profile.html';
   } catch (error) {
     status('login-status', error.message || 'Login fehlgeschlagen.', 'error');

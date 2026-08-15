@@ -143,6 +143,9 @@ async function init() {
     }
 
     currentUser = data.session.user;
+    // Registration XP is awarded after the email-confirmed session exists.
+    // The server-side unique constraint makes this safe to call more than once.
+    await awardProgression('registration');
     await loadProfile();
     await loadDiscordLink();
     await loadTwitch();

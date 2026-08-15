@@ -511,3 +511,11 @@ Added Impressum, Datenschutzerklärung, Account & Datenschutz page, account dele
 - "Alle gelesen" action
 - Notification history remains stored in `club_notifications`
 - Uses the existing 12 Vercel Serverless Functions, no new function added
+
+
+## V4.1.1 Auth Flow Fix
+
+- Registration success no longer depends on an immediate Supabase session when email confirmation is enabled.
+- Confirmation links redirect to `/club-profile.html`.
+- Registration XP is awarded on the first authenticated session/login, with server-side duplicate protection.
+- Profile initialization also retries the one-time registration XP award as a safe fallback.
