@@ -657,3 +657,9 @@ V5.1 uses Supabase RLS directly for DM reads/writes; no service-role key is expo
 - Each successful vote awards +5 XP exactly once via a database trigger.
 - Vote counts update live through Supabase Realtime.
 - Admins can create, activate and end polls.
+
+
+## V5.2.1 — Admin login fix
+- Fixed a JavaScript initialization-order error introduced by the Community Poll admin code.
+- The poll event binding now runs only after the `$` DOM helper and Supabase variables are initialized.
+- This restores the Admin Login handler while keeping the V5.2 poll functionality.
