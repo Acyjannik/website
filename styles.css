@@ -1287,3 +1287,6 @@ button:disabled{opacity:.55;cursor:not-allowed}
 .pet-choice-icon img{width:54px;height:54px;object-fit:contain;display:block}
 .pet-avatar img{width:68px;height:68px;object-fit:contain;display:block}
 .pet-choice-icon img[alt]{font-size:10px}
+
+/* V6.4.4 — always honor hidden UI state */
+.pet-active-state[hidden], .pet-empty-state[hidden], .pet-rename-form[hidden]{display:none !important}

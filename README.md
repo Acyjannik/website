@@ -779,3 +779,11 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - This avoids deployment/upload tools that fail to preserve nested asset folders.
 - Updated the club-profile.js cache-busting version to 6.4.3.
 - The original `assets/pets/` files are retained as a backup, but the live UI no longer depends on that folder.
+
+
+## V6.4.4 — Pet Database Repair
+- Pet loading now uses a server-side `get_club_pet()` RPC instead of relying on direct client table reads.
+- Added `supabase/club_pets_repair.sql` to repair/create the pet table, update the 15-species constraint and install the loader RPC.
+- The UI now hides the active pet panel when loading fails instead of leaving the placeholder cat visible.
+- The initial pet avatar is an actual asset, not an emoji.
+- Cache-busting updated to 6.4.4.

@@ -986,18 +986,19 @@ function renderPet(pet) {
 async function loadPet() {
   if (!supabaseClient || !currentUser) return;
   try {
-    const { data, error } = await supabaseClient
-      .from('club_pets')
-      .select('user_id,species,name,hunger,happiness,energy,pet_xp,created_at,updated_at,last_interaction_at')
-      .eq('user_id', currentUser.id)
-      .maybeSingle();
+    // Use the server-side RPC so loading is reliable even when the table's
+    // client-side RLS policy is temporarily out of sync.
+    const { data, error } = await supabaseClient.rpc('get_club_pet');
     if (error) throw error;
-    renderPet(data);
+    renderPet(data || null);
+    if (data) setPetStatus('', '');
   } catch (error) {
     console.warn('Pet unavailable:', error);
+    // Never leave the demo/placeholder pet visible when the database load fails.
+    renderPet(null);
     const status = $('pet-status');
     if (status) {
-      status.textContent = 'Tier konnte nicht geladen werden. Hast du supabase/club_pets.sql ausgeführt?';
+      status.textContent = `Tier-Datenbank noch nicht bereit: ${error?.message || 'Unbekannter Fehler'}`;
       status.className = 'club-auth-status error';
     }
   }
