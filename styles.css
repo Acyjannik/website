@@ -1140,3 +1140,44 @@ button:disabled{opacity:.55;cursor:not-allowed}
 .dm-conversation.is-unread{background:rgba(168,85,247,.10);box-shadow:inset 2px 0 0 rgba(168,85,247,.9)}
 .dm-conversation.is-unread .dm-conversation-main strong{color:#fff}
 @media(max-width:760px){.dm-unread-dot{font-size:8px;padding:3px 6px}}
+
+/* V6.3.2 — Mobile chat composer fix
+   The composer is intentionally stacked on narrow screens so the send button
+   can never overlap the textarea/counter or fall outside the card. */
+@media(max-width:680px){
+  .club-chat-shell{overflow:hidden}
+  .club-chat-composer{
+    display:flex;
+    flex-direction:column;
+    align-items:stretch;
+    gap:8px;
+    padding:10px;
+    padding-bottom:calc(10px + env(safe-area-inset-bottom));
+    box-sizing:border-box;
+    width:100%;
+  }
+  .club-chat-composer-main{
+    width:100%;
+    min-width:0;
+    box-sizing:border-box;
+  }
+  .club-chat-composer textarea{
+    width:100%;
+    min-height:44px;
+    max-height:140px;
+    box-sizing:border-box;
+  }
+  .club-chat-composer-meta{
+    width:100%;
+    box-sizing:border-box;
+    padding:5px 2px 0;
+  }
+  .club-chat-send{
+    width:100%;
+    min-width:0;
+    min-height:46px;
+    box-sizing:border-box;
+    align-self:stretch;
+    margin:0;
+  }
+}

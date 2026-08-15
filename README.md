@@ -732,3 +732,10 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Navigation automatically opens a collapsed section before scrolling to it.
 - Direct-message links (`?dm=`) automatically open and focus the Messages section.
 - Mobile navigation is horizontally scrollable and compact.
+
+
+## V6.3.2 — Mobile Chat Composer
+- Fixed the mobile ACY Club Chat composer where the send button could overlap the textarea/counter.
+- Mobile layout now stacks textarea, counter/help text, and Send button.
+- Added iOS safe-area padding and width/box-sizing safeguards.
+- Desktop/tablet composer remains unchanged.
