@@ -870,3 +870,9 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - The admin test button now calls that existing route with `{ "testSmtp": true }`.
 - API version is now 7.1.5.
 - No SQL changes.
+
+
+## V7.1.5.1 — Restore SMTP Test Button
+- Restored the missing admin SMTP test button in the Community Votes form.
+- The button calls the existing `/api/club-notification-email` route with `testSmtp: true`.
+- No SQL changes.

@@ -1374,3 +1374,6 @@ button:disabled{opacity:.55;cursor:not-allowed}
   .notification-settings-foot{align-items:stretch;flex-direction:column}
   .notification-settings-foot .button{width:100%}
 }
+
+/* V7.1.5.1 */
+#test-email-btn{white-space:nowrap}

@@ -1147,6 +1147,43 @@ async function loadPollsAdmin() {
   }
 }
 
+$('test-email-btn')?.addEventListener('click', async () => {
+  const button = $('test-email-btn');
+  if (button) {
+    button.disabled = true;
+    button.textContent = 'Testet SMTP…';
+  }
+  try {
+    const { data: sessionData } = await supabaseClient.auth.getSession();
+    const token = sessionData?.session?.access_token;
+    if (!token) throw new Error('Keine aktive Admin-Sitzung.');
+
+    const response = await fetch('/api/club-notification-email', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ testSmtp: true })
+    });
+    const payload = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      message('poll-admin-message', `SMTP-Test fehlgeschlagen · API ${payload.apiVersion || 'unbekannt'} · ${payload.error || `HTTP ${response.status}`}`);
+      return;
+    }
+
+    message('poll-admin-message', `SMTP-Test erfolgreich · API ${payload.apiVersion} · Mail an ${payload.sentTo} übergeben.`, true);
+  } catch (error) {
+    message('poll-admin-message', `SMTP-Test fehlgeschlagen · ${error?.message || 'Unbekannter Fehler'}`);
+  } finally {
+    if (button) {
+      button.disabled = false;
+      button.textContent = 'SMTP-Testmail senden';
+    }
+  }
+});
+
 $('add-poll-btn')?.addEventListener('click', async () => {
   const question = $('poll-question-admin')?.value.trim();
   const description = $('poll-description-admin')?.value.trim();
