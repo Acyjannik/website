@@ -647,3 +647,19 @@ button:disabled{opacity:.55;cursor:not-allowed}
 
 /* V3.9.1 hub visibility */
 .member-hub{position:relative;z-index:2}
+
+/* V3.9.2: force new Member Hub to be visibly rendered */
+.member-dashboard>.member-hub-visible{
+  display:grid !important;
+  visibility:visible !important;
+  opacity:1 !important;
+  position:relative !important;
+  z-index:3 !important;
+}
+.member-dashboard>.spotlight-card{
+  display:block !important;
+  visibility:visible !important;
+  opacity:1 !important;
+  position:relative !important;
+  z-index:2 !important;
+}

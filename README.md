@@ -479,3 +479,8 @@ Notifications are intentionally UI-only for now: the table is ready for later au
 ## V3.9.1: Member Hub reliability
 
 Optional Hub/notification/spotlight loaders now run independently via `Promise.allSettled()`, so one failed optional API cannot stop the remaining dashboard additions. Client cache version bumped to 3.9.1.
+
+
+## V3.9.2: Hub visibility hardening
+
+The Member Hub and Spotlight are now hard-coded into the member page directly after the hero and explicitly forced visible in CSS. Notification controls are also inserted directly into the member header. Script cache version bumped to 3.9.2.

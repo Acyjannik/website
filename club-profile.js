@@ -119,6 +119,15 @@ async function awardProgression(eventKey) {
   }
 }
 
+document.getElementById('notification-bell')?.addEventListener('click', () => {
+  const panel = document.getElementById('notification-panel');
+  if (panel) panel.hidden = !panel.hidden;
+});
+document.getElementById('notification-close')?.addEventListener('click', () => {
+  const panel = document.getElementById('notification-panel');
+  if (panel) panel.hidden = true;
+});
+
 async function init() {
   try {
     const cfg = await (await fetch('/api/config', { cache: 'no-store' })).json();
