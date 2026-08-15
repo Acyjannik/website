@@ -246,7 +246,7 @@ document.getElementById('notification-read-all')?.addEventListener('click', asyn
 
 
 // ------------------------------------------------------------
-// V5.1 Direct Messages
+// V6.2 Direct Messages
 // ------------------------------------------------------------
 let dmMessages = [];
 let dmConversations = new Map();
@@ -289,6 +289,42 @@ function dmOtherId(message) {
 
 function dmLastMessage(messages) {
   return messages.slice().sort((a,b) => new Date(b.created_at) - new Date(a.created_at))[0];
+}
+
+async function loadDmUnreadCount() {
+  const badge = $('dm-unread-count');
+  if (!badge || !supabaseClient || !currentUser) return;
+  try {
+    const { count, error } = await supabaseClient
+      .from('club_notifications')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', currentUser.id)
+      .eq('notification_type', 'direct_message')
+      .is('read_at', null);
+    if (error) throw error;
+    const unread = Number(count || 0);
+    badge.textContent = unread === 1 ? '1 ungelesen' : `${unread} ungelesen`;
+    badge.hidden = unread === 0;
+  } catch (error) {
+    console.warn('DM unread count unavailable:', error);
+  }
+}
+
+async function markDmNotificationsRead(senderId) {
+  if (!senderId || !supabaseClient || !currentUser) return;
+  try {
+    await supabaseClient
+      .from('club_notifications')
+      .update({ read_at: new Date().toISOString() })
+      .eq('user_id', currentUser.id)
+      .eq('notification_type', 'direct_message')
+      .eq('read_at', null)
+      .like('link_url', `/club-profile.html?dm=${senderId}`);
+    await loadDmUnreadCount();
+    await refreshNotificationBadge();
+  } catch (error) {
+    console.warn('DM notification read state failed:', error);
+  }
 }
 
 function renderDmConversations() {
@@ -421,6 +457,7 @@ async function loadDirectMessages(initialUserId = '') {
     }
 
     renderDmConversations();
+    await loadDmUnreadCount();
 
     if (initialUserId && initialUserId !== currentUser.id) {
       await openDmConversation(initialUserId);
@@ -449,6 +486,7 @@ async function loadDirectMessages(initialUserId = '') {
           renderDmConversations();
           if (dmActiveUserId === userId) renderDmThread();
         }
+        await loadDmUnreadCount();
         await refreshNotificationBadge();
       })
       .on('postgres_changes', {
@@ -487,6 +525,7 @@ async function openDmConversation(userId) {
 
   dmActiveUserId = userId;
   renderDmConversations();
+  await markDmNotificationsRead(userId);
   renderDmThread();
 
   const input = $('dm-input');
@@ -1635,14 +1674,26 @@ async function loadMemberDirectory(search = '') {
           <strong>${escapeHtml(level)}</strong>
           <small>${Number(member.xp || 0)} XP</small>
           <span>${badges || '💜 ACY Rookie'}</span>
+          ${member.id !== currentUser.id ? `<button class="button button-secondary member-directory-message" type="button" data-message-member="${escapeAttr(member.id)}">Nachricht</button>` : ''}
         </div>
       </article>`;
     }).join('');
 
     list.querySelectorAll('.member-directory-clickable').forEach(card => {
-      card.addEventListener('click', () => {
+      card.addEventListener('click', (event) => {
+        if (event.target.closest('[data-message-member]')) return;
         const id = card.dataset.memberId;
         if (id) window.location.href = `/member.html?id=${encodeURIComponent(id)}`;
+      });
+    });
+
+    list.querySelectorAll('[data-message-member]').forEach(button => {
+      button.addEventListener('click', (event) => {
+        event.stopPropagation();
+        const id = button.dataset.messageMember;
+        if (id && id !== currentUser.id) {
+          window.location.href = `/club-profile.html?dm=${encodeURIComponent(id)}`;
+        }
       });
     });
   } catch (error) {

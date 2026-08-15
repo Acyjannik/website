@@ -711,3 +711,14 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Added `supabase/club_game_presence.sql` migration with RLS.
 - Public activity exposes game counts only, not member identities.
 - Admin already has a dynamic Games catalog; its active games become the member choices automatically.
+
+
+## V6.2 — Direct Messages
+- Direct messages are now presented as a finished member feature.
+- Added unread DM count using the existing notification system.
+- Opening a DM marks its related message notifications as read.
+- Realtime incoming messages refresh the unread state.
+- Member directory now has a direct "Nachricht" action without leaving the Club context.
+- Existing public member profiles can also start a DM.
+- Existing RLS keeps messages limited to sender/recipient; sent messages can be deleted by their sender.
+- Uses `supabase/club_direct_messages.sql`; no additional migration beyond that file is required.
