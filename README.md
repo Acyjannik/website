@@ -219,3 +219,13 @@ Removed the confusing numeric "20" tile from the daily schedule card and replace
 ## V2.4.21: ACY Club Discord CTA fix
 
 The ACY Club Discord button is now explicitly linked to the ACY Club invite and no longer uses the disabled/placeholder state.
+
+
+## V2.4.22: ACY Club layout fix
+
+Removed the duplicate Discord CTA, fixed the leaked `class="eyebrow">CONNECT` fragment, and centered the ACY Club content/Discord button.
+
+
+## V2.4.23: Final ACY Club / Socials cleanup
+
+Rebuilt the Club and Socials markup cleanly: one active Discord CTA, centered Club content, and a proper CONNECT heading with no leaked HTML fragment.

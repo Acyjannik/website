@@ -329,3 +329,49 @@ button:disabled{opacity:.55;cursor:not-allowed}
   opacity:1;
   cursor:pointer;
 }
+
+/* V2.4.22 ACY Club layout cleanup */
+#club .club-card,
+#club .club-panel,
+#club .club-content{
+  text-align:center;
+}
+#club .club-cta{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  margin-top:22px;
+}
+#club .club-cta .button{
+  display:inline-flex;
+  justify-content:center;
+  align-items:center;
+}
+#club .club-panel > .eyebrow,
+#club .club-card > .eyebrow{
+  display:inline-block;
+}
+
+/* V2.4.23: final ACY Club / Socials layout */
+#club .club-panel{
+  text-align:center;
+}
+#club .club-cta{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  width:100%;
+  margin-top:22px;
+}
+#club .club-cta .button-primary{
+  pointer-events:auto;
+  opacity:1;
+}
+#socials .section-heading{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+}
+#socials .section-heading h2{
+  margin:8px 0 0;
+}
