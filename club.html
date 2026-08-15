@@ -44,8 +44,8 @@
           <h2>Konto erstellen</h2>
 
           <label>Benutzername
-            <input id="username" minlength="3" maxlength="24" pattern="[a-z0-9_]{3,24}" autocomplete="username" placeholder="z. B. acyfan" required>
-            <small>3–24 Zeichen · Kleinbuchstaben, Zahlen und _</small>
+            <input id="username" minlength="3" maxlength="24" pattern="[a-z0-9_]{3,24}" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="z. B. acyfan" required>
+            <small class="username-hint">Nur Kleinbuchstaben (a–z), Zahlen und _ · 3–24 Zeichen</small>
           </label>
 
           <label>Anzeigename

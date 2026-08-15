@@ -785,3 +785,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
   .club-chat-composer-meta span:last-child{display:none}
   .club-chat-send{min-width:70px;padding-left:12px;padding-right:12px}
 }
+
+/* V5.0.2 registration clarity */
+.username-hint{display:block;margin-top:5px;line-height:1.45}
+#username{text-transform:lowercase}

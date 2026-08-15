@@ -33,7 +33,7 @@ function showRegistrationSuccess(email, confirmedSession = false, pending = fals
     ? `Wir haben deine Registrierung verarbeitet. Falls du bereits die Bestätigungs-E-Mail von info@acyjannik.de erhalten hast, bestätige sie bitte. Die E-Mail wurde an ${email} gesendet.`
     : confirmedSession
       ? 'Dein Account ist erstellt. Willkommen im ACY Club.'
-      : `Dein Account ist erstellt. Wir haben eine Bestätigungs-E-Mail an ${email} gesendet. Bitte bestätige deine E-Mail-Adresse, bevor du dich einloggst.`;
+      : `Dein Account ist erstellt. Wir haben eine Bestätigungs-E-Mail an ${email} gesendet. Bitte prüfe auch Spam/Junk und bestätige deine E-Mail-Adresse, bevor du dich einloggst.`;
 }
 
 async function awardProgression(eventKey) {
@@ -82,6 +82,14 @@ async function init() {
 $('show-register')?.addEventListener('click', () => switchMode('register'));
 $('show-login')?.addEventListener('click', () => switchMode('login'));
 
+$('username')?.addEventListener('input', (event) => {
+  // Usernames are intentionally lowercase and URL-safe.
+  const input = event.currentTarget;
+  const before = input.value;
+  const normalized = before.toLowerCase().replace(/[^a-z0-9_]/g, '');
+  if (before !== normalized) input.value = normalized;
+});
+
 $('register-form')?.addEventListener('submit', async (event) => {
   event.preventDefault();
 
@@ -95,7 +103,7 @@ $('register-form')?.addEventListener('submit', async (event) => {
   const password = $('register-password').value;
 
   if (!/^[a-z0-9_]{3,24}$/.test(username)) {
-    return status('auth-status', 'Benutzername: 3–24 Zeichen, nur a–z, 0–9 und _.', 'error');
+    return status('auth-status', 'Benutzername: 3–24 Zeichen. Nur Kleinbuchstaben (a–z), Zahlen und _.', 'error');
   }
 
   if (password.length < 10) {

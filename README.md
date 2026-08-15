@@ -571,3 +571,11 @@ Added Impressum, Datenschutzerklärung, Account & Datenschutz page, account dele
 - Fixed chat profile loading: `club_chat_messages.user_id` references `auth.users`, so messages and `profiles` are now loaded separately.
 - Fixed Realtime INSERT enrichment using the same profile lookup.
 - Added clearer chat connection/error reporting.
+
+
+## V5.0.2 — Registration clarity
+- Username field now visibly explains the lowercase-only rule.
+- Uppercase letters are normalized to lowercase while typing.
+- Unsupported username characters are removed immediately.
+- Added `autocapitalize="none"` and disabled spellcheck for usernames.
+- Confirmation message now explicitly reminds users to check spam/junk.
