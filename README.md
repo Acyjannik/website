@@ -896,3 +896,11 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Matches the IONOS settings shown in the mail-server documentation.
 - API version is 7.1.7.
 - No SQL changes.
+
+
+## V7.1.8 — SMTP Envelope Sender Fix
+- The SMTP envelope `MAIL FROM` now always uses `SMTP_USER`.
+- The visible `From:` header also uses `SMTP_USER`.
+- This removes ambiguity when `EMAIL_FROM` is configured differently or is an alias.
+- SMTP test result reports the envelope sender without exposing any secret.
+- No SQL changes.

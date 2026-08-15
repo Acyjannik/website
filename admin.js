@@ -1183,7 +1183,7 @@ $('test-email-btn')?.addEventListener('click', async () => {
     }
 
     message('poll-admin-message',
-      `SMTP-Test erfolgreich · API ${payload.apiVersion || 'älteres Backend'} · ${payload.sentTo ? `Mail an ${payload.sentTo} übergeben.` : `${payload.emailSent ?? 0} E-Mail(s) gesendet.`}`,
+      `SMTP-Test erfolgreich · API ${payload.apiVersion || 'älteres Backend'} · ${payload.sentTo ? `Mail an ${payload.sentTo} übergeben · Absender ${payload.envelopeFrom || 'SMTP_USER'}.` : `${payload.emailSent ?? 0} E-Mail(s) gesendet.`}`,
       true);
   } catch (error) {
     message('poll-admin-message', `SMTP-Test fehlgeschlagen · ${error?.message || 'Unbekannter Fehler'}`);
