@@ -142,10 +142,15 @@ async function init() {
     await loadClubClips();
     await checkAchievements();
     await loadMemberStats();
-    await loadLeaderboard();
-    await loadMemberHub();
-    await loadNotifications();
-    await loadSpotlight();
+    // Optional dashboard extras are intentionally independent.
+    await Promise.allSettled([
+      checkAchievements(),
+      loadMemberStats(),
+      loadLeaderboard(),
+      loadMemberHub(),
+      loadNotifications(),
+      loadSpotlight()
+    ]);
   } catch (error) {
     const msg = error?.message || 'Profil konnte nicht geladen werden.';
     const status = $('profile-save-status');

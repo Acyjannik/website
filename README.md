@@ -474,3 +474,8 @@ Combined the next three roadmap steps:
 Run `supabase/club_notifications_spotlight.sql` once in Supabase SQL Editor.
 
 Notifications are intentionally UI-only for now: the table is ready for later automatic events such as new badges, event reminders and live-start notifications.
+
+
+## V3.9.1: Member Hub reliability
+
+Optional Hub/notification/spotlight loaders now run independently via `Promise.allSettled()`, so one failed optional API cannot stop the remaining dashboard additions. Client cache version bumped to 3.9.1.
