@@ -28,7 +28,7 @@ with check (exists (select 1 from public.admin_users a where a.user_id = auth.ui
 alter table public.profiles
   add column if not exists discord_connected boolean not null default false;
 
--- Server-side award function. The unique event_key prevents duplicate awards.
+-- Server-side award function. A zeroed reversible event can become active again.
 create or replace function public.award_club_xp(
   p_user_id uuid,
   p_event_key text,
@@ -49,7 +49,13 @@ begin
 
   insert into public.club_xp_events(user_id, event_key, xp)
   values (p_user_id, p_event_key, p_xp)
-  on conflict (user_id, event_key) do nothing;
+  on conflict (user_id, event_key)
+  do update
+    set xp = case
+      when public.club_xp_events.xp = 0 then excluded.xp
+      else public.club_xp_events.xp
+    end
+  where public.club_xp_events.xp = 0;
 
   get diagnostics inserted_count = row_count;
 
@@ -72,7 +78,7 @@ revoke all on function public.award_club_xp(uuid, text, integer) from public;
 grant execute on function public.award_club_xp(uuid, text, integer) to authenticated;
 
 
--- Remove XP for a reversible, one-time event action.
+-- Remove XP for a reversible connection-state action.
 create or replace function public.revoke_club_xp(
   p_user_id uuid,
   p_event_key text,
@@ -91,8 +97,8 @@ begin
     return 0;
   end if;
 
-  -- Keep the event row as a zeroed marker. This prevents the user from
-  -- disconnecting/reconnecting repeatedly to farm the same one-time XP.
+  -- Keep the event row as a zeroed marker. Reconnecting can restore the
+  -- current-state XP, while repeated connect/disconnect cycles never stack XP.
   update public.club_xp_events
   set xp = 0
   where user_id = p_user_id

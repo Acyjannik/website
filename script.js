@@ -282,3 +282,56 @@ async function loadPublicSpotlight() {
 
 
 window.addEventListener('DOMContentLoaded', loadPublicSpotlight);
+
+
+// ACY Club public header state.
+// If a Supabase session exists, replace "ACY Club beitreten" with the member's
+// avatar and a direct link to their Club profile. No session means the public
+// CTA stays exactly as normal.
+async function updatePublicClubHeader() {
+  const cta = document.getElementById('public-club-cta');
+  if (!cta) return;
+
+  try {
+    const configResponse = await fetch('/api/config', { cache: 'no-store' });
+    const config = await configResponse.json();
+    if (!config?.configured || !window.supabase) return;
+
+    const client = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey, {
+      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+    });
+
+    const { data } = await client.auth.getSession();
+    const user = data?.session?.user;
+    if (!user) return;
+
+    const { data: profile } = await client
+      .from('profiles')
+      .select('display_name,username,avatar_url')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    const name = profile?.display_name || profile?.username || 'Mein Club';
+    const initial = (name.trim().charAt(0) || 'A').toUpperCase();
+
+    cta.className = 'nav-club-member';
+    cta.href = '/club-profile.html';
+    cta.setAttribute('aria-label', `Mein ACY Club Profil: ${name}`);
+    cta.innerHTML = profile?.avatar_url
+      ? `<img class="public-member-avatar" src="${String(profile.avatar_url).replace(/"/g, '&quot;')}" alt="" loading="eager"><span class="public-member-copy"><small>ACY CLUB</small><strong>${escapePublicText(name)}</strong></span>`
+      : `<span class="public-member-avatar public-member-fallback">${escapePublicText(initial)}</span><span class="public-member-copy"><small>ACY CLUB</small><strong>${escapePublicText(name)}</strong></span>`;
+  } catch (error) {
+    console.warn('Public Club header unavailable:', error);
+  }
+}
+
+function escapePublicText(value) {
+  return String(value)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+}
+
+updatePublicClubHeader();

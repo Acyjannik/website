@@ -616,3 +616,10 @@ Added Impressum, Datenschutzerklärung, Account & Datenschutz page, account dele
 - The event row remains unique but can be reactivated when its stored XP is 0.
 - Repeated connect/disconnect cycles do not stack XP; the current connection state determines the +50/-50.
 - Updated the progression SQL function accordingly.
+
+
+## V5.0.8 — Notifications + public Club state
+- “Alle gelesen” now calls the existing server-side notification endpoint and immediately clears the visible notification list and unread badge.
+- Public homepage header detects an existing Supabase session.
+- Logged-in members see their avatar (or initial) and display name instead of “ACY Club beitreten”.
+- The header member control links directly to `/club-profile.html`.

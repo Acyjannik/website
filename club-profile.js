@@ -138,6 +138,54 @@ document.getElementById('notification-close')?.addEventListener('click', () => {
   if (panel) panel.hidden = true;
 });
 
+document.getElementById('notification-read-all')?.addEventListener('click', async () => {
+  const button = document.getElementById('notification-read-all');
+  const container = document.getElementById('notifications-list');
+  const badge = document.getElementById('notification-count');
+  if (!supabaseClient || !container) return;
+
+  const originalText = button?.textContent || 'Alle gelesen';
+  if (button) {
+    button.disabled = true;
+    button.textContent = 'Wird gelesen…';
+  }
+
+  try {
+    const { data } = await supabaseClient.auth.getSession();
+    const token = data?.session?.access_token;
+    if (!token) throw new Error('Deine Sitzung ist abgelaufen.');
+
+    const response = await fetch('/api/club-notifications?action=mark_all_read', {
+      method: 'POST',
+      cache: 'no-store',
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(payload.error || 'Benachrichtigungen konnten nicht als gelesen markiert werden.');
+
+    // The user asked for read notifications to disappear, so remove them
+    // from the visible panel immediately instead of merely changing styling.
+    container.innerHTML = '<div class="club-content-empty">Keine neuen Benachrichtigungen.</div>';
+    if (badge) {
+      badge.textContent = '';
+      badge.hidden = true;
+    }
+  } catch (error) {
+    console.warn('Mark all notifications read failed:', error);
+    if (container) {
+      const errorBox = document.createElement('div');
+      errorBox.className = 'club-content-empty';
+      errorBox.textContent = error?.message || 'Benachrichtigungen konnten nicht aktualisiert werden.';
+      container.prepend(errorBox);
+    }
+  } finally {
+    if (button) {
+      button.disabled = false;
+      button.textContent = originalText;
+    }
+  }
+});
+
 function handleDiscordOAuthCallback() {
   const params = new URLSearchParams(window.location.search);
   const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''));
