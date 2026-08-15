@@ -495,3 +495,7 @@ The standalone `club-member.js` function has been merged into `club-members.js`:
 - `/api/club-members?id=<uuid>` -> public member profile
 
 This reduces `/api` from 13 functions to 12 without removing functionality.
+
+
+## V4.0 Legal & Privacy
+Added Impressum, Datenschutzerklärung, Account & Datenschutz page, account deletion, footer links, and registration legal links. Legal pages contain explicit placeholders for the operator's real identity/address/contact data and must be completed before publication. The account deletion endpoint is folded into the existing notifications function to keep the Vercel Hobby deployment at 12 functions.
