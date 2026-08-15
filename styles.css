@@ -465,3 +465,6 @@ button:disabled{opacity:.55;cursor:not-allowed}
 /* V3.0 event participation */
 .event-item .button:disabled{opacity:.55;cursor:wait}
 .event-attendee-count{color:#c084fc;font-weight:700}
+
+/* V3.0.2 attendance state */
+.event-item[data-attending="true"] .event-attendee-count{color:#86efac}

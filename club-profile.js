@@ -329,10 +329,24 @@ async function connectDiscord() {
   }
 }
 
+function applyEventAttendanceState(item, attending) {
+  if (!item) return;
+  item.dataset.attending = attending ? 'true' : 'false';
+  const btn = item.querySelector('.event-attend-btn');
+  if (!btn) return;
+  btn.className = `button button-small ${attending ? 'button-secondary' : 'button-primary'} event-attend-btn`;
+  btn.textContent = attending ? 'Dabei ✓' : 'Teilnehmen';
+}
+
 async function loadClubContent(){
   const eventsList=$('member-events-list'), newsList=$('member-news-list');
   try{
-    const r=await fetch('/api/club-content',{cache:'no-store'});
+    const { data: sessionData } = await supabaseClient.auth.getSession();
+    const sessionToken = sessionData?.session?.access_token || '';
+    const r=await fetch(`/api/club-content?_=${Date.now()}`,{
+      cache:'no-store',
+      headers: sessionToken ? { 'Authorization': `Bearer ${sessionToken}` } : {}
+    });
     if(!r.ok)throw new Error(`HTTP ${r.status}`);
     const d=await r.json();
     if(eventsList){
@@ -340,8 +354,8 @@ async function loadClubContent(){
       eventsList.innerHTML=ev.length?ev.map(e=>{
         const when=new Date(e.event_date).toLocaleString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
         const count=Number(e.attendee_count||0);
-        const attending=!!e.user_attending;
-        return `<article class="club-content-item event-item" data-event-id="${e.id}">
+        const attending = !!e.user_attending;
+        return `<article class="club-content-item event-item" data-event-id="${e.id}" data-attending="${attending}">
           <div class="club-content-date">${escapeHtml(when)}</div>
           <div class="club-content-main"><strong>${escapeHtml(e.title)}</strong><p>${escapeHtml(e.description||'')}</p><small>${escapeHtml(e.location||'Community')} · <span class="event-attendee-count">${count}</span> dabei</small></div>
           <button type="button" class="button button-small ${attending?'button-secondary':'button-primary'} event-attend-btn">${attending?'Dabei ✓':'Teilnehmen'}</button>
@@ -353,7 +367,7 @@ async function loadClubContent(){
           const item=btn.closest('.event-item');
           const eventId=Number(item?.dataset.eventId);
           if(!eventId) return;
-          const isAttending=btn.classList.contains('button-secondary');
+          const isAttending = item?.dataset.attending === 'true';
           btn.disabled=true;
           btn.textContent=isAttending?'Abmelden…':'Dabei…';
           try{
@@ -367,15 +381,14 @@ async function loadClubContent(){
             });
             const result=await response.json();
             if(!response.ok) throw new Error(result.error||'Teilnahme konnte nicht gespeichert werden.');
-            btn.className=`button button-small ${result.attending?'button-secondary':'button-primary'} event-attend-btn`;
-            btn.textContent=result.attending?'Dabei ✓':'Teilnehmen';
+            applyEventAttendanceState(item, !!result.attending);
             const countEl=item.querySelector('.event-attendee-count');
             if(countEl) countEl.textContent=String(result.count);
             await loadProfile();
           }catch(error){
             console.error('Event attendance failed:',error);
             btn.textContent=isAttending?'Dabei ✓':'Teilnehmen';
-            if(!isAttending) btn.className='button button-small button-primary event-attend-btn';
+            applyEventAttendanceState(item, isAttending);
             const existing=$('profile-save-status');
             if(existing){existing.textContent=error.message||'Teilnahme fehlgeschlagen.';existing.className='club-auth-status error';}
           }finally{

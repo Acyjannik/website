@@ -351,3 +351,8 @@ Run `supabase/club_event_attendance.sql` once in Supabase SQL Editor.
 
 Leaving an event now also reverses the +100 XP that was awarded for that attendance. The XP record is removed server-side so the score cannot remain inflated after cancelling participation.
 Run the updated `supabase/club_progression.sql` once in Supabase SQL Editor so the `revoke_club_xp` function exists.
+
+
+## V3.0.2: Attendance state persistence
+
+Event attendance is now reloaded from Supabase with the authenticated member session and explicitly re-renders the button as `Dabei ✓` after a page reload.

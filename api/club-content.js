@@ -26,8 +26,8 @@ export default async function handler(req,res){
 
     for(const event of events){
       const attendees=await rows(`club_event_attendance?event_id=eq.${event.id}&select=user_id`);
-      event.attendee_count=attendees.length;
-      event.user_attending=!!userId && attendees.some(a=>a.user_id===userId);
+      event.attendee_count = attendees.length;
+      event.user_attending = !!userId && attendees.some(a => String(a.user_id) === String(userId));
     }
 
     return res.status(200).json({
