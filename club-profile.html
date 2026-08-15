@@ -6,7 +6,7 @@
   <title>Mein ACY Club · Acyjannik</title>
   <link rel="stylesheet" href="styles.css?v=7.4.3">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="/pet-companion.js?v=7.2.0" defer></script>
-  <script src="club-profile.js?v=7.4.3" defer></script>
+  <script src="club-profile.js?v=7.4.5" defer></script>
   <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
   <link rel="shortcut icon" href="/assets/favicon.svg">
   <link rel="apple-touch-icon" href="/assets/favicon.svg">
@@ -31,13 +31,18 @@
     </header>
 
     
-      <section class="member-card member-span-2 notification-settings-card" id="notification-settings">
-        <div class="member-card-head">
-          <div>
-            <div class="eyebrow">BENACHRICHTIGUNGEN</div>
-            <h2>Was willst du mitbekommen?</h2>
-            <p>Website-Hinweise und E-Mails getrennt einstellen.</p>
-          </div>
+      <details class="member-card member-span-2 notification-settings-card notification-settings-collapsible" id="notification-settings">
+        <summary class="notification-settings-summary">
+          <span>
+            <span class="eyebrow">BENACHRICHTIGUNGEN</span>
+            <strong>Was willst du mitbekommen?</strong>
+            <small>Website-Hinweise und E-Mails getrennt einstellen.</small>
+          </span>
+          <span class="notification-settings-summary-right">
+            <span class="member-count-chip" id="notification-settings-status">Wird geladen…</span>
+            <span class="notification-settings-chevron">⌄</span>
+          </span>
+        </summary>
           <span class="member-count-chip" id="notification-settings-status">Wird geladen…</span>
         </div>
 
@@ -69,7 +74,7 @@
           <button class="button button-primary" type="button" id="save-notification-settings">Einstellungen speichern</button>
         </div>
         <p class="club-auth-status" id="notification-settings-message"></p>
-      </section>
+      </details>
 <main class="member-dashboard">
       <section class="member-hero-card">
         <div class="member-identity">

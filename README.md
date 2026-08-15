@@ -989,3 +989,11 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Fixed the missing `public-status` element that caused `Cannot set properties of null (setting 'textContent')` when opening a member profile.
 - Made the public profile text/avatar updates tolerant of missing optional elements.
 - No SQL changes.
+
+
+## V7.4.5 — Notification Settings
+- Notification settings are now collapsible to reduce page clutter.
+- In-App, E-Mail and every notification category default to enabled.
+- Existing notification preference rows are migrated to all enabled once via SQL.
+- Users can still turn individual categories or the E-Mail master switch off.
+- Run `supabase/club_notification_preferences.sql` again after deployment.

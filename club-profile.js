@@ -1041,7 +1041,7 @@ async function loadNotificationPreferences() {
 
   for (const [id, key] of Object.entries(map)) {
     const el = document.querySelector(`[data-pref="${id}"]`);
-    if (el) el.checked = Boolean(p[key]);
+    if (el) el.checked = p[key] !== false;
   }
 
   setText('notification-settings-email', currentUser?.email || '–');
