@@ -458,3 +458,6 @@ button:disabled{opacity:.55;cursor:not-allowed}
 
 /* V2.9.1 Discord linking status */
 #discord-link-status{margin-top:12px}
+
+/* V2.9.2 Discord progression */
+.discord-xp-note{margin-top:8px;font-size:10px;color:#71717a}

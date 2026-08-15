@@ -327,3 +327,8 @@ After setup, the member can click **Discord verbinden**. The OAuth identity is l
 ## V2.9.1: Discord linking diagnostics
 
 The Discord button now explicitly follows the OAuth URL returned by Supabase and shows the exact setup error below the button if no OAuth URL is returned or linking fails.
+
+
+## V2.9.2: Discord progression
+
+Discord linking now visibly unlocks the **Discord Member** badge and awards the configured **+50 XP** once. The Member dashboard updates XP and badges immediately after a successful link.

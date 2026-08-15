@@ -50,11 +50,12 @@ function renderProgress(xp) {
   setText('level-title', levelForXp(xp).title);
 }
 
-function renderBadges(badges = [], xp = 0) {
+function renderBadges(badges = [], xp = 0, discordConnected = false) {
   const autoBadges = [];
   if (xp >= 100) autoBadges.push('ACY Member');
   if (xp >= 500) autoBadges.push('ACY OG');
   if (xp >= 1000) autoBadges.push('ACY Legend');
+  if (discordConnected) autoBadges.push('Discord Member');
   const defaults = ['ACY Rookie', ...autoBadges];
   const list = Array.from(new Set([...(badges || []), ...defaults]));
   const icons = {
@@ -62,7 +63,8 @@ function renderBadges(badges = [], xp = 0) {
     'Early Member': '⏳',
     'Fortnite': '🎮',
     'ACY OG': '👑',
-    'ACY Legend': '🏆'
+    'ACY Legend': '🏆',
+    'Discord Member': '💬'
   };
   const badgeGrid = $('badge-grid');
   if (!badgeGrid) return;
@@ -111,6 +113,7 @@ async function awardProgression(eventKey) {
       renderProgress(result.totalXp);
       setText('member-xp', `${result.totalXp} XP`);
     }
+    return result;
   } catch (error) {
     console.warn('Progression award skipped:', error);
   }
@@ -149,7 +152,7 @@ async function init() {
 async function loadProfile() {
   const { data, error } = await supabaseClient
     .from('profiles')
-    .select('username,display_name,bio,avatar_url,created_at,xp,badges')
+    .select('username,display_name,bio,avatar_url,created_at,xp,badges,discord_connected')
     .eq('id', currentUser.id)
     .maybeSingle();
 
@@ -174,7 +177,8 @@ async function loadProfile() {
 
   renderAvatar(profile);
   renderProgress(Number(profile.xp || 0));
-  renderBadges(profile.badges || [], Number(profile.xp || 0));
+  window.__memberBadges = profile.badges || [];
+  renderBadges(window.__memberBadges, Number(profile.xp || 0), !!profile.discord_connected);
   if ((profile.display_name || '').trim() && (profile.bio || '').trim()) {
     await awardProgression('profile_complete');
   }
@@ -261,7 +265,11 @@ async function loadDiscordLink() {
     }).eq('id', currentUser.id);
 
     if (connected) {
-      await awardProgression('discord_connected');
+      const result = await awardProgression('discord_connected');
+      if (result?.totalXp !== undefined) {
+        renderBadges((window.__memberBadges || []), Number(result.totalXp), true);
+        setText('member-xp', `${result.totalXp} XP`);
+      }
     }
   } catch (error) {
     console.warn('Discord identity status unavailable:', error);
