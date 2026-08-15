@@ -484,3 +484,14 @@ Optional Hub/notification/spotlight loaders now run independently via `Promise.a
 ## V3.9.2: Hub visibility hardening
 
 The Member Hub and Spotlight are now hard-coded into the member page directly after the hero and explicitly forced visible in CSS. Notification controls are also inserted directly into the member header. Script cache version bumped to 3.9.2.
+
+
+## V3.9.3: Vercel serverless function limit
+
+Vercel Hobby allows at most 12 Serverless Functions per deployment. The project previously had 13 under `/api`, which caused the entire production deployment to fail.
+
+The standalone `club-member.js` function has been merged into `club-members.js`:
+- `/api/club-members` -> member directory
+- `/api/club-members?id=<uuid>` -> public member profile
+
+This reduces `/api` from 13 functions to 12 without removing functionality.

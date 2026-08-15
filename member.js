@@ -32,7 +32,7 @@ async function init(){
     const id=new URLSearchParams(location.search).get('id');
     if(!id)throw new Error('Kein Mitglied ausgewählt.');
 
-    const response=await fetch(`/api/club-member?id=${encodeURIComponent(id)}`,{
+    const response=await fetch(`/api/club-members?id=${encodeURIComponent(id)}`,{
       cache:'no-store',
       headers:{Authorization:`Bearer ${data.session.access_token}`}
     });
