@@ -796,3 +796,11 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - The floating companion shows the pet artwork, name, species and pet level and links directly to the Tier section.
 - Added secure `replace_club_pet()` and `release_club_pet()` RPCs.
 - Run `supabase/club_pets_repair.sql` again after deploying V6.5 so the new RPCs are installed.
+
+
+## V6.5.1 — Pet Life & Neglect
+- A pet can die only after one care bar reaches 0 and remains at 0 for 72 hours.
+- The death check is server-side, in both pet loading and pet actions.
+- When a member returns after a death, the UI explains what happened and allows a new adoption.
+- Pet artwork references are normalized to the flat `assets/pet-*.webp` files.
+- Run `supabase/club_pets_repair.sql` again after deployment.

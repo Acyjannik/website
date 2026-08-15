@@ -925,7 +925,7 @@ function renderPetChoices(selected = '') {
   grid.innerHTML = Object.entries(PET_SPECIES).map(([key, pet]) => `
     <label class="pet-choice ${selected === key ? 'is-selected' : ''}">
       <input type="radio" name="pet-species" value="${escapeAttr(key)}" ${selected === key ? 'checked' : ''}>
-      <span class="pet-choice-icon"><img src="assets/pets/${escapeAttr(key)}.webp" alt="${escapeAttr(pet.label)}"></span>
+      <span class="pet-choice-icon"><img src="assets/pet-${escapeAttr(key)}.webp" alt="${escapeAttr(pet.label)}"></span>
       <span class="pet-choice-copy"><strong>${escapeHtml(pet.label)}</strong><small>${escapeHtml(pet.detail)}</small></span>
     </label>
   `).join('');
@@ -959,7 +959,7 @@ function renderPet(pet) {
   const level = petLevelForXp(Number(pet.pet_xp || 0));
 
   const petAvatar = $('pet-avatar');
-  if (petAvatar) petAvatar.innerHTML = `<img src="assets/pets/${escapeAttr(pet.species)}.webp" alt="${escapeAttr(species.label)}">`;
+  if (petAvatar) petAvatar.innerHTML = `<img src="assets/pet-${escapeAttr(pet.species)}.webp" alt="${escapeAttr(species.label)}">`;
   setText('pet-species-label', species.label.toUpperCase());
   setText('pet-display-name', pet.name);
   setText('pet-level-text', `Level ${level.level} · ${Number(pet.pet_xp || 0)} Pflege-XP`);
@@ -979,7 +979,7 @@ function renderPet(pet) {
 
   const next = level.next;
   setText('pet-xp-note', next ? `Noch ${Math.max(0, next - Number(pet.pet_xp || 0))} Pflege-XP bis Level ${level.level + 1}` : 'Maximales Tier-Level erreicht.');
-  setText('pet-care-note', 'Die Werte sinken langsam, wenn du länger weg bist.');
+  setText('pet-care-note', 'Die Werte sinken langsam. Bleibt ein Wert 72 Stunden auf 0, stirbt dein Begleiter.');
   if ($('pet-rename-input')) $('pet-rename-input').value = pet.name;
 }
 
@@ -990,6 +990,12 @@ async function loadPet() {
     // client-side RLS policy is temporarily out of sync.
     const { data, error } = await supabaseClient.rpc('get_club_pet');
     if (error) throw error;
+    if (data?._died) {
+      renderPet(null);
+      const label = PET_SPECIES[data.species]?.label || 'Begleiter';
+      setPetStatus(`Dein ${label} ${data.name} ist leider gestorben. ${data.reason || ''} Du kannst jetzt einen neuen Begleiter adoptieren.`, 'error');
+      return;
+    }
     renderPet(data || null);
     if (data) setPetStatus('', '');
   } catch (error) {

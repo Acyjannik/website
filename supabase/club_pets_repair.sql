@@ -79,29 +79,63 @@ security definer
 set search_path = public
 as $$
 declare
+  p public.club_pets%rowtype;
   result jsonb;
+  elapsed_hours numeric;
+  hunger_now integer;
+  happiness_now integer;
+  energy_now integer;
+  hours_to_zero numeric;
 begin
   if auth.uid() is null then
     raise exception 'Nicht angemeldet.';
   end if;
 
-  select jsonb_build_object(
-    'user_id', user_id,
-    'species', species,
-    'name', name,
-    'hunger', hunger,
-    'happiness', happiness,
-    'energy', energy,
-    'pet_xp', pet_xp,
-    'created_at', created_at,
-    'updated_at', updated_at,
-    'last_interaction_at', last_interaction_at
-  )
-  into result
+  select * into p
   from public.club_pets
   where user_id = auth.uid();
 
-  return result;
+  if p.user_id is null then
+    return null;
+  end if;
+
+  elapsed_hours := greatest(0, extract(epoch from (now() - p.last_interaction_at)) / 3600.0);
+
+  hunger_now := greatest(0, p.hunger - floor(elapsed_hours * 3)::integer);
+  happiness_now := greatest(0, p.happiness - floor(elapsed_hours * 2)::integer);
+  energy_now := greatest(0, p.energy - floor(elapsed_hours * 2)::integer);
+
+  -- Death only happens after a care bar has reached 0 and stayed there
+  -- for 72 hours. Being offline for a short period is harmless.
+  hours_to_zero := least(
+    p.hunger / 3.0,
+    p.happiness / 2.0,
+    p.energy / 2.0
+  );
+
+  if elapsed_hours >= hours_to_zero + 72 then
+    delete from public.club_pets where user_id = auth.uid();
+
+    return jsonb_build_object(
+      '_died', true,
+      'name', p.name,
+      'species', p.species,
+      'reason', 'Ein Pflegewert war 72 Stunden lang auf 0.'
+    );
+  end if;
+
+  return jsonb_build_object(
+    'user_id', p.user_id,
+    'species', p.species,
+    'name', p.name,
+    'hunger', hunger_now,
+    'happiness', happiness_now,
+    'energy', energy_now,
+    'pet_xp', p.pet_xp,
+    'created_at', p.created_at,
+    'updated_at', p.updated_at,
+    'last_interaction_at', p.last_interaction_at
+  );
 end;
 $$;
 
@@ -178,3 +212,116 @@ revoke all on function public.replace_club_pet(text,text) from public;
 revoke all on function public.release_club_pet() from public;
 grant execute on function public.replace_club_pet(text,text) to authenticated;
 grant execute on function public.release_club_pet() to authenticated;
+
+
+-- V6.5.1: death-aware pet actions
+create or replace function public.club_pet_action(p_action text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  p public.club_pets%rowtype;
+  now_ts timestamptz := now();
+  elapsed_hours numeric;
+  new_hunger integer;
+  new_happiness integer;
+  new_energy integer;
+  new_pet_xp integer;
+  daily_awarded boolean := false;
+  species_label text;
+  hours_to_zero numeric;
+  result jsonb;
+begin
+  if auth.uid() is null then raise exception 'Nicht angemeldet.'; end if;
+  if p_action not in ('feed','play','pet') then raise exception 'Ungültige Aktion.'; end if;
+
+  select * into p
+  from public.club_pets
+  where user_id = auth.uid()
+  for update;
+
+  if p.user_id is null then raise exception 'Bitte zuerst ein Tier adoptieren.'; end if;
+
+  elapsed_hours := greatest(0, extract(epoch from (now_ts - p.last_interaction_at)) / 3600.0);
+
+  -- If a care bar has been at zero for 72 hours, the companion dies
+  -- before another action can revive it.
+  hours_to_zero := least(
+    p.hunger / 3.0,
+    p.happiness / 2.0,
+    p.energy / 2.0
+  );
+  if elapsed_hours >= hours_to_zero + 72 then
+    delete from public.club_pets where user_id = auth.uid();
+    raise exception 'Dein Tier ist gestorben, weil ein Pflegewert 72 Stunden lang auf 0 war.';
+  end if;
+
+  -- Gentle decay while the user is away. It never drops below zero.
+  new_hunger := greatest(0, p.hunger - floor(elapsed_hours * 3)::integer);
+  new_happiness := greatest(0, p.happiness - floor(elapsed_hours * 2)::integer);
+  new_energy := greatest(0, p.energy - floor(elapsed_hours * 2)::integer);
+
+  -- Small cooldowns prevent button-spamming from becoming the world's least
+  -- exciting exploit.
+  if p_action = 'feed' and p.last_interaction_at > now_ts - interval '30 minutes' then
+    raise exception 'Dein Tier hat gerade erst gefressen. Versuch es später noch einmal.';
+  elsif p_action = 'play' and p.last_interaction_at > now_ts - interval '30 minutes' then
+    raise exception 'Dein Tier braucht kurz eine Pause.';
+  elsif p_action = 'pet' and p.last_interaction_at > now_ts - interval '10 minutes' then
+    raise exception 'Dein Tier genießt die Aufmerksamkeit noch.';
+  end if;
+
+  if p_action = 'feed' then
+    new_hunger := least(100, new_hunger + 28);
+    new_energy := greatest(0, new_energy - 3);
+    new_happiness := least(100, new_happiness + 4);
+  elsif p_action = 'play' then
+    if new_energy < 15 then raise exception 'Dein Tier ist zu müde zum Spielen.'; end if;
+    new_happiness := least(100, new_happiness + 22);
+    new_energy := greatest(0, new_energy - 15);
+    new_hunger := greatest(0, new_hunger - 8);
+  elsif p_action = 'pet' then
+    new_happiness := least(100, new_happiness + 10);
+  end if;
+
+  new_pet_xp := p.pet_xp;
+
+  insert into public.club_pet_daily_actions(user_id, action_date)
+  values (auth.uid(), current_date)
+  on conflict (user_id, action_date) do nothing;
+
+  if found then
+    new_pet_xp := new_pet_xp + 5;
+    daily_awarded := true;
+    perform public.award_club_xp(auth.uid(), 'pet_care_' || current_date::text, 5);
+  end if;
+
+  update public.club_pets
+  set hunger = new_hunger,
+      happiness = new_happiness,
+      energy = new_energy,
+      pet_xp = new_pet_xp,
+      updated_at = now_ts,
+      last_interaction_at = now_ts
+  where user_id = auth.uid();
+
+  select jsonb_build_object(
+    'user_id', user_id, 'species', species, 'name', name,
+    'hunger', hunger, 'happiness', happiness, 'energy', energy,
+    'pet_xp', pet_xp, 'created_at', created_at,
+    'updated_at', updated_at, 'last_interaction_at', last_interaction_at,
+    'daily_xp_awarded', daily_awarded
+  ) into result
+  from public.club_pets
+  where user_id = auth.uid();
+
+  return result;
+end;
+$$;
+
+
+-- V6.5.1 Pet life rule:
+-- A pet dies only when one of hunger, happiness or energy reaches 0 and
+-- remains at 0 for 72 hours. The check is server-side.
