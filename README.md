@@ -876,3 +876,9 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Restored the missing admin SMTP test button in the Community Votes form.
 - The button calls the existing `/api/club-notification-email` route with `testSmtp: true`.
 - No SQL changes.
+
+
+## V7.1.5.2 — Backward-Compatible SMTP Test
+- The SMTP test now sends title/body/type fields as well as `testSmtp`.
+- This lets the test work with both the new V7.1.5 API and the older deployed email API, which previously rejected empty title/body requests.
+- No SQL changes.

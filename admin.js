@@ -1164,16 +1164,27 @@ $('test-email-btn')?.addEventListener('click', async () => {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ testSmtp: true })
+      body: JSON.stringify({
+        testSmtp: true,
+        type: 'community_vote',
+        title: 'ACY Club SMTP-Test',
+        body: 'Dies ist eine Test-E-Mail für die ACY Club Benachrichtigungen.',
+        linkUrl: '/club-profile.html#notification-settings'
+      })
     });
     const payload = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-      message('poll-admin-message', `SMTP-Test fehlgeschlagen · API ${payload.apiVersion || 'unbekannt'} · ${payload.error || `HTTP ${response.status}`}`);
+      const detail = payload.error
+        || (payload.emailFailed != null ? `${payload.emailFailed} E-Mail-Versandfehler bei ${payload.emailEligible ?? 0} Empfängern.` : `HTTP ${response.status}`);
+      message('poll-admin-message',
+        `SMTP-Test fehlgeschlagen · API ${payload.apiVersion || 'älteres Backend'} · ${detail}`);
       return;
     }
 
-    message('poll-admin-message', `SMTP-Test erfolgreich · API ${payload.apiVersion} · Mail an ${payload.sentTo} übergeben.`, true);
+    message('poll-admin-message',
+      `SMTP-Test erfolgreich · API ${payload.apiVersion || 'älteres Backend'} · ${payload.sentTo ? `Mail an ${payload.sentTo} übergeben.` : `${payload.emailSent ?? 0} E-Mail(s) gesendet.`}`,
+      true);
   } catch (error) {
     message('poll-admin-message', `SMTP-Test fehlgeschlagen · ${error?.message || 'Unbekannter Fehler'}`);
   } finally {
