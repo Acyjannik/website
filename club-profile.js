@@ -339,9 +339,55 @@ async function loadClubContent(){
       const ev=Array.isArray(d.events)?d.events:[];
       eventsList.innerHTML=ev.length?ev.map(e=>{
         const when=new Date(e.event_date).toLocaleString('de-DE',{weekday:'short',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
-        return `<article class="club-content-item"><div class="club-content-date">${escapeHtml(when)}</div><div class="club-content-main"><strong>${escapeHtml(e.title)}</strong><p>${escapeHtml(e.description||'')}</p><small>${escapeHtml(e.location||'Community')}</small></div><a class="button button-small button-primary" href="${escapeAttr(e.twitch_url||'https://www.twitch.tv/acyjannik')}" target="_blank" rel="noreferrer">Dabei sein ↗</a></article>`;
+        const count=Number(e.attendee_count||0);
+        const attending=!!e.user_attending;
+        return `<article class="club-content-item event-item" data-event-id="${e.id}">
+          <div class="club-content-date">${escapeHtml(when)}</div>
+          <div class="club-content-main"><strong>${escapeHtml(e.title)}</strong><p>${escapeHtml(e.description||'')}</p><small>${escapeHtml(e.location||'Community')} · <span class="event-attendee-count">${count}</span> dabei</small></div>
+          <button type="button" class="button button-small ${attending?'button-secondary':'button-primary'} event-attend-btn">${attending?'Dabei ✓':'Teilnehmen'}</button>
+        </article>`;
       }).join(''):'<div class="club-content-empty">Noch keine Events.</div>';
+
+      eventsList.querySelectorAll('.event-attend-btn').forEach(btn=>{
+        btn.onclick=async()=>{
+          const item=btn.closest('.event-item');
+          const eventId=Number(item?.dataset.eventId);
+          if(!eventId) return;
+          const isAttending=btn.classList.contains('button-secondary');
+          btn.disabled=true;
+          btn.textContent=isAttending?'Abmelden…':'Dabei…';
+          try{
+            const {data}=await supabaseClient.auth.getSession();
+            const token=data?.session?.access_token;
+            if(!token) throw new Error('Sitzung abgelaufen. Bitte neu einloggen.');
+            const response=await fetch('/api/club-event-attendance',{
+              method:'POST',
+              headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
+              body:JSON.stringify({eventId,action:isAttending?'leave':'join'})
+            });
+            const result=await response.json();
+            if(!response.ok) throw new Error(result.error||'Teilnahme konnte nicht gespeichert werden.');
+            btn.className=`button button-small ${result.attending?'button-secondary':'button-primary'} event-attend-btn`;
+            btn.textContent=result.attending?'Dabei ✓':'Teilnehmen';
+            const countEl=item.querySelector('.event-attendee-count');
+            if(countEl) countEl.textContent=String(result.count);
+            if(result.attending){
+              await awardProgression(`event_attended_${eventId}`);
+              await loadProfile();
+            }
+          }catch(error){
+            console.error('Event attendance failed:',error);
+            btn.textContent=isAttending?'Dabei ✓':'Teilnehmen';
+            if(!isAttending) btn.className='button button-small button-primary event-attend-btn';
+            const existing=$('profile-save-status');
+            if(existing){existing.textContent=error.message||'Teilnahme fehlgeschlagen.';existing.className='club-auth-status error';}
+          }finally{
+            btn.disabled=false;
+          }
+        };
+      });
     }
+
     if(newsList){
       const news=Array.isArray(d.news)?d.news:[];
       newsList.innerHTML=news.length?news.map(n=>{

@@ -461,3 +461,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
 
 /* V2.9.2 Discord progression */
 .discord-xp-note{margin-top:8px;font-size:10px;color:#71717a}
+
+/* V3.0 event participation */
+.event-item .button:disabled{opacity:.55;cursor:wait}
+.event-attendee-count{color:#c084fc;font-weight:700}

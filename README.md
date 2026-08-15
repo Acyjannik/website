@@ -332,3 +332,16 @@ The Discord button now explicitly follows the OAuth URL returned by Supabase and
 ## V2.9.2: Discord progression
 
 Discord linking now visibly unlocks the **Discord Member** badge and awards the configured **+50 XP** once. The Member dashboard updates XP and badges immediately after a successful link.
+
+
+## V3.0: Event participation
+
+Added:
+- `club_event_attendance` table with one row per member/event
+- Join/leave buttons in the Member dashboard
+- live attendee counts
+- +100 XP once per event attended
+- authenticated attendance API
+- events now show whether the current member is attending
+
+Run `supabase/club_event_attendance.sql` once in Supabase SQL Editor.
