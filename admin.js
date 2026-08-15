@@ -1225,7 +1225,6 @@ $('add-poll-btn')?.addEventListener('click', async () => {
     $('poll-description-admin').value = '';
     $('poll-options-admin').value = '';
     $('poll-closes-admin').value = '';
-    message('poll-admin-message', 'Umfrage veröffentlicht.', true);
     await loadPollsAdmin();
   } catch (error) {
     message('poll-admin-message', error?.message || 'Umfrage konnte nicht erstellt werden.');

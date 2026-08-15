@@ -843,3 +843,9 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - No email is sent until SMTP is configured.
 - In-app notifications and preference storage remain unchanged.
 - No new SQL is required for V7.1.
+
+
+## V7.1.1 — Notification Status Fix
+- Fixed the Community Vote admin message overwriting the email-dispatch result with the generic "Umfrage veröffentlicht." text.
+- The admin page now keeps the actual result: number of emails sent, SMTP-not-configured, or send error.
+- No SQL changes.
