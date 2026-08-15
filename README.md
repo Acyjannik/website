@@ -701,3 +701,13 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Twitch status refreshes every 30 seconds.
 - Twitch credentials remain server-side.
 - No database migration required.
+
+
+## V6.1 — Community Games
+- Public Games section now reads the existing Supabase `games` catalog instead of hardcoded legacy cards.
+- Static legacy game cards are removed from the HTML, so old "Mecha Chamäleon" / fourth-card relics cannot flash back into the page.
+- Added a member "Was spielst du gerade?" selector.
+- Added anonymized public community game counts.
+- Added `supabase/club_game_presence.sql` migration with RLS.
+- Public activity exposes game counts only, not member identities.
+- Admin already has a dynamic Games catalog; its active games become the member choices automatically.

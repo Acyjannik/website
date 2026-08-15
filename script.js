@@ -1,25 +1,75 @@
 
-function preparePublicGameGrid() {
+async function loadPublicGames() {
   const grid = document.getElementById('games-grid');
-  if (!grid) return;
-  grid.innerHTML = `
-    <article class="game-card game-fortnite">
-      <img src="https://cdn.startselect.com/production/blog/preview-images/new-fortnite-season.jpg" alt="Fortnite" loading="lazy" referrerpolicy="no-referrer">
-      <span>01</span>
-      <div><p>FORTNITE</p><small>Main Game · Ranked · Community</small></div>
-    </article>
-    <article class="game-card game-gta">
-      <img src="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/271590/header.jpg" alt="GTA V" loading="lazy" referrerpolicy="no-referrer">
-      <span>02</span>
-      <div><p>GTA V</p><small>Open World · Aktuell · Fun</small></div>
-    </article>
-    <article class="game-card game-thick">
-      <img src="https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/3341000/header.jpg" alt="Thick As Thieves" loading="lazy" referrerpolicy="no-referrer">
-      <span>03</span>
-      <div><p>THICK AS THIEVES</p><small>Stealth · Heist · Community</small></div>
-    </article>`;
+  const activityGrid = document.getElementById('community-games-grid');
+  if (!grid && !activityGrid) return;
+
+  try {
+    if (!window.supabase) throw new Error('Supabase client not available');
+    const configResponse = await fetch('/api/config', { cache: 'no-store' });
+    const config = await configResponse.json();
+    if (!config?.configured) throw new Error('Supabase not configured');
+    const client = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
+
+    if (grid) {
+      const { data: games, error } = await client
+        .from('games')
+        .select('id,name,description,tag,image_url,enabled,featured,sort_order')
+        .eq('enabled', true)
+        .order('featured', { ascending: false })
+        .order('sort_order', { ascending: true })
+        .order('name', { ascending: true })
+        .limit(6);
+
+      if (error) throw error;
+      const rows = games || [];
+      grid.innerHTML = rows.length ? rows.map((game, i) => `
+        <article class="game-card ${game.featured ? 'featured-game' : ''} reveal visible">
+          ${game.image_url ? `<img loading="lazy" referrerpolicy="no-referrer" src="${escapeHtml(game.image_url)}" alt="${escapeHtml(game.name)}">` : ''}
+          <span>${String(i + 1).padStart(2, '0')}</span>
+          <div>
+            <p>${escapeHtml(game.name)}</p>
+            <small>${escapeHtml(game.description || game.tag || 'Community Game')}</small>
+          </div>
+        </article>
+      `).join('') : '<div class="club-content-empty">Noch keine Games im öffentlichen Katalog.</div>';
+    }
+
+    if (activityGrid) {
+      const { data: activity, error: activityError } = await client
+        .from('club_game_activity')
+        .select('id,name,tag,image_url,description,member_count')
+        .order('member_count', { ascending: false })
+        .order('name', { ascending: true })
+        .limit(8);
+
+      if (activityError) throw activityError;
+      const rows = (activity || []).filter(row => Number(row.member_count) > 0);
+
+      activityGrid.innerHTML = rows.length ? rows.map((game, i) => `
+        <article class="community-game-card reveal visible">
+          <div class="community-game-art" ${game.image_url ? `style="background-image:url('${escapeHtml(game.image_url)}')"` : ''}></div>
+          <div class="community-game-overlay"></div>
+          <div class="community-game-body">
+            <span class="community-game-rank">#${i + 1}</span>
+            <strong>${escapeHtml(game.name)}</strong>
+            <small>${Number(game.member_count).toLocaleString('de-DE')} ${Number(game.member_count) === 1 ? 'Mitglied spielt' : 'Mitglieder spielen'} das gerade</small>
+          </div>
+        </article>
+      `).join('') : `
+        <div class="community-games-empty">
+          <strong>Noch keine Live-Spielstände.</strong>
+          <span>Im ACY Club kannst du auswählen, was du gerade spielst. Dann erscheint es hier.</span>
+        </div>`;
+    }
+  } catch (error) {
+    console.warn('Public games unavailable:', error);
+    if (grid) grid.innerHTML = '<div class="club-content-empty">Games konnten gerade nicht geladen werden.</div>';
+    if (activityGrid) activityGrid.innerHTML = '<div class="community-games-empty"><strong>Community-Games gerade nicht verfügbar.</strong><span>Der Club ist weiterhin erreichbar.</span></div>';
+  }
 }
-preparePublicGameGrid();
+
+loadPublicGames();
 
 const observer = new IntersectionObserver((entries) => {
   entries.forEach((entry) => {

@@ -6,7 +6,7 @@
   <title>Mein ACY Club · Acyjannik</title>
   <link rel="stylesheet" href="styles.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="club-profile.js?v=5.6.0" defer></script>
+  <script src="club-profile.js?v=6.1.0" defer></script>
   <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
   <link rel="shortcut icon" href="/assets/favicon.svg">
   <link rel="apple-touch-icon" href="/assets/favicon.svg">
@@ -112,6 +112,25 @@
           <div id="hub-achievements-list"><div class="club-content-empty">Wird geladen…</div></div>
         </div>
       </section>
+        <section class="member-card member-span-2 current-game-card" id="current-game-card">
+          <div class="member-card-head">
+            <div>
+              <div class="eyebrow">COMMUNITY</div>
+              <h2>Was spielst du gerade?</h2>
+              <p>Wähle dein aktuelles Game. Es erscheint anonymisiert in der Community-Übersicht.</p>
+            </div>
+            <span class="member-count-chip" id="current-game-status">Noch nicht gesetzt</span>
+          </div>
+          <div class="current-game-controls">
+            <select id="current-game-select" aria-label="Aktuelles Game">
+              <option value="">Ich spiele gerade nichts / ausblenden</option>
+            </select>
+            <button class="button button-primary" type="button" id="current-game-save">Speichern</button>
+          </div>
+          <div class="current-game-note" id="current-game-note"></div>
+        </section>
+
+
 
       <div class="member-grid">
         <!-- Profile -->

@@ -1071,3 +1071,21 @@ button:disabled{opacity:.55;cursor:not-allowed}
   .live-stat{min-height:125px;padding:16px}
   .live-stat strong{font-size:19px}
 }
+
+/* V6.1 — Community Games */
+.community-games-section{padding-top:18px}
+.community-games-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.community-game-card{position:relative;min-height:180px;overflow:hidden;border:1px solid var(--line);border-radius:20px;background:#101016}
+.community-game-art{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.42;filter:saturate(.8)}
+.community-game-overlay{position:absolute;inset:0;background:linear-gradient(180deg,rgba(9,9,13,.12),rgba(9,9,13,.96))}
+.community-game-body{position:absolute;inset:auto 16px 15px;display:flex;flex-direction:column;gap:4px}
+.community-game-body strong{font-family:'Space Grotesk';font-size:19px;letter-spacing:-.025em}
+.community-game-body small{font-size:11px;color:#c4c4cc}
+.community-game-rank{font-size:9px;letter-spacing:.16em;color:#c084fc;font-weight:800}
+.community-games-empty{grid-column:1/-1;padding:25px;border:1px dashed rgba(255,255,255,.1);border-radius:18px;display:flex;flex-direction:column;gap:6px;color:#a1a1aa}
+.community-games-empty strong{color:#f4f4f5}
+.current-game-controls{display:flex;gap:10px;align-items:center}
+.current-game-controls select{flex:1;min-width:0;padding:13px 14px;border:1px solid var(--line);border-radius:12px;background:#0c0c11;color:#f4f4f5;font:inherit}
+.current-game-note{margin-top:10px;color:#a1a1aa;font-size:11px;min-height:16px}
+@media(max-width:1000px){.community-games-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.community-games-grid{grid-template-columns:1fr}.current-game-controls{flex-direction:column;align-items:stretch}}

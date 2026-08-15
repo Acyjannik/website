@@ -104,6 +104,64 @@ function renderAvatar(profile) {
 }
 
 
+
+// ------------------------------------------------------------
+// V6.1 Community Games: current-game presence
+// ------------------------------------------------------------
+async function loadCurrentGamePresence() {
+  const select = $('current-game-select');
+  const save = $('current-game-save');
+  if (!select || !save || !currentUser) return;
+
+  try {
+    const [{ data: games, error: gamesError }, { data: presence, error: presenceError }] = await Promise.all([
+      supabaseClient.from('games').select('id,name,tag').eq('enabled', true).order('sort_order').order('name'),
+      supabaseClient.from('club_game_presence').select('game_id,updated_at').eq('user_id', currentUser.id).maybeSingle()
+    ]);
+    if (gamesError) throw gamesError;
+    if (presenceError) throw presenceError;
+
+    select.innerHTML = '<option value="">Ich spiele gerade nichts / ausblenden</option>' +
+      (games || []).map(game => `<option value="${escapeAttr(game.id)}">${escapeHtml(game.name)}</option>`).join('');
+    select.value = presence?.game_id || '';
+    setText('current-game-status', presence?.game_id ? 'Aktuell gesetzt' : 'Noch nicht gesetzt');
+
+    save.onclick = async () => {
+      save.disabled = true;
+      setText('current-game-status', 'Speichert…');
+      try {
+        const gameId = select.value;
+        if (!gameId) {
+          const { error } = await supabaseClient.from('club_game_presence').delete().eq('user_id', currentUser.id);
+          if (error) throw error;
+          setText('current-game-status', 'Ausgeblendet');
+          setText('current-game-note', 'Dein aktuelles Game wird nicht mehr in der Community-Übersicht angezeigt.');
+        } else {
+          const { error } = await supabaseClient.from('club_game_presence').upsert({
+            user_id: currentUser.id,
+            game_id: gameId,
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'user_id' });
+          if (error) throw error;
+          const game = (games || []).find(item => item.id === gameId);
+          setText('current-game-status', 'Aktuell gesetzt');
+          setText('current-game-note', `${game?.name || 'Game'} wird jetzt in der Community-Übersicht gezählt.`);
+        }
+      } catch (error) {
+        console.error('Current game save failed:', error);
+        setText('current-game-status', 'Fehler');
+        setText('current-game-note', error.message || 'Konnte nicht gespeichert werden.');
+      } finally {
+        save.disabled = false;
+      }
+    };
+  } catch (error) {
+    console.warn('Current game unavailable:', error);
+    setText('current-game-status', 'Nicht verfügbar');
+    setText('current-game-note', 'Die Community-Games-Funktion ist noch nicht mit der Datenbank verbunden. Bitte V6.1-SQL ausführen.');
+  }
+}
+
 async function awardProgression(eventKey) {
   try {
     const { data } = await supabaseClient.auth.getSession();
@@ -781,6 +839,7 @@ async function init() {
     await checkAchievements();
     await loadMemberStats();
     await loadProgressionCatalog();
+    await loadCurrentGamePresence();
     // Optional dashboard extras are intentionally independent.
     await Promise.allSettled([
       checkAchievements(),
