@@ -882,3 +882,10 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - The SMTP test now sends title/body/type fields as well as `testSmtp`.
 - This lets the test work with both the new V7.1.5 API and the older deployed email API, which previously rejected empty title/body requests.
 - No SQL changes.
+
+
+## V7.1.6 — Email API Final
+- Confirmed and replaced the stale `api/club-notification-email.js`.
+- Added an explicit backend version `7.1.6`.
+- Kept the SMTP test mode on the existing route instead of introducing another API path.
+- No new SQL changes.

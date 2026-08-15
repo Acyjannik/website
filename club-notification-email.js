@@ -1,6 +1,6 @@
 const tls = require('node:tls');
 
-const NOTIFICATION_EMAIL_API_VERSION = '7.1.5';
+const NOTIFICATION_EMAIL_API_VERSION = '7.1.6';
 const env = (name, fallback='') => String(process.env[name] || fallback);
 
 function json(res, status, payload) {
