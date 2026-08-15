@@ -138,14 +138,39 @@ document.getElementById('notification-close')?.addEventListener('click', () => {
   if (panel) panel.hidden = true;
 });
 
+function handleDiscordOAuthCallback() {
+  const params = new URLSearchParams(window.location.search);
+  const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+
+  const error = params.get('error') || hash.get('error');
+  const errorDescription = params.get('error_description') || hash.get('error_description');
+
+  if (error) {
+    const statusEl = $('discord-link-status');
+    if (statusEl) {
+      statusEl.textContent = `Discord-Verbindung fehlgeschlagen: ${decodeURIComponent(errorDescription || error).replace(/\+/g, ' ')}`;
+      statusEl.className = 'club-auth-status error';
+    }
+    return false;
+  }
+
+  return params.has('code') || hash.has('access_token') || hash.has('refresh_token');
+}
+
 async function init() {
   try {
     const cfg = await (await fetch('/api/config', { cache: 'no-store' })).json();
     if (!cfg.configured) throw new Error('Supabase ist noch nicht konfiguriert.');
     supabaseClient = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey, {
-      auth: { persistSession: true, autoRefreshToken: true }
+      auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+      flowType: 'pkce'
+    }
     });
 
+    const oauthCallback = handleDiscordOAuthCallback();
     const { data } = await supabaseClient.auth.getSession();
     if (!data?.session?.user) {
       window.location.href = '/club.html';
@@ -153,6 +178,14 @@ async function init() {
     }
 
     currentUser = data.session.user;
+
+    // Supabase may finish the OAuth identity exchange immediately after the
+    // initial session promise resolves. Give the auth client one turn to
+    // settle, then verify the identity again.
+    if (oauthCallback) {
+      await new Promise(resolve => setTimeout(resolve, 250));
+    }
+
     // Registration XP is awarded after the email-confirmed session exists.
     // The server-side unique constraint makes this safe to call more than once.
     await awardProgression('registration');
@@ -427,7 +460,7 @@ async function connectDiscord() {
     const { data, error } = await supabaseClient.auth.linkIdentity({
       provider: 'discord',
       options: {
-        redirectTo: `${window.location.origin}/club-profile.html`
+        redirectTo: `${window.location.origin}/club-profile.html?discord_callback=1`
       }
     });
 

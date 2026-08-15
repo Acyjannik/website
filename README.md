@@ -588,3 +588,11 @@ Added Impressum, Datenschutzerklärung, Account & Datenschutz page, account dele
 - Discord badge disappears when disconnected.
 - The one-time +50 XP progression event is intentionally not revoked, preventing XP farming by reconnecting repeatedly.
 - Added confirmation and clear success/error states.
+
+
+## V5.0.4 — Discord reconnect reliability
+- Explicitly enables Supabase OAuth callback/session detection.
+- Uses PKCE for the browser auth flow.
+- Adds OAuth callback error reporting instead of silently returning to the profile.
+- Adds a short callback settling delay before checking linked identities.
+- Adds an explicit `discord_callback=1` redirect marker.
