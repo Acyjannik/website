@@ -460,3 +460,17 @@ Added:
 - protected leaderboard API
 
 Run `supabase/club_achievements.sql` once in Supabase SQL Editor.
+
+
+## V3.9: Member Hub + Notifications + Community Spotlight
+
+Combined the next three roadmap steps:
+- personal Member Hub with level/XP progress, Twitch live state, upcoming events and recent achievements
+- in-site notifications bell with unread count
+- Community Spotlight / Member of the Month card in the Member area and public homepage
+- new Supabase tables for notifications and spotlight
+- public spotlight API + authenticated notification API
+
+Run `supabase/club_notifications_spotlight.sql` once in Supabase SQL Editor.
+
+Notifications are intentionally UI-only for now: the table is ready for later automatic events such as new badges, event reminders and live-start notifications.

@@ -143,6 +143,9 @@ async function init() {
     await checkAchievements();
     await loadMemberStats();
     await loadLeaderboard();
+    await loadMemberHub();
+    await loadNotifications();
+    await loadSpotlight();
   } catch (error) {
     const msg = error?.message || 'Profil konnte nicht geladen werden.';
     const status = $('profile-save-status');
@@ -341,6 +344,127 @@ function applyEventAttendanceState(item, attending) {
   if (!btn) return;
   btn.className = `button button-small ${attending ? 'button-secondary' : 'button-primary'} event-attend-btn`;
   btn.textContent = attending ? 'Dabei ✓' : 'Teilnehmen';
+}
+
+async function loadMemberHub() {
+  const greeting = $('hub-greeting');
+  const summary = $('hub-summary');
+  const title = $('hub-level-title');
+  const xp = $('hub-level-xp');
+  const fill = $('hub-xp-fill');
+  const next = $('hub-next-level');
+
+  const name = $('member-name')?.textContent || 'Member';
+  const currentXp = Number($('member-xp')?.textContent?.replace(/[^\d]/g, '') || 0);
+  const level = levelForXp(currentXp);
+
+  if (greeting) greeting.textContent = `Hey, ${name}.`;
+  if (summary) summary.textContent = `${currentXp} XP · ${level.title}`;
+  if (title) title.textContent = level.title;
+  if (xp) xp.textContent = `${currentXp} XP`;
+
+  const thresholds = [0, 100, 250, 500, 1000, 2000];
+  let idx = 0;
+  for (let i = 0; i < thresholds.length; i++) if (currentXp >= thresholds[i]) idx = i;
+  const base = thresholds[idx];
+  const nextThreshold = thresholds[idx + 1] ?? base + 1000;
+  const progress = Math.max(0, Math.min(100, ((currentXp - base) / Math.max(1, nextThreshold - base)) * 100));
+  if (fill) fill.style.width = `${progress}%`;
+  if (next) next.textContent = currentXp >= nextThreshold
+    ? 'Maximales Club-Level erreicht.'
+    : `Noch ${Math.max(0, nextThreshold - currentXp)} XP bis zum nächsten Level.`;
+
+  const eventsList = $('hub-events-list');
+  if (eventsList) {
+    const cards = [...document.querySelectorAll('#member-events-list .event-item')].slice(0, 3);
+    eventsList.innerHTML = cards.length
+      ? cards.map(card => {
+          const titleText = card.querySelector('.club-content-main strong')?.textContent || 'Event';
+          const dateText = card.querySelector('.club-content-date')?.textContent || '';
+          const attending = card.dataset.attending === 'true';
+          return `<div class="hub-mini-row"><div><strong>${escapeHtml(titleText)}</strong><small>${escapeHtml(dateText)}</small></div><span>${attending ? '✅ Dabei' : '◯ Offen'}</span></div>`;
+        }).join('')
+      : '<div class="club-content-empty">Noch keine kommenden Events.</div>';
+  }
+
+  const achievementsList = $('hub-achievements-list');
+  if (achievementsList) {
+    const badges = [...document.querySelectorAll('#badge-grid .member-badge')].slice(0, 4);
+    achievementsList.innerHTML = badges.length
+      ? badges.map(card => `<div class="hub-badge-mini">${card.innerHTML}</div>`).join('')
+      : '<div class="club-content-empty">Noch keine Achievements.</div>';
+  }
+}
+
+async function loadNotifications() {
+  const container = $('notifications-list');
+  const badge = $('notification-count');
+  if (!container) return;
+  try {
+    const { data } = await supabaseClient.auth.getSession();
+    const token = data?.session?.access_token;
+    if (!token) return;
+    const response = await fetch(`/api/club-notifications?_=${Date.now()}`, {
+      cache: 'no-store',
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload.error || 'Benachrichtigungen konnten nicht geladen werden.');
+    const notifications = Array.isArray(payload.notifications) ? payload.notifications : [];
+    const unread = notifications.filter(n => !n.read_at).length;
+    if (badge) {
+      badge.textContent = unread ? String(unread) : '';
+      badge.hidden = !unread;
+    }
+    container.innerHTML = notifications.length
+      ? notifications.slice(0, 8).map(n => `
+          <button class="notification-row ${n.read_at ? '' : 'is-unread'}" type="button" data-notification-id="${n.id}" data-link="${escapeAttr(n.link_url || '')}">
+            <span class="notification-icon">${n.notification_type === 'live' ? '🔴' : n.notification_type === 'badge' ? '🏆' : n.notification_type === 'event' ? '📅' : '💜'}</span>
+            <span><strong>${escapeHtml(n.title)}</strong><small>${escapeHtml(n.body)}</small></span>
+          </button>`).join('')
+      : '<div class="club-content-empty">Keine neuen Benachrichtigungen.</div>';
+
+    container.querySelectorAll('.notification-row').forEach(row => {
+      row.addEventListener('click', async () => {
+        const id = row.dataset.notificationId;
+        const { error } = await supabaseClient.from('club_notifications').update({ read_at: new Date().toISOString() }).eq('id', id);
+        if (error) console.warn('Notification read state failed:', error);
+        const link = row.dataset.link;
+        if (link) window.location.href = link;
+        else await loadNotifications();
+      });
+    });
+  } catch (error) {
+    console.warn('Notifications unavailable:', error);
+  }
+}
+
+async function loadSpotlight() {
+  const box = $('spotlight-content');
+  if (!box) return;
+  try {
+    const response = await fetch(`/api/club-spotlight?_=${Date.now()}`, { cache: 'no-store' });
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload.error || 'Spotlight konnte nicht geladen werden.');
+    if (!payload.spotlight?.member) {
+      box.innerHTML = '<div class="club-content-empty">Diesen Monat gibt es noch kein Spotlight.</div>';
+      return;
+    }
+
+    const m = payload.spotlight.member;
+    const avatar = m.avatar_url
+      ? `<img src="${escapeAttr(m.avatar_url)}" alt="" loading="lazy">`
+      : `<div class="spotlight-avatar-fallback">${escapeHtml((m.display_name || m.username || 'A').charAt(0).toUpperCase())}</div>`;
+
+    box.innerHTML = `<a class="spotlight-person" href="/member.html?id=${encodeURIComponent(m.id)}">
+      <div class="spotlight-avatar">${avatar}</div>
+      <div><strong>${escapeHtml(m.display_name || m.username)}</strong><small>@${escapeHtml(m.username)}</small><p>${escapeHtml(payload.spotlight.blurb || m.bio || 'Aktives ACY Club Mitglied.')}</p></div>
+      <div class="spotlight-stats"><span>${Number(m.xp || 0)} XP</span><span>${Array.isArray(m.badges) ? m.badges.length : 0} Badges</span></div>
+    </a>`;
+  } catch (error) {
+    console.warn('Spotlight unavailable:', error);
+    box.innerHTML = '<div class="club-content-empty">Spotlight momentan nicht verfügbar.</div>';
+  }
 }
 
 async function loadClubClips(){

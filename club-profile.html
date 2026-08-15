@@ -6,7 +6,7 @@
   <title>Mein ACY Club · Acyjannik</title>
   <link rel="stylesheet" href="styles.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="club-profile.js?v=3.6.0" defer></script>
+  <script src="club-profile.js?v=3.9.0" defer></script>
   <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
   <link rel="shortcut icon" href="/assets/favicon.svg">
   <link rel="apple-touch-icon" href="/assets/favicon.svg">
@@ -16,8 +16,16 @@
     <header class="club-auth-header">
       <a class="brand" href="/"><span class="brand-mark">A</span><strong>ACY<span>JANNIK</span></strong></a>
       <div class="member-header-actions">
+        <button class="notification-bell" id="notification-bell" type="button" aria-label="Benachrichtigungen">
+          🔔<span class="notification-count" id="notification-count" hidden></span>
+        </button>
         <a class="button button-secondary" href="/">Website</a>
         <button class="button button-secondary" id="logout">Abmelden</button>
+      </div>
+
+      <div class="notification-panel" id="notification-panel" hidden>
+        <div class="notification-panel-head"><strong>Benachrichtigungen</strong><button id="notification-close" type="button">×</button></div>
+        <div id="notifications-list"><div class="club-content-empty">Keine neuen Benachrichtigungen.</div></div>
       </div>
     </header>
 
@@ -45,6 +53,47 @@
           <div><span>Level</span><strong id="member-level">1</strong></div>
           <div><span>XP</span><strong id="member-xp">0</strong></div>
         </div>
+      </section>
+
+      <section class="member-hub" id="member-hub">
+        <div class="hub-main-card">
+          <div class="eyebrow">DEIN ACY CLUB</div>
+          <h2 id="hub-greeting">Hey, Member.</h2>
+          <p id="hub-summary">Dein persönlicher Überblick.</p>
+          <div class="hub-progress">
+            <div class="hub-progress-head"><span id="hub-level-title">ACY Rookie</span><strong id="hub-level-xp">0 XP</strong></div>
+            <div class="xp-bar"><div id="hub-xp-fill"></div></div>
+            <small id="hub-next-level">Noch 100 XP bis zum nächsten Level.</small>
+          </div>
+        </div>
+
+        <div class="hub-live-card" id="hub-live-card">
+          <div class="eyebrow">TWITCH</div>
+          <div class="hub-live-state"><span class="live-dot" id="hub-live-dot"></span><strong id="hub-live-label">OFFLINE</strong></div>
+          <p id="hub-live-game">Kein Stream aktiv.</p>
+          <a class="button button-primary" href="https://www.twitch.tv/acyjannik" target="_blank" rel="noreferrer">Jetzt zuschauen ↗</a>
+        </div>
+
+        <div class="hub-events-card">
+          <div class="eyebrow">DEINE NÄCHSTEN EVENTS</div>
+          <div id="hub-events-list"><div class="club-content-empty">Wird geladen…</div></div>
+        </div>
+
+        <div class="hub-achievements-card">
+          <div class="eyebrow">LETZTE ERFOLGE</div>
+          <div id="hub-achievements-list"><div class="club-content-empty">Wird geladen…</div></div>
+        </div>
+      </section>
+
+      <section class="member-card member-span-2 spotlight-card" id="member-spotlight">
+        <div class="member-card-head">
+          <div>
+            <div class="eyebrow">COMMUNITY SPOTLIGHT</div>
+            <h2>Member of the Month</h2>
+            <p>Ein Mitglied, das diesen Monat besonders aktiv ist.</p>
+          </div>
+        </div>
+        <div id="spotlight-content"><div class="club-content-empty">Spotlight wird geladen…</div></div>
       </section>
 
       <div class="member-grid">

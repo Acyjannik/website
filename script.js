@@ -254,3 +254,31 @@ function escapeAttr(value = '') {
 }
 
 loadPublicContent();
+
+async function loadPublicSpotlight() {
+  const card = document.getElementById('public-spotlight-card');
+  if (!card) return;
+  try {
+    const response = await fetch(`/api/club-spotlight?_=${Date.now()}`, { cache: 'no-store' });
+    const payload = await response.json();
+    if (!response.ok || !payload.spotlight?.member) {
+      card.innerHTML = '<div class="club-content-empty">Noch kein Spotlight.</div>';
+      return;
+    }
+    const m = payload.spotlight.member;
+    const avatar = m.avatar_url
+      ? `<img src="${escapeAttr(m.avatar_url)}" alt="" loading="lazy">`
+      : `<div class="public-spotlight-avatar-fallback">${escapeHtml((m.display_name || m.username || 'A').charAt(0).toUpperCase())}</div>`;
+    card.innerHTML = `<a href="/member.html?id=${encodeURIComponent(m.id)}" class="public-spotlight-link">
+      <div class="public-spotlight-avatar">${avatar}</div>
+      <div><span class="eyebrow">${escapeHtml(payload.spotlight.title || 'Member of the Month')}</span><h3>${escapeHtml(m.display_name || m.username)}</h3><small>@${escapeHtml(m.username)}</small><p>${escapeHtml(payload.spotlight.blurb || m.bio || 'Aktives ACY Club Mitglied.')}</p></div>
+      <div class="public-spotlight-stats"><strong>${Number(m.xp || 0)} XP</strong><span>${Array.isArray(m.badges) ? m.badges.length : 0} Badges</span></div>
+    </a>`;
+  } catch (error) {
+    console.warn('Public spotlight unavailable:', error);
+    card.innerHTML = '<div class="club-content-empty">Spotlight momentan nicht verfügbar.</div>';
+  }
+}
+
+
+window.addEventListener('DOMContentLoaded', loadPublicSpotlight);
