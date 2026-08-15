@@ -13,6 +13,18 @@ export default async function handler(req, res) {
     const targetUserId = String(body.targetUserId || "").trim();
     const action = String(body.action || "").trim();
 
+    if (action === 'get_friendships') {
+      const response = await fetch(`${supabaseUrl}/rest/v1/rpc/get_my_pet_friendships`,{
+        method:"POST",
+        headers:{apikey:anonKey,Authorization:authHeader,"Content-Type":"application/json"},
+        body:"{}"
+      });
+      const text=await response.text();
+      let payload=[]; try{payload=text?JSON.parse(text):[];}catch{payload=[];}
+      if(!response.ok)return res.status(response.status).json({error:payload?.message||payload?.error||"Freundschaften konnten nicht geladen werden."});
+      return res.status(200).json({ok:true,friendships:Array.isArray(payload)?payload:[]});
+    }
+
     if (!/^[0-9a-f-]{36}$/i.test(targetUserId)) return res.status(400).json({error:"Invalid target member id."});
     if (!["greet","play","pet"].includes(action)) return res.status(400).json({error:"Invalid pet action."});
 
@@ -30,3 +42,4 @@ export default async function handler(req, res) {
     return res.status(500).json({error:error?.message||"Pet social service failed."});
   }
 }
+

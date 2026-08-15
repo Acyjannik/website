@@ -922,3 +922,12 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Added a 15-minute actor/target cooldown and 20 social interactions per day for each member.
 - Added secure Supabase RPCs and a dedicated interaction API.
 - Run `supabase/club_pets_repair.sql` once after deployment.
+
+
+## V7.2.1 — Pet Friendships
+- Pet interactions now build a friendship bond in addition to Social XP.
+- Friendship levels: Bekannt (1+), Freunde (5+), Beste Freunde (15+ interactions).
+- Added a secure `club_pet_friendships` table and RPCs.
+- The member's own profile can show a Pet-Freundschaften section with the top 12 friendships.
+- No new global XP is awarded for friendship; Social XP remains the pet-only reward.
+- Run `supabase/club_pets_repair.sql` again after deployment.

@@ -6,7 +6,7 @@
   <title>ACY Club Member · Acyjannik</title>
   <link rel="stylesheet" href="styles.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="/pet-companion.js?v=7.2.0" defer></script>
-  <script src="member.js?v=7.2.0" defer></script>
+  <script src="member.js?v=7.2.1" defer></script>
   <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
   <link rel="shortcut icon" href="/assets/favicon.svg">
   <link rel="apple-touch-icon" href="/assets/favicon.svg">
@@ -56,7 +56,19 @@
         </div>
 
         
-        <section class="public-member-pet-card" id="pet-social">
+        
+        <section class="public-member-friendships" id="pet-friendships">
+          <div class="eyebrow">PET FREUNDSCHAFTEN</div>
+          <div class="public-pet-heading">
+            <div><h2>Tierische Freunde</h2><p id="public-pet-friends-subtitle">Noch keine Pet-Freundschaften.</p></div>
+            <span class="member-count-chip" id="public-pet-friends-count">0</span>
+          </div>
+          <div class="pet-friends-grid" id="public-pet-friends-grid">
+            <div class="public-pet-friends-empty">Noch keine Freundschaften. Jede Begegnung zählt.</div>
+          </div>
+        </section>
+
+<section class="public-member-pet-card" id="pet-social">
           <div class="eyebrow">PET SOCIAL</div>
           <div class="public-pet-heading">
             <div><h2 id="public-pet-title">Kein Begleiter</h2><p id="public-pet-subtitle">Dieses Mitglied hat noch kein Tier adoptiert.</p></div>

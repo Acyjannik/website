@@ -443,6 +443,9 @@ begin
   insert into public.club_pet_social_interactions(actor_user_id,target_user_id,action,xp_awarded)
   values(auth.uid(),p_target_user_id,p_action,gain);
 
+  perform public.update_pet_friendship(auth.uid(), p_target_user_id, 1);
+  perform public.update_pet_friendship(p_target_user_id, auth.uid(), 1);
+
   update public.club_pets
   set social_xp = coalesce(social_xp,0) + gain, updated_at = now()
   where user_id in (auth.uid(),p_target_user_id);
@@ -464,3 +467,110 @@ revoke all on function public.get_member_pet(uuid) from public;
 revoke all on function public.interact_with_member_pet(uuid,text) from public;
 grant execute on function public.get_member_pet(uuid) to authenticated;
 grant execute on function public.interact_with_member_pet(uuid,text) to authenticated;
+
+
+-- V7.2.1 PET FRIENDSHIPS
+create table if not exists public.club_pet_friendships (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  friend_user_id uuid not null references auth.users(id) on delete cascade,
+  interaction_count integer not null default 0,
+  friendship_level integer not null default 1,
+  updated_at timestamptz not null default now(),
+  unique(user_id, friend_user_id),
+  check (user_id <> friend_user_id)
+);
+
+alter table public.club_pet_friendships enable row level security;
+
+drop policy if exists "members can read their pet friendships" on public.club_pet_friendships;
+create policy "members can read their pet friendships"
+on public.club_pet_friendships
+for select to authenticated
+using (user_id = auth.uid());
+
+create index if not exists idx_pet_friendships_user
+on public.club_pet_friendships(user_id, friendship_level desc, interaction_count desc);
+
+create or replace function public.get_my_pet_friendships()
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  result jsonb;
+begin
+  if auth.uid() is null then raise exception 'Nicht angemeldet.'; end if;
+
+  select coalesce(jsonb_agg(
+    jsonb_build_object(
+      'user_id', f.friend_user_id,
+      'interaction_count', f.interaction_count,
+      'friendship_level', f.friendship_level,
+      'username', p.username,
+      'display_name', coalesce(p.display_name,p.username),
+      'pet', case when cp.user_id is null then null else jsonb_build_object(
+        'species', cp.species,
+        'name', cp.name,
+        'social_xp', cp.social_xp
+      ) end
+    )
+    order by f.friendship_level desc, f.interaction_count desc
+  ), '[]'::jsonb)
+  into result
+  from public.club_pet_friendships f
+  join public.profiles p on p.id = f.friend_user_id
+  left join public.club_pets cp on cp.user_id = f.friend_user_id
+  where f.user_id = auth.uid();
+
+  return result;
+end;
+$$;
+
+create or replace function public.update_pet_friendship(
+  p_user_id uuid,
+  p_friend_user_id uuid,
+  p_increment integer default 1
+)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  next_count integer;
+  next_level integer;
+begin
+  if auth.uid() is null then raise exception 'Nicht angemeldet.'; end if;
+  if p_user_id <> auth.uid() then raise exception 'Ungültiger Nutzer.'; end if;
+  if p_user_id = p_friend_user_id then return; end if;
+
+  select coalesce(interaction_count,0) + greatest(1,p_increment)
+    into next_count
+  from public.club_pet_friendships
+  where user_id = p_user_id and friend_user_id = p_friend_user_id;
+
+  next_count := coalesce(next_count, greatest(1,p_increment));
+  next_level := case
+    when next_count >= 15 then 3
+    when next_count >= 5 then 2
+    else 1
+  end;
+
+  insert into public.club_pet_friendships(
+    user_id, friend_user_id, interaction_count, friendship_level, updated_at
+  )
+  values (p_user_id,p_friend_user_id,next_count,next_level,now())
+  on conflict (user_id,friend_user_id)
+  do update set
+    interaction_count = excluded.interaction_count,
+    friendship_level = excluded.friendship_level,
+    updated_at = now();
+end;
+$$;
+
+revoke all on function public.get_my_pet_friendships() from public;
+revoke all on function public.update_pet_friendship(uuid,uuid,integer) from public;
+grant execute on function public.get_my_pet_friendships() to authenticated;
+grant execute on function public.update_pet_friendship(uuid,uuid,integer) to authenticated;

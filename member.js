@@ -22,6 +22,54 @@ function petSocialLevel(xp=0){
 function petLabel(species=''){
   return ({cat:'Katze',dog:'Hund',fox:'Fuchs',axolotl:'Axolotl',dragon:'Drache',unicorn:'Einhorn',penguin:'Pinguin',panda:'Panda',bunny:'Hase',koala:'Koala',hamster:'Hamster',turtle:'Schildkröte',owl:'Eule',frog:'Frosch',bee:'Biene'})[species]||'Begleiter';
 }
+
+async function loadPetFriendshipsForMember(memberId, ownId){
+  const grid=$('public-pet-friends-grid');
+  const count=$('public-pet-friends-count');
+  const subtitle=$('public-pet-friends-subtitle');
+  if(!grid)return;
+
+  // Friendship details are private to the member owner for now.
+  if(memberId!==ownId){
+    grid.innerHTML='<div class="public-pet-friends-empty">Pet-Freundschaften werden nur im eigenen Club-Profil angezeigt.</div>';
+    return;
+  }
+
+  try{
+    const {data:sessionData}=await supabaseClient.auth.getSession();
+    const token=sessionData?.session?.access_token;
+    const response=await fetch('/api/club-pet-social',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
+      body:JSON.stringify({action:'get_friendships'})
+    });
+    const payload=await response.json().catch(()=>({}));
+    if(!response.ok)throw new Error(payload.error||'Freundschaften konnten nicht geladen werden.');
+    const friends=Array.isArray(payload.friendships)?payload.friendships:[];
+    if(count)count.textContent=String(friends.length);
+    if(subtitle)subtitle.textContent=friends.length?`${friends.length} tierische Bekanntschaft${friends.length===1?'':'en'}.`:'Noch keine Pet-Freundschaften.';
+    if(!friends.length){
+      grid.innerHTML='<div class="public-pet-friends-empty">Noch keine Freundschaften. Jede Begegnung zählt.</div>';
+      return;
+    }
+    const labels={1:'Bekannt',2:'Freunde',3:'Beste Freunde'};
+    const icons={1:'🐾',2:'💜',3:'👑'};
+    grid.innerHTML=friends.slice(0,12).map(friend=>{
+      const pet=friend.pet;
+      const petImg=pet?`<img src="assets/pet-${escapeHtml(pet.species)}.webp" alt="">`:'<span class="pet-friends-no-pet">🐾</span>';
+      return `<button class="pet-friend-card" type="button" data-friend-id="${escapeHtml(friend.user_id)}">
+        <span class="pet-friend-art">${petImg}</span>
+        <span class="pet-friend-main"><strong>${escapeHtml(pet?.name||friend.display_name)}</strong><small>${icons[friend.friendship_level]||'🐾'} ${labels[friend.friendship_level]||'Bekannt'} · ${friend.interaction_count} Begegnungen</small><small>@${escapeHtml(friend.username||'')}</small></span>
+      </button>`;
+    }).join('');
+    grid.querySelectorAll('[data-friend-id]').forEach(btn=>{
+      btn.addEventListener('click',()=>window.location.href=`/member.html?id=${encodeURIComponent(btn.dataset.friendId)}#pet-social`);
+    });
+  }catch(error){
+    grid.innerHTML=`<div class="public-pet-friends-empty">${escapeHtml(error?.message||'Freundschaften konnten nicht geladen werden.')}</div>`;
+  }
+}
+
 function renderMemberPet(pet,targetId,ownId){
   const empty=$('public-pet-empty'),active=$('public-pet-active'),actions=$('public-pet-actions');
   if(!empty||!active)return;
@@ -118,6 +166,7 @@ async function init(){
 
     renderBadges(m.badges,m.xp,m.discord_connected);
     renderMemberPet(m.pet || null, id, data.session.user.id);
+    loadPetFriendshipsForMember(id, data.session.user.id);
 
     const dmButton = $('send-direct-message');
     if (dmButton && id === data.session.user.id) {
