@@ -1,5 +1,6 @@
 const tls = require('node:tls');
 
+const NOTIFICATION_EMAIL_API_VERSION = '7.1.6';
 const env = (name, fallback='') => String(process.env[name] || fallback);
 
 function json(res, status, payload) {
@@ -170,11 +171,63 @@ module.exports = async (req, res) => {
     if (!smtpConfigured()) {
       return json(res, 503, {
         error:'SMTP ist noch nicht konfiguriert.',
+        apiVersion: NOTIFICATION_EMAIL_API_VERSION,
         missing:['SMTP_HOST','SMTP_USER','SMTP_PASS','EMAIL_FROM'].filter(k => !env(k))
       });
     }
 
     const body = typeof req.body === 'object' ? (req.body || {}) : JSON.parse(req.body || '{}');
+
+    // V7.1.5: direct SMTP test through the EXISTING deployed API route.
+    // This avoids relying on a brand-new Vercel function path.
+    if (body.testSmtp === true) {
+      if (!smtpConfigured()) {
+        return json(res, 503, {
+          apiVersion: NOTIFICATION_EMAIL_API_VERSION,
+          error: 'SMTP ist noch nicht vollständig konfiguriert.',
+          missing: ['SMTP_HOST','SMTP_USER','SMTP_PASS','EMAIL_FROM'].filter(k => !env(k))
+        });
+      }
+
+      const selfRes = await sbFetch(`/auth/v1/admin/users/${encodeURIComponent(user.id)}`);
+      if (!selfRes.ok) {
+        throw new Error(`Eigene E-Mail konnte nicht geladen werden. Auth HTTP ${selfRes.status}`);
+      }
+      const self = await selfRes.json();
+      if (!self.email) {
+        return json(res, 400, {
+          apiVersion: NOTIFICATION_EMAIL_API_VERSION,
+          error: 'Dein Admin-Account hat keine E-Mail-Adresse.'
+        });
+      }
+
+      const now = new Date().toLocaleString('de-DE');
+      const text = `SMTP-Test erfolgreich ausgelöst.\n\nAPI ${NOTIFICATION_EMAIL_API_VERSION}\nZeit: ${now}`;
+      const html = `
+        <div style="font-family:Arial,sans-serif;background:#0b0b10;color:#f4f4f5;padding:28px">
+          <div style="max-width:600px;margin:auto;background:#14131b;border:1px solid #282230;border-radius:16px;padding:24px">
+            <div style="color:#c084fc;font-size:11px;letter-spacing:.14em;font-weight:800">ACYJANNIK · ACY CLUB</div>
+            <h1 style="font-size:24px">SMTP-Test erfolgreich 🎉</h1>
+            <p style="color:#b8b8c3">Diese Mail wurde über die bereits vorhandene ACY-Mail-API verschickt.</p>
+            <p style="font-size:12px;color:#71717a">API ${NOTIFICATION_EMAIL_API_VERSION} · ${now}</p>
+          </div>
+        </div>`;
+
+      await smtpSend({
+        to: self.email,
+        subject: 'ACY Club SMTP-Test',
+        text,
+        html
+      });
+
+      return json(res, 200, {
+        apiVersion: NOTIFICATION_EMAIL_API_VERSION,
+        ok: true,
+        sentTo: self.email,
+        message: 'Test-Mail wurde an deinen Admin-Account übergeben.'
+      });
+    }
+
     const type = String(body.type || 'general').slice(0,50);
     const pref = prefColumn(type);
     const title = String(body.title || '').trim().slice(0,180);
@@ -195,18 +248,35 @@ module.exports = async (req, res) => {
     const prefs = await prefsRes.json();
     const prefsByUser = new Map((prefs || []).map(p => [p.user_id, p]));
 
+    const totalMembers = (profiles || []).length;
+    const preferenceRows = (prefs || []).length;
+    const emailEnabledCount = (prefs || []).filter(row => row.email_enabled === true).length;
+    const categoryEnabledCount = pref
+      ? (prefs || []).filter(row => row.email_enabled === true && row[pref] === true).length
+      : 0;
+
     const eligible = [];
+    const missingAuthEmails = [];
+
     for (const profile of profiles || []) {
-      const p = prefsByUser.get(profile.id);
-      if (!p?.email_enabled || !pref || p[pref] !== true) continue;
+      const prefRow = prefsByUser.get(profile.id);
+      if (!prefRow?.email_enabled || !pref || prefRow[pref] !== true) continue;
 
       const authRes = await sbFetch(`/auth/v1/admin/users/${encodeURIComponent(profile.id)}`);
-      if (!authRes.ok) continue;
+      if (!authRes.ok) {
+        missingAuthEmails.push({userId: profile.id, reason: `Auth HTTP ${authRes.status}`});
+        continue;
+      }
+
       const authUser = await authRes.json();
-      if (authUser.email) eligible.push({profile, email: authUser.email});
+      if (authUser.email) {
+        eligible.push({profile, email: authUser.email});
+      } else {
+        missingAuthEmails.push({userId: profile.id, reason: 'Keine E-Mail in Auth'});
+      }
     }
 
-    let sent = 0;
+        let sent = 0;
     let failed = 0;
 
     for (const recipient of eligible) {
@@ -244,12 +314,17 @@ module.exports = async (req, res) => {
     return json(res, 200, {
       ok:true,
       emailConfigured:true,
+      totalMembers,
+      preferenceRows,
+      emailEnabledCount,
+      categoryEnabledCount,
       emailEligible:eligible.length,
       emailSent:sent,
-      emailFailed:failed
+      emailFailed:failed,
+      missingAuthEmailsCount: missingAuthEmails.length
     });
   } catch (error) {
     console.error('notification email dispatch', error);
-    return json(res, 500, {error:error.message || 'E-Mails konnten nicht gesendet werden.'});
+    return json(res, 500, {apiVersion: NOTIFICATION_EMAIL_API_VERSION, error:error.message || 'E-Mails konnten nicht gesendet werden.'});
   }
 };
