@@ -931,3 +931,15 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - The member's own profile can show a Pet-Freundschaften section with the top 12 friendships.
 - No new global XP is awarded for friendship; Social XP remains the pet-only reward.
 - Run `supabase/club_pets_repair.sql` again after deployment.
+
+
+## V7.3.0 — ACY Event Hub
+- Added a central Event Hub for website -> Discord/Twitch notifications.
+- Community Vote creation emits `community_vote_created`.
+- Newly unlocked achievements emit `achievement_unlocked`.
+- Added Twitch EventSub webhook handler for `stream.online` and `stream.offline`.
+- Added event delivery log in Supabase via `supabase/club_event_hub.sql`.
+- Discord notifications use `DISCORD_EVENT_WEBHOOK_URL`.
+- Twitch chat notifications use the Send Chat Message API and `TWITCH_BOT_ACCESS_TOKEN`, `TWITCH_BOT_USER_ID`, `TWITCH_BROADCASTER_ID`, `TWITCH_CLIENT_ID`.
+- Run `supabase/club_event_hub.sql` once after deployment.
+- Set `CLUB_EVENT_HUB_SECRET` and integration secrets in Vercel before external notifications are sent.

@@ -1272,6 +1272,28 @@ $('add-poll-btn')?.addEventListener('click', async () => {
         'Umfrage veröffentlicht. E-Mail-Versand konnte nicht abgeschlossen werden.', true);
     }
 
+    try {
+      const { data: sessionData } = await supabaseClient.auth.getSession();
+      const token = sessionData?.session?.access_token;
+      if (token) {
+        await fetch('/api/club-event-hub', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({
+            eventType: 'community_vote_created',
+            title: 'Neuer Community Vote',
+            payload: {
+              message: `🗳️ Neuer Community Vote im ACY Club: ${question}`,
+              pollQuestion: question,
+              pollId: poll.id
+            }
+          })
+        }).catch(error => console.warn('Event Hub vote:', error));
+      }
+    } catch (error) {
+      console.warn('Event Hub vote:', error);
+    }
+
     $('poll-question-admin').value = '';
     $('poll-description-admin').value = '';
     $('poll-options-admin').value = '';
