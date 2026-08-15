@@ -544,7 +544,12 @@ Added Impressum, Datenschutzerklärung, Account & Datenschutz page, account dele
 - No additional Vercel Function.
 
 
-## V4.3.4
-- Fixed Spotlight action buttons to explicitly use `type=button` and prevent default clicks.
-- Spotlight API now exposes a deployment version header and handles OPTIONS.
-- POST remains the only mutation method.
+## V4.4
+- Moved Community Spotlight to directly below the member profile header so it is visible immediately.
+- Spotlight remains the same component/IDs; only placement and visual emphasis changed.
+
+
+## V4.4.1
+- Moved the public Community Spotlight to immediately below the homepage hero.
+- Kept the existing Spotlight API and rendering logic unchanged.
+- Added stronger visual emphasis for the homepage Spotlight card.
