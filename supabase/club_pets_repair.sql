@@ -443,8 +443,30 @@ begin
   insert into public.club_pet_social_interactions(actor_user_id,target_user_id,action,xp_awarded)
   values(auth.uid(),p_target_user_id,p_action,gain);
 
+  -- Record the friendship from both sides. The helper is intentionally
+  -- user-scoped, so only call it as the authenticated user and insert the
+  -- reciprocal row directly inside this SECURITY DEFINER function.
   perform public.update_pet_friendship(auth.uid(), p_target_user_id, 1);
-  perform public.update_pet_friendship(p_target_user_id, auth.uid(), 1);
+
+  insert into public.club_pet_friendships(
+    user_id, friend_user_id, interaction_count, friendship_level, updated_at
+  )
+  values (
+    p_target_user_id,
+    auth.uid(),
+    1,
+    1,
+    now()
+  )
+  on conflict (user_id, friend_user_id)
+  do update set
+    interaction_count = public.club_pet_friendships.interaction_count + 1,
+    friendship_level = case
+      when public.club_pet_friendships.interaction_count + 1 >= 15 then 3
+      when public.club_pet_friendships.interaction_count + 1 >= 5 then 2
+      else 1
+    end,
+    updated_at = now();
 
   update public.club_pets
   set social_xp = coalesce(social_xp,0) + gain, updated_at = now()

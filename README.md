@@ -1004,3 +1004,10 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Rebuilt the notification section structure cleanly with a real details body.
 - Preserves collapsed-by-default behavior and all notification settings.
 - No SQL changes.
+
+
+## V7.4.7 — Pet Social Error Fix
+- Fixed `Ungültiger Nutzer.` during Pet Social interactions.
+- Reciprocal Pet friendship updates are now written safely inside the server-side RPC instead of incorrectly calling a user-scoped helper with the other member's ID.
+- Added a CSS safety rule so hidden/public Pet states cannot both render.
+- Run `supabase/club_pets_repair.sql` again after deployment.

@@ -1552,3 +1552,9 @@ img,video,iframe,svg{
     padding:0 18px 18px;
   }
 }
+
+/* V7.4.7 — Pet social visibility safety */
+#public-pet-empty[hidden],
+#public-pet-active[hidden]{
+  display:none !important;
+}

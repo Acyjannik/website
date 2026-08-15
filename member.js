@@ -80,9 +80,11 @@ function renderMemberPet(pet,targetId,ownId){
   const empty=$('public-pet-empty'),active=$('public-pet-active'),actions=$('public-pet-actions');
   if(!empty||!active)return;
   if(!pet){
-    empty.hidden=false; active.hidden=true; return;
+    empty.hidden=false; empty.setAttribute('aria-hidden','false');
+    active.hidden=true; active.setAttribute('aria-hidden','true'); return;
   }
-  empty.hidden=true; active.hidden=false;
+  empty.hidden=true; empty.setAttribute('aria-hidden','true');
+  active.hidden=false; active.setAttribute('aria-hidden','false');
   const careLevel=[0,100,250,500,1000].filter(v=>Number(pet.pet_xp||0)>=v).length||1;
   const socialLevel=petSocialLevel(Number(pet.social_xp||0));
   if($('public-pet-title'))$('public-pet-title').textContent=pet.name;
