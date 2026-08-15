@@ -29,11 +29,8 @@ to authenticated
 using (exists (select 1 from public.admin_users a where a.user_id = auth.uid()))
 with check (exists (select 1 from public.admin_users a where a.user_id = auth.uid()));
 
-insert into public.club_clips (title, clip_url, thumbnail_url, description, category)
-select
-  'ACY Clip',
-  'https://www.twitch.tv/acyjannik',
-  null,
-  'Dein nächster Lieblingsclip kommt hier rein.',
-  'Fortnite'
-where not exists (select 1 from public.club_clips);
+-- Remove the old demo placeholder from earlier versions.
+delete from public.club_clips
+where title = 'ACY Clip'
+  and clip_url = 'https://www.twitch.tv/acyjannik'
+  and coalesce(description,'') = 'Dein nächster Lieblingsclip kommt hier rein.';

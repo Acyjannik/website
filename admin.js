@@ -475,7 +475,7 @@ async function loadClipsAdmin(){
     <input class="content-inline-body" value="${escapeAttr(c.clip_url)}">
     <label class="admin-check"><input class="content-inline-enabled" type="checkbox" ${c.enabled?'checked':''}> aktiv</label>
     <div class="admin-row-actions"><button class="button button-small content-save-clip">Speichern</button><button class="button button-small button-danger content-delete-clip">Löschen</button></div>
-  </div>`).join(''):'<div class="admin-empty">Noch keine Clips.</div>';
+  </div>`).join(''):'<div class="admin-empty">Noch keine Clips. Füge rechts deinen ersten echten Clip hinzu.</div>';
 
   list.querySelectorAll('.content-save-clip').forEach(btn=>btn.onclick=async()=>{
     const row=btn.closest('.content-admin-row');
