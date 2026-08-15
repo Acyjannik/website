@@ -864,8 +864,9 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - No SQL changes.
 
 
-## V7.1.4 — Direct SMTP Test
-- Added a brand-new `/api/club-email-test` route to bypass any stale deployment of the previous email endpoint.
-- Added an admin button to send a real SMTP test mail to the currently logged-in admin email.
-- The response shows the exact API version and the SMTP error returned by the server.
+## V7.1.5 — Existing Email API Test
+- Removed the new SMTP test route that returned HTTP 404 on the deployed site.
+- Added the SMTP test mode to the already-known `/api/club-notification-email` route.
+- The admin test button now calls that existing route with `{ "testSmtp": true }`.
+- API version is now 7.1.5.
 - No SQL changes.

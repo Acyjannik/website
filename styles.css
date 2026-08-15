@@ -1374,6 +1374,3 @@ button:disabled{opacity:.55;cursor:not-allowed}
   .notification-settings-foot{align-items:stretch;flex-direction:column}
   .notification-settings-foot .button{width:100%}
 }
-
-/* V7.1.4 - SMTP test button */
-#test-email-btn{margin-right:8px}
