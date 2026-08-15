@@ -7,7 +7,7 @@
   <meta name="robots" content="noindex,nofollow">
   <link rel="stylesheet" href="styles.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="admin.js?v=4.3.2" defer></script>
+  <script src="admin.js?v=4.3.3" defer></script>
   <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
   <link rel="shortcut icon" href="/assets/favicon.svg">
   <link rel="apple-touch-icon" href="/assets/favicon.svg">
@@ -298,11 +298,46 @@
             <p class="admin-note">Die automatische Vergabe wird serverseitig abgesichert und kann nicht einfach durch Browser-Manipulation beliebig erhöht werden.</p>
             <div class="admin-subsection">
               <div class="eyebrow">MITGLIEDER</div>
-              <h3>XP & freigeschaltete Achievements</h3>
+              <div class="badge-admin-heading"><div><h3>XP & freigeschaltete Achievements</h3></div><button class="button button-secondary button-small" id="refresh-badges-btn" type="button">Achievements aktualisieren</button></div>
               <p class="admin-muted">Hier siehst du nicht nur, wie viel ein Badge wert ist, sondern auch, wer welches Achievement tatsächlich besitzt.</p>
-              <div id="badges-member-list" class="badge-member-list">
+              <div class="badge-catalog">
+              <div class="badge-catalog-title">Badge-Katalog</div>
+              <span>💜 ACY Rookie · Registrierung</span><span>✨ Profile Complete · Profil vollständig</span><span>💬 Discord Member · Discord verbunden</span>
+              <span>🎮 Event Fan · 1 Event</span><span>🔥 Event Hunter · 5 Events</span><span>⚡ Event Regular · 10 Events</span><span>🏆 Event Legend · 25 Events</span>
+              <span>🌟 100 XP Club · 100 XP</span><span>👑 500 XP Club · 500 XP</span><span>💎 1000 XP Club · 1000 XP</span><span>⏳ Early Member · 30 Tage</span><span>🛡️ ACY Veteran · 90 Tage</span>
+            </div>
+            <div id="badges-member-list" class="badge-member-list">
                 <div class="admin-note">Mitglieder werden geladen…</div>
               </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Spotlight -->
+        <section class="admin-view" data-view="spotlight">
+          <div class="admin-grid">
+            <div class="admin-card admin-span-2">
+              <div class="section-heading">
+                <div><div class="eyebrow">COMMUNITY</div><h2>Member of the Month</h2><p class="admin-muted">Wähle ein Mitglied für das monatliche Community Spotlight.</p></div>
+              </div>
+              <div class="spotlight-admin-controls">
+                <input id="spotlight-search" class="admin-input" placeholder="Mitglied suchen …" autocomplete="off">
+                <button class="button button-secondary" id="spotlight-refresh" type="button">Aktualisieren</button>
+                <button class="button button-danger" id="spotlight-clear" type="button">Spotlight entfernen</button>
+              </div>
+              <div id="spotlight-admin-list" class="admin-member-list"><div class="admin-note">Mitglieder werden geladen…</div></div>
+              <p class="admin-note" id="spotlight-admin-message"></p>
+            </div>
+            <div class="admin-card">
+              <div class="eyebrow">AKTUELL</div>
+              <h2 id="spotlight-current-name">Noch niemand</h2>
+              <p id="spotlight-current-note" class="admin-muted">Kein aktives Spotlight.</p>
+              <div class="spotlight-current-meta" id="spotlight-current-meta">–</div>
+            </div>
+            <div class="admin-card">
+              <div class="eyebrow">ABLAUF</div>
+              <h2>So funktioniert es</h2>
+              <p class="admin-muted">Das Spotlight gilt für den aktuellen Monat. Du kannst den Gewinner jederzeit ersetzen. Der ausgewählte Member erhält automatisch eine Notification.</p>
             </div>
           </div>
         </section>

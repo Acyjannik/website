@@ -691,3 +691,6 @@ button:disabled{opacity:.55;cursor:not-allowed}
 .earned-badges{display:flex;flex-wrap:wrap;gap:6px}
 .earned-badge{font-size:9px;padding:6px 8px;border-radius:999px;background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.14)}
 @media(max-width:720px){.badge-member-row{grid-template-columns:1fr}}
+
+/* V4.3.3: complete admin Spotlight + badge catalog */
+.badge-admin-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}.badge-catalog{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 14px;padding:10px;border:1px solid rgba(255,255,255,.06);border-radius:14px;background:#0d0d12}.badge-catalog-title{width:100%;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:#a1a1aa}.badge-catalog span{font-size:9px;padding:6px 8px;border-radius:999px;background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.12)}

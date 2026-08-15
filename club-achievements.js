@@ -19,13 +19,55 @@ export default async function handler(req, res) {
     if (!who.ok) return res.status(401).json({ error: "Invalid session." });
 
     const user = await who.json();
-    const userId = user.id;
+    const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
+    const runForAll = body.all === true;
     const headers = {
       apikey: key,
       Authorization: `Bearer ${key}`,
       "Content-Type": "application/json"
     };
 
+    if (runForAll) {
+      const adminCheck = await fetch(`${url}/rest/v1/admin_users?user_id=eq.${encodeURIComponent(user.id)}&select=user_id&limit=1`, { headers, cache: 'no-store' });
+      const admins = adminCheck.ok ? await adminCheck.json() : [];
+      if (!admins.length) return res.status(403).json({ error: 'Admin access required.' });
+
+      const profilesResponse = await fetch(`${url}/rest/v1/profiles?select=id,xp,badges,created_at,discord_connected&limit=500`, { headers, cache: 'no-store' });
+      const profilesText = await profilesResponse.text();
+      if (!profilesResponse.ok) return res.status(500).json({ error: profilesText || 'Could not load profiles.' });
+      const profiles = profilesText ? JSON.parse(profilesText) : [];
+      let updated = 0;
+
+      for (const profile of profiles) {
+        const [attendanceRes] = await Promise.all([
+          fetch(`${url}/rest/v1/club_event_attendance?user_id=eq.${profile.id}&select=id`, { headers })
+        ]);
+        const attendanceText = await attendanceRes.text();
+        const attendance = attendanceText ? JSON.parse(attendanceText) : [];
+        const days = Math.floor((Date.now() - new Date(profile.created_at).getTime()) / 86400000);
+        const totalXp = Number(profile.xp || 0);
+        const rules = [
+          ['acy_rookie', true], ['profile_complete', true], ['discord_member', !!profile.discord_connected],
+          ['event_fan', attendance.length >= 1], ['event_hunter', attendance.length >= 5], ['event_regular', attendance.length >= 10], ['event_legend', attendance.length >= 25],
+          ['xp_100', totalXp >= 100], ['xp_500', totalXp >= 500], ['xp_1000', totalXp >= 1000], ['acy_og', totalXp >= 500], ['acy_legend', totalXp >= 1000],
+          ['early_member', days >= 30], ['veteran_member', days >= 90]
+        ];
+        let changed = false;
+        for (const [keyName, eligible] of rules) {
+          if (!eligible) continue;
+          const check = await fetch(`${url}/rest/v1/club_achievements?user_id=eq.${profile.id}&achievement_key=eq.${encodeURIComponent(keyName)}&select=id&limit=1`, { headers });
+          const existingText = await check.text();
+          const existing = existingText ? JSON.parse(existingText) : [];
+          if (existing.length) continue;
+          const insert = await fetch(`${url}/rest/v1/club_achievements`, { method: 'POST', headers, body: JSON.stringify({ user_id: profile.id, achievement_key: keyName }) });
+          if (insert.ok) changed = true;
+        }
+        if (changed) updated++;
+      }
+      return res.status(200).json({ updated });
+    }
+
+    const userId = user.id;
     const profileRes = await fetch(
       `${url}/rest/v1/profiles?id=eq.${userId}&select=id,xp,badges,created_at,discord_connected`,
       { headers, cache: "no-store" }

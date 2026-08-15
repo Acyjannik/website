@@ -317,8 +317,33 @@ async function clearSpotlight() {
   }
 }
 
+async function refreshAllAchievements() {
+  const button = $('refresh-badges-btn');
+  if (button) { button.disabled = true; button.textContent = 'Aktualisiere…'; }
+  try {
+    const { data } = await supabaseClient.auth.getSession();
+    const token = data?.session?.access_token;
+    const response = await fetch('/api/club-achievements', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ all: true })
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(payload.error || 'Achievements konnten nicht aktualisiert werden.');
+    await loadBadgeMembers();
+    const status = $('spotlight-admin-message');
+    if (status) status.textContent = `${payload.updated || 0} Mitglieder geprüft.`;
+  } catch (error) {
+    const status = $('spotlight-admin-message');
+    if (status) { status.textContent = error.message; status.classList.add('error'); }
+  } finally {
+    if (button) { button.disabled = false; button.textContent = 'Achievements aktualisieren'; }
+  }
+}
+
 function bindSpotlightAdmin() {
   $('spotlight-refresh')?.addEventListener('click', loadSpotlightAdmin);
+  $('refresh-badges-btn')?.addEventListener('click', refreshAllAchievements);
   $('spotlight-clear')?.addEventListener('click', clearSpotlight);
   $('spotlight-search')?.addEventListener('input', () => loadSpotlightAdmin());
 }
