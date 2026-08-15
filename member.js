@@ -12,6 +12,63 @@ function levelForXp(xp){
   ];
   return levels.reduce((current,level)=>xp>=level.min?level:current,levels[0]);
 }
+
+function petSocialLevel(xp=0){
+  const levels=[0,25,75,150,300];
+  let level=1;
+  for(let i=0;i<levels.length;i++)if(xp>=levels[i])level=i+1;
+  return level;
+}
+function petLabel(species=''){
+  return ({cat:'Katze',dog:'Hund',fox:'Fuchs',axolotl:'Axolotl',dragon:'Drache',unicorn:'Einhorn',penguin:'Pinguin',panda:'Panda',bunny:'Hase',koala:'Koala',hamster:'Hamster',turtle:'Schildkröte',owl:'Eule',frog:'Frosch',bee:'Biene'})[species]||'Begleiter';
+}
+function renderMemberPet(pet,targetId,ownId){
+  const empty=$('public-pet-empty'),active=$('public-pet-active'),actions=$('public-pet-actions');
+  if(!empty||!active)return;
+  if(!pet){
+    empty.hidden=false; active.hidden=true; return;
+  }
+  empty.hidden=true; active.hidden=false;
+  const careLevel=[0,100,250,500,1000].filter(v=>Number(pet.pet_xp||0)>=v).length||1;
+  const socialLevel=petSocialLevel(Number(pet.social_xp||0));
+  if($('public-pet-title'))$('public-pet-title').textContent=pet.name;
+  if($('public-pet-subtitle'))$('public-pet-subtitle').textContent=`${petLabel(pet.species)} · Pflege-Level ${careLevel}`;
+  if($('public-pet-social-xp'))$('public-pet-social-xp').textContent=`${Number(pet.social_xp||0)} Social XP`;
+  if($('public-pet-art'))$('public-pet-art').innerHTML=`<img src="assets/pet-${escapeHtml(pet.species)}.webp" alt="${escapeHtml(petLabel(pet.species))}">`;
+  if($('public-pet-care-level'))$('public-pet-care-level').textContent=`Level ${careLevel}`;
+  if($('public-pet-social-level'))$('public-pet-social-level').textContent=`Level ${socialLevel}`;
+
+  const canAct=targetId!==ownId;
+  actions?.querySelectorAll('[data-pet-action]').forEach(button=>{
+    button.hidden=!canAct;
+    if(!canAct)return;
+    button.onclick=async()=>{
+      const status=$('public-pet-status');
+      actions.querySelectorAll('button').forEach(b=>b.disabled=true);
+      if(status){status.textContent='Deine Pets treffen sich…';status.className='club-auth-status';}
+      try{
+        const {data:sessionData}=await supabaseClient.auth.getSession();
+        const token=sessionData?.session?.access_token;
+        if(!token)throw new Error('Sitzung abgelaufen.');
+        const response=await fetch('/api/club-pet-social',{
+          method:'POST',
+          headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
+          body:JSON.stringify({targetUserId:targetId,action:button.dataset.petAction})
+        });
+        const payload=await response.json().catch(()=>({}));
+        if(!response.ok)throw new Error(payload.error||'Pet-Interaktion fehlgeschlagen.');
+        const labels={greet:'begrüßt',play:'spielt mit',pet:'streichelt'};
+        if(status){status.textContent=`Dein Pet hat ${payload.target_pet?.name||'den Begleiter'} ${labels[button.dataset.petAction]||'besucht'}. +${payload.social_xp_awarded||0} Social XP für beide Pets.`;status.className='club-auth-status success';}
+        if(payload.target_pet?.social_xp!=null && $('public-pet-social-xp'))$('public-pet-social-xp').textContent=`${payload.target_pet.social_xp} Social XP`;
+      }catch(error){
+        if(status){status.textContent=error?.message||'Pet-Interaktion fehlgeschlagen.';status.className='club-auth-status error';}
+      }finally{
+        actions.querySelectorAll('button').forEach(b=>b.disabled=false);
+      }
+    };
+  });
+}
+
 function renderBadges(badges=[],xp=0,discord=false){
   const icons={'ACY Rookie':'💜','ACY Member':'🎮','Discord Member':'💬','ACY OG':'👑','ACY Legend':'🏆','Early Member':'⏳'};
   const auto=[...(xp>=100?['ACY Member']:[]),...(xp>=500?['ACY OG']:[]),...(xp>=1000?['ACY Legend']:[]),...(discord?['Discord Member']:[])];
@@ -60,6 +117,7 @@ async function init(){
     }
 
     renderBadges(m.badges,m.xp,m.discord_connected);
+    renderMemberPet(m.pet || null, id, data.session.user.id);
 
     const dmButton = $('send-direct-message');
     if (dmButton && id === data.session.user.id) {

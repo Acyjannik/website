@@ -910,3 +910,15 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - SMTP test now reports a masked `SMTP_USER`, its domain and masked `EMAIL_FROM` on SMTP failures.
 - Passwords and full secret values are never returned.
 - No SQL changes.
+
+
+## V7.2.0 — Pet Social
+- Member profiles now show the member's current companion.
+- Member directory previews each member's pet and Social XP.
+- Added “Pet besuchen” to jump directly to a member's Pet Social card.
+- Pets can greet (+1), play together (+3), or be petted (+2).
+- Both participating pets receive Social XP.
+- Social XP is separate from care XP.
+- Added a 15-minute actor/target cooldown and 20 social interactions per day for each member.
+- Added secure Supabase RPCs and a dedicated interaction API.
+- Run `supabase/club_pets_repair.sql` once after deployment.

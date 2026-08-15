@@ -2053,83 +2053,79 @@ async function loadMemberDirectory(search = '') {
   if (!list) return;
 
   try {
-    let query = supabaseClient
-      .from('profiles')
-      .select('id,username,display_name,bio,avatar_url,created_at,xp,badges')
-      .order('created_at', { ascending: true })
-      .limit(100);
+    const { data: sessionData } = await supabaseClient.auth.getSession();
+    const token = sessionData?.session?.access_token;
+    if (!token) throw new Error('Sitzung abgelaufen.');
 
-    const value = search.trim();
-    if (value) {
-      const escaped = value.replace(/[%(),]/g, ' ');
-      query = query.or(`username.ilike.%${escaped}%,display_name.ilike.%${escaped}%`);
-    }
+    const response = await fetch(`/api/club-members?search=${encodeURIComponent(search.trim())}&_=${Date.now()}`, {
+      cache:'no-store',
+      headers:{Authorization:`Bearer ${token}`}
+    });
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload.error || 'Mitglieder konnten nicht geladen werden.');
 
-    const { data: members, error } = await query;
-    if (error) throw error;
-
-    const rows = Array.isArray(members) ? members : [];
+    const rows = Array.isArray(payload.members) ? payload.members : [];
     if (countEl) countEl.textContent = `${rows.length} Mitglieder`;
-
     if (!rows.length) {
-      list.innerHTML = '<div class="club-content-empty">Keine Mitglieder gefunden.</div>';
+      list.innerHTML='<div class="club-content-empty">Keine Mitglieder gefunden.</div>';
       return;
     }
 
-    const badgeIcon = {
-      'ACY Rookie': '💜',
-      'ACY Member': '🎮',
-      'Discord Member': '💬',
-      'ACY OG': '👑',
-      'ACY Legend': '🏆',
-      'Early Member': '⏳'
-    };
+    const badgeIcon={'ACY Rookie':'💜','ACY Member':'🎮','Discord Member':'💬','ACY OG':'👑','ACY Legend':'🏆','Early Member':'⏳'};
+    const petLabels={cat:'Katze',dog:'Hund',fox:'Fuchs',axolotl:'Axolotl',dragon:'Drache',unicorn:'Einhorn',penguin:'Pinguin',panda:'Panda',bunny:'Hase',koala:'Koala',hamster:'Hamster',turtle:'Schildkröte',owl:'Eule',frog:'Frosch',bee:'Biene'};
 
-    list.innerHTML = rows.map((member) => {
-      const avatar = member.avatar_url
+    list.innerHTML=rows.map(member=>{
+      const avatar=member.avatar_url
         ? `<img src="${escapeAttr(member.avatar_url)}" alt="" loading="lazy">`
-        : `<div class="member-directory-avatar-fallback">${escapeHtml((member.display_name || member.username || 'A').charAt(0).toUpperCase())}</div>`;
-      const level = levelForXp(Number(member.xp || 0)).title;
-      const badges = (Array.isArray(member.badges) ? member.badges : []).slice(0, 3)
-        .map(b => `${badgeIcon[b] || '✦'} ${escapeHtml(b)}`).join(' · ');
+        : `<div class="member-directory-avatar-fallback">${escapeHtml((member.display_name||member.username||'A').charAt(0).toUpperCase())}</div>`;
+      const level=levelForXp(Number(member.xp||0)).title;
+      const badges=(Array.isArray(member.badges)?member.badges:[]).slice(0,3).map(b=>`${badgeIcon[b]||'✦'} ${escapeHtml(b)}`).join(' · ');
+      const pet=member.pet||null;
+      const petPreview=pet
+        ? `<div class="member-directory-pet"><img src="assets/pet-${escapeAttr(pet.species)}.webp" alt="${escapeAttr(petLabels[pet.species]||'Begleiter')}" loading="lazy"><span><strong>${escapeHtml(pet.name)}</strong><small>${escapeHtml(petLabels[pet.species]||'Begleiter')} · ${Number(pet.social_xp||0)} Social XP</small></span></div>`
+        : `<div class="member-directory-pet is-empty"><span>🐾</span><span><strong>Kein Pet</strong><small>Noch kein Begleiter</small></span></div>`;
 
       return `<article class="member-directory-item member-directory-clickable" data-member-id="${escapeAttr(member.id)}">
         <div class="member-directory-avatar">${avatar}</div>
         <div class="member-directory-main">
-          <div class="member-directory-name">${escapeHtml(member.display_name || member.username)}</div>
-          <div class="member-directory-handle">@${escapeHtml(member.username || '')}</div>
-          <p>${escapeHtml(member.bio || 'ACY Club Member')}</p>
+          <div class="member-directory-name">${escapeHtml(member.display_name||member.username)}</div>
+          <div class="member-directory-handle">@${escapeHtml(member.username||'')}</div>
+          <p>${escapeHtml(member.bio||'ACY Club Member')}</p>
+          ${petPreview}
         </div>
         <div class="member-directory-meta">
-          <strong>${escapeHtml(level)}</strong>
-          <small>${Number(member.xp || 0)} XP</small>
-          <span>${badges || '💜 ACY Rookie'}</span>
-          ${member.id !== currentUser.id ? `<button class="button button-secondary member-directory-message" type="button" data-message-member="${escapeAttr(member.id)}">Nachricht</button>` : ''}
+          <strong>${escapeHtml(level)}</strong><small>${Number(member.xp||0)} XP</small><span>${badges||'💜 ACY Rookie'}</span>
+          ${member.pet&&member.id!==currentUser.id?`<button class="button button-secondary member-directory-pet-visit" type="button" data-pet-member="${escapeAttr(member.id)}">Pet besuchen</button>`:''}
+          ${member.id!==currentUser.id?`<button class="button button-secondary member-directory-message" type="button" data-message-member="${escapeAttr(member.id)}">Nachricht</button>`:''}
         </div>
       </article>`;
     }).join('');
 
-    list.querySelectorAll('.member-directory-clickable').forEach(card => {
-      card.addEventListener('click', (event) => {
-        if (event.target.closest('[data-message-member]')) return;
-        const id = card.dataset.memberId;
-        if (id) window.location.href = `/member.html?id=${encodeURIComponent(id)}`;
+    list.querySelectorAll('.member-directory-clickable').forEach(card=>{
+      card.addEventListener('click',event=>{
+        if(event.target.closest('[data-message-member],[data-pet-member]'))return;
+        const id=card.dataset.memberId;
+        if(id)window.location.href=`/member.html?id=${encodeURIComponent(id)}`;
       });
     });
-
-    list.querySelectorAll('[data-message-member]').forEach(button => {
-      button.addEventListener('click', (event) => {
+    list.querySelectorAll('[data-pet-member]').forEach(btn=>{
+      btn.addEventListener('click',event=>{
         event.stopPropagation();
-        const id = button.dataset.messageMember;
-        if (id && id !== currentUser.id) {
-          window.location.href = `/club-profile.html?dm=${encodeURIComponent(id)}`;
-        }
+        const id=btn.dataset.petMember;
+        if(id)window.location.href=`/member.html?id=${encodeURIComponent(id)}#pet-social`;
       });
     });
-  } catch (error) {
-    console.warn('Member directory unavailable:', error);
-    if (countEl) countEl.textContent = '– Mitglieder';
-    list.innerHTML = `<div class="club-content-empty">${escapeHtml(error?.message || 'Mitglieder konnten nicht geladen werden.')}</div>`;
+    list.querySelectorAll('[data-message-member]').forEach(btn=>{
+      btn.addEventListener('click',event=>{
+        event.stopPropagation();
+        const id=btn.dataset.messageMember;
+        if(id&&id!==currentUser.id)window.location.href=`/club-profile.html?dm=${encodeURIComponent(id)}`;
+      });
+    });
+  }catch(error){
+    console.warn('Member directory unavailable:',error);
+    if(countEl)countEl.textContent='– Mitglieder';
+    list.innerHTML=`<div class="club-content-empty">${escapeHtml(error?.message||'Mitglieder konnten nicht geladen werden.')}</div>`;
   }
 }
 

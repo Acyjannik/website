@@ -12,6 +12,27 @@ export default async function handler(req, res) {
     return res.status(503).json({ error: "Member service is not configured." });
   }
 
+
+  async function loadPetsForUserIds(ids) {
+    const clean = [...new Set((ids || []).filter(Boolean))];
+    if (!clean.length) return new Map();
+
+    const response = await fetch(
+      `${supabaseUrl}/rest/v1/club_pets?select=user_id,species,name,pet_xp,social_xp,hunger,happiness,energy&user_id=in.(${clean.map(encodeURIComponent).join(",")})`,
+      {
+        headers: {
+          apikey: serviceKey,
+          Authorization: `Bearer ${serviceKey}`,
+        },
+        cache: "no-store",
+      }
+    );
+
+    if (!response.ok) return new Map();
+    const rows = await response.json();
+    return new Map((rows || []).map(row => [row.user_id, row]));
+  }
+
   const authHeader = req.headers.authorization || "";
   if (!authHeader.startsWith("Bearer ")) {
     return res.status(401).json({ error: "Unauthorized" });
@@ -60,6 +81,9 @@ export default async function handler(req, res) {
       }
 
       const p = rows[0];
+      const pets = await loadPetsForUserIds([p.id]);
+      const pet = pets.get(p.id) || null;
+
       return res.status(200).json({
         member: {
           id: p.id,
@@ -71,6 +95,15 @@ export default async function handler(req, res) {
           xp: Number(p.xp || 0),
           badges: Array.isArray(p.badges) ? p.badges.slice(0, 8) : [],
           discord_connected: !!p.discord_connected,
+          pet: pet ? {
+            species: pet.species,
+            name: pet.name,
+            pet_xp: Number(pet.pet_xp || 0),
+            social_xp: Number(pet.social_xp || 0),
+            hunger: Number(pet.hunger ?? 100),
+            happiness: Number(pet.happiness ?? 100),
+            energy: Number(pet.energy ?? 100),
+          } : null,
         },
       });
     }
@@ -123,6 +156,8 @@ export default async function handler(req, res) {
       }
     }
 
+    const pets = await loadPetsForUserIds(rows.map(row => row.id));
+
     const memberRows = rows.map((row) => ({
       id: row.id,
       username: row.username,
@@ -133,6 +168,15 @@ export default async function handler(req, res) {
       xp: Number(row.xp || 0),
       badges: Array.isArray(row.badges) ? row.badges.slice(0, 8) : [],
       achievements: achievementMap.get(row.id) || [],
+      pet: pets.get(row.id) ? {
+        species: pets.get(row.id).species,
+        name: pets.get(row.id).name,
+        pet_xp: Number(pets.get(row.id).pet_xp || 0),
+        social_xp: Number(pets.get(row.id).social_xp || 0),
+        hunger: Number(pets.get(row.id).hunger ?? 100),
+        happiness: Number(pets.get(row.id).happiness ?? 100),
+        energy: Number(pets.get(row.id).energy ?? 100),
+      } : null,
     }));
 
     return res.status(200).json({

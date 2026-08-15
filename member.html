@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>ACY Club Member · Acyjannik</title>
   <link rel="stylesheet" href="styles.css">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="/pet-companion.js?v=6.6.0" defer></script>
-  <script src="member.js?v=5.1.0" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="/pet-companion.js?v=7.2.0" defer></script>
+  <script src="member.js?v=7.2.0" defer></script>
   <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
   <link rel="shortcut icon" href="/assets/favicon.svg">
   <link rel="apple-touch-icon" href="/assets/favicon.svg">
@@ -54,6 +54,29 @@
           <div><span>DABEI SEIT</span><strong id="public-since">–</strong></div>
           <div><span>DISCORD</span><strong id="public-discord">Nicht verbunden</strong></div>
         </div>
+
+        
+        <section class="public-member-pet-card" id="pet-social">
+          <div class="eyebrow">PET SOCIAL</div>
+          <div class="public-pet-heading">
+            <div><h2 id="public-pet-title">Kein Begleiter</h2><p id="public-pet-subtitle">Dieses Mitglied hat noch kein Tier adoptiert.</p></div>
+            <span class="member-count-chip" id="public-pet-social-xp">– Social XP</span>
+          </div>
+          <div id="public-pet-empty" class="public-pet-empty"><span>🐾</span><strong>Kein Pet vorhanden</strong><small>Vielleicht kommt bald ein kleiner Begleiter dazu.</small></div>
+          <div id="public-pet-active" class="public-pet-active" hidden>
+            <div class="public-pet-art" id="public-pet-art"></div>
+            <div class="public-pet-stats">
+              <div><span>PFLEGE</span><strong id="public-pet-care-level">Level 1</strong></div>
+              <div><span>SOZIAL</span><strong id="public-pet-social-level">Level 1</strong></div>
+            </div>
+            <div class="public-pet-actions" id="public-pet-actions">
+              <button class="button button-secondary" type="button" data-pet-action="greet">👋 Begrüßen <small>+1 XP</small></button>
+              <button class="button button-secondary" type="button" data-pet-action="play">🎾 Zusammen spielen <small>+3 XP</small></button>
+              <button class="button button-secondary" type="button" data-pet-action="pet">💜 Streicheln <small>+2 XP</small></button>
+            </div>
+            <p class="club-auth-status" id="public-pet-status"></p>
+          </div>
+        </section>
 
         <div class="public-member-badges">
           <div class="eyebrow">BADGES</div>
