@@ -77,6 +77,31 @@ export default async function handler(req, res) {
       if (insert.ok) newlyAwarded.push(keyName);
     }
 
+    const badgeNames = {
+      acy_rookie: "ACY Rookie",
+      discord_member: "Discord Member",
+      event_hunter: "Event Hunter",
+      event_fan: "Event Fan",
+      acy_og: "ACY OG",
+      acy_legend: "ACY Legend",
+      early_member: "Early Member"
+    };
+
+    for (const keyName of newlyAwarded) {
+      const badgeName = badgeNames[keyName] || keyName;
+      await fetch(`${url}/rest/v1/club_notifications`, {
+        method: "POST",
+        headers: { ...headers, Prefer: "return=minimal" },
+        body: JSON.stringify({
+          user_id: userId,
+          title: "Neues Achievement! 🏆",
+          body: `Du hast „${badgeName}“ freigeschaltet.`,
+          notification_type: "badge",
+          link_url: "/club-profile.html"
+        })
+      });
+    }
+
     return res.status(200).json({
       achievements: rules.filter(([, eligible]) => eligible).map(([keyName]) => keyName),
       newlyAwarded

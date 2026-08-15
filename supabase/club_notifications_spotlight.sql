@@ -65,3 +65,5 @@ for all
 to authenticated
 using (exists (select 1 from public.admin_users a where a.user_id = auth.uid()))
 with check (exists (select 1 from public.admin_users a where a.user_id = auth.uid()));
+
+create index if not exists idx_club_notifications_user_created on public.club_notifications(user_id, created_at desc);

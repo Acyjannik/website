@@ -55,6 +55,28 @@ export default async function handler(req,res){
       }
     }
 
+    const notificationPayload = action === "join"
+      ? {
+          user_id: user.id,
+          title: "Du bist dabei! 🎮",
+          body: `Deine Teilnahme an Event #${eventId} wurde gespeichert. Du erhältst 100 XP.`,
+          notification_type: "event",
+          link_url: "/club-profile.html"
+        }
+      : {
+          user_id: user.id,
+          title: "Event-Teilnahme beendet",
+          body: `Du hast die Teilnahme an Event #${eventId} beendet. Die 100 XP wurden entfernt.`,
+          notification_type: "event",
+          link_url: "/club-profile.html"
+        };
+
+    await fetch(`${url}/rest/v1/club_notifications`, {
+      method: "POST",
+      headers: { ...headers, Prefer: "return=minimal" },
+      body: JSON.stringify(notificationPayload)
+    });
+
     const countRes=await fetch(`${url}/rest/v1/club_event_attendance?event_id=eq.${eventId}&select=id`,{headers:{
       apikey:serviceKey,Authorization:`Bearer ${serviceKey}`,Prefer:"count=exact"
     }});
