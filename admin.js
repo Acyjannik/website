@@ -109,6 +109,14 @@ async function isAdmin(user) {
 }
 
 function switchTab(tab) {
+  // spotlight lazy-load
+  if (tab === 'spotlight' && supabaseClient) {
+    loadSpotlightAdmin().catch(error => {
+      const el = $('spotlight-admin-message');
+      if (el) el.textContent = error.message || 'Spotlight konnte nicht geladen werden.';
+      console.error('Spotlight load error:', error);
+    });
+  }
   document.querySelectorAll('.admin-tab').forEach(btn => {
     btn.classList.toggle('is-active', btn.dataset.tab === tab);
   });
@@ -337,8 +345,8 @@ async function loadDashboard() {
     loadEventsAdmin(),
     loadNewsAdmin(),
     loadClipsAdmin(),
-    loadSpotlightAdmin(),
   ]);
+  await loadSpotlightAdmin();
 
   await loadMediaPreview();
 }
@@ -894,6 +902,7 @@ function bindAdminEvents() {
       $('dashboard').hidden = false;
       $('logout-btn').hidden = false;
       bindTabs();
+      bindSpotlightAdmin();
       await loadDashboard();
     } catch (error) {
       message('login-message', error.message || 'Login fehlgeschlagen.');
@@ -975,10 +984,10 @@ async function initializeAdmin() {
       $('dashboard').hidden = false;
       $('logout-btn').hidden = false;
       bindTabs();
+      bindSpotlightAdmin();
       await loadDashboard();
     } else {
-      bindSpotlightAdmin();
-bindTabs();
+      bindTabs();
     }
   } catch (error) {
     console.error('Admin initialization failed:', error);

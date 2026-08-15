@@ -99,7 +99,9 @@ export default async function handler(req, res) {
       { headers, cache: "no-store" }
     );
     const text = await response.text();
-    if (!response.ok) return res.status(500).json({ error: text || "Could not load spotlight." });
+    if (!response.ok) {
+      return res.status(500).json({ error: text || "Could not load spotlight. Prüfe, ob die Tabelle club_spotlight in Supabase existiert." });
+    }
 
     const rows = text ? JSON.parse(text) : [];
     if (!rows.length) return res.status(200).json({ spotlight: null });
