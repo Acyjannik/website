@@ -1015,6 +1015,50 @@ async function createPet(species, name) {
   setPetStatus('Dein Begleiter ist eingezogen. 🐾', 'success');
 }
 
+async function replacePet(species, name) {
+  const { data, error } = await supabaseClient.rpc('replace_club_pet', {
+    p_species: species,
+    p_name: name
+  });
+  if (error) throw error;
+  renderPet(data);
+  await loadProfile();
+  setPetStatus('Dein neuer Begleiter ist eingezogen. 🐾', 'success');
+}
+
+async function releasePet() {
+  const { error } = await supabaseClient.rpc('release_club_pet');
+  if (error) throw error;
+  renderPet(null);
+  setPetStatus('Dein Begleiter wurde verabschiedet. Du kannst jederzeit ein neues Tier adoptieren.', 'success');
+}
+
+$('pet-switch-toggle')?.addEventListener('click', () => {
+  const empty = $('pet-empty-state');
+  if (!empty) return;
+  empty.hidden = !empty.hidden;
+  if (!empty.hidden) {
+    renderPetChoices(currentPet?.species || '');
+    $('pet-name-input').value = currentPet?.name || '';
+    $('pet-name-input')?.focus();
+  }
+});
+
+$('pet-release-toggle')?.addEventListener('click', async () => {
+  if (!currentPet) return;
+  const ok = window.confirm(`Möchtest du ${currentPet.name} wirklich abgeben? Das aktuelle Tier und seine Pflege-XP werden gelöscht.`);
+  if (!ok) return;
+  const button = $('pet-release-toggle');
+  if (button) button.disabled = true;
+  try {
+    await releasePet();
+  } catch (error) {
+    setPetStatus(error?.message || 'Tier konnte nicht abgegeben werden.', 'error');
+  } finally {
+    if (button) button.disabled = false;
+  }
+});
+
 async function performPetAction(action, button) {
   if (!currentPet || !button) return;
   button.disabled = true;
@@ -1051,7 +1095,14 @@ $('pet-create-form')?.addEventListener('submit', async (event) => {
   const button = event.currentTarget.querySelector('button[type="submit"]');
   if (button) { button.disabled = true; button.textContent = 'Wird adoptiert…'; }
   try {
-    await createPet(species, name);
+    if (currentPet) {
+      const ok = window.confirm(`Dein aktuelles Tier ${currentPet.name} wird durch ein neues Tier ersetzt. Pflege-XP und Werte des alten Tiers werden zurückgesetzt. Fortfahren?`);
+      if (!ok) return;
+      await replacePet(species, name);
+      $('pet-empty-state').hidden = true;
+    } else {
+      await createPet(species, name);
+    }
   } catch (error) {
     setPetStatus(error?.message || 'Tier konnte nicht adoptiert werden.', 'error');
   } finally {

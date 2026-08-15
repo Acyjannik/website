@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Mein ACY Club · Acyjannik</title>
   <link rel="stylesheet" href="styles.css">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="club-profile.js?v=6.4.4" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="/pet-companion.js?v=6.5.0" defer></script>
+  <script src="club-profile.js?v=6.5.0" defer></script>
   <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
   <link rel="shortcut icon" href="/assets/favicon.svg">
   <link rel="apple-touch-icon" href="/assets/favicon.svg">
@@ -178,7 +178,11 @@
                 <h3 id="pet-display-name">Dein Tier</h3>
                 <p id="pet-level-text">Level 1 · 0 Pflege-XP</p>
               </div>
-              <button class="button button-secondary pet-rename-toggle" type="button" id="pet-rename-toggle">Umbenennen</button>
+              <div class="pet-manage-actions">
+                <button class="button button-secondary pet-rename-toggle" type="button" id="pet-rename-toggle">Umbenennen</button>
+                <button class="button button-secondary pet-switch-toggle" type="button" id="pet-switch-toggle">Tier wechseln</button>
+                <button class="button button-danger pet-release-toggle" type="button" id="pet-release-toggle">Tier abgeben</button>
+              </div>
             </div>
 
             <form id="pet-rename-form" class="pet-rename-form" hidden>

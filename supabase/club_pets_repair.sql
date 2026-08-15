@@ -111,3 +111,70 @@ grant execute on function public.get_club_pet() to authenticated;
 -- Keep direct table writes locked down.
 revoke insert, update, delete on public.club_pets from authenticated;
 grant select on public.club_pets to authenticated;
+
+
+-- V6.5 pet management: replace or release the current companion.
+create or replace function public.replace_club_pet(
+  p_species text,
+  p_name text
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  normalized_name text;
+  result jsonb;
+begin
+  if auth.uid() is null then raise exception 'Nicht angemeldet.'; end if;
+  if p_species not in ('cat','dog','fox','axolotl','dragon','unicorn','penguin','panda','bunny','koala','hamster','turtle','owl','frog','bee') then
+    raise exception 'Ungültige Tierart.';
+  end if;
+
+  normalized_name := btrim(p_name);
+  if char_length(normalized_name) < 2 or char_length(normalized_name) > 18 then
+    raise exception 'Der Tiername muss 2 bis 18 Zeichen lang sein.';
+  end if;
+
+  insert into public.club_pets(user_id, species, name, hunger, happiness, energy, pet_xp)
+  values (auth.uid(), p_species, normalized_name, 100, 100, 100, 0)
+  on conflict (user_id) do update
+    set species = excluded.species,
+        name = excluded.name,
+        hunger = 100,
+        happiness = 100,
+        energy = 100,
+        pet_xp = 0,
+        updated_at = now(),
+        last_interaction_at = now();
+
+  select jsonb_build_object(
+    'user_id', user_id, 'species', species, 'name', name,
+    'hunger', hunger, 'happiness', happiness, 'energy', energy,
+    'pet_xp', pet_xp, 'created_at', created_at,
+    'updated_at', updated_at, 'last_interaction_at', last_interaction_at
+  ) into result
+  from public.club_pets
+  where user_id = auth.uid();
+
+  return result;
+end;
+$$;
+
+create or replace function public.release_club_pet()
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if auth.uid() is null then raise exception 'Nicht angemeldet.'; end if;
+  delete from public.club_pets where user_id = auth.uid();
+end;
+$$;
+
+revoke all on function public.replace_club_pet(text,text) from public;
+revoke all on function public.release_club_pet() from public;
+grant execute on function public.replace_club_pet(text,text) to authenticated;
+grant execute on function public.release_club_pet() to authenticated;

@@ -1290,3 +1290,34 @@ button:disabled{opacity:.55;cursor:not-allowed}
 
 /* V6.4.4 — always honor hidden UI state */
 .pet-active-state[hidden], .pet-empty-state[hidden], .pet-rename-form[hidden]{display:none !important}
+
+/* V6.5 — Pet management */
+.pet-manage-actions{display:flex;flex-wrap:wrap;gap:7px;justify-content:flex-end}
+.button-danger{border-color:rgba(248,113,113,.35)!important;color:#fca5a5!important;background:rgba(127,29,29,.10)!important}
+.button-danger:hover{border-color:rgba(248,113,113,.7)!important;background:rgba(127,29,29,.18)!important}
+.pet-switch-toggle{white-space:nowrap}
+
+/* V6.5 — companion presence across the site */
+.acy-pet-float{
+  position:fixed;right:22px;bottom:22px;z-index:900;
+  display:flex;align-items:center;gap:10px;max-width:245px;
+  padding:8px 12px 8px 8px;border:1px solid rgba(168,85,247,.28);
+  border-radius:18px;background:rgba(13,13,18,.94);
+  box-shadow:0 12px 36px rgba(0,0,0,.35),0 0 24px rgba(168,85,247,.10);
+  backdrop-filter:blur(14px);text-decoration:none;color:#fff;
+  transition:transform .18s ease,border-color .18s ease;
+}
+.acy-pet-float:hover{transform:translateY(-2px);border-color:rgba(168,85,247,.55)}
+.acy-pet-float-art{width:48px;height:48px;display:grid;place-items:center;border-radius:14px;background:rgba(168,85,247,.10);overflow:hidden;flex:0 0 48px}
+.acy-pet-float-art img{width:44px;height:44px;object-fit:contain}
+.acy-pet-float-copy{display:grid;gap:2px;min-width:0}
+.acy-pet-float-copy small{font-size:7px;letter-spacing:.16em;color:#c084fc;font-weight:800}
+.acy-pet-float-copy strong{font-size:12px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.acy-pet-float-copy span{font-size:9px;color:#a1a1aa}
+@media(max-width:600px){
+  .acy-pet-float{right:12px;bottom:12px;max-width:190px;padding:6px 9px 6px 6px;border-radius:15px}
+  .acy-pet-float-art{width:40px;height:40px;flex-basis:40px;border-radius:11px}
+  .acy-pet-float-art img{width:37px;height:37px}
+  .pet-manage-actions{width:100%;justify-content:flex-start}
+  .pet-manage-actions .button{flex:1;min-width:0}
+}

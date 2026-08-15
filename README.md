@@ -787,3 +787,12 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - The UI now hides the active pet panel when loading fails instead of leaving the placeholder cat visible.
 - The initial pet avatar is an actual asset, not an emoji.
 - Cache-busting updated to 6.4.4.
+
+
+## V6.5 — Pet Management & Companion Presence
+- Added “Tier wechseln” with confirmation. The replacement starts fresh at 100/100/100 and 0 pet XP; normal Club XP is unaffected.
+- Added “Tier abgeben” with confirmation. This removes the current pet so the member can adopt another later.
+- Added a small authenticated companion widget across the public home page and Club/account/member pages.
+- The floating companion shows the pet artwork, name, species and pet level and links directly to the Tier section.
+- Added secure `replace_club_pet()` and `release_club_pet()` RPCs.
+- Run `supabase/club_pets_repair.sql` again after deploying V6.5 so the new RPCs are installed.
