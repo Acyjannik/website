@@ -12,6 +12,54 @@ export default async function handler(req, res) {
     return res.status(503).json({ error: "Member service is not configured." });
   }
 
+
+
+  async function loadPresenceForUserIds(ids) {
+    const clean=[...new Set((ids||[]).filter(Boolean))];
+    if(!clean.length)return new Map();
+    const r=await fetch(`${supabaseUrl}/rest/v1/club_game_presence?select=user_id,game_id,updated_at&user_id=in.(${clean.map(encodeURIComponent).join(",")})`,{
+      headers:{apikey:serviceKey,Authorization:`Bearer ${serviceKey}`},cache:"no-store"
+    });
+    if(!r.ok)return new Map();
+    const rows=await r.json();
+    const gameIds=[...new Set((rows||[]).map(row=>row.game_id).filter(Boolean))];
+    const games=new Map();
+    if(gameIds.length){
+      const gr=await fetch(`${supabaseUrl}/rest/v1/games?select=id,name&id=in.(${gameIds.map(encodeURIComponent).join(",")})`,{
+        headers:{apikey:serviceKey,Authorization:`Bearer ${serviceKey}`},cache:"no-store"
+      });
+      if(gr.ok){
+        const gs=await gr.json();
+        (gs||[]).forEach(g=>games.set(g.id,g.name));
+      }
+    }
+    return new Map((rows||[]).map(row=>[row.user_id,{
+      online:new Date(row.updated_at).getTime()>Date.now()-5*60*1000,
+      game_name:games.get(row.game_id)||'',
+      updated_at:row.updated_at
+    }]));
+  }
+
+  async function loadPetsForUserIds(ids) {
+    const clean = [...new Set((ids || []).filter(Boolean))];
+    if (!clean.length) return new Map();
+
+    const response = await fetch(
+      `${supabaseUrl}/rest/v1/club_pets?select=user_id,species,name,pet_xp,social_xp,hunger,happiness,energy&user_id=in.(${clean.map(encodeURIComponent).join(",")})`,
+      {
+        headers: {
+          apikey: serviceKey,
+          Authorization: `Bearer ${serviceKey}`,
+        },
+        cache: "no-store",
+      }
+    );
+
+    if (!response.ok) return new Map();
+    const rows = await response.json();
+    return new Map((rows || []).map(row => [row.user_id, row]));
+  }
+
   const authHeader = req.headers.authorization || "";
   if (!authHeader.startsWith("Bearer ")) {
     return res.status(401).json({ error: "Unauthorized" });
@@ -60,6 +108,11 @@ export default async function handler(req, res) {
       }
 
       const p = rows[0];
+      const pets = await loadPetsForUserIds([p.id]);
+      const presence = await loadPresenceForUserIds([p.id]);
+      const pet = pets.get(p.id) || null;
+      const livePresence = presence.get(p.id) || null;
+
       return res.status(200).json({
         member: {
           id: p.id,
@@ -71,6 +124,18 @@ export default async function handler(req, res) {
           xp: Number(p.xp || 0),
           badges: Array.isArray(p.badges) ? p.badges.slice(0, 8) : [],
           discord_connected: !!p.discord_connected,
+          online: Boolean(livePresence?.online),
+          game_name: livePresence?.game_name || '',
+          last_seen: livePresence?.updated_at || null,
+          pet: pet ? {
+            species: pet.species,
+            name: pet.name,
+            pet_xp: Number(pet.pet_xp || 0),
+            social_xp: Number(pet.social_xp || 0),
+            hunger: Number(pet.hunger ?? 100),
+            happiness: Number(pet.happiness ?? 100),
+            energy: Number(pet.energy ?? 100),
+          } : null,
         },
       });
     }
@@ -123,6 +188,9 @@ export default async function handler(req, res) {
       }
     }
 
+    const pets = await loadPetsForUserIds(rows.map(row => row.id));
+    const presence = await loadPresenceForUserIds(rows.map(row => row.id));
+
     const memberRows = rows.map((row) => ({
       id: row.id,
       username: row.username,
@@ -133,6 +201,18 @@ export default async function handler(req, res) {
       xp: Number(row.xp || 0),
       badges: Array.isArray(row.badges) ? row.badges.slice(0, 8) : [],
       achievements: achievementMap.get(row.id) || [],
+      online: Boolean(presence.get(row.id)?.online),
+      game_name: presence.get(row.id)?.game_name || '',
+      last_seen: presence.get(row.id)?.updated_at || null,
+      pet: pets.get(row.id) ? {
+        species: pets.get(row.id).species,
+        name: pets.get(row.id).name,
+        pet_xp: Number(pets.get(row.id).pet_xp || 0),
+        social_xp: Number(pets.get(row.id).social_xp || 0),
+        hunger: Number(pets.get(row.id).hunger ?? 100),
+        happiness: Number(pets.get(row.id).happiness ?? 100),
+        energy: Number(pets.get(row.id).energy ?? 100),
+      } : null,
     }));
 
     return res.status(200).json({

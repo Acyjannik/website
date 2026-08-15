@@ -961,3 +961,12 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Added admin poll deletion. Deleting a poll cascades to its options and votes.
 - No SMTP changes.
 - Run `supabase/club_social.sql` once in Supabase.
+
+
+## V7.4.1 — Online Status
+- Added online/offline presence to friends.
+- Active friends show the current selected game when available.
+- Member profiles and the member directory show online state.
+- Presence is considered online when a heartbeat was updated within the last five minutes.
+- Heartbeat refreshes every 60 seconds while the member is on the Club profile.
+- No new SQL file; uses the existing `club_game_presence` table.

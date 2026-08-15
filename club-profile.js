@@ -1295,6 +1295,7 @@ async function init() {
     await loadClubContent();
     await loadMemberDirectory();
      await loadSocialConnections();
+     await startSocialPresence();
     await loadDirectMessages(dmTarget || '');
     await loadCommunityPoll();
     await loadClubChat();
@@ -2049,6 +2050,37 @@ function updateChatCounter() {
 }
 
 
+
+let socialPresenceTimer = null;
+
+async function updateMyPresenceHeartbeat() {
+  if (!supabaseClient || !currentUser) return;
+  try {
+    const { error } = await supabaseClient
+      .from('club_game_presence')
+      .upsert({
+        user_id: currentUser.id,
+        game_id: null,
+        updated_at: new Date().toISOString()
+      }, { onConflict:'user_id' });
+
+    // If game_id is required by the legacy V6.1 schema, don't break the page.
+    if (error) {
+      const code = String(error.code || '');
+      if (code === '23502' || /null value.*game_id/i.test(error.message || '')) return;
+      console.warn('Presence heartbeat skipped:', error);
+    }
+  } catch (error) {
+    console.warn('Presence heartbeat skipped:', error);
+  }
+}
+
+async function startSocialPresence() {
+  if (socialPresenceTimer) clearInterval(socialPresenceTimer);
+  await updateMyPresenceHeartbeat();
+  socialPresenceTimer = setInterval(updateMyPresenceHeartbeat, 60000);
+}
+
 async function rpcSocial(fn, params={}) {
   const { data, error } = await supabaseClient.rpc(fn, params);
   if (error) throw error;
@@ -2064,7 +2096,10 @@ function renderSocialConnections(data={}) {
   const renderPerson=(person, buttons='')=>`
     <div class="social-connection-item" data-social-user="${escapeAttr(person.user_id)}">
       <div class="social-connection-avatar">${person.avatar_url?`<img src="${escapeAttr(person.avatar_url)}" alt="" loading="lazy">`:`<span>${escapeHtml((person.display_name||person.username||'A').charAt(0).toUpperCase())}</span>`}</div>
-      <div class="social-connection-main"><strong>${escapeHtml(person.display_name||person.username||'Mitglied')}</strong><small>@${escapeHtml(person.username||'')}</small></div>
+      <div class="social-connection-main">
+        <strong>${person.online ? '🟢' : '⚫'} ${escapeHtml(person.display_name||person.username||'Mitglied')}</strong>
+        <small>@${escapeHtml(person.username||'')} · ${person.online ? (person.game_name ? `🎮 ${escapeHtml(person.game_name)}` : 'Online') : 'Offline'}</small>
+      </div>
       <div class="social-connection-actions">${buttons}</div>
     </div>`;
 
@@ -2176,8 +2211,8 @@ async function loadMemberDirectory(search = '') {
         <div class="member-directory-avatar">${avatar}</div>
         <div class="member-directory-main">
           <div class="member-directory-name">${escapeHtml(member.display_name||member.username)}</div>
-          <div class="member-directory-handle">@${escapeHtml(member.username||'')}</div>
-          <p>${escapeHtml(member.bio||'ACY Club Member')}</p>
+          <div class="member-directory-handle">@${escapeHtml(member.username||'')} · ${member.online ? '<span class="member-online-label">🟢 Online</span>' : '<span class="member-online-label is-offline">⚫ Offline'}</span></div>
+          <p>${member.online && member.game_name ? `🎮 ${escapeHtml(member.game_name)}` : escapeHtml(member.bio||'ACY Club Member')}</p>
           ${petPreview}
         </div>
         <div class="member-directory-meta">

@@ -149,7 +149,8 @@ async function init(){
     $('public-handle').textContent=`@${m.username}`;
     $('public-bio').textContent=m.bio||'ACY Club Member';
     $('public-since').textContent=new Date(m.created_at).toLocaleDateString('de-DE');
-    $('public-discord').textContent=m.discord_connected?'Verbunden ✓':'Nicht verbunden';
+    $('public-status').textContent=m.online ? (m.game_name ? `🟢 ${m.game_name}` : '🟢 Online') : '⚫ Offline';
+        $('public-discord').textContent=m.discord_connected?'Verbunden ✓':'Nicht verbunden';
     $('public-xp').textContent=`${m.xp} XP`;
 
     const level=levelForXp(m.xp);

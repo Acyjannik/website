@@ -1441,3 +1441,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
   .social-connection-actions{grid-column:1/-1;justify-content:flex-start}
   .poll-admin-actions{flex-wrap:wrap}
 }
+
+/* V7.4.1 — Online Status */
+.member-online-label{color:#86efac;font-weight:700}
+.member-online-label.is-offline{color:#71717a}
