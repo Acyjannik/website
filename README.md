@@ -739,3 +739,8 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Mobile layout now stacks textarea, counter/help text, and Send button.
 - Added iOS safe-area padding and width/box-sizing safeguards.
 - Desktop/tablet composer remains unchanged.
+
+## V6.3.3 — Achievement Hub Cleanup
+- Fixed the compact 'Letzte Erfolge' renderer so badges no longer concatenate together.
+- Removed the repeated 'ACY Club' label from each mini achievement.
+- Added consistent icon, title and subtitle layout with responsive mobile stacking.

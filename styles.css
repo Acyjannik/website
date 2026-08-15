@@ -1181,3 +1181,49 @@ button:disabled{opacity:.55;cursor:not-allowed}
     margin:0;
   }
 }
+
+/* V6.3.3 — Last achievements cleanup */
+.hub-achievements-card #hub-achievements-list{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:8px;
+  margin-top:10px;
+}
+.hub-badge-mini{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-width:0;
+  margin:0;
+  padding:10px 11px;
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:12px;
+  background:#0d0d12;
+}
+.hub-badge-icon{
+  width:30px;
+  height:30px;
+  flex:0 0 30px;
+  display:grid;
+  place-items:center;
+  border-radius:9px;
+  background:rgba(168,85,247,.10);
+  font-size:16px;
+}
+.hub-badge-copy{min-width:0;display:grid;gap:2px}
+.hub-badge-copy strong{
+  font-size:11px;
+  line-height:1.2;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.hub-badge-copy small{
+  margin:0;
+  color:#71717a;
+  font-size:8px;
+  line-height:1.2;
+}
+@media(max-width:600px){
+  .hub-achievements-card #hub-achievements-list{grid-template-columns:1fr}
+}

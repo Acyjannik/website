@@ -1293,7 +1293,14 @@ async function loadMemberHub() {
   if (achievementsList) {
     const badges = [...document.querySelectorAll('#badge-grid .member-badge')].slice(0, 4);
     achievementsList.innerHTML = badges.length
-      ? badges.map(card => `<div class="hub-badge-mini">${card.innerHTML}</div>`).join('')
+      ? badges.map(card => {
+          const icon = card.querySelector('.member-badge > span')?.textContent?.trim() || '✦';
+          const name = card.querySelector('.member-badge > strong')?.textContent?.trim() || 'Achievement';
+          return `<div class="hub-badge-mini">
+            <span class="hub-badge-icon">${escapeHtml(icon)}</span>
+            <span class="hub-badge-copy"><strong>${escapeHtml(name)}</strong><small>ACY Club Achievement</small></span>
+          </div>`;
+        }).join('')
       : '<div class="club-content-empty">Noch keine Achievements.</div>';
   }
 }
