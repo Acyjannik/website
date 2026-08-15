@@ -487,6 +487,129 @@ $('dm-input')?.addEventListener('keydown', event => {
   }
 });
 
+
+// ------------------------------------------------------------
+// V5.2 Community Polls
+// ------------------------------------------------------------
+let activePoll = null;
+let pollChannel = null;
+
+async function loadCommunityPoll() {
+  const box = $('community-poll');
+  const optionsEl = $('poll-options');
+  if (!box || !optionsEl || !supabaseClient || !currentUser) return;
+
+  try {
+    const now = new Date().toISOString();
+    const { data: polls, error: pollError } = await supabaseClient
+      .from('club_polls')
+      .select('id,question,description,closes_at,created_at')
+      .eq('active', true)
+      .or(`closes_at.is.null,closes_at.gt.${now}`)
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    if (pollError) throw pollError;
+    activePoll = polls?.[0] || null;
+
+    if (!activePoll) {
+      optionsEl.innerHTML = '<div class="club-content-empty">Gerade gibt es keine aktive Umfrage.</div>';
+      setText('poll-question', 'Community Vote');
+      setText('poll-description', 'Die nächste Umfrage kommt bald.');
+      setText('poll-meta', '');
+      return;
+    }
+
+    setText('poll-question', activePoll.question);
+    setText('poll-description', activePoll.description || 'Stimm ab und gestalte die Community mit.');
+    const { data: options, error: optionError } = await supabaseClient
+      .from('club_poll_options')
+      .select('id,label,sort_order')
+      .eq('poll_id', activePoll.id)
+      .order('sort_order');
+
+    if (optionError) throw optionError;
+
+    const { data: myVote } = await supabaseClient
+      .from('club_poll_votes')
+      .select('option_id')
+      .eq('poll_id', activePoll.id)
+      .eq('user_id', currentUser.id)
+      .maybeSingle();
+
+    const { data: votes } = await supabaseClient
+      .from('club_poll_votes')
+      .select('option_id')
+      .eq('poll_id', activePoll.id);
+
+    const counts = new Map();
+    (votes || []).forEach(v => counts.set(v.option_id, (counts.get(v.option_id) || 0) + 1));
+    const total = (votes || []).length;
+    const votedOption = myVote?.option_id || null;
+
+    optionsEl.innerHTML = (options || []).map(option => {
+      const count = counts.get(option.id) || 0;
+      const percent = total ? Math.round(count / total * 100) : 0;
+      const selected = votedOption === option.id;
+      return `<button type="button" class="poll-option ${selected ? 'is-selected' : ''}" data-poll-option="${escapeAttr(option.id)}" ${votedOption ? 'disabled' : ''}>
+        <span class="poll-option-label"><strong>${escapeHtml(option.label)}</strong><span>${percent}% · ${count}</span></span>
+        <span class="poll-bar"><span style="width:${percent}%"></span></span>
+      </button>`;
+    }).join('');
+
+    if (!options?.length) {
+      optionsEl.innerHTML = '<div class="club-content-empty">Diese Umfrage hat noch keine Antworten.</div>';
+    }
+
+    optionsEl.querySelectorAll('[data-poll-option]').forEach(button => {
+      button.addEventListener('click', () => voteInPoll(Number(button.dataset.pollOption)));
+    });
+
+    setText('poll-meta', votedOption
+      ? `Deine Stimme ist gespeichert. ${total} ${total === 1 ? 'Stimme' : 'Stimmen'} insgesamt.`
+      : `${total} ${total === 1 ? 'Stimme' : 'Stimmen'} bisher · +5 XP für deine Stimme`);
+  } catch (error) {
+    console.warn('Community poll unavailable:', error);
+    optionsEl.innerHTML = `<div class="club-content-empty">${escapeHtml(error?.message || 'Umfrage konnte nicht geladen werden.')}</div>`;
+  }
+
+  if (pollChannel) await supabaseClient.removeChannel(pollChannel);
+  if (activePoll) {
+    pollChannel = supabaseClient.channel(`club-poll-${activePoll.id}`)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'club_poll_votes',
+        filter: `poll_id=eq.${activePoll.id}`
+      }, () => loadCommunityPoll())
+      .subscribe();
+  }
+}
+
+async function voteInPoll(optionId) {
+  if (!activePoll || !optionId || !currentUser) return;
+  const optionsEl = $('poll-options');
+  try {
+    optionsEl?.querySelectorAll('button').forEach(b => b.disabled = true);
+    const { error } = await supabaseClient
+      .from('club_poll_votes')
+      .insert({
+        poll_id: activePoll.id,
+        option_id: optionId,
+        user_id: currentUser.id
+      });
+    if (error) throw error;
+    await loadCommunityPoll();
+    await loadProfile();
+    await loadMemberStats();
+  } catch (error) {
+    console.warn('Poll vote failed:', error);
+    setText('poll-meta', error?.message || 'Stimme konnte nicht gespeichert werden.');
+    await loadCommunityPoll();
+  }
+}
+
+
 function handleDiscordOAuthCallback() {
   const params = new URLSearchParams(window.location.search);
   const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''));
@@ -546,6 +669,7 @@ async function init() {
     await loadClubContent();
     await loadMemberDirectory();
     await loadDirectMessages(dmTarget || '');
+    await loadCommunityPoll();
     await loadClubChat();
     await loadClubClips();
     await checkAchievements();

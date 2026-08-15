@@ -6,7 +6,7 @@
   <title>Mein ACY Club · Acyjannik</title>
   <link rel="stylesheet" href="styles.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="club-profile.js?v=5.1.0" defer></script>
+  <script src="club-profile.js?v=5.2.0" defer></script>
   <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
   <link rel="shortcut icon" href="/assets/favicon.svg">
   <link rel="apple-touch-icon" href="/assets/favicon.svg">
@@ -85,6 +85,21 @@
           <div class="hub-live-state"><span class="live-dot" id="hub-live-dot"></span><strong id="hub-live-label">OFFLINE</strong></div>
           <p id="hub-live-game">Kein Stream aktiv.</p>
           <a class="button button-primary" href="https://www.twitch.tv/acyjannik" target="_blank" rel="noreferrer">Jetzt zuschauen ↗</a>
+        </div>
+
+        <div class="hub-poll-card" id="community-poll">
+          <div class="eyebrow">COMMUNITY VOTE</div>
+          <div class="poll-head">
+            <div>
+              <h3 id="poll-question">Community Vote</h3>
+              <p id="poll-description">Wird geladen…</p>
+            </div>
+            <span class="member-count-chip" id="poll-xp-label">+5 XP</span>
+          </div>
+          <div id="poll-options" class="poll-options">
+            <div class="club-content-empty">Umfrage wird geladen…</div>
+          </div>
+          <div class="poll-meta" id="poll-meta"></div>
         </div>
 
         <div class="hub-events-card">

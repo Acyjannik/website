@@ -1,3 +1,110 @@
+
+// ------------------------------------------------------------
+// V5.2 Community Poll Admin
+// ------------------------------------------------------------
+async function loadPollsAdmin() {
+  const list = $('polls-admin-list');
+  if (!list || !supabaseClient) return;
+
+  try {
+    const { data: polls, error } = await supabaseClient
+      .from('club_polls')
+      .select('id,question,description,active,closes_at,created_at')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    if (!polls?.length) {
+      list.innerHTML = '<div class="admin-note">Noch keine Umfragen erstellt.</div>';
+      return;
+    }
+
+    const { data: votes } = await supabaseClient
+      .from('club_poll_votes')
+      .select('poll_id,option_id');
+
+    const voteCounts = new Map();
+    (votes || []).forEach(v => {
+      const key = `${v.poll_id}:${v.option_id}`;
+      voteCounts.set(key, (voteCounts.get(key) || 0) + 1);
+    });
+
+    list.innerHTML = polls.map(p => `
+      <div class="admin-table-row poll-admin-row" data-poll-id="${p.id}">
+        <div><strong>${escapeHtml(p.question)}</strong><small>${escapeHtml(p.description || '')}</small></div>
+        <div><span>${p.active ? '🟢 Aktiv' : '⚪ Beendet'}</span><small>${p.closes_at ? new Date(p.closes_at).toLocaleString('de-DE') : 'ohne Enddatum'}</small></div>
+        <button class="button button-danger button-small" type="button" data-poll-toggle="${p.id}" data-active="${p.active}">${p.active ? 'Beenden' : 'Aktivieren'}</button>
+      </div>
+    `).join('');
+
+    list.querySelectorAll('[data-poll-toggle]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = Number(btn.dataset.pollToggle);
+        const active = btn.dataset.active === 'true';
+        if (active && !confirm('Diese Umfrage wirklich beenden?')) return;
+
+        if (!active) {
+          await supabaseClient.from('club_polls').update({ active: false }).eq('active', true);
+        }
+        const { error } = await supabaseClient.from('club_polls').update({ active: !active }).eq('id', id);
+        if (error) return message('poll-admin-message', error.message);
+        message('poll-admin-message', active ? 'Umfrage beendet.' : 'Umfrage aktiviert.', true);
+        await loadPollsAdmin();
+      });
+    });
+  } catch (error) {
+    list.innerHTML = `<div class="admin-note">${escapeHtml(error?.message || 'Umfragen konnten nicht geladen werden.')}</div>`;
+  }
+}
+
+$('add-poll-btn')?.addEventListener('click', async () => {
+  const question = $('poll-question-admin')?.value.trim();
+  const description = $('poll-description-admin')?.value.trim();
+  const options = ($('poll-options-admin')?.value || '').split('\n').map(x => x.trim()).filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i).slice(0,8);
+  const closesRaw = $('poll-closes-admin')?.value;
+
+  if (!question) return message('poll-admin-message', 'Bitte eine Frage eingeben.');
+  if (options.length < 2) return message('poll-admin-message', 'Bitte mindestens zwei unterschiedliche Antworten angeben.');
+
+  const closes_at = closesRaw ? new Date(closesRaw).toISOString() : null;
+
+  try {
+    await supabaseClient.from('club_polls').update({ active: false }).eq('active', true);
+
+    const { data: poll, error } = await supabaseClient
+      .from('club_polls')
+      .insert({
+        question,
+        description: description || null,
+        closes_at,
+        active: true,
+        created_by: currentUser.id
+      })
+      .select('id')
+      .single();
+
+    if (error) throw error;
+
+    const { error: optionError } = await supabaseClient
+      .from('club_poll_options')
+      .insert(options.map((label, index) => ({
+        poll_id: poll.id,
+        label,
+        sort_order: index
+      })));
+
+    if (optionError) throw optionError;
+
+    $('poll-question-admin').value = '';
+    $('poll-description-admin').value = '';
+    $('poll-options-admin').value = '';
+    $('poll-closes-admin').value = '';
+    message('poll-admin-message', 'Umfrage veröffentlicht.', true);
+    await loadPollsAdmin();
+  } catch (error) {
+    message('poll-admin-message', error?.message || 'Umfrage konnte nicht erstellt werden.');
+  }
+});
+
 let supabaseClient = null;
 let currentUser = null;
 let cachedGames = [];
@@ -442,6 +549,7 @@ async function loadDashboard() {
     loadEventsAdmin(),
     loadNewsAdmin(),
     loadClipsAdmin(),
+    loadPollsAdmin(),
   ]);
   await loadSpotlightAdmin();
 

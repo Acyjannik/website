@@ -648,3 +648,12 @@ Added Impressum, Datenschutzerklärung, Account & Datenschutz page, account dele
 
 
 V5.1 uses Supabase RLS directly for DM reads/writes; no service-role key is exposed in the browser.
+
+
+## V5.2 — Community Polls
+- Added one active community poll at a time.
+- Members can vote once per poll.
+- Votes are stored server-side with RLS and a unique `(poll_id, user_id)` constraint.
+- Each successful vote awards +5 XP exactly once via a database trigger.
+- Vote counts update live through Supabase Realtime.
+- Admins can create, activate and end polls.

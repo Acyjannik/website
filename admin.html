@@ -7,7 +7,7 @@
   <meta name="robots" content="noindex,nofollow">
   <link rel="stylesheet" href="styles.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="admin.js?v=4.3.3" defer></script>
+  <script src="admin.js?v=5.2.0" defer></script>
   <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
   <link rel="shortcut icon" href="/assets/favicon.svg">
   <link rel="apple-touch-icon" href="/assets/favicon.svg">
@@ -50,6 +50,7 @@
           <button class="admin-tab" data-tab="news">News</button>
           <button class="admin-tab" data-tab="progression">XP & Badges</button>
           <button class="admin-tab" data-tab="spotlight">Spotlight</button>
+          <button class="admin-tab" data-tab="polls">Community Votes</button>
           <button class="admin-tab" data-tab="clips">Clips</button>
           <button class="admin-tab" data-tab="media">Bilder</button>
           <button class="admin-tab" data-tab="security">Sicherheit</button>
@@ -338,6 +339,30 @@
               <div class="eyebrow">ABLAUF</div>
               <h2>So funktioniert es</h2>
               <p class="admin-muted">Das Spotlight gilt für den aktuellen Monat. Du kannst den Gewinner jederzeit ersetzen. Der ausgewählte Member erhält automatisch eine Notification.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="admin-view" data-view="polls">
+          <div class="admin-grid">
+            <div class="admin-card admin-span-2">
+              <div class="section-heading">
+                <div><div class="eyebrow">COMMUNITY</div><h2>Community Votes</h2><p class="admin-muted">Erstelle eine Umfrage. Es kann immer eine aktive Umfrage geben.</p></div>
+              </div>
+              <div class="admin-table" id="polls-admin-list"><div class="admin-note">Umfragen werden geladen…</div></div>
+              <div class="admin-form admin-form-grid">
+                <label>Frage<input id="poll-question-admin" maxlength="180" placeholder="Welches Game soll als Nächstes gespielt werden?"></label>
+                <label>Beschreibung<input id="poll-description-admin" maxlength="240" placeholder="Deine Stimme zählt."></label>
+                <label>Antworten <small>eine pro Zeile</small><textarea id="poll-options-admin" rows="5" placeholder="Dead by Daylight&#10;Fortnite&#10;Overwatch&#10;Minecraft"></textarea></label>
+                <label>Ende <small>optional</small><input id="poll-closes-admin" type="datetime-local"></label>
+                <button class="button button-primary" id="add-poll-btn" type="button">Umfrage veröffentlichen</button>
+              </div>
+              <p class="admin-note" id="poll-admin-message"></p>
+            </div>
+            <div class="admin-card">
+              <div class="eyebrow">XP</div>
+              <h2>+5 XP</h2>
+              <p class="admin-muted">Jedes Mitglied erhält für eine Umfrage einmalig 5 XP. Die Datenbank verhindert doppelte Stimmen und doppeltes XP.</p>
             </div>
           </div>
         </section>
