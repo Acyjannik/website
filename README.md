@@ -977,3 +977,9 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Normalizes width/box sizing across major Club, Member and Admin containers.
 - Adds responsive side padding so content stays centered on narrow screens.
 - No SQL changes.
+
+
+## V7.4.3 — Social Status Fix
+- Fixed a null `textContent` error when friend actions tried to show a status message on the profile page.
+- Status messaging now safely falls back to the social/poll status element when the profile-save status is not present.
+- No SQL changes.

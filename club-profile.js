@@ -9,7 +9,11 @@ function setText(id, value) {
 }
 
 function setStatus(text, type = '') {
-  const el = $('profile-save-status');
+  const el = $('profile-save-status') || $('member-social-status') || $('poll-admin-message');
+  if (!el) {
+    console.warn('Status element missing:', text);
+    return;
+  }
   el.textContent = text;
   el.className = `club-auth-status ${type}`.trim();
 }
