@@ -609,3 +609,10 @@ Added Impressum, Datenschutzerklärung, Account & Datenschutz page, account dele
 ## V5.0.6 — Exact Discord redirect
 - Fixed the Discord OAuth redirect to use the exact allow-listed URL `/club-profile.html`.
 - Removed the `?discord_callback=1` query parameter, which was not present in Supabase's exact redirect allow-list and could therefore fall back to the Site URL.
+
+
+## V5.0.7 — Reversible Discord XP
+- Fixed the XP lifecycle: Discord connected = +50 XP, Discord disconnected = -50 XP, reconnecting = +50 XP again.
+- The event row remains unique but can be reactivated when its stored XP is 0.
+- Repeated connect/disconnect cycles do not stack XP; the current connection state determines the +50/-50.
+- Updated the progression SQL function accordingly.
