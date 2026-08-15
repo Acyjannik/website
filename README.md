@@ -322,3 +322,8 @@ The member dashboard now supports linking an existing ACY Club account to a Disc
 5. In the Discord Developer Portal, use the Supabase project's callback URL shown under the Discord provider (format: `https://<project-ref>.supabase.co/auth/v1/callback`).
 
 After setup, the member can click **Discord verbinden**. The OAuth identity is linked to the existing member account rather than creating a separate site account.
+
+
+## V2.9.1: Discord linking diagnostics
+
+The Discord button now explicitly follows the OAuth URL returned by Supabase and shows the exact setup error below the button if no OAuth URL is returned or linking fails.

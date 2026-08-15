@@ -244,6 +244,12 @@ async function loadDiscordLink() {
 
     text.textContent = connected ? 'Discord verbunden' : 'Nicht verbunden';
     if (state) state.classList.toggle('is-connected', connected);
+    if ($('discord-link-status')) {
+      $('discord-link-status').textContent = connected
+        ? 'Dein Discord-Konto ist mit diesem ACY Club Account verknüpft.'
+        : 'Noch nicht verbunden.';
+      $('discord-link-status').className = connected ? 'club-auth-status success' : 'club-auth-status';
+    }
 
     button.textContent = connected ? 'Discord verbunden ✓' : 'Discord verbinden';
     button.disabled = connected;
@@ -265,34 +271,52 @@ async function loadDiscordLink() {
 
 async function connectDiscord() {
   const button = $('discord-connect-btn');
+  const statusEl = $('discord-link-status');
+
   if (button) {
     button.disabled = true;
     button.textContent = 'Discord wird verbunden…';
   }
+  if (statusEl) {
+    statusEl.textContent = 'Discord-Verbindung wird gestartet…';
+    statusEl.className = 'club-auth-status';
+  }
 
   try {
+    if (!supabaseClient) throw new Error('Supabase ist noch nicht initialisiert.');
+
+    const { data: sessionData } = await supabaseClient.auth.getSession();
+    if (!sessionData?.session) {
+      throw new Error('Deine Sitzung ist abgelaufen. Bitte einmal neu einloggen.');
+    }
+
     const { data, error } = await supabaseClient.auth.linkIdentity({
       provider: 'discord',
       options: {
         redirectTo: `${window.location.origin}/club-profile.html`
       }
     });
+
     if (error) throw error;
 
-    // Supabase redirects to Discord automatically. This line is a fallback for custom flows.
-    if (data?.url) window.location.href = data.url;
+    if (data?.url) {
+      // Force the browser to follow the OAuth URL returned by Supabase.
+      window.location.assign(data.url);
+      return;
+    }
+
+    throw new Error(
+      'Supabase hat keine Discord-OAuth-URL zurückgegeben. Prüfe, ob Discord als Provider aktiviert und Manual Linking eingeschaltet ist.'
+    );
   } catch (error) {
     console.error('Discord linking failed:', error);
+    if (statusEl) {
+      statusEl.textContent = error?.message || 'Discord konnte nicht verbunden werden.';
+      statusEl.className = 'club-auth-status error';
+    }
     if (button) {
       button.disabled = false;
       button.textContent = 'Discord verbinden';
-    }
-
-    if ($('profile-save-status')) {
-      setStatus(
-        'Discord konnte nicht verbunden werden. Prüfe, ob Discord in Supabase Auth aktiviert und Manual Linking eingeschaltet ist.',
-        'error'
-      );
     }
   }
 }

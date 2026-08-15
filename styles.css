@@ -455,3 +455,6 @@ button:disabled{opacity:.55;cursor:not-allowed}
 
 /* V2.9 Discord linking */
 .member-discord-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.discord-link-state{display:inline-flex;align-items:center;gap:7px;margin-top:10px;font-size:11px;color:#a1a1aa}.discord-state-dot{width:8px;height:8px;border-radius:50%;background:#71717a;box-shadow:0 0 0 4px rgba(113,113,122,.08)}.discord-link-state.is-connected{color:#86efac}.discord-link-state.is-connected .discord-state-dot{background:#22c55e;box-shadow:0 0 0 4px rgba(34,197,94,.1)}
+
+/* V2.9.1 Discord linking status */
+#discord-link-status{margin-top:12px}
