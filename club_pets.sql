@@ -131,6 +131,14 @@ begin
 end;
 $$;
 
+
+revoke all on function public.create_club_pet(text,text) from public;
+revoke all on function public.rename_club_pet(text) from public;
+revoke all on function public.club_pet_action(text) from public;
+grant execute on function public.create_club_pet(text,text) to authenticated;
+grant execute on function public.rename_club_pet(text) to authenticated;
+grant execute on function public.club_pet_action(text) to authenticated;
+
 create or replace function public.club_pet_action(p_action text)
 returns jsonb
 language plpgsql
@@ -146,7 +154,7 @@ declare
   new_energy integer;
   new_pet_xp integer;
   daily_awarded boolean := false;
-  species_label text;
+  hours_to_zero numeric;
   result jsonb;
 begin
   if auth.uid() is null then raise exception 'Nicht angemeldet.'; end if;
@@ -157,34 +165,51 @@ begin
   where user_id = auth.uid()
   for update;
 
-  if p.user_id is null then raise exception 'Bitte zuerst ein Tier adoptieren.'; end if;
+  if p.user_id is null then
+    raise exception 'Bitte zuerst ein Tier adoptieren.';
+  end if;
 
-  elapsed_hours := greatest(0, extract(epoch from (now_ts - p.last_interaction_at)) / 3600.0);
+  elapsed_hours := greatest(
+    0,
+    extract(epoch from (now_ts - p.last_interaction_at)) / 3600.0
+  );
 
-  -- Gentle decay while the user is away. It never drops below zero.
-  new_hunger := greatest(0, p.hunger - floor(elapsed_hours * 3)::integer);
-  new_happiness := greatest(0, p.happiness - floor(elapsed_hours * 2)::integer);
-  new_energy := greatest(0, p.energy - floor(elapsed_hours * 2)::integer);
+  -- Balanced decay:
+  -- hunger -1/hour, happiness -0.5/hour, energy -0.5/hour.
+  hours_to_zero := least(
+    p.hunger / 1.0,
+    p.happiness / 0.5,
+    p.energy / 0.5
+  );
 
-  -- Small cooldowns prevent button-spamming from becoming the world's least
-  -- exciting exploit.
+  if elapsed_hours >= hours_to_zero + 72 then
+    delete from public.club_pets where user_id = auth.uid();
+    raise exception 'Dein Tier ist gestorben, weil ein Pflegewert 72 Stunden lang auf 0 war.';
+  end if;
+
+  new_hunger := greatest(0, p.hunger - floor(elapsed_hours * 1.0)::integer);
+  new_happiness := greatest(0, p.happiness - floor(elapsed_hours * 0.5)::integer);
+  new_energy := greatest(0, p.energy - floor(elapsed_hours * 0.5)::integer);
+
+  -- Action cooldowns keep actions meaningful.
   if p_action = 'feed' and p.last_interaction_at > now_ts - interval '30 minutes' then
-    raise exception 'Dein Tier hat gerade erst gefressen. Versuch es später noch einmal.';
-  elsif p_action = 'play' and p.last_interaction_at > now_ts - interval '30 minutes' then
-    raise exception 'Dein Tier braucht kurz eine Pause.';
-  elsif p_action = 'pet' and p.last_interaction_at > now_ts - interval '10 minutes' then
-    raise exception 'Dein Tier genießt die Aufmerksamkeit noch.';
+    raise exception 'Dein Tier hat gerade gefressen. Warte ein wenig, bevor du wieder fütterst.';
+  elsif p_action = 'play' and p.last_interaction_at > now_ts - interval '45 minutes' then
+    raise exception 'Dein Tier braucht nach dem Spielen eine Pause.';
+  elsif p_action = 'pet' and p.last_interaction_at > now_ts - interval '15 minutes' then
+    raise exception 'Dein Tier genießt die Streicheleinheiten noch.';
   end if;
 
   if p_action = 'feed' then
-    new_hunger := least(100, new_hunger + 28);
-    new_energy := greatest(0, new_energy - 3);
-    new_happiness := least(100, new_happiness + 4);
+    new_hunger := least(100, new_hunger + 35);
+    new_happiness := least(100, new_happiness + 5);
   elsif p_action = 'play' then
-    if new_energy < 15 then raise exception 'Dein Tier ist zu müde zum Spielen.'; end if;
-    new_happiness := least(100, new_happiness + 22);
+    if new_energy < 15 then
+      raise exception 'Dein Tier ist zu müde zum Spielen.';
+    end if;
+    new_happiness := least(100, new_happiness + 25);
     new_energy := greatest(0, new_energy - 15);
-    new_hunger := greatest(0, new_hunger - 8);
+    new_hunger := greatest(0, new_hunger - 10);
   elsif p_action = 'pet' then
     new_happiness := least(100, new_happiness + 10);
   end if;
@@ -198,7 +223,11 @@ begin
   if found then
     new_pet_xp := new_pet_xp + 5;
     daily_awarded := true;
-    perform public.award_club_xp(auth.uid(), 'pet_care_' || current_date::text, 5);
+    perform public.award_club_xp(
+      auth.uid(),
+      'pet_care_' || current_date::text,
+      5
+    );
   end if;
 
   update public.club_pets
@@ -211,10 +240,16 @@ begin
   where user_id = auth.uid();
 
   select jsonb_build_object(
-    'user_id', user_id, 'species', species, 'name', name,
-    'hunger', hunger, 'happiness', happiness, 'energy', energy,
-    'pet_xp', pet_xp, 'created_at', created_at,
-    'updated_at', updated_at, 'last_interaction_at', last_interaction_at,
+    'user_id', user_id,
+    'species', species,
+    'name', name,
+    'hunger', hunger,
+    'happiness', happiness,
+    'energy', energy,
+    'pet_xp', pet_xp,
+    'created_at', created_at,
+    'updated_at', updated_at,
+    'last_interaction_at', last_interaction_at,
     'daily_xp_awarded', daily_awarded
   ) into result
   from public.club_pets
@@ -224,9 +259,3 @@ begin
 end;
 $$;
 
-revoke all on function public.create_club_pet(text,text) from public;
-revoke all on function public.rename_club_pet(text) from public;
-revoke all on function public.club_pet_action(text) from public;
-grant execute on function public.create_club_pet(text,text) to authenticated;
-grant execute on function public.rename_club_pet(text) to authenticated;
-grant execute on function public.club_pet_action(text) to authenticated;

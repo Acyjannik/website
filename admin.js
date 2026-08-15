@@ -1205,14 +1205,14 @@ $('add-poll-btn')?.addEventListener('click', async () => {
         const payload = await response.json().catch(() => ({}));
         if (response.ok) {
           message('poll-admin-message',
-            `Umfrage veröffentlicht. ${payload.emailSent || 0} E-Mail(s) gesendet.`, true);
+            `Umfrage veröffentlicht. ${payload.emailSent || 0} E-Mail(s) gesendet · ${payload.categoryEnabledCount || 0} für Votes freigeschaltet · ${payload.emailFailed || 0} Fehler.`, true);
         } else if (response.status === 503) {
           message('poll-admin-message',
             'Umfrage veröffentlicht. E-Mail-Versand ist noch nicht in Vercel konfiguriert.', true);
         } else {
-          console.warn('Vote email dispatch:', payload.error);
+          console.warn('Vote email dispatch:', payload.error, payload);
           message('poll-admin-message',
-            'Umfrage veröffentlicht. E-Mail-Versand konnte nicht abgeschlossen werden.', true);
+            `Umfrage veröffentlicht. E-Mail-Versand: ${payload.error || `HTTP ${response.status}`}`, true);
         }
       }
     } catch (notifyError) {

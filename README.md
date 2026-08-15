@@ -849,3 +849,9 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Fixed the Community Vote admin message overwriting the email-dispatch result with the generic "Umfrage veröffentlicht." text.
 - The admin page now keeps the actual result: number of emails sent, SMTP-not-configured, or send error.
 - No SQL changes.
+
+
+## V7.1.2 — Email Diagnostics
+- Shows how many members have email enabled and how many are opted in for the active notification category.
+- Reports send failures and missing Auth email addresses.
+- No SQL changes.
