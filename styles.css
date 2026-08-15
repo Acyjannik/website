@@ -1525,3 +1525,30 @@ img,video,iframe,svg{
   .notification-settings-summary-right{gap:6px}
   .notification-settings-summary-right .member-count-chip{max-width:150px}
 }
+
+/* V7.4.6 — Notification section structure/layout repair */
+.notification-settings-collapsible{
+  display:block;
+  width:100%;
+}
+.notification-settings-collapsible > summary{
+  width:100%;
+  min-height:118px;
+  padding:22px 24px;
+  box-sizing:border-box;
+}
+.notification-settings-body{
+  padding:0 24px 24px;
+}
+.notification-settings-collapsible[open] .notification-settings-body{
+  padding-top:18px;
+}
+@media(max-width:700px){
+  .notification-settings-collapsible > summary{
+    min-height:auto;
+    padding:18px;
+  }
+  .notification-settings-body{
+    padding:0 18px 18px;
+  }
+}

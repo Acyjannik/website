@@ -6,7 +6,7 @@
   <title>Mein ACY Club · Acyjannik</title>
   <link rel="stylesheet" href="styles.css?v=7.4.3">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="/pet-companion.js?v=7.2.0" defer></script>
-  <script src="club-profile.js?v=7.4.5" defer></script>
+  <script src="club-profile.js?v=7.4.6" defer></script>
   <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
   <link rel="shortcut icon" href="/assets/favicon.svg">
   <link rel="apple-touch-icon" href="/assets/favicon.svg">
@@ -31,7 +31,7 @@
     </header>
 
     
-      <details class="member-card member-span-2 notification-settings-card notification-settings-collapsible" id="notification-settings">
+            <details class="member-card member-span-2 notification-settings-card notification-settings-collapsible" id="notification-settings">
         <summary class="notification-settings-summary">
           <span>
             <span class="eyebrow">BENACHRICHTIGUNGEN</span>
@@ -43,38 +43,39 @@
             <span class="notification-settings-chevron">⌄</span>
           </span>
         </summary>
-          <span class="member-count-chip" id="notification-settings-status">Wird geladen…</span>
-        </div>
 
-        <div class="notification-settings-grid">
-          <label class="notification-setting-card">
-            <span><strong>🔔 In-App-Benachrichtigungen</strong><small>Glocke und Club-Hinweise</small></span>
-            <input type="checkbox" id="pref-in-app">
-          </label>
-          <label class="notification-setting-card">
-            <span><strong>📧 E-Mail-Benachrichtigungen</strong><small>Hauptschalter für E-Mail</small></span>
-            <input type="checkbox" id="pref-email-enabled">
-          </label>
-        </div>
+        <div class="notification-settings-body">
+          <div class="notification-settings-grid">
+            <label class="notification-setting-card">
+              <span><strong>🔔 In-App-Benachrichtigungen</strong><small>Glocke und Club-Hinweise</small></span>
+              <input type="checkbox" id="pref-in-app">
+            </label>
+            <label class="notification-setting-card">
+              <span><strong>📧 E-Mail-Benachrichtigungen</strong><small>Hauptschalter für E-Mail</small></span>
+              <input type="checkbox" id="pref-email-enabled">
+            </label>
+          </div>
 
-        <div class="notification-category-grid">
-          <label class="notification-setting-card"><span>🗳️ Community Votes</span><input type="checkbox" data-pref="email-votes"></label>
-          <label class="notification-setting-card"><span>🎮 Events</span><input type="checkbox" data-pref="email-events"></label>
-          <label class="notification-setting-card"><span>📰 News</span><input type="checkbox" data-pref="email-news"></label>
-          <label class="notification-setting-card"><span>🔴 Live</span><input type="checkbox" data-pref="email-live"></label>
-          <label class="notification-setting-card"><span>🏆 Achievements</span><input type="checkbox" data-pref="email-achievements"></label>
-          <label class="notification-setting-card"><span>💌 Direktnachrichten</span><input type="checkbox" data-pref="email-direct-messages"></label>
-          <label class="notification-setting-card"><span>👑 Spotlight</span><input type="checkbox" data-pref="email-spotlight"></label>
-          <label class="notification-setting-card"><span>🎁 Rewards</span><input type="checkbox" data-pref="email-rewards"></label>
-          <label class="notification-setting-card"><span>🐾 Pet</span><input type="checkbox" data-pref="email-pet"></label>
-        </div>
+          <div class="notification-category-grid">
+            <label class="notification-setting-card"><span>🗳️ Community Votes</span><input type="checkbox" data-pref="email-votes"></label>
+            <label class="notification-setting-card"><span>🎮 Events</span><input type="checkbox" data-pref="email-events"></label>
+            <label class="notification-setting-card"><span>📰 News</span><input type="checkbox" data-pref="email-news"></label>
+            <label class="notification-setting-card"><span>🔴 Live</span><input type="checkbox" data-pref="email-live"></label>
+            <label class="notification-setting-card"><span>🏆 Achievements</span><input type="checkbox" data-pref="email-achievements"></label>
+            <label class="notification-setting-card"><span>💌 Direktnachrichten</span><input type="checkbox" data-pref="email-direct-messages"></label>
+            <label class="notification-setting-card"><span>👑 Spotlight</span><input type="checkbox" data-pref="email-spotlight"></label>
+            <label class="notification-setting-card"><span>🎁 Rewards</span><input type="checkbox" data-pref="email-rewards"></label>
+            <label class="notification-setting-card"><span>🐾 Pet</span><input type="checkbox" data-pref="email-pet"></label>
+          </div>
 
-        <div class="notification-settings-foot">
-          <div><strong>Account-E-Mail</strong><span id="notification-settings-email">–</span></div>
-          <button class="button button-primary" type="button" id="save-notification-settings">Einstellungen speichern</button>
+          <div class="notification-settings-foot">
+            <div><strong>Account-E-Mail</strong><span id="notification-settings-email">–</span></div>
+            <button class="button button-primary" type="button" id="save-notification-settings">Einstellungen speichern</button>
+          </div>
+          <p class="club-auth-status" id="notification-settings-message"></p>
         </div>
-        <p class="club-auth-status" id="notification-settings-message"></p>
       </details>
+
 <main class="member-dashboard">
       <section class="member-hero-card">
         <div class="member-identity">

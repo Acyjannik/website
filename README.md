@@ -997,3 +997,10 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Existing notification preference rows are migrated to all enabled once via SQL.
 - Users can still turn individual categories or the E-Mail master switch off.
 - Run `supabase/club_notification_preferences.sql` again after deployment.
+
+
+## V7.4.6 — Notification Layout Repair
+- Fixed malformed collapsible notification markup that left the settings grid outside the card.
+- Rebuilt the notification section structure cleanly with a real details body.
+- Preserves collapsed-by-default behavior and all notification settings.
+- No SQL changes.

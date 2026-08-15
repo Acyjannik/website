@@ -2,16 +2,16 @@
 create table if not exists public.club_notification_preferences (
   user_id uuid primary key references auth.users(id) on delete cascade,
   in_app_enabled boolean not null default true,
-  email_enabled boolean not null default false,
-  email_votes boolean not null default false,
-  email_events boolean not null default false,
-  email_news boolean not null default false,
-  email_live boolean not null default false,
-  email_achievements boolean not null default false,
-  email_direct_messages boolean not null default false,
-  email_spotlight boolean not null default false,
-  email_rewards boolean not null default false,
-  email_pet boolean not null default false,
+  email_enabled boolean not null default true,
+  email_votes boolean not null default true,
+  email_events boolean not null default true,
+  email_news boolean not null default true,
+  email_live boolean not null default true,
+  email_achievements boolean not null default true,
+  email_direct_messages boolean not null default true,
+  email_spotlight boolean not null default true,
+  email_rewards boolean not null default true,
+  email_pet boolean not null default true,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -36,6 +36,23 @@ on public.club_notification_preferences
 for update to authenticated
 using (user_id = auth.uid())
 with check (user_id = auth.uid());
+
+
+
+-- V7.4.5: notification preferences default to ON.
+update public.club_notification_preferences
+set in_app_enabled = true,
+    email_enabled = true,
+    email_votes = true,
+    email_events = true,
+    email_news = true,
+    email_live = true,
+    email_achievements = true,
+    email_direct_messages = true,
+    email_spotlight = true,
+    email_rewards = true,
+    email_pet = true
+where true;
 
 create or replace function public.ensure_notification_preferences()
 returns trigger
