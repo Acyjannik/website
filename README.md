@@ -834,3 +834,12 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Email is off by default.
 - Added `supabase/club_notification_preferences.sql`.
 - This version intentionally stops at preferences. The actual mail dispatch will be added as the next small step.
+
+
+## V7.1 — Email Delivery
+- Added a dedicated server-side SMTP email endpoint.
+- Publishing a Community Vote now emails only members who enabled both the global email switch and Community Votes.
+- Uses IONOS SMTP via Vercel environment variables.
+- No email is sent until SMTP is configured.
+- In-app notifications and preference storage remain unchanged.
+- No new SQL is required for V7.1.

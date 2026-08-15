@@ -1185,6 +1185,42 @@ $('add-poll-btn')?.addEventListener('click', async () => {
 
     if (optionError) throw optionError;
 
+    try {
+      const { data: sessionData } = await supabaseClient.auth.getSession();
+      const token = sessionData?.session?.access_token;
+      if (token) {
+        const response = await fetch('/api/club-notification-email', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            type: 'community_vote',
+            title: 'Neuer Community Vote',
+            body: question,
+            linkUrl: '/club-profile.html#community-poll'
+          })
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (response.ok) {
+          message('poll-admin-message',
+            `Umfrage veröffentlicht. ${payload.emailSent || 0} E-Mail(s) gesendet.`, true);
+        } else if (response.status === 503) {
+          message('poll-admin-message',
+            'Umfrage veröffentlicht. E-Mail-Versand ist noch nicht in Vercel konfiguriert.', true);
+        } else {
+          console.warn('Vote email dispatch:', payload.error);
+          message('poll-admin-message',
+            'Umfrage veröffentlicht. E-Mail-Versand konnte nicht abgeschlossen werden.', true);
+        }
+      }
+    } catch (notifyError) {
+      console.warn('Vote email dispatch:', notifyError);
+      message('poll-admin-message',
+        'Umfrage veröffentlicht. E-Mail-Versand konnte nicht abgeschlossen werden.', true);
+    }
+
     $('poll-question-admin').value = '';
     $('poll-description-admin').value = '';
     $('poll-options-admin').value = '';
