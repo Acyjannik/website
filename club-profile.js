@@ -371,10 +371,7 @@ async function loadClubContent(){
             btn.textContent=result.attending?'Dabei ✓':'Teilnehmen';
             const countEl=item.querySelector('.event-attendee-count');
             if(countEl) countEl.textContent=String(result.count);
-            if(result.attending){
-              await awardProgression(`event_attended_${eventId}`);
-              await loadProfile();
-            }
+            await loadProfile();
           }catch(error){
             console.error('Event attendance failed:',error);
             btn.textContent=isAttending?'Dabei ✓':'Teilnehmen';

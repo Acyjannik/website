@@ -345,3 +345,9 @@ Added:
 - events now show whether the current member is attending
 
 Run `supabase/club_event_attendance.sql` once in Supabase SQL Editor.
+
+
+## V3.0.1: Event XP reversal
+
+Leaving an event now also reverses the +100 XP that was awarded for that attendance. The XP record is removed server-side so the score cannot remain inflated after cancelling participation.
+Run the updated `supabase/club_progression.sql` once in Supabase SQL Editor so the `revoke_club_xp` function exists.

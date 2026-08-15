@@ -43,6 +43,16 @@ export default async function handler(req,res){
       if(!r.ok){
         const t=await r.text(); return res.status(500).json({error:t||"Could not leave event."});
       }
+
+      // Reverse the one-time attendance XP only when the attendance record existed.
+      const rpc=await fetch(`${url}/rest/v1/rpc/revoke_club_xp`,{
+        method:"POST",headers,
+        body:JSON.stringify({p_user_id:user.id,p_event_key:`event_attended_${eventId}`,p_xp:100})
+      });
+      if(!rpc.ok){
+        const t=await rpc.text();
+        console.error("XP revoke:",t);
+      }
     }
 
     const countRes=await fetch(`${url}/rest/v1/club_event_attendance?event_id=eq.${eventId}&select=id`,{headers:{

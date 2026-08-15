@@ -70,3 +70,47 @@ $$;
 
 revoke all on function public.award_club_xp(uuid, text, integer) from public;
 grant execute on function public.award_club_xp(uuid, text, integer) to authenticated;
+
+
+-- Remove XP for a reversible, one-time event action.
+create or replace function public.revoke_club_xp(
+  p_user_id uuid,
+  p_event_key text,
+  p_xp integer
+)
+returns integer
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  deleted_count integer;
+  total_xp integer;
+begin
+  if p_xp <= 0 then
+    return 0;
+  end if;
+
+  delete from public.club_xp_events
+  where user_id = p_user_id
+    and event_key = p_event_key;
+
+  get diagnostics deleted_count = row_count;
+
+  if deleted_count = 1 then
+    update public.profiles
+    set xp = greatest(0, coalesce(xp, 0) - p_xp),
+        updated_at = now()
+    where id = p_user_id;
+  end if;
+
+  select coalesce(xp, 0) into total_xp
+  from public.profiles
+  where id = p_user_id;
+
+  return coalesce(total_xp, 0);
+end;
+$$;
+
+revoke all on function public.revoke_club_xp(uuid, text, integer) from public;
+grant execute on function public.revoke_club_xp(uuid, text, integer) to authenticated;
