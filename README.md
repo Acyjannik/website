@@ -663,3 +663,16 @@ V5.1 uses Supabase RLS directly for DM reads/writes; no service-role key is expo
 - Fixed a JavaScript initialization-order error introduced by the Community Poll admin code.
 - The poll event binding now runs only after the `$` DOM helper and Supabase variables are initialized.
 - This restores the Admin Login handler while keeping the V5.2 poll functionality.
+
+
+## V6.0 — Live Hub
+- Upgraded the existing Twitch Helix status into a more visible live experience.
+- Added a floating live alert with stream title, game and viewer count.
+- Added live viewer count and stream start time to the Twitch section.
+- Twitch status refreshes every 30 seconds while the page is open.
+- Live alert can be dismissed without disabling the actual live status.
+- Twitch credentials remain server-side in `/api/twitch-status.js`.
+
+
+## V5.2.2 — Admin initialization fix
+Community Poll admin code is now initialized only after the base DOM/Supabase helpers exist, restoring the Admin Login handler.

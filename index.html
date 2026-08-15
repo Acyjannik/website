@@ -36,6 +36,15 @@
     <button class="menu-button" aria-label="Menü öffnen" aria-expanded="false">☰</button>
   </header>
 
+  <div class="live-alert" id="live-alert" hidden>
+    <div class="live-alert-inner">
+      <span class="live-alert-dot"></span>
+      <span><strong id="live-alert-title">ACYJANNIK ist live</strong><small id="live-alert-meta">Jetzt auf Twitch</small></span>
+      <a href="https://www.twitch.tv/acyjannik" target="_blank" rel="noreferrer">Stream öffnen ↗</a>
+      <button type="button" id="live-alert-close" aria-label="Live-Hinweis schließen">×</button>
+    </div>
+  </div>
+
   <main id="top">
     <section class="hero section-pad">
       <div class="hero-copy reveal">
@@ -62,7 +71,7 @@
     <section id="live" class="section-pad section">
       <div class="section-heading reveal">
         <div><span class="eyebrow">LIVE</span><h2>Der Stream.</h2></div>
-        <span class="section-note">Twitch · acyjannik</span>
+        <span class="section-note" id="stream-section-note">Twitch · acyjannik</span>
       </div>
       <div class="stream-shell reveal">
         <div class="twitch-player-wrap">
@@ -193,6 +202,6 @@
   <div class="footer-admin-link"><a href="/admin.html">Admin</a></div></footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="script.js?v=5.0.9"></script>
+  <script src="script.js?v=6.0.0"></script>
 <footer class="legal-footer"><a href="/impressum.html">Impressum</a><span>·</span><a href="/datenschutz.html">Datenschutz</a></footer></body>
 </html>

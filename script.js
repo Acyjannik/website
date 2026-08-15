@@ -77,6 +77,12 @@ async function updateTwitchStatus() {
     statusEyebrow: document.getElementById('twitch-status-eyebrow'),
     statusTitle: document.getElementById('twitch-status-title'),
     statusMeta: document.getElementById('twitch-status-meta'),
+    liveDetails: document.getElementById('twitch-live-details'),
+    liveViewers: document.getElementById('twitch-live-viewers'),
+    liveStart: document.getElementById('twitch-live-start'),
+    alert: document.getElementById('live-alert'),
+    alertTitle: document.getElementById('live-alert-title'),
+    alertMeta: document.getElementById('live-alert-meta'),
   };
 
   try {
@@ -109,6 +115,25 @@ async function updateTwitchStatus() {
           : 'Live auf Twitch';
         els.statusMeta.textContent = [data.game, viewerText].filter(Boolean).join(' · ');
       }
+      if (els.liveDetails) els.liveDetails.hidden = false;
+      if (els.liveViewers) {
+        els.liveViewers.textContent = Number.isFinite(data.viewerCount)
+          ? `👥 ${data.viewerCount.toLocaleString('de-DE')} Zuschauer`
+          : '🔴 Live';
+      }
+      if (els.liveStart) {
+        els.liveStart.textContent = data.startedAt
+          ? `Seit ${new Date(data.startedAt).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })} Uhr`
+          : '';
+      }
+      if (els.alert) {
+        els.alert.hidden = false;
+        if (els.alertTitle) els.alertTitle.textContent = data.title || 'ACYJANNIK ist live';
+        if (els.alertMeta) {
+          els.alertMeta.textContent = [data.game, Number.isFinite(data.viewerCount) ? `${data.viewerCount.toLocaleString('de-DE')} Zuschauer` : 'Jetzt auf Twitch']
+            .filter(Boolean).join(' · ');
+        }
+      }
     } else {
       if (els.headerText) els.headerText.textContent = 'Twitch';
       if (els.heroLabel) els.heroLabel.textContent = 'ACYJANNIK';
@@ -118,6 +143,8 @@ async function updateTwitchStatus() {
       if (els.statusEyebrow) els.statusEyebrow.textContent = 'TWITCH';
       if (els.statusTitle) els.statusTitle.textContent = 'Acyjannik ist gerade offline';
       if (els.statusMeta) els.statusMeta.textContent = 'Schau später wieder vorbei oder folge dem Kanal auf Twitch.';
+      if (els.liveDetails) els.liveDetails.hidden = true;
+      if (els.alert) els.alert.hidden = true;
     }
   } catch (error) {
     console.error('Twitch status error:', error);
@@ -127,7 +154,11 @@ async function updateTwitchStatus() {
 }
 
 updateTwitchStatus();
-setInterval(updateTwitchStatus, 60000);
+setInterval(updateTwitchStatus, 30000);
+document.getElementById('live-alert-close')?.addEventListener('click', () => {
+  document.getElementById('live-alert')?.setAttribute('hidden', '');
+});
+
 
 
 
