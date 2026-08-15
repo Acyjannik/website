@@ -446,3 +446,17 @@ Added a dedicated `/club-reset.html` recovery page. Password recovery emails now
 This fixes the previous behavior where the recovery link returned the user to the normal member page without giving them a password-change form.
 
 Note: Supabase's built-in email provider currently allows only 2 auth emails per hour project-wide. Frequent password-reset testing can therefore trigger `email rate limit exceeded`. For production, configure custom SMTP to get a higher email-send allowance.
+
+
+## V3.6: Leaderboard + achievements + member statistics
+
+Added:
+- ACY Club leaderboard (top 10, XP sorted)
+- clickable leaderboard rows to public member profiles
+- member stats: events, badges, XP, membership days
+- automatic achievement checks
+- initial achievements: ACY Rookie, Discord Member, Event Fan, Event Hunter, Early Member, ACY OG, ACY Legend
+- new `club_achievements` table
+- protected leaderboard API
+
+Run `supabase/club_achievements.sql` once in Supabase SQL Editor.

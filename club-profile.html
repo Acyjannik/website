@@ -6,7 +6,7 @@
   <title>Mein ACY Club · Acyjannik</title>
   <link rel="stylesheet" href="styles.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="club-profile.js?v=3.3.1" defer></script>
+  <script src="club-profile.js?v=3.6.0" defer></script>
   <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
   <link rel="shortcut icon" href="/assets/favicon.svg">
   <link rel="apple-touch-icon" href="/assets/favicon.svg">
@@ -149,6 +149,31 @@
           </div>
           <div class="clip-grid" id="member-clips-list">
             <div class="club-content-empty">Clips werden geladen…</div>
+          </div>
+        </section>
+
+        <section class="member-card member-span-2">
+          <div class="member-card-head">
+            <div>
+              <div class="eyebrow">LEADERBOARD</div>
+              <h2>ACY Club Ranking</h2>
+              <p>Wer sammelt aktuell die meisten XP?</p>
+            </div>
+            <span class="member-count-chip" id="leaderboard-count">– Mitglieder</span>
+          </div>
+          <div class="leaderboard-list" id="member-leaderboard-list">
+            <div class="club-content-empty">Ranking wird geladen…</div>
+          </div>
+        </section>
+
+        <section class="member-card member-span-2">
+          <div class="eyebrow">DEINE STATISTIK</div>
+          <h2>Dein Club-Fortschritt.</h2>
+          <div class="member-stats-grid" id="member-stats-grid">
+            <div><span>Events</span><strong id="stat-events">0</strong></div>
+            <div><span>Badges</span><strong id="stat-badges">0</strong></div>
+            <div><span>XP</span><strong id="stat-xp">0</strong></div>
+            <div><span>Mitgliedstage</span><strong id="stat-days">0</strong></div>
           </div>
         </section>
 

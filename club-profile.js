@@ -140,6 +140,9 @@ async function init() {
     await loadClubContent();
     await loadMemberDirectory();
     await loadClubClips();
+    await checkAchievements();
+    await loadMemberStats();
+    await loadLeaderboard();
   } catch (error) {
     const msg = error?.message || 'Profil konnte nicht geladen werden.';
     const status = $('profile-save-status');
@@ -442,6 +445,91 @@ async function loadMemberDirectory(search = '') {
     console.warn('Member directory unavailable:', error);
     if (countEl) countEl.textContent = '– Mitglieder';
     list.innerHTML = `<div class="club-content-empty">${escapeHtml(error?.message || 'Mitglieder konnten nicht geladen werden.')}</div>`;
+  }
+}
+
+async function checkAchievements() {
+  try {
+    const { data } = await supabaseClient.auth.getSession();
+    const token = data?.session?.access_token;
+    if (!token) return;
+    await fetch('/api/club-achievements', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: '{}'
+    });
+  } catch (error) {
+    console.warn('Achievement check skipped:', error);
+  }
+}
+
+async function loadMemberStats() {
+  try {
+    const [{ data: attendance }, { data: achievements }, { data: profile }] = await Promise.all([
+      supabaseClient.from('club_event_attendance').select('id'),
+      supabaseClient.from('club_achievements').select('achievement_key'),
+      supabaseClient.from('profiles').select('xp,created_at').eq('id', currentUser.id).maybeSingle()
+    ]);
+
+    setText('stat-events', String((attendance || []).length));
+    setText('stat-badges', String((achievements || []).length));
+    setText('stat-xp', `${Number(profile?.xp || 0)} XP`);
+    const created = profile?.created_at || currentUser.created_at;
+    const days = Math.max(0, Math.floor((Date.now() - new Date(created).getTime()) / 86400000));
+    setText('stat-days', String(days));
+  } catch (error) {
+    console.warn('Member stats unavailable:', error);
+  }
+}
+
+async function loadLeaderboard() {
+  const list = $('member-leaderboard-list');
+  const countEl = $('leaderboard-count');
+  if (!list) return;
+
+  try {
+    const { data } = await supabaseClient.auth.getSession();
+    const token = data?.session?.access_token;
+    if (!token) throw new Error('Sitzung abgelaufen.');
+
+    const response = await fetch(`/api/club-leaderboard?_=${Date.now()}`, {
+      cache: 'no-store',
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload.error || 'Ranking konnte nicht geladen werden.');
+
+    const members = Array.isArray(payload.members) ? payload.members : [];
+    if (countEl) countEl.textContent = `${members.length} Mitglieder`;
+
+    const icons = {1:'🥇',2:'🥈',3:'🥉'};
+    list.innerHTML = members.slice(0, 10).map((member) => {
+      const avatar = member.avatar_url
+        ? `<img src="${escapeAttr(member.avatar_url)}" alt="" loading="lazy">`
+        : `<div class="leaderboard-avatar-fallback">${escapeHtml((member.display_name || member.username || 'A').charAt(0).toUpperCase())}</div>`;
+      const level = levelForXp(member.xp).title;
+      const rank = icons[member.rank] || `#${member.rank}`;
+      return `<button class="leaderboard-row" type="button" data-member-id="${escapeAttr(member.id)}">
+        <span class="leaderboard-rank">${rank}</span>
+        <span class="leaderboard-avatar">${avatar}</span>
+        <span class="leaderboard-main"><strong>${escapeHtml(member.display_name)}</strong><small>@${escapeHtml(member.username)}</small></span>
+        <span class="leaderboard-level">${escapeHtml(level)}</span>
+        <span class="leaderboard-xp">${member.xp} XP</span>
+      </button>`;
+    }).join('') || '<div class="club-content-empty">Noch keine Mitglieder im Ranking.</div>';
+
+    list.querySelectorAll('.leaderboard-row').forEach(row => {
+      row.addEventListener('click', () => {
+        const id = row.dataset.memberId;
+        if (id) window.location.href = `/member.html?id=${encodeURIComponent(id)}`;
+      });
+    });
+  } catch (error) {
+    console.warn('Leaderboard unavailable:', error);
+    list.innerHTML = `<div class="club-content-empty">${escapeHtml(error?.message || 'Ranking momentan nicht verfügbar.')}</div>`;
   }
 }
 
