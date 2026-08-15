@@ -6,7 +6,7 @@
   <title>ACY Club Member · Acyjannik</title>
   <link rel="stylesheet" href="styles.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="/pet-companion.js?v=7.2.0" defer></script>
-  <script src="member.js?v=7.2.2" defer></script>
+  <script src="member.js?v=7.4.0" defer></script>
   <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
   <link rel="shortcut icon" href="/assets/favicon.svg">
   <link rel="apple-touch-icon" href="/assets/favicon.svg">
@@ -48,7 +48,10 @@
 
         <div class="public-member-actions">
           <button class="button button-primary" id="send-direct-message" type="button">💌 Nachricht senden</button>
+          <button class="button button-secondary" id="send-friend-request" type="button">👥 Freund hinzufügen</button>
+          <button class="button button-danger" id="block-member" type="button">🚫 Blockieren</button>
         </div>
+        <p class="club-auth-status" id="member-social-status"></p>
 
         <div class="public-member-stats">
           <div><span>DABEI SEIT</span><strong id="public-since">–</strong></div>
@@ -57,19 +60,7 @@
 
         
         
-        
-        <section class="public-member-duo-card" id="pet-duo-achievements">
-          <div class="eyebrow">PET DUO ACHIEVEMENTS</div>
-          <div class="public-pet-heading">
-            <div><h2>Gemeinsam geschafft</h2><p id="public-pet-duo-subtitle">Noch keine Duo-Achievements.</p></div>
-            <span class="member-count-chip" id="public-pet-duo-count">0</span>
-          </div>
-          <div class="pet-duo-grid" id="public-pet-duo-grid">
-            <div class="public-pet-friends-empty">Sobald deine Pets miteinander aktiv sind, kommen hier besondere Auszeichnungen dazu.</div>
-          </div>
-        </section>
-
-<section class="public-member-friendships" id="pet-friendships">
+        <section class="public-member-friendships" id="pet-friendships">
           <div class="eyebrow">PET FREUNDSCHAFTEN</div>
           <div class="public-pet-heading">
             <div><h2>Tierische Freunde</h2><p id="public-pet-friends-subtitle">Noch keine Pet-Freundschaften.</p></div>

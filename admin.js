@@ -1123,9 +1123,35 @@ async function loadPollsAdmin() {
       <div class="admin-table-row poll-admin-row" data-poll-id="${p.id}">
         <div><strong>${escapeHtml(p.question)}</strong><small>${escapeHtml(p.description || '')}</small></div>
         <div><span>${p.active ? '🟢 Aktiv' : '⚪ Beendet'}</span><small>${p.closes_at ? new Date(p.closes_at).toLocaleString('de-DE') : 'ohne Enddatum'}</small></div>
-        <button class="button button-danger button-small" type="button" data-poll-toggle="${p.id}" data-active="${p.active}">${p.active ? 'Beenden' : 'Aktivieren'}</button>
+        <div class="poll-admin-actions">
+          <button class="button button-danger button-small" type="button" data-poll-toggle="${p.id}" data-active="${p.active}">${p.active ? 'Beenden' : 'Aktivieren'}</button>
+          <button class="button button-secondary button-small" type="button" data-poll-delete="${p.id}">Löschen</button>
+        </div>
       </div>
     `).join('');
+
+    list.querySelectorAll('[data-poll-delete]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = Number(btn.dataset.pollDelete);
+        const poll = polls.find(item => Number(item.id) === id);
+        const label = poll?.question ? `\n\n„${poll.question}“` : '';
+        if (!confirm(`Diese Umfrage und alle abgegebenen Stimmen wirklich endgültig löschen?${label}`)) return;
+
+        btn.disabled = true;
+        const { error } = await supabaseClient
+          .from('club_polls')
+          .delete()
+          .eq('id', id);
+
+        if (error) {
+          btn.disabled = false;
+          return message('poll-admin-message', `Umfrage konnte nicht gelöscht werden: ${error.message}`);
+        }
+
+        message('poll-admin-message', 'Umfrage und ihre Stimmen wurden gelöscht.', true);
+        await loadPollsAdmin();
+      });
+    });
 
     list.querySelectorAll('[data-poll-toggle]').forEach(btn => {
       btn.addEventListener('click', async () => {
@@ -1193,6 +1219,40 @@ $('test-email-btn')?.addEventListener('click', async () => {
       button.disabled = false;
       button.textContent = 'SMTP-Testmail senden';
     }
+  }
+});
+
+$('twitch-test-btn')?.addEventListener('click', async () => {
+  const button = $('twitch-test-btn');
+  if (button) { button.disabled = true; button.textContent = 'Teste Twitch…'; }
+  try {
+    const { data: sessionData } = await supabaseClient.auth.getSession();
+    const token = sessionData?.session?.access_token;
+    if (!token) throw new Error('Keine aktive Admin-Sitzung.');
+
+    const response = await fetch('/api/twitch-chat-test', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
+      body:JSON.stringify({message:'🟣 ACY Event Hub: Twitch-Test erfolgreich.'})
+    });
+    const payload = await response.json().catch(()=>({}));
+    if (!response.ok) {
+      message('poll-admin-message',
+        `Twitch-Test fehlgeschlagen · ${payload.error || `HTTP ${response.status}`}`);
+      return;
+    }
+    if (!payload.sent) {
+      const reason = payload.dropReason?.message || payload.dropReason?.code || 'Twitch hat die Nachricht nicht gesendet.';
+      message('poll-admin-message', `Twitch-Test nicht gesendet · ${reason}`);
+      return;
+    }
+    message('poll-admin-message',
+      `Twitch-Test erfolgreich · Nachricht gesendet${payload.messageId ? ` · ID ${payload.messageId}` : ''}.`,
+      true);
+  } catch (error) {
+    message('poll-admin-message', `Twitch-Test fehlgeschlagen · ${error?.message || 'Unbekannter Fehler'}`);
+  } finally {
+    if (button) { button.disabled = false; button.textContent = 'Twitch-Testnachricht senden'; }
   }
 });
 
@@ -1270,6 +1330,28 @@ $('add-poll-btn')?.addEventListener('click', async () => {
       console.warn('Vote email dispatch:', notifyError);
       message('poll-admin-message',
         'Umfrage veröffentlicht. E-Mail-Versand konnte nicht abgeschlossen werden.', true);
+    }
+
+    try {
+      const { data: sessionData } = await supabaseClient.auth.getSession();
+      const token = sessionData?.session?.access_token;
+      if (token) {
+        await fetch('/api/club-event-hub', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({
+            eventType: 'community_vote_created',
+            title: 'Neuer Community Vote',
+            payload: {
+              message: `🗳️ Neuer Community Vote im ACY Club: ${question}`,
+              pollQuestion: question,
+              pollId: poll.id
+            }
+          })
+        }).catch(error => console.warn('Event Hub vote:', error));
+      }
+    } catch (error) {
+      console.warn('Event Hub vote:', error);
     }
 
     $('poll-question-admin').value = '';

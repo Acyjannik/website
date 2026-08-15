@@ -6,7 +6,7 @@
   <title>Mein ACY Club · Acyjannik</title>
   <link rel="stylesheet" href="styles.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="/pet-companion.js?v=7.2.0" defer></script>
-  <script src="club-profile.js?v=7.0.0" defer></script>
+  <script src="club-profile.js?v=7.4.0" defer></script>
   <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
   <link rel="shortcut icon" href="/assets/favicon.svg">
   <link rel="apple-touch-icon" href="/assets/favicon.svg">
@@ -399,6 +399,28 @@
             <div class="club-chat-shell"><div class="club-chat-messages" id="club-chat-messages" aria-live="polite"><div class="club-content-empty">Chat wird geladen…</div></div><div class="club-chat-status" id="club-chat-status" role="status"></div><form class="club-chat-composer" id="club-chat-form"><div class="club-chat-composer-main"><textarea id="club-chat-input" maxlength="500" rows="1" placeholder="Schreib etwas in den ACY Club Chat…" aria-label="Chat-Nachricht"></textarea><div class="club-chat-composer-meta"><span id="club-chat-counter">0 / 500</span><span>Enter zum Senden · Shift + Enter für neue Zeile</span></div></div><button class="button button-primary club-chat-send" type="submit">Senden ↗</button></form></div>
           </div>
         </details>
+
+
+      <details class="member-card member-span-2 member-fold" id="social-connections-section">
+        <summary class="member-fold-summary">
+          <span class="member-fold-summary-main"><span class="eyebrow">COMMUNITY</span><strong>Freunde & Kontakte</strong><small>Freundschaftsanfragen, Freunde und blockierte Kontakte verwalten.</small></span>
+          <span class="member-fold-summary-side"><span class="member-count-chip" id="social-friend-count">0 Freunde</span><span class="member-fold-chevron">⌄</span></span>
+        </summary>
+        <div class="member-fold-body">
+          <div class="social-subsection">
+            <div class="section-mini-title">ANFRAGEN</div>
+            <div class="social-connection-list" id="social-incoming-list"><div class="club-content-empty">Keine offenen Anfragen.</div></div>
+          </div>
+          <div class="social-subsection">
+            <div class="section-mini-title">DEINE FREUNDE</div>
+            <div class="social-connection-list" id="social-friends-list"><div class="club-content-empty">Noch keine Freunde.</div></div>
+          </div>
+          <div class="social-subsection">
+            <div class="section-mini-title">BLOCKIERTE KONTAKTE</div>
+            <div class="social-connection-list" id="social-blocked-list"><div class="club-content-empty">Keine blockierten Kontakte.</div></div>
+          </div>
+        </div>
+      </details>
 
 <details class="member-card member-span-2 member-directory-card member-fold" id="member-directory-section">
           <summary class="member-fold-summary">

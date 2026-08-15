@@ -1294,6 +1294,7 @@ async function init() {
     await loadTwitch();
     await loadClubContent();
     await loadMemberDirectory();
+     await loadSocialConnections();
     await loadDirectMessages(dmTarget || '');
     await loadCommunityPoll();
     await loadClubChat();
@@ -2047,6 +2048,92 @@ function updateChatCounter() {
   counter.textContent = `${input.value.length} / 500`;
 }
 
+
+async function rpcSocial(fn, params={}) {
+  const { data, error } = await supabaseClient.rpc(fn, params);
+  if (error) throw error;
+  return data;
+}
+
+function renderSocialConnections(data={}) {
+  const friends=Array.isArray(data.friends)?data.friends:[];
+  const incoming=Array.isArray(data.incoming)?data.incoming:[];
+  const blocked=Array.isArray(data.blocked)?data.blocked:[];
+  setText('social-friend-count', `${friends.length} Freunde`);
+
+  const renderPerson=(person, buttons='')=>`
+    <div class="social-connection-item" data-social-user="${escapeAttr(person.user_id)}">
+      <div class="social-connection-avatar">${person.avatar_url?`<img src="${escapeAttr(person.avatar_url)}" alt="" loading="lazy">`:`<span>${escapeHtml((person.display_name||person.username||'A').charAt(0).toUpperCase())}</span>`}</div>
+      <div class="social-connection-main"><strong>${escapeHtml(person.display_name||person.username||'Mitglied')}</strong><small>@${escapeHtml(person.username||'')}</small></div>
+      <div class="social-connection-actions">${buttons}</div>
+    </div>`;
+
+  const incomingList=$('social-incoming-list');
+  if(incomingList){
+    incomingList.innerHTML=incoming.length?incoming.map(r=>renderPerson(r,
+      `<button class="button button-primary button-small" data-social-accept="${escapeAttr(r.id)}">Annehmen</button>
+       <button class="button button-secondary button-small" data-social-decline="${escapeAttr(r.id)}">Ablehnen</button>
+       <button class="button button-danger button-small" data-social-block="${escapeAttr(r.user_id)}">Blockieren</button>`
+    )).join(''):'<div class="club-content-empty">Keine offenen Anfragen.</div>';
+  }
+
+  const friendsList=$('social-friends-list');
+  if(friendsList){
+    friendsList.innerHTML=friends.length?friends.map(person=>renderPerson(person,
+      `<button class="button button-secondary button-small" data-social-message="${escapeAttr(person.user_id)}">Nachricht</button>
+       <button class="button button-secondary button-small" data-social-remove="${escapeAttr(person.user_id)}">Entfernen</button>
+       <button class="button button-danger button-small" data-social-block="${escapeAttr(person.user_id)}">Blockieren</button>`
+    )).join(''):'<div class="club-content-empty">Noch keine Freunde.</div>';
+  }
+
+  const blockedList=$('social-blocked-list');
+  if(blockedList){
+    blockedList.innerHTML=blocked.length?blocked.map(person=>renderPerson(person,
+      `<button class="button button-primary button-small" data-social-unblock="${escapeAttr(person.user_id)}">Entsperren</button>`
+    )).join(''):'<div class="club-content-empty">Keine blockierten Kontakte.</div>';
+  }
+
+  document.querySelectorAll('[data-social-accept]').forEach(btn=>btn.onclick=async()=>{
+    try{await rpcSocial('respond_friend_request',{p_request_id:btn.dataset.socialAccept,p_accept:true});await loadSocialConnections();}catch(e){setStatus(e.message,'error');}
+  });
+  document.querySelectorAll('[data-social-decline]').forEach(btn=>btn.onclick=async()=>{
+    try{await rpcSocial('respond_friend_request',{p_request_id:btn.dataset.socialDecline,p_accept:false});await loadSocialConnections();}catch(e){setStatus(e.message,'error');}
+  });
+  document.querySelectorAll('[data-social-remove]').forEach(btn=>btn.onclick=async()=>{
+    if(!confirm('Freundschaft wirklich entfernen?'))return;
+    try{await rpcSocial('remove_friend',{p_friend_user_id:btn.dataset.socialRemove});await loadSocialConnections();}catch(e){setStatus(e.message,'error');}
+  });
+  document.querySelectorAll('[data-social-block]').forEach(btn=>btn.onclick=async()=>{
+    if(!confirm('Kontakt wirklich blockieren? Die Freundschaft wird dabei entfernt.'))return;
+    try{await rpcSocial('block_member',{p_blocked_user_id:btn.dataset.socialBlock});await loadSocialConnections();await loadMemberDirectory();}catch(e){setStatus(e.message,'error');}
+  });
+  document.querySelectorAll('[data-social-unblock]').forEach(btn=>btn.onclick=async()=>{
+    try{await rpcSocial('unblock_member',{p_blocked_user_id:btn.dataset.socialUnblock});await loadSocialConnections();}catch(e){setStatus(e.message,'error');}
+  });
+  document.querySelectorAll('[data-social-message]').forEach(btn=>btn.onclick=()=>{
+    window.location.href=`/club-profile.html?dm=${encodeURIComponent(btn.dataset.socialMessage)}`;
+  });
+}
+
+async function loadSocialConnections(){
+  try{
+    const data=await rpcSocial('get_my_social_connections');
+    renderSocialConnections(data||{});
+  }catch(error){
+    console.warn('Social connections unavailable:',error);
+    setText('social-friend-count','– Freunde');
+  }
+}
+
+async function sendFriendRequest(userId){
+  try{
+    await rpcSocial('send_friend_request',{p_target_user_id:userId});
+    setStatus('Freundschaftsanfrage gesendet.','success');
+    await loadSocialConnections();
+    await loadMemberDirectory();
+  }catch(error){setStatus(error?.message||'Anfrage konnte nicht gesendet werden.','error');}
+}
+
 async function loadMemberDirectory(search = '') {
   const list = $('member-directory-list');
   const countEl = $('member-directory-count');
@@ -2096,14 +2183,16 @@ async function loadMemberDirectory(search = '') {
         <div class="member-directory-meta">
           <strong>${escapeHtml(level)}</strong><small>${Number(member.xp||0)} XP</small><span>${badges||'💜 ACY Rookie'}</span>
           ${member.pet&&member.id!==currentUser.id?`<button class="button button-secondary member-directory-pet-visit" type="button" data-pet-member="${escapeAttr(member.id)}">Pet besuchen</button>`:''}
-          ${member.id!==currentUser.id?`<button class="button button-secondary member-directory-message" type="button" data-message-member="${escapeAttr(member.id)}">Nachricht</button>`:''}
+          ${member.id!==currentUser.id?`<button class="button button-secondary" type="button" data-friend-member="${escapeAttr(member.id)}">Freund</button>
+          <button class="button button-danger" type="button" data-block-member="${escapeAttr(member.id)}">Blockieren</button>
+          <button class="button button-secondary member-directory-message" type="button" data-message-member="${escapeAttr(member.id)}">Nachricht</button>`:''}
         </div>
       </article>`;
     }).join('');
 
     list.querySelectorAll('.member-directory-clickable').forEach(card=>{
       card.addEventListener('click',event=>{
-        if(event.target.closest('[data-message-member],[data-pet-member]'))return;
+        if(event.target.closest('[data-message-member],[data-pet-member],[data-friend-member],[data-block-member]'))return;
         const id=card.dataset.memberId;
         if(id)window.location.href=`/member.html?id=${encodeURIComponent(id)}`;
       });
@@ -2113,6 +2202,16 @@ async function loadMemberDirectory(search = '') {
         event.stopPropagation();
         const id=btn.dataset.petMember;
         if(id)window.location.href=`/member.html?id=${encodeURIComponent(id)}#pet-social`;
+      });
+    });
+    list.querySelectorAll('[data-friend-member]').forEach(btn=>{
+      btn.addEventListener('click',event=>{event.stopPropagation();sendFriendRequest(btn.dataset.friendMember);});
+    });
+    list.querySelectorAll('[data-block-member]').forEach(btn=>{
+      btn.addEventListener('click',async event=>{
+        event.stopPropagation();
+        if(!confirm('Dieses Mitglied wirklich blockieren?'))return;
+        try{await rpcSocial('block_member',{p_blocked_user_id:btn.dataset.blockMember});setStatus('Kontakt blockiert.','success');await loadSocialConnections();await loadMemberDirectory();}catch(e){setStatus(e.message,'error');}
       });
     });
     list.querySelectorAll('[data-message-member]').forEach(btn=>{
