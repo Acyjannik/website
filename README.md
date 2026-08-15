@@ -862,3 +862,10 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Admin now reports which notification email backend actually answered.
 - Admin falls back to `emailEligible` when an older API is still deployed, making mixed deployments obvious.
 - No SQL changes.
+
+
+## V7.1.4 — Direct SMTP Test
+- Added a brand-new `/api/club-email-test` route to bypass any stale deployment of the previous email endpoint.
+- Added an admin button to send a real SMTP test mail to the currently logged-in admin email.
+- The response shows the exact API version and the SMTP error returned by the server.
+- No SQL changes.
