@@ -1,6 +1,6 @@
 const tls = require('node:tls');
 
-const NOTIFICATION_EMAIL_API_VERSION = '7.1.8';
+const NOTIFICATION_EMAIL_API_VERSION = '7.1.9';
 const env = (name, fallback='') => String(process.env[name] || fallback);
 
 function json(res, status, payload) {
@@ -221,6 +221,14 @@ module.exports = async (req, res) => {
         throw new Error(`Eigene E-Mail konnte nicht geladen werden. Auth HTTP ${selfRes.status}`);
       }
       const self = await selfRes.json();
+
+      const smtpUser = env('SMTP_USER');
+      const at = smtpUser.lastIndexOf('@');
+      const smtpUserDomain = at > 0 ? smtpUser.slice(at + 1) : '(ungültig)';
+      const smtpUserMasked = smtpUser
+        ? `${smtpUser.slice(0, Math.min(2, smtpUser.length))}***${at > 0 ? smtpUser.slice(at) : ''}`
+        : '(leer)';
+
       if (!self.email) {
         return json(res, 400, {
           apiVersion: NOTIFICATION_EMAIL_API_VERSION,
@@ -240,19 +248,40 @@ module.exports = async (req, res) => {
           </div>
         </div>`;
 
-      await smtpSend({
-        to: self.email,
-        subject: 'ACY Club SMTP-Test',
-        text,
-        html
-      });
+      try {
+        await smtpSend({
+          to: self.email,
+          subject: 'ACY Club SMTP-Test',
+          text,
+          html
+        });
+      } catch (smtpError) {
+        return json(res, 500, {
+          apiVersion: NOTIFICATION_EMAIL_API_VERSION,
+          ok: false,
+          error: smtpError?.message || 'SMTP-Test fehlgeschlagen.',
+          smtpHost: env('SMTP_HOST'),
+          smtpPort: Number(env('SMTP_PORT', '587')),
+          smtpUserMasked,
+          smtpUserDomain,
+          emailFromMasked: (() => {
+            const value = env('EMAIL_FROM');
+            const i = value.lastIndexOf('@');
+            return value ? `${value.slice(0, Math.min(2, value.length))}***${i > 0 ? value.slice(i) : ''}` : '(leer)';
+          })()
+        });
+      }
 
       return json(res, 200, {
         apiVersion: NOTIFICATION_EMAIL_API_VERSION,
         ok: true,
         sentTo: self.email,
         message: 'Test-Mail wurde an deinen Admin-Account übergeben.',
-        envelopeFrom: env('SMTP_USER')
+        envelopeFrom: env('SMTP_USER'),
+        smtpHost: env('SMTP_HOST'),
+        smtpPort: Number(env('SMTP_PORT', '587')),
+        smtpUserMasked,
+        smtpUserDomain
       });
     }
 
