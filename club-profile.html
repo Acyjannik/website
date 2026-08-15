@@ -6,7 +6,7 @@
   <title>Mein ACY Club · Acyjannik</title>
   <link rel="stylesheet" href="styles.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="club-profile.js?v=5.2.0" defer></script>
+  <script src="club-profile.js?v=5.6.0" defer></script>
   <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
   <link rel="shortcut icon" href="/assets/favicon.svg">
   <link rel="apple-touch-icon" href="/assets/favicon.svg">
@@ -167,6 +167,38 @@
             <div class="section-mini-title">DEINE BADGES</div>
             <div class="badge-grid" id="badge-grid"></div>
           </div>
+        </section>
+
+        <section class="member-card member-span-2 progression-catalog-card" id="progression-catalog">
+          <div class="eyebrow">XP & ACHIEVEMENTS</div>
+          <div class="member-card-head">
+            <div>
+              <h2>So funktioniert dein Fortschritt</h2>
+              <p>Verdiene XP, steige im Level auf und schalte Achievements frei.</p>
+            </div>
+            <span class="member-count-chip" id="catalog-earned-summary">Wird geladen…</span>
+          </div>
+
+          <div class="catalog-levels">
+            <div class="catalog-level"><span>1</span><strong>ACY Rookie</strong><small>0 XP</small></div>
+            <div class="catalog-level"><span>2</span><strong>ACY Member</strong><small>100 XP</small></div>
+            <div class="catalog-level"><span>3</span><strong>ACY Regular</strong><small>250 XP</small></div>
+            <div class="catalog-level"><span>4</span><strong>ACY OG</strong><small>500 XP</small></div>
+            <div class="catalog-level"><span>5</span><strong>ACY Legend</strong><small>1.000 XP</small></div>
+          </div>
+
+          <div class="catalog-columns">
+            <div>
+              <div class="section-mini-title">XP VERDIENEN</div>
+              <div class="catalog-list" id="xp-catalog-list"></div>
+            </div>
+            <div>
+              <div class="section-mini-title">ACHIEVEMENTS</div>
+              <div class="catalog-list" id="achievement-catalog-list"></div>
+            </div>
+          </div>
+
+          <p class="catalog-note">XP und Achievements werden automatisch gespeichert. Manche Belohnungen sind einmalig, andere hängen von deinem aktuellen Fortschritt ab.</p>
         </section>
 
         <section class="member-card member-span-2">

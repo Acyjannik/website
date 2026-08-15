@@ -247,7 +247,6 @@ async function loadPublicContent() {
       'Thick As Thieves': 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/3341000/header.jpg'
     };
     const games = (Array.isArray(payload.games) && payload.games.length ? payload.games : fallbackGames)
-      .filter(game => !/meccha|chameleon/i.test(String(game.name || '')))
       .map(game => ({ ...game, image_url: canonicalCovers[game.name] || game.image_url }));
     const gamesGrid = document.getElementById('games-grid');
     if (gamesGrid && games.length) {

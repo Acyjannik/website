@@ -610,6 +610,112 @@ async function voteInPoll(optionId) {
 }
 
 
+
+// ------------------------------------------------------------
+// V5.6 XP & Achievement Catalog
+// ------------------------------------------------------------
+const XP_CATALOG = [
+  { key: 'registration', icon: '💜', title: 'ACY Club beitreten', xp: 50, detail: 'Einmalig bei der bestätigten Registrierung.' },
+  { key: 'profile_complete', icon: '✨', title: 'Profil vervollständigen', xp: 25, detail: 'Anzeigename und Bio ausfüllen.' },
+  { key: 'avatar_added', icon: '🖼️', title: 'Profilbild hinzufügen', xp: 25, detail: 'Einmalig für dein erstes gespeichertes Profilbild.' },
+  { key: 'discord_connected', icon: '💬', title: 'Discord verbinden', xp: 50, detail: 'Einmalig für die Verbindung mit Discord.' },
+  { key: 'event_attended', icon: '🎮', title: 'An einem Event teilnehmen', xp: 100, detail: 'Für jedes Event, an dem du teilnimmst.' },
+  { key: 'poll_vote', icon: '🗳️', title: 'Bei einem Community Vote abstimmen', xp: 5, detail: 'Einmal pro Umfrage.' },
+  { key: 'member_7_days', icon: '🎉', title: '7 Tage Mitglied sein', xp: 50, detail: 'Einmalig nach einer Woche im ACY Club.' },
+  { key: 'member_30_days', icon: '🏅', title: '30 Tage Mitglied sein', xp: 150, detail: 'Einmalig nach 30 Tagen im ACY Club.' }
+];
+
+const ACHIEVEMENT_CATALOG = [
+  { key: 'acy_rookie', icon: '💜', title: 'ACY Rookie', detail: 'Clubmitglied werden.', progress: () => ({ value: 1, max: 1 }) },
+  { key: 'profile_complete', icon: '✨', title: 'Profile Complete', detail: 'Anzeigename und Bio vollständig ausfüllen.', progress: s => ({ value: s.profileComplete ? 1 : 0, max: 1 }) },
+  { key: 'discord_member', icon: '💬', title: 'Discord Member', detail: 'Discord mit deinem ACY Club Account verbinden.', progress: s => ({ value: s.discord ? 1 : 0, max: 1 }) },
+  { key: 'event_fan', icon: '🎮', title: 'Event Fan', detail: 'An mindestens 1 Event teilnehmen.', progress: s => ({ value: s.events, max: 1 }) },
+  { key: 'event_hunter', icon: '🔥', title: 'Event Hunter', detail: 'An 5 Events teilnehmen.', progress: s => ({ value: s.events, max: 5 }) },
+  { key: 'event_regular', icon: '⚡', title: 'Event Regular', detail: 'An 10 Events teilnehmen.', progress: s => ({ value: s.events, max: 10 }) },
+  { key: 'event_legend', icon: '🏆', title: 'Event Legend', detail: 'An 25 Events teilnehmen.', progress: s => ({ value: s.events, max: 25 }) },
+  { key: 'xp_100', icon: '🌟', title: '100 XP Club', detail: '100 XP erreichen.', progress: s => ({ value: s.xp, max: 100 }) },
+  { key: 'xp_500', icon: '👑', title: '500 XP Club', detail: '500 XP erreichen.', progress: s => ({ value: s.xp, max: 500 }) },
+  { key: 'xp_1000', icon: '💎', title: '1000 XP Club', detail: '1.000 XP erreichen.', progress: s => ({ value: s.xp, max: 1000 }) },
+  { key: 'acy_og', icon: '👑', title: 'ACY OG', detail: '500 XP erreichen.', progress: s => ({ value: s.xp, max: 500 }) },
+  { key: 'acy_legend', icon: '🏆', title: 'ACY Legend', detail: '1.000 XP erreichen.', progress: s => ({ value: s.xp, max: 1000 }) },
+  { key: 'early_member', icon: '⏳', title: 'Early Member', detail: '30 Tage Mitglied sein.', progress: s => ({ value: s.days, max: 30 }) },
+  { key: 'veteran_member', icon: '🛡️', title: 'ACY Veteran', detail: '90 Tage Mitglied sein.', progress: s => ({ value: s.days, max: 90 }) },
+  { key: 'member_of_month', icon: '👑', title: 'Member of the Month', detail: 'Von der Community als Spotlight-Mitglied ausgewählt werden.', special: true }
+];
+
+function renderProgressionCatalog(state) {
+  const xpList = $('xp-catalog-list');
+  const achievementList = $('achievement-catalog-list');
+  if (!xpList || !achievementList) return;
+
+  const awarded = new Set(state.achievements || []);
+  const xpEvents = new Set(state.xpEvents || []);
+
+  xpList.innerHTML = XP_CATALOG.map(item => {
+    let earned = false;
+    if (item.key === 'event_attended' || item.key === 'poll_vote') {
+      earned = item.key === 'event_attended' ? state.events > 0 : [...xpEvents].some(k => k.startsWith('poll_vote_'));
+    } else {
+      earned = xpEvents.has(item.key);
+    }
+    const earnedClass = earned ? ' is-earned' : '';
+    const label = earned ? '✓ erhalten' : `+${item.xp} XP`;
+    return `<div class="catalog-row${earnedClass}">
+      <span class="catalog-icon">${item.icon}</span>
+      <span class="catalog-main"><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.detail)}</small></span>
+      <span class="catalog-reward">${label}</span>
+    </div>`;
+  }).join('');
+
+  achievementList.innerHTML = ACHIEVEMENT_CATALOG.map(item => {
+    const p = item.progress ? item.progress(state) : null;
+    const unlocked = item.special ? awarded.has(item.key) : awarded.has(item.key);
+    const value = p ? Math.min(p.value, p.max) : null;
+    const percent = p ? Math.round((value / p.max) * 100) : (unlocked ? 100 : 0);
+    const progressText = p ? `${value.toLocaleString('de-DE')} / ${p.max.toLocaleString('de-DE')}` : 'Spezial';
+    return `<div class="catalog-row achievement-row${unlocked ? ' is-unlocked' : ''}">
+      <span class="catalog-icon">${item.icon}</span>
+      <span class="catalog-main"><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.detail)}</small>
+        ${p ? `<span class="catalog-progress"><span style="width:${percent}%"></span></span>` : ''}
+      </span>
+      <span class="catalog-status">${unlocked ? '✓ freigeschaltet' : progressText}</span>
+    </div>`;
+  }).join('');
+
+  const earnedCount = ACHIEVEMENT_CATALOG.filter(item => awarded.has(item.key)).length;
+  setText('catalog-earned-summary', `${earnedCount} / ${ACHIEVEMENT_CATALOG.length} Achievements`);
+}
+
+async function loadProgressionCatalog() {
+  try {
+    const [{ data: profile }, { data: attendance }, { data: achievements }, { data: xpEvents }] = await Promise.all([
+      supabaseClient.from('profiles').select('xp,created_at,display_name,bio,discord_connected').eq('id', currentUser.id).maybeSingle(),
+      supabaseClient.from('club_event_attendance').select('id'),
+      supabaseClient.from('club_achievements').select('achievement_key'),
+      supabaseClient.from('club_xp_events').select('event_key,xp')
+    ]);
+
+    const created = profile?.created_at || currentUser.created_at;
+    const days = Math.max(0, Math.floor((Date.now() - new Date(created).getTime()) / 86400000));
+    const state = {
+      xp: Number(profile?.xp || 0),
+      days,
+      events: (attendance || []).length,
+      discord: !!profile?.discord_connected,
+      profileComplete: !!(profile?.display_name || '').trim() && !!(profile?.bio || '').trim(),
+      achievements: (achievements || []).map(a => a.achievement_key),
+      xpEvents: (xpEvents || []).filter(e => Number(e.xp || 0) > 0).map(e => e.event_key)
+    };
+
+    // event_attended_<id> and poll_vote_<id> are repeatable current-state keys.
+    // Keep the catalog status meaningful without pretending there is only one.
+    state.xpEvents = new Set((xpEvents || []).filter(e => Number(e.xp || 0) > 0).map(e => e.event_key));
+    renderProgressionCatalog(state);
+  } catch (error) {
+    console.warn('Progression catalog unavailable:', error);
+  }
+}
+
 function handleDiscordOAuthCallback() {
   const params = new URLSearchParams(window.location.search);
   const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''));
@@ -674,10 +780,12 @@ async function init() {
     await loadClubClips();
     await checkAchievements();
     await loadMemberStats();
+    await loadProgressionCatalog();
     // Optional dashboard extras are intentionally independent.
     await Promise.allSettled([
       checkAchievements(),
       loadMemberStats(),
+      loadProgressionCatalog(),
       loadLeaderboard(),
       loadMemberHub(),
       loadNotifications(),

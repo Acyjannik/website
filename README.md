@@ -41,7 +41,6 @@ Twitch requires the embedding site to use HTTPS and the correct `parent` domain.
 ## Current games
 - Fortnite (main game)
 - GTA V
-- Meccha Chameleon
 - Thick As Thieves
 
 
@@ -113,7 +112,6 @@ Run the updated `supabase/setup.sql` once. It creates the public `site-media` bu
 Default social links and the four current games are restored automatically when an authorized admin logs in. Missing game images are repaired automatically. Bundled custom SVG cover art is used for:
 - Fortnite
 - GTA V
-- Meccha Chameleon
 - Thick As Thieves
 
 A standalone `supabase/restore_default_content.sql` is also included for manual restoration if needed.
@@ -135,7 +133,6 @@ Fixed a front-end issue where games and social cards loaded from Supabase were i
 The game cards now use recognizable game artwork rather than generated placeholder covers:
 - Fortnite: Wikimedia Commons promotional photo (CC BY-SA 4.0 source)
 - GTA V: Steam store header
-- Meccha Chameleon: Steam store header
 - Thick As Thieves: Steam store header
 
 Artwork remains owned by its respective rights holders where applicable. The website should retain appropriate attribution/usage rights if the site is used commercially.
@@ -148,7 +145,6 @@ The current four games now use canonical artwork URLs server-side and client-sid
 
 ## V2.4.6: Current games cleaned up
 
-Meccha Chameleon has been removed. The current game lineup is Fortnite, GTA V, and Thick As Thieves. Older Meccha rows are automatically removed at admin login, and a cleanup SQL file is included.
 
 
 ## V2.4.7: Admin content + social icon fix
@@ -171,9 +167,7 @@ Social SVG icons for Twitch, TikTok and WhatsApp are included in the repository 
 The admin login now waits for the Supabase configuration and client initialization before enabling the login button. If the configuration endpoint or Supabase library fails, the page shows a direct diagnostic instead of `Cannot read properties of null (reading 'auth')`.
 
 
-## V2.4.12: Final Meccha cleanup
 
-All Meccha-like legacy game rows are filtered from the public API and client, and the admin now removes any database row whose name contains "meccha". A manual cleanup button and SQL file are included as a final safeguard.
 
 
 ## V2.4.13: remove legacy game flash
@@ -676,3 +670,22 @@ V5.1 uses Supabase RLS directly for DM reads/writes; no service-role key is expo
 
 ## V5.2.2 — Admin initialization fix
 Community Poll admin code is now initialized only after the base DOM/Supabase helpers exist, restoring the Admin Login handler.
+
+
+## V5.5 — Admin Control Center
+- Grouped admin navigation into Overview, Website, Community and System.
+- Added a useful dashboard with member, XP, achievement, poll and Spotlight metrics.
+- Added a manual dashboard refresh.
+- Added member search and aggregate stats to XP & Badges.
+- Prevented default-content seeding from overwriting an admin-customized game image.
+- Added duplicate-binding guards for admin navigation/Spotlight controls.
+- No new database tables or SQL migrations are required for the admin overhaul.
+
+
+## V5.6 — XP & Achievement Catalog
+- Added a member-facing XP and achievement catalog.
+- Shows all current XP sources, amounts, one-time/repeatable explanations and current status.
+- Shows all current achievements with unlock requirements and live progress.
+- Shows the five current ACY Club levels and their XP thresholds.
+- No new database migration is required.
+- Pet/Tamagotchi functionality is intentionally not included; that remains a later feature.

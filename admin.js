@@ -28,6 +28,7 @@ const VIEW_META = {
   news: ['CONTENT', 'News'],
   progression: ['MEMBERS', 'XP & Badges'],
   spotlight: ['COMMUNITY', 'Spotlight'],
+  polls: ['COMMUNITY', 'Community Votes'],
   clips: ['ACY CLIPS', 'Clips'],
   media: ['MEDIA', 'Bilder'],
   security: ['SECURITY', 'Sicherheit'],
@@ -136,9 +137,13 @@ function switchTab(tab) {
 
 function bindTabs() {
   document.querySelectorAll('.admin-tab').forEach(btn => {
+    if (btn.dataset.bound === 'true') return;
+    btn.dataset.bound = 'true';
     btn.addEventListener('click', () => switchTab(btn.dataset.tab));
   });
   document.querySelectorAll('[data-jump]').forEach(btn => {
+    if (btn.dataset.bound === 'true') return;
+    btn.dataset.bound = 'true';
     btn.addEventListener('click', () => switchTab(btn.dataset.jump));
   });
   const initial = location.hash.replace('#', '');
@@ -147,12 +152,6 @@ function bindTabs() {
 
 
 async function ensureDefaultContent() {
-  // Remove the discontinued game from older database versions.
-  await supabaseClient
-    .from('games')
-    .delete()
-    .ilike('name', '%meccha%');
-
   const defaultSocials = [
     { platform: 'twitch', label: 'Twitch', url: 'https://www.twitch.tv/acyjannik', sort_order: 1 },
     { platform: 'tiktok', label: 'TikTok', url: 'https://www.tiktok.com/@acyjannik', sort_order: 2 },
@@ -195,9 +194,8 @@ async function ensureDefaultContent() {
     const patch = {};
     if (!current.description) patch.description = seed.description;
     if (!current.tag) patch.tag = seed.tag;
-    if (current.image_url !== seed.image_url) patch.image_url = seed.image_url;
+    if (!current.image_url) patch.image_url = seed.image_url;
     if (current.sort_order == null) patch.sort_order = seed.sort_order;
-    if (seed.name === 'Fortnite' && current.featured !== true) patch.featured = true;
     if (Object.keys(patch).length) {
       patch.updated_at = new Date().toISOString();
       await supabaseClient.from('games').update(patch).eq('id', current.id);
@@ -343,8 +341,11 @@ async function refreshAllAchievements() {
 }
 
 function bindSpotlightAdmin() {
+  if ($('spotlight-refresh')?.dataset.bound === 'true') return;
+  $('spotlight-refresh')?.setAttribute('data-bound','true');
   $('spotlight-refresh')?.addEventListener('click', loadSpotlightAdmin);
   $('refresh-badges-btn')?.addEventListener('click', refreshAllAchievements);
+  $('progression-search')?.addEventListener('input', () => loadBadgeMembers());
   $('spotlight-clear')?.addEventListener('click', clearSpotlight);
   $('spotlight-search')?.addEventListener('input', () => loadSpotlightAdmin());
 }
@@ -388,7 +389,14 @@ async function loadBadgeMembers() {
       early_member:'⏳', veteran_member:'🛡️'
     };
 
-    const members = (payload.members || []).sort((a,b) => Number(b.xp||0)-Number(a.xp||0));
+    const allMembers = (payload.members || []).sort((a,b) => Number(b.xp||0)-Number(a.xp||0));
+    const totalXp = allMembers.reduce((sum, member) => sum + Number(member.xp || 0), 0);
+    const totalBadges = allMembers.reduce((sum, member) => sum + (member.achievements || []).length, 0);
+    const search = ($('progression-search')?.value || '').trim().toLowerCase();
+    const members = search ? allMembers.filter(member => `${member.display_name || ''} ${member.username || ''}`.toLowerCase().includes(search)) : allMembers;
+    if ($('progression-count')) $('progression-count').textContent = `${members.length} / ${allMembers.length} Mitglieder`;
+    if ($('progression-total-xp')) $('progression-total-xp').textContent = `${totalXp.toLocaleString('de-DE')} XP`;
+    if ($('progression-badges-total')) $('progression-badges-total').textContent = `${totalBadges.toLocaleString('de-DE')} Achievements`;
     if (!members.length) {
       list.innerHTML = '<div class="admin-note">Noch keine Mitglieder vorhanden.</div>';
       return;
@@ -409,6 +417,58 @@ async function loadBadgeMembers() {
   } catch (error) {
     list.innerHTML = `<div class="admin-note error">${escapeHtml(error.message || 'Achievements konnten nicht geladen werden.')}</div>`;
   }
+}
+
+async function safeCount(table, column = '*', extra = {}) {
+  try {
+    let query = supabaseClient.from(table).select(column, { count: 'exact', head: true });
+    for (const [key, value] of Object.entries(extra)) query = query.eq(key, value);
+    const { count, error } = await query;
+    if (error) throw error;
+    return count || 0;
+  } catch (error) {
+    console.warn(`Admin count ${table} failed:`, error.message);
+    return null;
+  }
+}
+
+async function loadDashboardStats() {
+  const [members, xpRows, badges, polls, upcoming] = await Promise.all([
+    safeCount('profiles'),
+    supabaseClient.from('profiles').select('xp'),
+    safeCount('club_achievements'),
+    safeCount('club_polls', '*', { active: true }),
+    supabaseClient.from('club_events').select('id', { count: 'exact', head: true }).gte('event_date', new Date().toISOString()).eq('enabled', true)
+  ]);
+
+  if ($('dash-members')) $('dash-members').textContent = members == null ? '–' : members.toLocaleString('de-DE');
+  const totalXp = xpRows?.error ? null : (xpRows.data || []).reduce((sum, row) => sum + Number(row.xp || 0), 0);
+  if ($('dash-xp-total')) $('dash-xp-total').textContent = totalXp == null ? '–' : totalXp.toLocaleString('de-DE');
+  if ($('dash-badges-total')) $('dash-badges-total').textContent = badges == null ? '–' : badges.toLocaleString('de-DE');
+  if ($('dash-poll')) $('dash-poll').textContent = polls == null ? '–' : (polls ? 'Aktiv' : 'Keine');
+  if ($('dash-poll-detail')) $('dash-poll-detail').textContent = polls == null ? '–' : (polls ? 'Aktiv' : 'Keine');
+  const upcomingCount = upcoming?.error ? null : (upcoming.count || 0);
+  if ($('dash-events')) $('dash-events').textContent = upcomingCount == null ? '–' : upcomingCount.toLocaleString('de-DE');
+
+  try {
+    const { data } = await supabaseClient.from('club_polls').select('question').eq('active', true).order('created_at', { ascending: false }).limit(1).maybeSingle();
+    if ($('dash-poll-detail')) $('dash-poll-detail').textContent = data?.question || 'Keine';
+  } catch {}
+
+  try {
+    const response = await fetch('/api/club-spotlight', { cache: 'no-store' });
+    const payload = response.ok ? await response.json() : {};
+    const name = payload?.spotlight?.display_name || payload?.spotlight?.username || 'Kein Spotlight';
+    if ($('dash-spotlight')) $('dash-spotlight').textContent = name;
+  } catch {
+    if ($('dash-spotlight')) $('dash-spotlight').textContent = '–';
+  }
+
+  const attention = [];
+  if (members === 0) attention.push('Noch keine Mitglieder');
+  if (polls === 0) attention.push('Keine aktive Community-Umfrage');
+  if ($('system-twitch')?.textContent === 'Fehler') attention.push('Twitch API prüfen');
+  if ($('dash-attention')) $('dash-attention').textContent = attention.length ? `Hinweis: ${attention.join(' · ')}` : 'Alles sieht gut aus.';
 }
 
 async function loadDashboard() {
@@ -436,6 +496,8 @@ async function loadDashboard() {
   $('admin-user-id').textContent = currentUser?.id ? `${currentUser.id.slice(0, 8)}…` : '–';
   $('system-db').textContent = 'OK';
 
+  await loadDashboardStats();
+
   await Promise.all([
     loadSocials(),
     loadGames(),
@@ -457,127 +519,104 @@ function updatePreview(settings) {
 }
 
 async function loadSocials() {
-  const fallback = {
-    twitch: 'https://www.twitch.tv/acyjannik',
-    tiktok: 'https://www.tiktok.com/@acyjannik',
-    whatsapp: 'https://www.whatsapp.com/channel/0029VazFA8UIXnlmgPliHQ10',
-    discord: 'https://discord.gg/74ACqBwfu'
-  };
+  const list = $('social-admin-list');
+  if (!list) return;
+  const { data, error } = await supabaseClient.from('social_links').select('*').order('sort_order');
+  if (error) {
+    list.innerHTML = `<div class="admin-empty">Social Links konnten nicht geladen werden: ${escapeHtml(error.message)}</div>`;
+    $('socials-db-state').textContent = 'Fehler';
+    return;
+  }
+  const rows = data || [];
+  $('socials-db-state').textContent = `${rows.length} Links in der DB`;
+  if (!rows.length) {
+    list.innerHTML = '<div class="admin-empty">Noch keine Social Links vorhanden.</div>';
+    return;
+  }
+  list.innerHTML = rows.map(row => `
+    <div class="admin-table-row social-admin-row dynamic-admin-row" data-social-id="${escapeAttr(row.id)}">
+      <div class="admin-row-main"><div class="social-admin-symbol">${escapeHtml((row.label || row.platform || 'S').slice(0,2).toUpperCase())}</div><div><strong>${escapeHtml(row.label || row.platform)}</strong><small>${escapeHtml(row.platform || '')}</small></div></div>
+      <input class="social-url" value="${escapeAttr(row.url || '')}" aria-label="${escapeAttr(row.label || row.platform || 'Social URL')}">
+      <label class="admin-check"><input type="checkbox" class="social-enabled" ${row.enabled !== false ? 'checked' : ''}> aktiv</label>
+      <span></span>
+      <div class="admin-row-actions"><button class="button button-small social-save">Speichern</button><button class="button button-small button-danger social-delete">Löschen</button></div>
+    </div>`).join('');
 
-  const { data, error } = await supabaseClient
-    .from('social_links')
-    .select('*')
-    .order('sort_order');
-
-  const byPlatform = new Map((data || []).map(row => [row.platform, row]));
-  document.querySelectorAll('.social-admin-row').forEach(row => {
-    const platform = row.dataset.social;
-    const db = byPlatform.get(platform);
-    const url = db?.url || fallback[platform];
-    row.querySelector('.social-url').value = url;
-    row.querySelector('.social-enabled').checked = db?.enabled !== false;
-    row.dataset.dbId = db?.id || '';
+  list.querySelectorAll('.social-save').forEach(btn => btn.onclick = async () => {
+    const row = btn.closest('.social-admin-row');
+    const id = row?.dataset.socialId;
+    const url = row?.querySelector('.social-url')?.value.trim();
+    const enabled = row?.querySelector('.social-enabled')?.checked;
+    if (!id || !isSafeHttpUrl(url)) return message('social-message', 'Bitte eine gültige http(s)-URL verwenden.');
+    const { error } = await supabaseClient.from('social_links').update({ url, enabled, updated_at: new Date().toISOString() }).eq('id', id);
+    if (error) message('social-message', error.message);
+    else { message('social-message', 'Social Link gespeichert.', true); saveStamp(); await loadSocials(); }
   });
 
-  const state = $('socials-db-state');
-  state.textContent = error ? 'Fallback aktiv' : `${(data || []).length} Socials in DB`;
-
-  document.querySelectorAll('.social-save').forEach(btn => {
-    btn.onclick = async () => {
-      const row = btn.closest('.social-admin-row');
-      const platform = row.dataset.social;
-      const url = row.querySelector('.social-url').value.trim();
-      const enabled = row.querySelector('.social-enabled').checked;
-      if (!isSafeHttpUrl(url)) return message('social-message', 'Bitte eine gültige http(s)-URL verwenden.');
-
-      const patch = { platform, label: platform === 'twitch' ? 'Twitch' : platform === 'tiktok' ? 'TikTok' : 'WhatsApp', url, enabled, sort_order: platform === 'twitch' ? 1 : platform === 'tiktok' ? 2 : 3, updated_at: new Date().toISOString() };
-      const result = await supabaseClient.from('social_links').upsert(patch, { onConflict: 'platform' });
-      if (result.error) message('social-message', result.error.message);
-      else { message('social-message', `${patch.label} gespeichert.`, true); saveStamp(); await loadSocials(); }
-    };
-  });
-
-  document.querySelectorAll('.social-delete').forEach(btn => {
-    btn.onclick = async () => {
-      const row = btn.closest('.social-admin-row');
-      const platform = row.dataset.social;
-      if (!confirm(`${platform} wirklich löschen?`)) return;
-      const result = await supabaseClient.from('social_links').delete().eq('platform', platform);
-      if (result.error) message('social-message', result.error.message);
-      else { message('social-message', 'Social gelöscht.', true); saveStamp(); await loadSocials(); }
-    };
+  list.querySelectorAll('.social-delete').forEach(btn => btn.onclick = async () => {
+    const row = btn.closest('.social-admin-row');
+    const id = row?.dataset.socialId;
+    const name = row?.querySelector('strong')?.textContent || 'diesen Link';
+    if (!id || !confirm(`„${name}“ wirklich löschen?`)) return;
+    const { error } = await supabaseClient.from('social_links').delete().eq('id', id);
+    if (error) message('social-message', error.message);
+    else { message('social-message', 'Social Link gelöscht.', true); saveStamp(); await loadSocials(); }
   });
 }
 
 async function loadGames() {
-  const fallback = {
-    'Fortnite': { description: 'Main Game · Ranked · Community', enabled: true, featured: true, image_url: 'https://cdn.startselect.com/production/blog/preview-images/new-fortnite-season.jpg', sort_order: 1 },
-    'GTA V': { description: 'Open World · Aktuell · Fun', enabled: true, featured: false, image_url: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/271590/header.jpg', sort_order: 2 },
-    'Thick As Thieves': { description: 'Stealth · Heist · Community', enabled: true, featured: false, image_url: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/3341000/header.jpg', sort_order: 3 }
-  };
+  const list = $('games-admin-list');
+  if (!list) return;
+  const { data, error } = await supabaseClient.from('games').select('*').order('sort_order').order('name');
+  if (error) {
+    list.innerHTML = `<div class="admin-empty">Games konnten nicht geladen werden: ${escapeHtml(error.message)}</div>`;
+    $('games-db-state').textContent = 'Fehler';
+    return;
+  }
+  const rows = data || [];
+  $('games-db-state').textContent = `${rows.length} Games in der DB`;
+  cachedGames = rows;
+  if (!rows.length) {
+    list.innerHTML = '<div class="admin-empty">Noch keine Games angelegt.</div>';
+    return;
+  }
+  list.innerHTML = `
+    <div class="admin-table-row admin-table-head"><span>Game</span><span>Beschreibung</span><span>Aktiv</span><span>Main Game</span><span>Aktionen</span></div>
+    ${rows.map(row => `
+      <div class="admin-table-row game-admin-row dynamic-admin-row" data-game-id="${escapeAttr(row.id)}">
+        <div class="admin-row-main">${row.image_url ? `<img class="admin-social-icon" src="${escapeAttr(row.image_url)}" alt="">` : '<div class="game-admin-symbol">G</div>'}<div><strong>${escapeHtml(row.name)}</strong><small>${escapeHtml(row.tag || 'GAME')}</small></div></div>
+        <div class="game-edit-fields"><input class="game-description" value="${escapeAttr(row.description || '')}" aria-label="Beschreibung"><input class="game-tag" value="${escapeAttr(row.tag || '')}" aria-label="Tag"><input class="game-image" value="${escapeAttr(row.image_url || '')}" aria-label="Bild-URL"></div>
+        <label class="admin-check"><input type="checkbox" class="game-enabled" ${row.enabled !== false ? 'checked' : ''}> sichtbar</label>
+        <label class="admin-check"><input type="radio" name="featured-game" class="game-featured" ${row.featured === true ? 'checked' : ''}> Main Game</label>
+        <div class="admin-row-actions"><button class="button button-small game-save">Speichern</button><button class="button button-small button-danger game-delete">Löschen</button></div>
+      </div>`).join('')}`;
 
-  // Remove discontinued game in the current DB if it still exists.
-  await supabaseClient
-    .from('games')
-    .delete()
-    .ilike('name', '%meccha%');
-
-  const { data, error } = await supabaseClient
-    .from('games')
-    .select('*')
-    .order('sort_order');
-
-  const byName = new Map((data || []).map(row => [row.name, row]));
-
-  document.querySelectorAll('.game-admin-row').forEach(row => {
-    const name = row.dataset.game;
-    const seed = fallback[name];
-    const db = byName.get(name);
-    if (!seed) return;
-
-    row.querySelector('.game-description').value = db?.description || seed.description;
-    row.querySelector('.game-enabled').checked = db?.enabled !== false;
-    row.querySelector('.game-featured').checked = db?.featured === true || (!db && seed.featured);
-    row.dataset.dbId = db?.id || '';
+  list.querySelectorAll('.game-save').forEach(btn => btn.onclick = async () => {
+    const row = btn.closest('.game-admin-row');
+    const id = row?.dataset.gameId;
+    if (!id) return;
+    const description = row.querySelector('.game-description')?.value.trim() || '';
+    const tag = row.querySelector('.game-tag')?.value.trim() || 'VARIETY';
+    const image_url = row.querySelector('.game-image')?.value.trim() || null;
+    const enabled = row.querySelector('.game-enabled')?.checked;
+    const featured = row.querySelector('.game-featured')?.checked;
+    if (image_url && !isSafeHttpUrl(image_url)) return message('games-message', 'Bitte eine gültige Bild-URL verwenden.');
+    if (featured) {
+      await supabaseClient.from('games').update({ featured: false }).neq('id', id);
+    }
+    const { error } = await supabaseClient.from('games').update({ description, tag, image_url, enabled, featured, updated_at: new Date().toISOString() }).eq('id', id);
+    if (error) message('games-message', error.message);
+    else { message('games-message', 'Game gespeichert.', true); saveStamp(); await loadGames(); }
   });
 
-  const state = $('games-db-state');
-  state.textContent = error ? 'Fallback aktiv' : `${['Fortnite','GTA V','Thick As Thieves'].filter(n => byName.has(n)).length} Games in DB`;
-
-  document.querySelectorAll('.game-save').forEach(btn => {
-    btn.onclick = async () => {
-      const row = btn.closest('.game-admin-row');
-      const name = row.dataset.game;
-      const seed = fallback[name];
-      const description = row.querySelector('.game-description').value.trim();
-      const enabled = row.querySelector('.game-enabled').checked;
-      const featured = row.querySelector('.game-featured').checked;
-
-      const result = await supabaseClient.from('games').upsert({
-        name,
-        description: description || seed.description,
-        tag: name === 'Fortnite' ? 'MAIN GAME' : name === 'GTA V' ? 'AKTUELL' : 'VARIETY',
-        image_url: seed.image_url,
-        enabled,
-        featured,
-        sort_order: seed.sort_order,
-        updated_at: new Date().toISOString()
-      }, { onConflict: 'name' });
-
-      if (result.error) message('games-message', result.error.message);
-      else { message('games-message', `${name} gespeichert.`, true); saveStamp(); await loadGames(); }
-    };
-  });
-
-  document.querySelectorAll('.game-delete').forEach(btn => {
-    btn.onclick = async () => {
-      const row = btn.closest('.game-admin-row');
-      const name = row.dataset.game;
-      if (!confirm(`${name} wirklich löschen?`)) return;
-      const result = await supabaseClient.from('games').delete().eq('name', name);
-      if (result.error) message('games-message', result.error.message);
-      else { message('games-message', `${name} gelöscht.`, true); saveStamp(); await loadGames(); }
-    };
+  list.querySelectorAll('.game-delete').forEach(btn => btn.onclick = async () => {
+    const row = btn.closest('.game-admin-row');
+    const id = row?.dataset.gameId;
+    const name = row?.querySelector('strong')?.textContent || 'dieses Game';
+    if (!id || !confirm(`„${name}“ wirklich löschen?`)) return;
+    const { error } = await supabaseClient.from('games').delete().eq('id', id);
+    if (error) message('games-message', error.message);
+    else { message('games-message', 'Game gelöscht.', true); saveStamp(); await loadGames(); }
   });
 }
 
@@ -586,14 +625,16 @@ async function addGame() {
   const name = $('new-game-name').value.trim();
   const tag = $('new-game-tag').value.trim() || 'VARIETY';
   const description = $('new-game-description').value.trim() || tag;
+  const image_url = $('new-game-image')?.value.trim() || null;
   if (!name) return message('games-message', 'Bitte einen Namen eingeben.');
+  if (image_url && !isSafeHttpUrl(image_url)) return message('games-message', 'Bitte eine gültige Bild-URL verwenden.');
 
   const maxOrder = Math.max(0, ...cachedGames.map(g => Number(g.sort_order) || 0));
   const { error } = await supabaseClient.from('games').upsert({
     name,
     tag,
     description,
-    image_url: null,
+    image_url,
     featured: false,
     enabled: true,
     sort_order: maxOrder + 1,
@@ -605,6 +646,7 @@ async function addGame() {
     $('new-game-name').value = '';
     $('new-game-tag').value = '';
     $('new-game-description').value = '';
+    if ($('new-game-image')) $('new-game-image').value = '';
     message('games-message', 'Game hinzugefügt.', true);
     saveStamp();
     await loadGames();
@@ -639,20 +681,6 @@ async function addSocial() {
 }
 
 
-async function cleanupMecchaRows() {
-  const { error } = await supabaseClient
-    .from('games')
-    .delete()
-    .ilike('name', '%meccha%');
-
-  if (error) {
-    message('games-message', error.message);
-    return;
-  }
-  message('games-message', 'Alte „Meccha“-Einträge wurden gelöscht.', true);
-  saveStamp();
-  await loadGames();
-}
 async function loadEventsAdmin(){
   const list=$('events-admin-list'); if(!list)return;
   const {data,error}=await supabaseClient.from('club_events').select('*').order('event_date',{ascending:true});
@@ -1043,9 +1071,13 @@ function bindAdminEvents() {
 $('add-clip-btn')?.addEventListener('click', addClipAdmin);
 $('add-event-btn')?.addEventListener('click', addEventAdmin);
 $('add-news-btn')?.addEventListener('click', addNewsAdmin);
-$('cleanup-meccha-btn')?.addEventListener('click', cleanupMecchaRows);
   $('add-social-btn')?.addEventListener('click', addSocial);
   $('upload-media-btn')?.addEventListener('click', uploadMedia);
+  $('admin-refresh-all')?.addEventListener('click', async () => {
+    const btn = $('admin-refresh-all');
+    if (btn) { btn.disabled = true; btn.textContent = '↻ Aktualisiere…'; }
+    try { await loadDashboard(); saveStamp(); } finally { if (btn) { btn.disabled = false; btn.textContent = '↻ Aktualisieren'; } }
+  });
 
   $('media-use')?.addEventListener('change', () => {
     $('media-game-row').hidden = $('media-use').value !== 'game';
@@ -1059,7 +1091,7 @@ $('cleanup-meccha-btn')?.addEventListener('click', cleanupMecchaRows);
 }
 
 // ------------------------------------------------------------
-// V5.2 Community Poll Admin
+// V5.3 Community Poll Admin
 // ------------------------------------------------------------
 async function loadPollsAdmin() {
   const list = $('polls-admin-list');
@@ -1192,6 +1224,7 @@ async function initializeAdmin() {
       bindTabs();
       bindSpotlightAdmin();
       await loadDashboard();
+      await loadPollsAdmin();
     } else {
       bindTabs();
     }
