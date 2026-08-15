@@ -246,3 +246,16 @@ Added:
 ### One-time Supabase setup
 Run `supabase/club_members.sql` once in the Supabase SQL Editor.
 The existing `SUPABASE_URL` and `SUPABASE_ANON_KEY` Vercel variables are reused.
+
+
+## V2.6: Member dashboard
+
+Expanded `/club-profile.html` with:
+- editable display name + bio
+- profile avatar upload
+- Twitch live/offline card with current game and viewer count
+- XP/level progress
+- member badges
+- Discord CTA
+
+Run the updated `supabase/club_members.sql` and `supabase/club_storage.sql` once.

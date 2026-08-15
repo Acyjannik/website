@@ -54,3 +54,30 @@ drop constraint if exists profiles_username_format;
 alter table public.profiles
 add constraint profiles_username_format
 check (username ~ '^[a-z0-9_]{3,24}$');
+
+
+-- Profile extensions for V2.6
+alter table public.profiles
+  add column if not exists bio text,
+  add column if not exists xp integer not null default 0,
+  add column if not exists badges text[] not null default '{}';
+
+-- Ensure reasonable limits.
+alter table public.profiles
+  drop constraint if exists profiles_bio_length;
+
+alter table public.profiles
+  add constraint profiles_bio_length
+  check (char_length(coalesce(bio, '')) <= 180);
+
+alter table public.profiles
+  drop constraint if exists profiles_xp_nonnegative;
+
+alter table public.profiles
+  add constraint profiles_xp_nonnegative
+  check (xp >= 0);
+
+-- A small default badge for existing members.
+update public.profiles
+set badges = array_append(badges, 'ACY Rookie')
+where not ('ACY Rookie' = any(badges));
