@@ -579,3 +579,12 @@ Added Impressum, Datenschutzerklärung, Account & Datenschutz page, account dele
 - Unsupported username characters are removed immediately.
 - Added `autocapitalize="none"` and disabled spellcheck for usernames.
 - Confirmation message now explicitly reminds users to check spam/junk.
+
+
+## V5.0.3 — Discord unlink
+- Added a user-facing “Discord trennen” action in the ACY Club profile.
+- Uses Supabase Auth `unlinkIdentity()` to remove the Discord identity.
+- Synchronizes `profiles.discord_connected` after unlinking.
+- Discord badge disappears when disconnected.
+- The one-time +50 XP progression event is intentionally not revoked, preventing XP farming by reconnecting repeatedly.
+- Added confirmation and clear success/error states.

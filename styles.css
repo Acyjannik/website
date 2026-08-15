@@ -789,3 +789,7 @@ button:disabled{opacity:.55;cursor:not-allowed}
 /* V5.0.2 registration clarity */
 .username-hint{display:block;margin-top:5px;line-height:1.45}
 #username{text-transform:lowercase}
+
+/* V5.0.3 Discord disconnect */
+#discord-disconnect-btn[hidden]{display:none}
+.member-discord-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}

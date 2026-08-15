@@ -270,10 +270,12 @@ async function loadTwitch() {
 
 
 async function loadDiscordLink() {
-  const button = $('discord-connect-btn');
+  const connectButton = $('discord-connect-btn');
+  const disconnectButton = $('discord-disconnect-btn');
   const text = $('discord-link-text');
   const state = $('discord-link-state');
-  if (!button || !text) return;
+  const statusEl = $('discord-link-status');
+  if (!connectButton || !text) return;
 
   try {
     const { data, error } = await supabaseClient.auth.getUserIdentities();
@@ -284,21 +286,30 @@ async function loadDiscordLink() {
 
     text.textContent = connected ? 'Discord verbunden' : 'Nicht verbunden';
     if (state) state.classList.toggle('is-connected', connected);
-    if ($('discord-link-status')) {
-      $('discord-link-status').textContent = connected
+
+    if (statusEl) {
+      statusEl.textContent = connected
         ? 'Dein Discord-Konto ist mit diesem ACY Club Account verknüpft.'
         : 'Noch nicht verbunden.';
-      $('discord-link-status').className = connected ? 'club-auth-status success' : 'club-auth-status';
+      statusEl.className = connected ? 'club-auth-status success' : 'club-auth-status';
     }
 
-    button.textContent = connected ? 'Discord verbunden ✓' : 'Discord verbinden';
-    button.disabled = connected;
+    connectButton.textContent = connected ? 'Discord verbunden ✓' : 'Discord verbinden';
+    connectButton.disabled = connected;
 
-    // Keep the profile flag in sync.
-    await supabaseClient.from('profiles').update({
+    if (disconnectButton) {
+      disconnectButton.hidden = !connected;
+      disconnectButton.disabled = false;
+      disconnectButton.textContent = 'Discord trennen';
+    }
+
+    // Keep the profile flag in sync with the actual Supabase identity.
+    const { error: profileError } = await supabaseClient.from('profiles').update({
       discord_connected: connected,
       updated_at: new Date().toISOString()
     }).eq('id', currentUser.id);
+
+    if (profileError) console.warn('Discord profile flag sync failed:', profileError);
 
     if (connected) {
       const result = await awardProgression('discord_connected');
@@ -306,10 +317,89 @@ async function loadDiscordLink() {
         renderBadges((window.__memberBadges || []), Number(result.totalXp), true);
         setText('member-xp', `${result.totalXp} XP`);
       }
+    } else {
+      // The Discord badge is derived from the live connection state.
+      // The one-time +50 XP progression event intentionally remains intact.
+      renderBadges((window.__memberBadges || []), Number(
+        String($('member-xp')?.textContent || '0').replace(/[^\d]/g, '') || 0
+      ), false);
     }
+
+    disconnectButton?.removeEventListener('click', disconnectDiscord);
+    disconnectButton?.addEventListener('click', disconnectDiscord);
   } catch (error) {
     console.warn('Discord identity status unavailable:', error);
     text.textContent = 'Discord-Verknüpfung nicht verfügbar';
+    if (statusEl) {
+      statusEl.textContent = error?.message || 'Discord-Verknüpfung konnte nicht geprüft werden.';
+      statusEl.className = 'club-auth-status error';
+    }
+  }
+}
+
+async function disconnectDiscord() {
+  const button = $('discord-disconnect-btn');
+  const connectButton = $('discord-connect-btn');
+  const statusEl = $('discord-link-status');
+
+  if (!confirm('Discord wirklich von deinem ACY Club Account trennen? Dein Discord-Account selbst wird dabei nicht gelöscht.')) {
+    return;
+  }
+
+  if (button) {
+    button.disabled = true;
+    button.textContent = 'Discord wird getrennt…';
+  }
+  if (connectButton) connectButton.disabled = true;
+  if (statusEl) {
+    statusEl.textContent = 'Discord-Verbindung wird getrennt…';
+    statusEl.className = 'club-auth-status';
+  }
+
+  try {
+    if (!supabaseClient) throw new Error('Supabase ist nicht initialisiert.');
+
+    const { data, error } = await supabaseClient.auth.getUserIdentities();
+    if (error) throw error;
+
+    const discordIdentity = (data?.identities || []).find(identity => identity.provider === 'discord');
+    if (!discordIdentity) {
+      await loadDiscordLink();
+      return;
+    }
+
+    const { error: unlinkError } = await supabaseClient.auth.unlinkIdentity(discordIdentity);
+    if (unlinkError) throw unlinkError;
+
+    const { error: profileError } = await supabaseClient
+      .from('profiles')
+      .update({
+        discord_connected: false,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', currentUser.id);
+
+    if (profileError) throw profileError;
+
+    // XP is deliberately NOT revoked. Connecting Discord is a one-time
+    // progression milestone; disconnecting must not create an XP farming loop.
+    if (statusEl) {
+      statusEl.textContent = 'Discord wurde erfolgreich getrennt.';
+      statusEl.className = 'club-auth-status success';
+    }
+
+    await loadDiscordLink();
+  } catch (error) {
+    console.error('Discord unlink failed:', error);
+    if (statusEl) {
+      statusEl.textContent = error?.message || 'Discord konnte nicht getrennt werden.';
+      statusEl.className = 'club-auth-status error';
+    }
+    if (button) {
+      button.disabled = false;
+      button.textContent = 'Discord trennen';
+    }
+    if (connectButton) connectButton.disabled = false;
   }
 }
 
@@ -344,7 +434,6 @@ async function connectDiscord() {
     if (error) throw error;
 
     if (data?.url) {
-      // Force the browser to follow the OAuth URL returned by Supabase.
       window.location.assign(data.url);
       return;
     }
