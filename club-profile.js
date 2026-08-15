@@ -161,6 +161,7 @@ async function init() {
     await loadTwitch();
     await loadClubContent();
     await loadMemberDirectory();
+    await loadClubChat();
     await loadClubClips();
     await checkAchievements();
     await loadMemberStats();
@@ -523,6 +524,222 @@ async function loadClubClips(){
     console.warn('Club clips unavailable:',error);
     list.innerHTML=`<div class="club-content-empty">${escapeHtml(error?.message||'Clips momentan nicht verfügbar.')}</div>`;
   }
+}
+
+
+let clubChatChannel = null;
+let clubChatMessages = [];
+let clubChatPresence = new Map();
+
+const chatEscape = (value = '') => escapeHtml(value);
+
+function formatChatTime(value) {
+  try {
+    return new Date(value).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+  } catch {
+    return '';
+  }
+}
+
+function setChatStatus(message = '', type = '') {
+  const el = $('club-chat-status');
+  if (!el) return;
+  el.textContent = message;
+  el.className = `club-chat-status ${type}`.trim();
+}
+
+function renderChat(messages = clubChatMessages) {
+  const list = $('club-chat-messages');
+  if (!list) return;
+
+  if (!messages.length) {
+    list.innerHTML = `
+      <div class="club-chat-empty">
+        <div class="club-chat-empty-icon">💬</div>
+        <strong>Noch niemand hat etwas geschrieben.</strong>
+        <span>Sei der Erste und sag Hallo.</span>
+      </div>`;
+    return;
+  }
+
+  const wasNearBottom = list.scrollHeight - list.scrollTop - list.clientHeight < 100;
+  list.innerHTML = messages.map((item) => {
+    const profile = item.profiles || {};
+    const display = profile.display_name || profile.username || 'ACY Member';
+    const avatar = profile.avatar_url
+      ? `<img src="${escapeAttr(profile.avatar_url)}" alt="" loading="lazy">`
+      : `<span>${chatEscape(display.charAt(0).toUpperCase())}</span>`;
+    const own = item.user_id === currentUser?.id;
+    const text = chatEscape(item.message).replace(/\n/g, '<br>');
+    return `<article class="club-chat-message ${own ? 'is-own' : ''}" data-chat-id="${escapeAttr(item.id)}">
+      <div class="club-chat-avatar">${avatar}</div>
+      <div class="club-chat-bubble-wrap">
+        <div class="club-chat-message-head">
+          <strong>${chatEscape(display)}</strong>
+          <span>@${chatEscape(profile.username || '')}</span>
+          <time datetime="${escapeAttr(item.created_at)}">${formatChatTime(item.created_at)}</time>
+          ${own ? `<button type="button" class="club-chat-delete" data-chat-delete="${escapeAttr(item.id)}" title="Nachricht löschen" aria-label="Nachricht löschen">×</button>` : ''}
+        </div>
+        <div class="club-chat-bubble">${text}</div>
+      </div>
+    </article>`;
+  }).join('');
+
+  list.querySelectorAll('[data-chat-delete]').forEach((button) => {
+    button.addEventListener('click', async () => {
+      const id = button.dataset.chatDelete;
+      if (!id || !confirm('Diese Nachricht wirklich löschen?')) return;
+      const { error } = await supabaseClient
+        .from('club_chat_messages')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', currentUser.id);
+      if (error) setChatStatus(error.message || 'Nachricht konnte nicht gelöscht werden.', 'error');
+    });
+  });
+
+  if (wasNearBottom || messages.length <= 1) list.scrollTop = list.scrollHeight;
+}
+
+async function loadClubChat() {
+  const list = $('club-chat-messages');
+  const form = $('club-chat-form');
+  const input = $('club-chat-input');
+  if (!list || !form || !input || !supabaseClient || !currentUser) return;
+
+  try {
+    const { data, error } = await supabaseClient
+      .from('club_chat_messages')
+      .select(`
+        id,
+        user_id,
+        message,
+        created_at,
+        profiles (
+          username,
+          display_name,
+          avatar_url
+        )
+      `)
+      .order('created_at', { ascending: true })
+      .limit(100);
+
+    if (error) throw error;
+    clubChatMessages = Array.isArray(data) ? data : [];
+    renderChat();
+
+    if (clubChatChannel) await supabaseClient.removeChannel(clubChatChannel);
+
+    clubChatChannel = supabaseClient
+      .channel('acy-club-chat', { config: { presence: { key: currentUser.id } } })
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'club_chat_messages'
+      }, async (payload) => {
+        if (payload.eventType === 'INSERT') {
+          const { data: row } = await supabaseClient
+            .from('club_chat_messages')
+            .select(`
+              id,
+              user_id,
+              message,
+              created_at,
+              profiles (
+                username,
+                display_name,
+                avatar_url
+              )
+            `)
+            .eq('id', payload.new.id)
+            .maybeSingle();
+          if (row && !clubChatMessages.some(m => m.id === row.id)) {
+            clubChatMessages.push(row);
+            clubChatMessages.sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
+            clubChatMessages = clubChatMessages.slice(-100);
+            renderChat();
+          }
+        }
+        if (payload.eventType === 'DELETE') {
+          clubChatMessages = clubChatMessages.filter(m => m.id !== payload.old.id);
+          renderChat();
+        }
+      })
+      .on('presence', { event: 'sync' }, () => {
+        const state = clubChatChannel.presenceState();
+        clubChatPresence = new Map();
+        Object.entries(state).forEach(([key, values]) => {
+          clubChatPresence.set(key, values?.[0] || {});
+        });
+        const online = $('chat-online-count');
+        if (online) online.textContent = `${Math.max(1, clubChatPresence.size)} online`;
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await clubChatChannel.track({
+            user_id: currentUser.id,
+            username: currentUser.user_metadata?.username || 'member',
+            joined_at: new Date().toISOString()
+          });
+        }
+      });
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const message = input.value.trim();
+      if (!message) return;
+
+      if (message.length > 500) {
+        setChatStatus('Maximal 500 Zeichen.', 'error');
+        return;
+      }
+
+      const button = form.querySelector('button[type="submit"]');
+      if (button) button.disabled = true;
+      setChatStatus('');
+
+      const { error: sendError } = await supabaseClient
+        .from('club_chat_messages')
+        .insert({ user_id: currentUser.id, message });
+
+      if (sendError) {
+        const raw = String(sendError.message || '');
+        if (raw.includes('CHAT_RATE_LIMIT')) {
+          setChatStatus('Bitte kurz warten, bevor du wieder schreibst.', 'error');
+        } else if (raw.includes('CHAT_BANNED')) {
+          setChatStatus('Du bist aktuell vom Chat ausgeschlossen.', 'error');
+        } else {
+          setChatStatus('Nachricht konnte nicht gesendet werden.', 'error');
+          console.warn('Chat send error:', sendError);
+        }
+      } else {
+        input.value = '';
+        updateChatCounter();
+        input.focus();
+      }
+
+      if (button) button.disabled = false;
+    });
+
+    input.addEventListener('input', updateChatCounter);
+    input.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' && !event.shiftKey && !event.isComposing) {
+        event.preventDefault();
+        form.requestSubmit();
+      }
+    });
+    updateChatCounter();
+  } catch (error) {
+    console.warn('Club chat unavailable:', error);
+    list.innerHTML = `<div class="club-content-empty">Chat konnte nicht geladen werden. Hast du die V5.0-Datenbank in Supabase ausgeführt?</div>`;
+  }
+}
+
+function updateChatCounter() {
+  const input = $('club-chat-input');
+  const counter = $('club-chat-counter');
+  if (!input || !counter) return;
+  counter.textContent = `${input.value.length} / 500`;
 }
 
 async function loadMemberDirectory(search = '') {

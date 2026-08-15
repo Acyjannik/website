@@ -747,3 +747,41 @@ button:disabled{opacity:.55;cursor:not-allowed}
   position:relative;
   z-index:1;
 }
+
+/* V5.0 ACY Club Live Chat */
+.member-chat-card{overflow:hidden}
+.chat-online-chip{display:inline-flex;align-items:center;gap:7px;padding:8px 11px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.03);font-size:11px;color:var(--muted);white-space:nowrap}
+.chat-online-dot{width:7px;height:7px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 4px rgba(34,197,94,.10)}
+.club-chat-shell{margin-top:14px;border:1px solid var(--line);border-radius:20px;background:rgba(5,5,8,.35);overflow:hidden}
+.club-chat-messages{height:430px;overflow:auto;padding:18px;display:flex;flex-direction:column;gap:12px;scroll-behavior:smooth}
+.club-chat-message{display:flex;gap:10px;max-width:min(820px,92%);align-items:flex-start}
+.club-chat-message.is-own{margin-left:auto;flex-direction:row-reverse}
+.club-chat-avatar{width:36px;height:36px;flex:0 0 36px;border-radius:50%;overflow:hidden;background:rgba(168,85,247,.12);border:1px solid rgba(168,85,247,.18);display:grid;place-items:center;font-weight:800;color:#d8b4fe}
+.club-chat-avatar img{width:100%;height:100%;object-fit:cover}
+.club-chat-bubble-wrap{min-width:0}
+.club-chat-message-head{display:flex;align-items:center;gap:7px;margin:0 4px 5px;font-size:10px;color:var(--muted)}
+.club-chat-message-head strong{color:var(--text);font-size:11px}
+.club-chat-message-head time{opacity:.65}
+.club-chat-delete{border:0;background:none;color:#71717a;padding:0 3px;cursor:pointer;font-size:16px;line-height:1}
+.club-chat-delete:hover{color:#fca5a5}
+.club-chat-bubble{padding:10px 13px;border:1px solid var(--line);border-radius:15px 15px 15px 4px;background:rgba(255,255,255,.035);font-size:13px;line-height:1.55;word-break:break-word}
+.club-chat-message.is-own .club-chat-bubble{border-color:rgba(168,85,247,.22);background:rgba(168,85,247,.09);border-radius:15px 15px 4px 15px}
+.club-chat-message.is-own .club-chat-message-head{justify-content:flex-end}
+.club-chat-empty{height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;color:var(--muted);text-align:center}
+.club-chat-empty-icon{font-size:28px;margin-bottom:4px}
+.club-chat-empty strong{color:var(--text);font-size:14px}
+.club-chat-composer{display:flex;gap:10px;padding:13px;border-top:1px solid var(--line);background:rgba(255,255,255,.02)}
+.club-chat-composer-main{flex:1;min-width:0}
+.club-chat-composer textarea{display:block;width:100%;resize:none;border:1px solid var(--line);border-radius:13px;background:rgba(0,0,0,.24);color:var(--text);padding:11px 12px;outline:none;font:inherit;font-size:13px;line-height:1.4}
+.club-chat-composer textarea:focus{border-color:rgba(168,85,247,.6);box-shadow:0 0 0 3px rgba(168,85,247,.08)}
+.club-chat-composer-meta{display:flex;justify-content:space-between;gap:10px;padding:5px 2px 0;font-size:9px;color:#71717a}
+.club-chat-send{align-self:flex-end;min-width:92px}
+.club-chat-status{min-height:0;padding:0 14px;color:var(--muted);font-size:11px}
+.club-chat-status.error{color:#fca5a5;padding-bottom:8px}
+@media(max-width:680px){
+  .club-chat-messages{height:52vh;min-height:320px;padding:12px}
+  .club-chat-message{max-width:96%}
+  .club-chat-composer{padding:10px;align-items:flex-end}
+  .club-chat-composer-meta span:last-child{display:none}
+  .club-chat-send{min-width:70px;padding-left:12px;padding-right:12px}
+}

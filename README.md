@@ -553,3 +553,15 @@ Added Impressum, Datenschutzerklärung, Account & Datenschutz page, account dele
 - Moved the public Community Spotlight to immediately below the homepage hero.
 - Kept the existing Spotlight API and rendering logic unchanged.
 - Added stronger visual emphasis for the homepage Spotlight card.
+
+
+## V5.0 — ACY Club Chat
+- Live member-only chat with Supabase Realtime.
+- Last 100 messages loaded on entry.
+- Instant new-message and delete updates.
+- Online presence count.
+- 500-character limit and server-side 2-second rate limit.
+- Server-side temporary chat bans are supported by the database schema.
+- Members can delete their own messages.
+- Admins can delete messages through the existing RLS policy.
+- Run `supabase/club_chat.sql` once before testing the chat.
