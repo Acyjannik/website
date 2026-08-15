@@ -565,3 +565,9 @@ Added Impressum, Datenschutzerklärung, Account & Datenschutz page, account dele
 - Members can delete their own messages.
 - Admins can delete messages through the existing RLS policy.
 - Run `supabase/club_chat.sql` once before testing the chat.
+
+
+## V5.0.1
+- Fixed chat profile loading: `club_chat_messages.user_id` references `auth.users`, so messages and `profiles` are now loaded separately.
+- Fixed Realtime INSERT enrichment using the same profile lookup.
+- Added clearer chat connection/error reporting.
