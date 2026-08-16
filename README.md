@@ -1393,3 +1393,13 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Added `/api/mod-auth`, `/api/admin-moderators`, `/api/admin-moderators-list`, `/api/mod-announcement`.
 - Added `supabase/moderators_v9.8.sql`.
 - Admin remains the only role allowed to manage moderator assignments.
+
+
+## V9.9 — ACY Mobile / Web Push
+- Added PWA manifest, standalone display mode and ACY app icons.
+- Added service worker with Web Push reception, notification clicks and deep links.
+- Added in-app PWA installation helper: Chromium can use the native install prompt; iPhone shows the correct Share → Add to Home Screen guidance.
+- Added push subscription storage in `club_push_subscriptions`.
+- Added `push-subscribe`, `push-config` and `push-send` APIs.
+- Existing ACY email/in-app notifications can now also dispatch a push notification to subscribed devices when VAPID keys are configured.
+- Android is supported through standard browser PWA installation/Web Push; exact install UI varies by browser.

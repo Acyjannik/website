@@ -60,6 +60,39 @@ function prefColumn(type) {
   })[type] || null;
 }
 
+
+async function sendPushToUsers({userIds=[],title,body,url,tag='acy-club'}){
+  const vapidSubject=env('VAPID_SUBJECT'), vapidPublic=env('VAPID_PUBLIC_KEY'), vapidPrivate=env('VAPID_PRIVATE_KEY');
+  if(!vapidSubject||!vapidPublic||!vapidPrivate)return {sent:0,failed:0,skipped:true};
+  try{
+    const webpush=require('web-push');
+    webpush.setVapidDetails(vapidSubject,vapidPublic,vapidPrivate);
+    let sent=0,failed=0,removed=0;
+    for(const userId of userIds){
+      const subRes=await sbFetch(`/rest/v1/club_push_subscriptions?user_id=eq.${encodeURIComponent(userId)}&select=id,endpoint,p256dh,auth`);
+      if(!subRes.ok){failed++;continue;}
+      const subs=await subRes.json();
+      for(const sub of subs||[]){
+        try{
+          await webpush.sendNotification({endpoint:sub.endpoint,keys:{p256dh:sub.p256dh,auth:sub.auth}},JSON.stringify({
+            title:String(title||'ACY Club').slice(0,120),
+            body:String(body||'').slice(0,300),
+            url:String(url||'/club-profile.html').slice(0,500),
+            icon:'/icons/acy-192.png',badge:'/icons/acy-192.png',tag
+          }));
+          sent++;
+        }catch(error){
+          if(error?.statusCode===404||error?.statusCode===410){
+            await sbFetch(`/rest/v1/club_push_subscriptions?id=eq.${encodeURIComponent(sub.id)}`,{method:'DELETE'});
+            removed++;
+          }else failed++;
+        }
+      }
+    }
+    return {sent,failed,removed};
+  }catch(error){return {sent:0,failed:1,error:error?.message||'Push failed'};}
+}
+
 function smtpConfigured() {
   return Boolean(env('SMTP_HOST') && env('SMTP_USER') && env('SMTP_PASS') && env('EMAIL_FROM'));
 }
@@ -370,7 +403,13 @@ module.exports = async (req, res) => {
         emailSent = 1;
       }
 
-      return json(res,200,{ok:true,personal:true,emailSent,inAppSent,sentTo:authUser.email});
+      let pushSent = 0;
+      try {
+        const push = await sendPushToUsers({userIds:[user.id],title,body:text,url:linkUrl,tag:`acy-${type}`});
+        pushSent = push.sent || 0;
+      } catch {}
+
+      return json(res,200,{ok:true,personal:true,emailSent,inAppSent,pushSent,sentTo:authUser.email});
     }
 
     // V7.1.11: isolated IONOS sender test. This intentionally sends the
@@ -578,6 +617,16 @@ module.exports = async (req, res) => {
             console.warn('In-app notification insert failed:', await notificationRes.text().catch(()=>'')); 
           }
         }
+
+        try {
+          await sendPushToUsers({
+            userIds:[recipient.profile.id],
+            title,
+            body:text,
+            url:linkUrl,
+            tag:`acy-${type}`
+          });
+        } catch {}
 
         if (recipient.emailEnabled && recipient.email) {
           await smtpSend({

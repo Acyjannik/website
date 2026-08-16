@@ -4,13 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Mein ACY Club · Acyjannik</title>
-  <link rel="stylesheet" href="styles.css?v=9.8.0">
+  <link rel="stylesheet" href="styles.css?v=9.9.0">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="/pet-companion.js?v=7.2.0" defer></script>
-  <script src="club-profile.js?v=9.8.0" defer></script>
+  <script src="club-profile.js?v=9.9.0" defer></script>
   <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
   <link rel="shortcut icon" href="/assets/favicon.svg">
   <link rel="apple-touch-icon" href="/assets/favicon.svg">
-</head>
+<link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#0b0b10"><link rel="apple-touch-icon" href="/icons/acy-192.png"><script src="/pwa.js?v=9.9.0"></script></head>
 <body class="club-auth-page">
   <div class="club-auth-shell">
     <header class="club-auth-header">
@@ -71,7 +71,44 @@
             <label class="notification-setting-card"><span>🐾 Pet</span><input type="checkbox" data-pref="email-pet"></label>
           </div>
 
-          <div class="notification-settings-foot">
+          
+      <div class="push-pwa-card" id="acy-mobile-app-card">
+        <div class="push-pwa-icon">📱</div>
+        <div class="push-pwa-copy">
+          <div class="eyebrow">ACY MOBILE</div>
+          <h3>ACY als App nutzen</h3>
+          <p>Installiere den ACY Club auf deinem Startbildschirm und erhalte wichtige Club-Benachrichtigungen direkt aufs Handy.</p>
+          <div class="push-pwa-actions">
+            <button class="button button-secondary button-small" id="acy-install-pwa" type="button">📱 ACY installieren</button>
+            <button class="button button-primary button-small" id="acy-enable-push" type="button">🔔 Push-Benachrichtigungen aktivieren</button>
+          </div>
+          <small id="acy-pwa-status">Noch nicht aktiviert.</small>
+          <span id="acy-pwa-hint"></span>
+        </div>
+      </div>
+
+      <div class="pwa-install-modal" id="acy-pwa-install-modal" hidden>
+        <div class="pwa-install-overlay" id="acy-pwa-install-overlay">
+          <div class="pwa-install-dialog">
+            <button type="button" class="pwa-install-close" id="acy-pwa-install-close" aria-label="Schließen">×</button>
+            <div class="eyebrow">ACY MOBILE</div>
+            <h2>ACY auf dem Home-Bildschirm</h2>
+            <p class="pwa-platform-ios">Auf dem iPhone:</p>
+            <ol class="pwa-steps pwa-platform-ios">
+              <li><strong>Teilen</strong> antippen</li>
+              <li><strong>Zum Home-Bildschirm</strong> auswählen</li>
+              <li><strong>Hinzufügen</strong> tippen</li>
+            </ol>
+            <p class="pwa-platform-android">Auf Android:</p>
+            <ol class="pwa-steps pwa-platform-android">
+              <li>Im Browser-Menü <strong>Installieren</strong> oder <strong>Zum Startbildschirm</strong> wählen</li>
+              <li>Installation bestätigen</li>
+            </ol>
+            <p>Danach kannst du Push-Benachrichtigungen für ACY aktivieren.</p>
+          </div>
+        </div>
+      </div>
+<div class="notification-settings-foot">
             <div><strong>Account-E-Mail</strong><span id="notification-settings-email">–</span></div>
             <button class="button button-primary" type="button" id="save-notification-settings">Einstellungen speichern</button>
           </div>
