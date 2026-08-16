@@ -1559,7 +1559,6 @@ async function init() {
     await loadPet();
     await loadDiscordLink();
     await loadTwitch();
-    startTwitchStatusPolling();
     await loadClubContent();
     await loadMemberDirectory();
      await loadSocialConnections();
@@ -1638,15 +1637,6 @@ async function loadProfile() {
   $('avatar-input').dataset.currentUrl = profile.avatar_url || '';
 }
 
-let twitchStatusTimer = null;
-
-function startTwitchStatusPolling() {
-  if (twitchStatusTimer) clearInterval(twitchStatusTimer);
-  twitchStatusTimer = setInterval(() => {
-    loadTwitch().catch(error => console.warn('Club Twitch refresh failed:', error));
-  }, 30000);
-}
-
 async function loadTwitch() {
   const sub = $('member-twitch-sub');
   const game = $('member-twitch-game');
@@ -1657,7 +1647,7 @@ async function loadTwitch() {
   const text = $('member-live-text');
 
   try {
-    const res = await fetch(`/api/twitch-status?_=${Date.now()}`, { cache: 'no-store' });
+    const res = await fetch('/api/twitch-status', { cache: 'no-store' });
     if (!res.ok) throw new Error(`Twitch API HTTP ${res.status}`);
     const data = await res.json();
     const live = !!data.live;
@@ -1675,9 +1665,12 @@ async function loadTwitch() {
     }
   } catch (error) {
     console.warn('Twitch member status unavailable:', error);
-    // Do not convert an API error into a false OFFLINE status.
-    if (text) text.textContent = 'STATUS NICHT VERFÜGBAR';
+    if (text) text.textContent = 'OFFLINE';
+    if (pill) pill.classList.remove('is-live');
+    if (dot) dot.classList.remove('is-live');
     if (sub) sub.textContent = 'Twitch-Status gerade nicht verfügbar';
+    if (game) game.textContent = '–';
+    if (viewers) viewers.textContent = '–';
   }
 }
 
