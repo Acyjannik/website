@@ -1026,3 +1026,11 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Updated the public content API fallback with the same About text.
 - Bumped the public `script.js` cache version to 7.4.9 so browsers fetch the current script.
 - No SQL changes.
+
+
+## V7.5.0 — Personalized Homepage
+- Added a personalized ACY Club snapshot directly on the public homepage.
+- Guests see a concise invitation; logged-in members see their name, XP and Pet.
+- Member actions switch automatically to `Zum Club-Profil` and either community discovery or Pet adoption.
+- Added smooth in-page navigation and subtle pointer-reactive card highlights for games/social cards.
+- No SQL changes.

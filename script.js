@@ -271,6 +271,100 @@ document.getElementById('live-alert-close')?.addEventListener('click', () => {
 // Public content layer.
 // Admin changes are loaded from one serverless endpoint, so the public page
 // always reads the same normalized data source as the admin dashboard.
+
+// ------------------------------------------------------------
+// V7.5 Personal Home — tailor the public homepage to the visitor.
+// Logged-out visitors get a concise invite; logged-in members see
+// their own Club snapshot and direct next-step buttons.
+// ------------------------------------------------------------
+async function loadPersonalHomepage() {
+  const card = document.getElementById('homepage-personal-card');
+  if (!card) return;
+
+  const eyebrow = document.getElementById('homepage-personal-eyebrow');
+  const title = document.getElementById('homepage-personal-title');
+  const text = document.getElementById('homepage-personal-text');
+  const primary = document.getElementById('homepage-personal-primary');
+  const secondary = document.getElementById('homepage-personal-secondary');
+  const status = document.getElementById('homepage-personal-status');
+  const xp = document.getElementById('homepage-personal-xp');
+  const pet = document.getElementById('homepage-personal-pet');
+
+  try {
+    for (let i = 0; i < 30 && !window.supabase; i += 1) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    if (!window.supabase) return;
+
+    const configResponse = await fetch('/api/config', { cache: 'no-store' });
+    const config = await configResponse.json();
+    if (!config?.configured) return;
+
+    const client = window.supabase.createClient(
+      config.supabaseUrl,
+      config.supabaseAnonKey,
+      { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } }
+    );
+
+    const { data } = await client.auth.getSession();
+    const user = data?.session?.user;
+
+    if (!user) {
+      if (eyebrow) eyebrow.textContent = 'DEIN ACY CLUB';
+      if (title) title.textContent = 'Noch nicht im Club?';
+      if (text) text.textContent = 'Erstelle dein Profil, sammle XP, schalte Achievements frei und lass dein eigenes Pet Teil der Community werden.';
+      if (status) status.textContent = 'Gast';
+      if (xp) xp.textContent = '–';
+      if (pet) pet.textContent = '–';
+      return;
+    }
+
+    const { data: profile } = await client
+      .from('profiles')
+      .select('display_name,username,xp')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    const { data: ownPet } = await client.rpc('get_club_pet').catch(() => ({ data: null }));
+
+    const name = profile?.display_name || profile?.username || 'Member';
+    const currentXp = Number(profile?.xp || 0);
+    const petName = ownPet?.name || '';
+    const petSpecies = ownPet?.species || '';
+    const petLabels = {
+      cat:'Katze',dog:'Hund',fox:'Fuchs',axolotl:'Axolotl',dragon:'Drache',
+      unicorn:'Einhorn',penguin:'Pinguin',panda:'Panda',bunny:'Hase',koala:'Koala',
+      hamster:'Hamster',turtle:'Schildkröte',owl:'Eule',frog:'Frosch',bee:'Biene'
+    };
+
+    if (eyebrow) eyebrow.textContent = 'WILLKOMMEN ZURÜCK';
+    if (title) title.textContent = `Hey, ${name}.`;
+    if (text) {
+      text.textContent = petName
+        ? `Dein Club ist bereit. ${petName} wartet auf dich, und die Community läuft weiter.`
+        : 'Dein Club ist bereit. Dir fehlt nur noch dein erster eigener Begleiter.';
+    }
+    if (status) status.textContent = 'Member';
+    if (xp) xp.textContent = `${currentXp.toLocaleString('de-DE')} XP`;
+    if (pet) pet.textContent = petName ? `${petName} · ${petLabels[petSpecies] || 'Pet'}` : 'Noch keins';
+
+    if (primary) {
+      primary.href = '/club-profile.html';
+      primary.textContent = 'Zum Club-Profil';
+    }
+    if (secondary) {
+      secondary.href = petName ? '#community-games' : '/club-profile.html#pet-section';
+      secondary.textContent = petName ? 'Community entdecken' : 'Pet adoptieren';
+    }
+
+    card.classList.add('is-member');
+  } catch (error) {
+    console.warn('Personal homepage unavailable:', error);
+  }
+}
+
+window.addEventListener('DOMContentLoaded', loadPersonalHomepage);
+
 async function loadPublicContent() {
   try {
     const response = await fetch('/api/site-content', {
@@ -488,3 +582,27 @@ function escapePublicText(value) {
 }
 
 updatePublicClubHeader();
+
+// Small homepage interaction layer.
+document.addEventListener('click', (event) => {
+  const link = event.target.closest('a[href^="#"]');
+  if (!link) return;
+  const id = link.getAttribute('href');
+  if (!id || id === '#') return;
+  const target = document.querySelector(id);
+  if (!target) return;
+  event.preventDefault();
+  target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  history.replaceState(null, '', id);
+});
+
+document.addEventListener('pointermove', (event) => {
+  const card = event.target.closest('.homepage-personal-card, .game-card, .social-card');
+  if (!card) return;
+  const rect = card.getBoundingClientRect();
+  const x = ((event.clientX - rect.left) / Math.max(1, rect.width)) * 100;
+  const y = ((event.clientY - rect.top) / Math.max(1, rect.height)) * 100;
+  card.style.setProperty('--pointer-x', `${x}%`);
+  card.style.setProperty('--pointer-y', `${y}%`);
+});
+
