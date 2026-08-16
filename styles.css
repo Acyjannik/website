@@ -1840,3 +1840,69 @@ img,video,iframe,svg{
 .member-filter:hover{transform:translateY(-1px);color:#e4e4e7;border-color:rgba(168,85,247,.28)}
 .member-filter.is-active{background:rgba(168,85,247,.12);border-color:rgba(168,85,247,.32);color:#d8b4fe}
 .member-directory-item[hidden]{display:none!important}
+
+/* V8.2.1 — Member action button polish
+   Keep the cards compact, but make the actual actions easier to read and hit. */
+.member-directory-meta{
+  gap:6px;
+  align-items:center;
+}
+.member-directory-meta .button,
+.member-directory-pet-visit{
+  min-width:auto;
+  min-height:31px;
+  height:31px;
+  padding:0 10px;
+  border-radius:9px;
+  font-size:9px;
+  font-weight:700;
+  letter-spacing:.005em;
+  line-height:1;
+  text-align:center;
+  text-shadow:none;
+  box-shadow:none;
+}
+.member-directory-meta .button-secondary,
+.member-directory-pet-visit{
+  color:#f4f4f5 !important;
+  background:rgba(255,255,255,.075) !important;
+  border:1px solid rgba(255,255,255,.13) !important;
+}
+.member-directory-meta .button-secondary:hover,
+.member-directory-pet-visit:hover{
+  color:#ffffff !important;
+  background:rgba(168,85,247,.16) !important;
+  border-color:rgba(168,85,247,.38) !important;
+}
+.member-directory-meta .button-danger{
+  color:#fecaca !important;
+  background:rgba(127,29,29,.16) !important;
+  border:1px solid rgba(248,113,113,.30) !important;
+}
+.member-directory-meta .button-danger:hover{
+  color:#fee2e2 !important;
+  background:rgba(127,29,29,.26) !important;
+  border-color:rgba(248,113,113,.55) !important;
+}
+.member-directory-meta .member-directory-message{
+  color:#f4f4f5 !important;
+}
+.member-filter{
+  min-height:30px;
+  padding:0 11px;
+  font-size:9px;
+  font-weight:700;
+  color:#c4c4cb;
+}
+.member-filter.is-active{
+  color:#f3e8ff;
+  background:rgba(168,85,247,.16);
+  border-color:rgba(168,85,247,.38);
+}
+@media(max-width:700px){
+  .member-directory-meta .button,
+  .member-directory-pet-visit{
+    min-height:30px;
+    height:30px;
+  }
+}

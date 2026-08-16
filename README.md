@@ -1164,3 +1164,11 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Friend matching is based on the current accepted friend list.
 - Filters work client-side without another database request.
 - No SQL changes.
+
+
+## V8.2.1 — Member Button Polish
+- Kept the compact member-card layout while improving button readability and contrast.
+- Increased action target size slightly without making the cards tall again.
+- Secondary actions now use clearer light text and subtle borders; block actions remain visibly destructive.
+- Member filter pills also get stronger contrast.
+- No SQL changes.
