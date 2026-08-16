@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Mein ACY Club · Acyjannik</title>
-  <link rel="stylesheet" href="styles.css?v=8.4.1">
+  <link rel="stylesheet" href="styles.css?v=8.5.0">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="/pet-companion.js?v=7.2.0" defer></script>
-  <script src="club-profile.js?v=8.4.1" defer></script>
+  <script src="club-profile.js?v=8.5.0" defer></script>
   <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
   <link rel="shortcut icon" href="/assets/favicon.svg">
   <link rel="apple-touch-icon" href="/assets/favicon.svg">
@@ -437,6 +437,15 @@
             </div>
             <button class="button button-primary" id="daily-streak-claim" type="button">🔥 Tagesbonus abholen</button>
             <p class="club-auth-status" id="daily-streak-message"></p>
+          </div>
+        </details>
+
+        <details class="member-card member-span-2 member-fold" id="club-quests-section">
+          <summary class="member-fold-summary"><span class="member-fold-summary-main"><span class="eyebrow">QUESTS</span><strong>🎯 Deine Aufgaben</strong><small>Kleine Ziele, zusätzliche XP.</small></span><span class="member-fold-summary-side"><span class="member-count-chip" id="quest-count-chip">0 offen</span><span class="member-fold-chevron">⌄</span></span></summary>
+          <div class="member-fold-body">
+            <div class="quest-tabs"><button class="quest-tab is-active" type="button" data-quest-tab="daily">Heute</button><button class="quest-tab" type="button" data-quest-tab="weekly">Diese Woche</button></div>
+            <div id="quest-list" class="quest-list"><div class="club-content-empty">Aufgaben werden geladen…</div></div>
+            <p class="club-auth-status" id="quest-message"></p>
           </div>
         </details>
 

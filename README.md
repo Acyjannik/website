@@ -1201,3 +1201,11 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Redeeming an Extra-Dreh refreshes the counter immediately.
 - Opening the page also initializes the wheel state from the real token balance.
 - No SQL changes.
+
+
+## V8.5.0 — Quests
+- Added daily and weekly quests with persistent progress.
+- Daily: Check-in, Pet-Pflege, Community-Moment.
+- Weekly: 3 wheel spins, 2 new friendships.
+- XP rewards can be claimed once per period.
+- Run `supabase/club_quests.sql` once in Supabase.
