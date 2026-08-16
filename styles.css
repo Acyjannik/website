@@ -3801,3 +3801,282 @@ body.acy-cosmic-active .club-auth-shell{filter:saturate(1.12)}
 @media (min-width:761px){
   .acy-back-to-top{right:24px;bottom:24px}
 }
+
+/* ============================================================
+   ACY V15.0 — COMPLETE MOBILE REFRESH
+   Mobile is a layout, not a shrunken desktop.
+   ============================================================ */
+@media (max-width: 760px){
+  .club-auth-page{
+    overflow-x:clip;
+    font-size:15px;
+  }
+
+  .club-auth-page .club-auth-shell{
+    width:100%;
+    max-width:none;
+    padding:12px 12px calc(118px + env(safe-area-inset-bottom));
+  }
+
+  /* Header: six actions, deliberately arranged as two clean rows. */
+  .club-auth-page .club-auth-header{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:10px;
+    margin-bottom:18px;
+    position:relative;
+  }
+  .club-auth-page .club-auth-header .brand{
+    min-height:48px;
+    width:100%;
+    padding:0 2px;
+  }
+  .club-auth-page .brand-mark{width:40px;height:40px;border-radius:12px}
+  .club-auth-page .brand>strong{font-size:19px}
+  .club-auth-page .member-header-actions{
+    width:100%;
+    display:grid;
+    grid-template-columns:40px 40px minmax(0,1fr) minmax(0,1fr);
+    gap:7px;
+    align-items:stretch;
+  }
+  .club-auth-page .member-header-actions > *{
+    width:100%;
+    min-width:0;
+    min-height:42px;
+    margin:0;
+    box-sizing:border-box;
+  }
+  .club-auth-page .member-header-actions .sound-toggle,
+  .club-auth-page .member-header-actions .notification-bell{
+    width:40px;
+    height:42px;
+    min-height:42px;
+    padding:0;
+    display:grid;
+    place-items:center;
+    border-radius:13px;
+  }
+  .club-auth-page .member-header-actions .button{
+    min-height:42px;
+    padding:0 9px;
+    border-radius:13px;
+    font-size:10px;
+    line-height:1;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .club-auth-page .member-header-actions .acy-header-refresh{
+    grid-column:3;
+    grid-row:2;
+    width:100%;
+  }
+  .club-auth-page .member-header-actions #logout{
+    grid-column:4;
+    grid-row:2;
+  }
+  .club-auth-page .acy-refresh-status{
+    top:auto;
+    bottom:calc(82px + env(safe-area-inset-bottom));
+    max-width:calc(100vw - 110px);
+    font-size:9px;
+    padding:6px 9px;
+    z-index:9998;
+  }
+
+  /* Content rhythm */
+  .club-auth-page .member-dashboard{
+    width:100%;
+    max-width:none;
+    margin:14px auto 0;
+    padding-bottom:0;
+  }
+  .club-auth-page .member-grid{gap:14px;margin-top:14px}
+  .club-auth-page .member-card,
+  .club-auth-page .member-hero-card,
+  .club-auth-page .hub-main-card,
+  .club-auth-page .hub-progression-card{
+    width:100%;
+    min-width:0;
+    padding:20px 16px;
+    border-radius:20px;
+  }
+  .club-auth-page .member-card h2{
+    font-size:26px;
+    line-height:1.1;
+    margin:5px 0 10px;
+  }
+  .club-auth-page .member-card p{
+    font-size:14px;
+    line-height:1.55;
+  }
+  .club-auth-page .member-card-head{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) auto;
+    align-items:start;
+    gap:10px;
+    padding-right:38px;
+  }
+  .club-auth-page .member-card-head > div{min-width:0}
+  .club-auth-page .member-card-head .member-count-chip{
+    align-self:start;
+    font-size:10px;
+    padding:7px 9px;
+  }
+
+  /* Fold cards: stable two-column header, no crushed controls. */
+  .club-auth-page .member-fold-summary{
+    min-height:68px;
+    padding:17px 15px;
+    padding-right:54px;
+    gap:10px;
+  }
+  .club-auth-page .member-fold-summary-main{min-width:0}
+  .club-auth-page .member-fold-summary .eyebrow{font-size:9px;letter-spacing:.18em}
+  .club-auth-page .member-fold-summary strong{font-size:21px;line-height:1.12}
+  .club-auth-page .member-fold-summary small{font-size:12px;line-height:1.4}
+  .club-auth-page .member-fold-summary-side{gap:6px}
+  .club-auth-page .member-fold-summary-side .member-count-chip{font-size:9px;padding:7px 9px}
+  .club-auth-page .member-fold-chevron{width:30px;height:30px;display:grid;place-items:center}
+
+  /* Profile card */
+  .club-auth-page .member-hero-card{padding:20px 16px;gap:18px}
+  .club-auth-page .member-avatar-img,
+  .club-auth-page .member-avatar{width:76px;height:76px}
+  .club-auth-page .member-identity{gap:12px}
+  .club-auth-page .member-identity h1{font-size:30px;line-height:1.02}
+  .club-auth-page .member-identity p{font-size:13px;line-height:1.45}
+
+  /* Pet: keep the artwork dominant, but never let the text turn into a poster. */
+  .club-auth-page .pet-section .member-card-head{grid-template-columns:1fr auto}
+  .club-auth-page .pet-section .member-card-head h2{font-size:28px}
+  .club-auth-page .pet-section .member-card-head p{font-size:14px;line-height:1.5;max-width:31ch}
+  .club-auth-page .pet-main{
+    display:grid;
+    grid-template-columns:72px minmax(0,1fr);
+    align-items:center;
+    gap:12px;
+  }
+  .club-auth-page .pet-avatar{width:72px;height:72px;border-radius:19px}
+  .club-auth-page .pet-identity{min-width:0}
+  .club-auth-page .pet-identity h3{font-size:22px;line-height:1.05;margin:2px 0 4px}
+  .club-auth-page .pet-identity p{font-size:12px;line-height:1.35}
+  .club-auth-page .pet-manage-actions{
+    grid-column:1/-1;
+    width:100%;
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:7px;
+  }
+  .club-auth-page .pet-manage-actions .button{
+    min-width:0;
+    min-height:42px;
+    padding:0 7px;
+    font-size:10px;
+    white-space:normal;
+    line-height:1.1;
+  }
+  .club-auth-page .pet-progression-head strong{font-size:11px}
+  .club-auth-page .pet-prog-step small{font-size:7px}
+  .club-auth-page .pet-stats{grid-template-columns:1fr 1fr 1fr;gap:7px}
+  .club-auth-page .pet-stat{padding:10px 8px}
+  .club-auth-page .pet-stat>div:first-child{font-size:9px}
+  .club-auth-page .pet-actions{display:grid;grid-template-columns:1fr;gap:7px}
+  .club-auth-page .pet-action-btn{width:100%;min-height:50px;min-width:0}
+  .club-auth-page .pet-action-btn small{display:block;font-size:9px;margin-top:3px;color:#aaa2b8}
+  .club-auth-page .pet-footer{font-size:9px}
+
+  /* Inputs and action rows */
+  .club-auth-page .button{min-height:42px}
+  .club-auth-page .button-small{min-height:38px;font-size:10px}
+  .club-auth-page .member-discord-actions,
+  .club-auth-page .push-pwa-actions,
+  .club-auth-page .twitch-connect-actions,
+  .club-auth-page .twitch-watch-controls-v11{
+    display:grid;
+    grid-template-columns:1fr;
+    width:100%;
+  }
+  .club-auth-page .member-discord-actions .button,
+  .club-auth-page .push-pwa-actions .button,
+  .club-auth-page .twitch-connect-actions .button,
+  .club-auth-page .twitch-watch-controls-v11 .button{width:100%}
+
+  /* Progression and badges stay readable without becoming endless. */
+  .club-auth-page .catalog-levels-scroll{padding-bottom:8px}
+  .club-auth-page .catalog-levels-scroll .catalog-level{min-width:122px;min-height:108px;padding:14px}
+  .club-auth-page .catalog-levels-scroll .catalog-level strong{font-size:12px}
+  .club-auth-page .catalog-levels-scroll .catalog-level small{font-size:10px}
+  .club-auth-page .member-badge{padding:13px}
+  .club-auth-page .member-badge span{font-size:21px}
+  .club-auth-page .member-badge strong{font-size:12px}
+  .club-auth-page .member-badge small{font-size:9px}
+
+  /* Bottom dock: clearly visible and safely above the iPhone home indicator. */
+  .club-auth-page .mobile-club-dock{
+    left:8px;
+    right:8px;
+    bottom:calc(8px + env(safe-area-inset-bottom));
+    min-height:68px;
+    padding:7px 6px;
+    border-radius:20px;
+    z-index:10000;
+  }
+  .club-auth-page .mobile-club-dock a,
+  .club-auth-page .mobile-club-dock button{
+    min-height:54px;
+    border-radius:15px;
+    gap:4px;
+    padding:5px 2px;
+  }
+  .club-auth-page .mobile-club-dock span:first-child{font-size:20px}
+  .club-auth-page .mobile-club-dock span:last-child{font-size:11px;font-weight:800}
+  .club-auth-page .member-dashboard{padding-bottom:100px}
+
+  /* Back-to-top: hard-pinned to the right and never dependent on audio. */
+  .club-auth-page #acy-back-to-top,
+  #acy-back-to-top{
+    position:fixed!important;
+    left:auto!important;
+    right:14px!important;
+    bottom:calc(90px + env(safe-area-inset-bottom))!important;
+    width:48px!important;
+    min-width:48px!important;
+    height:48px!important;
+    padding:0!important;
+    margin:0!important;
+    z-index:10002!important;
+    display:grid!important;
+    place-items:center!important;
+    border-radius:50%!important;
+    touch-action:manipulation;
+  }
+  .club-auth-page #acy-back-to-top>span:first-child{font-size:24px}
+  .club-auth-page #acy-back-to-top-label{display:none}
+
+  /* Debug/build marker and transient status should never sit on top of content. */
+  .club-auth-page #acy-build-marker{
+    right:12px!important;
+    left:auto!important;
+    bottom:calc(154px + env(safe-area-inset-bottom))!important;
+    z-index:9999!important;
+    font-size:9px!important;
+    padding:5px 8px!important;
+  }
+}
+
+@media (max-width:390px){
+  .club-auth-page .club-auth-shell{padding-left:10px;padding-right:10px}
+  .club-auth-page .member-header-actions{grid-template-columns:38px 38px minmax(0,1fr) minmax(0,1fr);gap:6px}
+  .club-auth-page .member-header-actions .sound-toggle,
+  .club-auth-page .member-header-actions .notification-bell{width:38px}
+  .club-auth-page .member-fold-summary strong{font-size:19px}
+  .club-auth-page .pet-section .member-card-head h2{font-size:25px}
+  .club-auth-page .pet-manage-actions .button{font-size:9px}
+  .club-auth-page .mobile-club-dock span:last-child{font-size:10px}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .club-auth-page #acy-back-to-top{scroll-behavior:auto}
+}

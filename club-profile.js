@@ -4400,16 +4400,27 @@ function initAcyBackToTop() {
     button.classList.toggle('is-visible', window.scrollY > 520);
   };
 
-  const goTop = () => {
-    playUISound('whoosh');
-    acyButtonRipple(button);
+  const goTop = (event) => {
+    try { playUISound('whoosh'); } catch {}
+    try { acyButtonRipple(button, event); } catch {}
     const reduced = acyReducedMotion();
-    window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' });
-    // iOS/Safari can occasionally ignore smooth scrolling during a momentum scroll.
-    if (!reduced) setTimeout(() => window.scrollTo({ top: 0, behavior: 'auto' }), 520);
+    const behavior = reduced ? 'auto' : 'smooth';
+    try { window.scrollTo({ top: 0, left: 0, behavior }); } catch { window.scrollTo(0, 0); }
+    // iOS/Safari fallback: force both document roots to the top after momentum scrolling settles.
+    requestAnimationFrame(() => {
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    });
+    if (!reduced) setTimeout(() => {
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    }, 650);
   };
 
-  button.addEventListener('click', goTop);
+  button.addEventListener('click', goTop, { passive: true });
+  button.addEventListener('keydown', event => {
+    if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); goTop(event); }
+  });
 
   window.addEventListener('scroll', updateVisibility, { passive: true });
   updateVisibility();
