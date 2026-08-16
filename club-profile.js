@@ -4392,35 +4392,23 @@ function acyUnlockCosmicProtocol() {
   setTimeout(() => { window.__acyCosmicCooldown = false; }, 6500);
 }
 
-function initAcyScrollTop() {
-  const button = document.getElementById('acy-scroll-top');
+function initAcyBackToTop() {
+  const button = document.getElementById('acy-back-to-top');
   if (!button) return;
 
-  let ticking = false;
-  const sync = () => {
-    const show = window.scrollY > Math.max(520, window.innerHeight * 0.72);
-    button.hidden = !show;
-    button.setAttribute('aria-hidden', show ? 'false' : 'true');
-    ticking = false;
+  const updateVisibility = () => {
+    button.classList.toggle('is-visible', window.scrollY > 520);
   };
 
-  const onScroll = () => {
-    if (ticking) return;
-    ticking = true;
-    requestAnimationFrame(sync);
-  };
-
-  window.addEventListener('scroll', onScroll, { passive: true });
-  window.addEventListener('resize', sync, { passive: true });
-  sync();
-
-  button.addEventListener('click', event => {
-    event.preventDefault();
-    acyButtonRipple(button, event);
+  button.addEventListener('click', () => {
     playUISound('whoosh');
+    acyButtonRipple(button);
     const reduced = acyReducedMotion();
     window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' });
   });
+
+  window.addEventListener('scroll', updateVisibility, { passive: true });
+  updateVisibility();
 }
 
 function initAcyEnhancedEffects() {
@@ -4520,5 +4508,5 @@ function initAcyEnhancedEffects() {
 }
 
 initAcyEnhancedEffects();
-initAcyScrollTop();
+initAcyBackToTop();
 init();
