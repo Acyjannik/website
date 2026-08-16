@@ -4392,6 +4392,37 @@ function acyUnlockCosmicProtocol() {
   setTimeout(() => { window.__acyCosmicCooldown = false; }, 6500);
 }
 
+function initAcyScrollTop() {
+  const button = document.getElementById('acy-scroll-top');
+  if (!button) return;
+
+  let ticking = false;
+  const sync = () => {
+    const show = window.scrollY > Math.max(520, window.innerHeight * 0.72);
+    button.hidden = !show;
+    button.setAttribute('aria-hidden', show ? 'false' : 'true');
+    ticking = false;
+  };
+
+  const onScroll = () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(sync);
+  };
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', sync, { passive: true });
+  sync();
+
+  button.addEventListener('click', event => {
+    event.preventDefault();
+    acyButtonRipple(button, event);
+    playUISound('whoosh');
+    const reduced = acyReducedMotion();
+    window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' });
+  });
+}
+
 function initAcyEnhancedEffects() {
   // Keep the interaction layer delegated so dynamically rendered Club controls also react.
   document.addEventListener('click', event => {
@@ -4489,4 +4520,5 @@ function initAcyEnhancedEffects() {
 }
 
 initAcyEnhancedEffects();
+initAcyScrollTop();
 init();

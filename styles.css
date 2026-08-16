@@ -3666,3 +3666,44 @@ body.acy-cosmic-active .club-auth-shell{filter:saturate(1.12)}
   .acy-button-ripple,.acy-cosmic-stars,.acy-cosmic-stars::before,.acy-cosmic-stars::after{animation:none}
   .acy-cosmic-easter-egg,.acy-cosmic-card{transition:none}
 }
+
+
+/* V14.6 · Persistent liquid-glass back-to-top control */
+.acy-scroll-top{
+  position:fixed;
+  right:clamp(16px,2.4vw,34px);
+  bottom:clamp(78px,6vh,104px);
+  z-index:1800;
+  width:54px;
+  height:54px;
+  padding:0;
+  display:grid;
+  place-items:center;
+  border:1px solid rgba(216,180,254,.34);
+  border-radius:18px;
+  color:#f5ecff;
+  background:linear-gradient(145deg,rgba(35,22,52,.72),rgba(12,10,19,.56));
+  box-shadow:0 14px 40px rgba(0,0,0,.30),inset 0 1px 0 rgba(255,255,255,.10),0 0 24px rgba(168,85,247,.10);
+  backdrop-filter:blur(20px) saturate(150%);
+  -webkit-backdrop-filter:blur(20px) saturate(150%);
+  cursor:pointer;
+  opacity:0;
+  transform:translateY(14px) scale(.94);
+  pointer-events:none;
+  transition:opacity .24s ease,transform .24s ease,border-color .24s ease,box-shadow .24s ease,background .24s ease;
+}
+.acy-scroll-top:not([hidden]){opacity:1;transform:translateY(0) scale(1);pointer-events:auto}
+.acy-scroll-top:hover{border-color:rgba(233,213,255,.68);background:linear-gradient(145deg,rgba(52,31,76,.78),rgba(16,12,24,.64));box-shadow:0 16px 46px rgba(0,0,0,.34),inset 0 1px 0 rgba(255,255,255,.14),0 0 34px rgba(168,85,247,.22);transform:translateY(-2px) scale(1.035)}
+.acy-scroll-top:active{transform:translateY(1px) scale(.96);box-shadow:0 8px 24px rgba(0,0,0,.30),inset 0 0 18px rgba(168,85,247,.16)}
+.acy-scroll-top:focus-visible{outline:2px solid rgba(233,213,255,.9);outline-offset:4px}
+.acy-scroll-top-icon{font-size:25px;line-height:1;font-weight:900;transform:translateY(-1px);text-shadow:0 0 18px rgba(216,180,254,.42)}
+.acy-scroll-top-label{position:absolute;right:calc(100% + 10px);white-space:nowrap;padding:7px 10px;border:1px solid rgba(216,180,254,.22);border-radius:10px;background:rgba(12,10,18,.78);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);font-size:11px;font-weight:800;letter-spacing:.04em;color:#e9d5ff;opacity:0;transform:translateX(5px);pointer-events:none;transition:opacity .18s ease,transform .18s ease}
+.acy-scroll-top:hover .acy-scroll-top-label,.acy-scroll-top:focus-visible .acy-scroll-top-label{opacity:1;transform:translateX(0)}
+@media (max-width:700px){
+  .acy-scroll-top{right:14px;bottom:92px;width:50px;height:50px;border-radius:16px}
+  .acy-scroll-top-label{display:none}
+}
+@media (prefers-reduced-motion:reduce){
+  .acy-scroll-top{transition:opacity .01ms linear}
+  .acy-scroll-top:hover{transform:none}
+}
