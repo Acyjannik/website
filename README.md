@@ -1464,3 +1464,9 @@ Run `supabase/v10_quality.sql` once after the previous migrations.
 - Pet social interactions are blocked in both directions.
 - Private-message push and pet-social push are suppressed for blocked pairs.
 - Block lists remain visible to the blocker for unblocking.
+
+
+## V10.3.1 — Member Service Fix
+- Fixed the member directory failure introduced by the V10.3 block-privacy patch.
+- `/api/club-members` now reads the Supabase auth response once and reuses the user id.
+- Block lookup is isolated so a failed block query does not take down the whole member directory.

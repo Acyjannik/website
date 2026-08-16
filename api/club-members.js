@@ -97,19 +97,42 @@ export default async function handler(req, res) {
       return res.status(401).json({ error: "Invalid session." });
     }
 
+    const meText = await meResponse.text();
+    let meUser = null;
+    try { meUser = meText ? JSON.parse(meText) : null; } catch {}
+
+    const currentUserId = meUser?.id;
+    if (!currentUserId) {
+      return res.status(401).json({ error: "Invalid session." });
+    }
+
     const memberId = String(req.query?.id || "").trim();
 
+    const blockFilter = `or=(blocker_id.eq.${encodeURIComponent(currentUserId)},blocked_user_id.eq.${encodeURIComponent(currentUserId)})`;
     const blockResponse = await fetch(
-      `${supabaseUrl}/rest/v1/club_blocks?or=(blocker_id.eq.${encodeURIComponent((await meResponse.json()).id)},blocked_user_id.eq.${encodeURIComponent((await meResponse.json()).id)})&select=blocker_id,blocked_user_id`,
-      {headers:{apikey:serviceKey,Authorization:`Bearer ${serviceKey}`},cache:"no-store"}
+      `${supabaseUrl}/rest/v1/club_blocks?${blockFilter}&select=blocker_id,blocked_user_id`,
+      {
+        headers: {
+          apikey: serviceKey,
+          Authorization: `Bearer ${serviceKey}`,
+        },
+        cache: "no-store",
+      }
     );
-    let blockRows=[];
-    if(blockResponse.ok) blockRows=await blockResponse.json();
-    const currentUserId=(await fetch(`${supabaseUrl}/auth/v1/user`,{headers:{apikey:serviceKey,Authorization:`Bearer ${token}`}}).then(r=>r.json())).id;
-    const blockedSet=new Set();
-    for(const b of blockRows||[]){
-      if(b.blocker_id===currentUserId) blockedSet.add(b.blocked_user_id);
-      if(b.blocked_user_id===currentUserId) blockedSet.add(b.blocker_id);
+
+    let blockRows = [];
+    if (blockResponse.ok) {
+      try {
+        blockRows = await blockResponse.json();
+      } catch {}
+    } else {
+      console.warn("club-members block lookup failed:", await blockResponse.text());
+    }
+
+    const blockedSet = new Set();
+    for (const b of blockRows || []) {
+      if (b.blocker_id === currentUserId) blockedSet.add(b.blocked_user_id);
+      if (b.blocked_user_id === currentUserId) blockedSet.add(b.blocker_id);
     }
 
     if (memberId) {
