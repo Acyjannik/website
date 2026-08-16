@@ -1603,3 +1603,12 @@ Run `supabase/v10_quality.sql` once after the previous migrations.
 - Achievement catalog survives individual Supabase/RLS query failures.
 - Mobile one-column achievement layout and responsive level scroller.
 - Club hub glow follows current level tier.
+
+
+## V14.1.0 — Daily Streak 24h cooldown
+- Daily Streak no longer uses a calendar-day lock.
+- The next check-in unlocks exactly 24 hours after the previous check-in.
+- Existing streak rows are backfilled from `updated_at` into `last_checkin_at`.
+- Streak continuation is allowed within 48 hours of the previous check-in; after that the next claim starts a new streak.
+- The UI shows the remaining cooldown and updates it automatically.
+- Run `supabase/V14.1-DAILY-STREAK-24H.sql` once after deployment.

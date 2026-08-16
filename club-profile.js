@@ -1788,40 +1788,87 @@ async function loadMyRewards(){
 }
 
 
-// V7.9 Daily Streak
+// V14.1 — Daily Streak uses a real 24-hour cooldown instead of a calendar-day lock.
+let dailyStreakTimer = null;
+let dailyStreakState = null;
+
+function formatStreakCooldown(ms){
+  const totalMinutes=Math.max(0,Math.ceil(ms/60000));
+  const hours=Math.floor(totalMinutes/60);
+  const minutes=totalMinutes%60;
+  if(hours>0) return `${hours} Std. ${String(minutes).padStart(2,'0')} Min.`;
+  return `${minutes} Min.`;
+}
+
+function streakRewardFor(streak){
+  const value=Math.max(1,Number(streak)||1);
+  return value>=30?100:value>=14?75:value>=7?50:value>=3?35:25;
+}
+
+function renderDailyStreakState(){
+  const state=dailyStreakState;
+  if(!state)return;
+  const {row,button,title,text,reward}=state;
+  const now=Date.now();
+  const lastMs=row.last_checkin_at?new Date(row.last_checkin_at).getTime():0;
+  const cooldownUntil=lastMs+24*60*60*1000;
+  const cooldownActive=Boolean(lastMs)&&now<cooldownUntil;
+  const nextStreak=(lastMs && now-lastMs<=48*60*60*1000)
+    ? Math.max(1,Number(row.current_streak||0)+1)
+    : 1;
+  const nextReward=streakRewardFor(nextStreak);
+
+  setText('daily-streak-current',String(row.current_streak||0));
+  setText('daily-streak-best',String(row.best_streak||0));
+  setText('daily-streak-total',String(row.total_checkins||0));
+  setText('daily-streak-chip',`${Number(row.current_streak||0)} Tage`);
+
+  if(cooldownActive){
+    const remaining=cooldownUntil-now;
+    setText('daily-streak-reward',`+${streakRewardFor(row.current_streak||1)} XP`);
+    setText('daily-streak-title','Heute schon erledigt. 💜');
+    setText('daily-streak-text',`Dein nächster Check-in ist in ${formatStreakCooldown(remaining)} möglich. Die 24 Stunden zählen ab deinem letzten Check-in.`);
+    if(button){
+      button.disabled=true;
+      button.textContent=`⏳ Noch ${formatStreakCooldown(remaining)}`;
+    }
+    return;
+  }
+
+  setText('daily-streak-reward',`+${nextReward} XP`);
+  if(lastMs && now-lastMs<=48*60*60*1000){
+    setText('daily-streak-title','Weiter so! 🔥');
+    setText('daily-streak-text',`Dein 24h-Cooldown ist vorbei. Mit dem nächsten Check-in wird deine Serie auf ${nextStreak} Tage erhöht.`);
+  }else if(lastMs){
+    setText('daily-streak-title','Neue Serie starten. 🔥');
+    setText('daily-streak-text','Dein letzter Check-in ist länger als 48 Stunden her. Mit dem nächsten Check-in startest du eine neue Serie.');
+  }else{
+    setText('daily-streak-title','Starte deine Serie.');
+    setText('daily-streak-text','Dein erster Check-in gibt dir direkt XP.');
+  }
+  if(button){
+    button.disabled=false;
+    button.textContent=`🔥 +${nextReward} XP abholen`;
+  }
+}
+
 async function loadDailyStreak(){
-  const current=$('daily-streak-current'),best=$('daily-streak-best'),total=$('daily-streak-total');
-  const chip=$('daily-streak-chip'),title=$('daily-streak-title'),text=$('daily-streak-text');
-  const reward=$('daily-streak-reward'),button=$('daily-streak-claim');
+  const current=$('daily-streak-current');
+  const button=$('daily-streak-claim');
   if(!current||!supabaseClient||!currentUser)return;
 
   try{
     const {data,error}=await supabaseClient.from('club_daily_streaks')
-      .select('current_streak,best_streak,total_checkins,last_checkin_date')
+      .select('current_streak,best_streak,total_checkins,last_checkin_date,last_checkin_at')
       .eq('user_id',currentUser.id).maybeSingle();
     if(error)throw error;
 
-    const row=data||{current_streak:0,best_streak:0,total_checkins:0,last_checkin_date:null};
-    const today=new Date().toISOString().slice(0,10);
-    const claimed=row.last_checkin_date===today;
-    const nextStreak=Math.max(1,Number(row.current_streak||0)+1);
-    const nextReward=nextStreak>=30?100:nextStreak>=14?75:nextStreak>=7?50:nextStreak>=3?35:25;
+    const row=data||{current_streak:0,best_streak:0,total_checkins:0,last_checkin_date:null,last_checkin_at:null};
+    dailyStreakState={row,button};
+    renderDailyStreakState();
 
-    setText('daily-streak-current',String(row.current_streak||0));
-    setText('daily-streak-best',String(row.best_streak||0));
-    setText('daily-streak-total',String(row.total_checkins||0));
-    setText('daily-streak-chip',`${Number(row.current_streak||0)} Tage`);
-    setText('daily-streak-reward',`+${claimed?(row.current_streak>=30?100:row.current_streak>=14?75:row.current_streak>=7?50:row.current_streak>=3?35:25):nextReward} XP`);
-
-    if(claimed){
-      setText('daily-streak-title','Heute schon erledigt. 💜');
-      setText('daily-streak-text',`Morgen geht deine Serie weiter. Aktuelle Serie: ${row.current_streak} Tage.`);
-      if(button){button.disabled=true;button.textContent='✓ Heute abgeholt';}
-    }else{
-      setText('daily-streak-title',row.current_streak>0?'Weiter so! 🔥':'Starte deine Serie.');
-      setText('daily-streak-text',row.current_streak>0?`Bleib dran und erhöhe deine Serie auf ${nextStreak} Tage.`:'Dein erster Check-in gibt dir direkt XP.');
-      if(button){button.disabled=false;button.textContent=`🔥 +${nextReward} XP abholen`;}
-    }
+    if(dailyStreakTimer)clearInterval(dailyStreakTimer);
+    dailyStreakTimer=setInterval(renderDailyStreakState,30000);
   }catch(error){
     console.warn('Daily streak unavailable:',error);
   }
@@ -1852,17 +1899,18 @@ async function claimDailyStreak(){
       const status=$('daily-streak-message');if(status)status.className='club-auth-status success';
       if(Number.isFinite(data.total_xp)){renderProgress(data.total_xp);setText('member-xp',`${data.total_xp} XP`);}
     }else{
-      setText('daily-streak-message','Heute bereits abgeholt. Morgen wieder. 💜');
+      const remaining=Number(data?.cooldown_remaining_seconds||0)*1000;
+      setText('daily-streak-message',remaining>0?`⏳ Noch ${formatStreakCooldown(remaining)} bis zum nächsten Check-in.`:'Heute bereits abgeholt. 💜');
       const status=$('daily-streak-message');if(status)status.className='club-auth-status';
     }
     await loadDailyStreak();
   }catch(error){
     if(message){message.textContent=error?.message||'Tagesbonus konnte nicht abgeholt werden.';message.className='club-auth-status error';}
     button.disabled=false;
+    await loadDailyStreak();
   }
 }
 document.getElementById('daily-streak-claim')?.addEventListener('click',claimDailyStreak);
-
 
 async function loadModeratorAccessShortcut(){
   const link=$('moderator-access-btn');

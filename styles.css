@@ -1695,6 +1695,12 @@ img,video,iframe,svg{
 @media(max-width:760px){.daily-streak-layout{grid-template-columns:1fr}.daily-streak-stats{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:500px){.daily-streak-main{align-items:flex-start}.streak-number{width:70px;height:70px}.daily-streak-stats{grid-template-columns:1fr}}
 
+
+/* V14.1 — Daily streak 24h cooldown readability */
+#daily-streak-claim{min-width:190px;white-space:nowrap}
+#daily-streak-message{min-height:18px}
+@media(max-width:500px){#daily-streak-claim{width:100%;min-width:0;white-space:normal}}
+
 /* V8.1 — Friends repair status */
 .social-sync-note{margin:0 0 12px;color:#71717a;font-size:9px}
 
