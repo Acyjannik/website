@@ -40,6 +40,24 @@ export default async function handler(req, res) {
     }]));
   }
 
+
+  async function loadOnlinePresenceForUserIds(ids) {
+    const clean=[...new Set((ids||[]).filter(Boolean))];
+    if(!clean.length)return new Map();
+
+    const r=await fetch(`${supabaseUrl}/rest/v1/club_online_presence?select=user_id,updated_at&user_id=in.(${clean.map(encodeURIComponent).join(",")})`,{
+      headers:{apikey:serviceKey,Authorization:`Bearer ${serviceKey}`},
+      cache:"no-store"
+    });
+    if(!r.ok)return new Map();
+    const rows=await r.json();
+
+    return new Map((rows||[]).map(row=>[row.user_id,{
+      online:new Date(row.updated_at).getTime()>Date.now()-5*60*1000,
+      updated_at:row.updated_at
+    }]));
+  }
+
   async function loadPetsForUserIds(ids) {
     const clean = [...new Set((ids || []).filter(Boolean))];
     if (!clean.length) return new Map();
@@ -110,8 +128,10 @@ export default async function handler(req, res) {
       const p = rows[0];
       const pets = await loadPetsForUserIds([p.id]);
       const presence = await loadPresenceForUserIds([p.id]);
+      const onlinePresence = await loadOnlinePresenceForUserIds([p.id]);
       const pet = pets.get(p.id) || null;
       const livePresence = presence.get(p.id) || null;
+      const onlineState = onlinePresence.get(p.id) || null;
 
       return res.status(200).json({
         member: {
@@ -124,7 +144,7 @@ export default async function handler(req, res) {
           xp: Number(p.xp || 0),
           badges: Array.isArray(p.badges) ? p.badges.slice(0, 8) : [],
           discord_connected: !!p.discord_connected,
-          online: Boolean(livePresence?.online),
+          online: Boolean(onlineState?.online),
           game_name: livePresence?.game_name || '',
           last_seen: livePresence?.updated_at || null,
           pet: pet ? {
@@ -190,6 +210,7 @@ export default async function handler(req, res) {
 
     const pets = await loadPetsForUserIds(rows.map(row => row.id));
     const presence = await loadPresenceForUserIds(rows.map(row => row.id));
+    const onlinePresence = await loadOnlinePresenceForUserIds(rows.map(row => row.id));
 
     const memberRows = rows.map((row) => ({
       id: row.id,
@@ -201,7 +222,7 @@ export default async function handler(req, res) {
       xp: Number(row.xp || 0),
       badges: Array.isArray(row.badges) ? row.badges.slice(0, 8) : [],
       achievements: achievementMap.get(row.id) || [],
-      online: Boolean(presence.get(row.id)?.online),
+      online: Boolean(onlinePresence.get(row.id)?.online),
       game_name: presence.get(row.id)?.game_name || '',
       last_seen: presence.get(row.id)?.updated_at || null,
       pet: pets.get(row.id) ? {

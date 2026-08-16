@@ -267,7 +267,7 @@ begin
         'username',p.username,
         'display_name',coalesce(p.display_name,p.username),
         'avatar_url',coalesce(p.avatar_url,''),
-        'online',coalesce(gp.updated_at > now() - interval '5 minutes',false),
+        'online',coalesce(op.updated_at > now() - interval '5 minutes',false),
         'game_id',gp.game_id,
         'game_name',g.name,
         'last_seen',gp.updated_at
@@ -276,6 +276,7 @@ begin
       from public.club_friendships f
       join public.profiles p on p.id=f.friend_user_id
       left join public.club_game_presence gp on gp.user_id=f.friend_user_id
+      left join public.club_online_presence op on op.user_id=f.friend_user_id
       left join public.games g on g.id=gp.game_id
       where f.user_id=auth.uid()
     ),'[]'::jsonb),

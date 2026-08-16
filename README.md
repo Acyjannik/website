@@ -1133,3 +1133,19 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Returning with browser Back/Forward or reloading the Club page restores those open cards.
 - State is stored in `sessionStorage` for the current browser session.
 - No SQL changes.
+
+
+## V8.1.3 — Twitch Live Sync
+- Club profile now refreshes the Twitch live status every 30 seconds, like the public homepage.
+- Twitch status requests use a timestamp query to avoid stale intermediary responses.
+- An API error no longer falsely displays `OFFLINE`; it shows `STATUS NICHT VERFÜGBAR` instead.
+- No SQL changes.
+
+
+## V8.1.4 — Online Presence Fix
+- Separated online presence from currently-playing-game presence.
+- Added `public.club_online_presence` with a 5-minute activity window.
+- Club heartbeat now updates the dedicated online table every 60 seconds.
+- Friends, member directory and public member status read online state from the dedicated table.
+- Game presence remains responsible only for the selected game.
+- Run `supabase/club_online_presence.sql` once in Supabase and re-run `supabase/club_social.sql` afterward.
