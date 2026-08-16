@@ -1567,3 +1567,12 @@ Run `supabase/v10_quality.sql` once after the previous migrations.
 ## V11.4.1 — Achievement Catalog Naming
 - Added display names for the new XP/event/game/quest achievement milestones.
 - No database migration required.
+
+
+## V11.5 — Wheel + Notifications
+- Expanded the wheel from 7 to 12 reward outcomes.
+- Added 500 XP, 1,000 XP, Pet Mega Boost, 2 Extra Spins and a 2,500 XP Jackpot.
+- Wheel status is now loaded immediately on page load, using the last spin + token balance, so a 24h cooldown is shown before clicking.
+- Added individual notification deletion and "Alle löschen".
+- Cleared notifications are actually deleted server-side and no longer reappear on reload.
+- No change to the existing main account model.

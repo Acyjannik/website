@@ -4,13 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Mein ACY Club · Acyjannik</title>
-  <link rel="stylesheet" href="styles.css?v=11.4.0">
+  <link rel="stylesheet" href="styles.css?v=11.5.0">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="/pet-companion.js?v=7.2.0" defer></script>
-  <script src="club-profile.js?v=11.4.0" defer></script>
+  <script src="club-profile.js?v=11.5.0" defer></script>
   <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
   <link rel="shortcut icon" href="/assets/favicon.svg">
   <link rel="apple-touch-icon" href="/assets/favicon.svg">
-<link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#0b0b10"><link rel="apple-touch-icon" href="/icons/acy-192.png"><script src="/pwa.js?v=11.4.0"></script></head>
+<link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#0b0b10"><link rel="apple-touch-icon" href="/icons/acy-192.png"><script src="/pwa.js?v=11.5.0"></script></head>
 <body class="club-auth-page">
   <div class="club-auth-shell">
     <header class="club-auth-header">
@@ -28,7 +28,7 @@
       </div>
 
       <div class="notification-panel" id="notification-panel" hidden>
-        <div class="notification-panel-head"><strong>Benachrichtigungen</strong><div class="notification-panel-actions"><button id="notification-read-all" type="button">Alle gelesen</button><button id="notification-close" type="button">×</button></div></div>
+        <div class="notification-panel-head"><strong>Benachrichtigungen</strong><div class="notification-panel-actions"><button id="notification-read-all" type="button">Alle gelesen</button><button id="notification-clear-all" type="button">Alle löschen</button><button id="notification-close" type="button">×</button></div></div>
         <div class="notification-filter-row" role="tablist" aria-label="Benachrichtigungsfilter"><button type="button" class="notification-filter is-active" data-notification-filter="all">Alle</button><button type="button" class="notification-filter" data-notification-filter="unread">Ungelesen</button></div>
         <div id="notifications-list"><div class="club-content-empty">Keine neuen Benachrichtigungen.</div></div>
       </div>
@@ -478,7 +478,7 @@
           <summary class="member-fold-summary">
             <span class="member-fold-summary-main">
               <span class="eyebrow">COMMUNITY GAME</span><strong>🎡 ACY Glücksrad</strong>
-              <small>Einmal täglich drehen und eine zufällige Belohnung gewinnen.</small>
+              <small>Einmal täglich drehen, Extras sammeln und seltene Jackpot-Gewinne abräumen.</small>
             </span>
             <span class="member-fold-summary-side"><span class="member-count-chip" id="wheel-status-chip">1 Dreh verfügbar</span><span class="member-fold-chevron">⌄</span></span>
           </summary>
@@ -493,13 +493,18 @@
               <div class="wheel-rewards">
                 <span class="eyebrow">MÖGLICHE GEWINNE</span>
                 <div class="wheel-reward-list">
-                  <div><span>🟣</span><strong>+25 XP</strong><small>Häufig</small></div>
+                  <div><span>🟣</span><strong>+25 XP</strong><small>Sehr häufig</small></div>
                   <div><span>💜</span><strong>+50 XP</strong><small>Häufig</small></div>
-                  <div><span>✨</span><strong>+100 XP</strong><small>Gut</small></div>
-                  <div><span>💎</span><strong>+250 XP</strong><small>Selten</small></div>
-                  <div><span>🐾</span><strong>Pet-Bonus</strong><small>Pflege-Boost</small></div>
-                  <div><span>🎡</span><strong>Extra Dreh</strong><small>Selten</small></div>
+                  <div><span>✨</span><strong>+100 XP</strong><small>Häufig</small></div>
+                  <div><span>💎</span><strong>+250 XP</strong><small>Gut</small></div>
+                  <div><span>🪙</span><strong>+500 XP</strong><small>Selten</small></div>
+                  <div><span>👑</span><strong>+1.000 XP</strong><small>Sehr selten</small></div>
+                  <div><span>🐾</span><strong>Pet-Bonus</strong><small>+Pflege & Energie</small></div>
+                  <div><span>💖</span><strong>Pet-Mega-Boost</strong><small>Großer Pflege-Boost</small></div>
+                  <div><span>🎡</span><strong>Extra-Dreh</strong><small>Selten</small></div>
+                  <div><span>🎡</span><strong>2 Extra-Drehs</strong><small>Extrem selten</small></div>
                   <div><span>💜</span><strong>Twitch-Reward</strong><small>Für Twitch vorbereitet</small></div>
+                  <div><span>🎰</span><strong>XP-Jackpot</strong><small>+2.500 XP · Jackpot</small></div>
                 </div>
                 <div class="wheel-history-wrap">
                   <div class="section-mini-title">LETZTE GEWINNE</div>

@@ -59,6 +59,22 @@ export default async function handler(req, res) {
       return res.status(200).json({ deleted: true });
     }
 
+    if (req.method === "POST" && action === "clear_all") {
+      const r = await fetch(
+        `${url}/rest/v1/club_notifications?user_id=eq.${encodeURIComponent(user.id)}`,
+        {
+          method: "DELETE",
+          headers: {
+            apikey: serviceKey,
+            Authorization: `Bearer ${serviceKey}`,
+            Prefer: "return=minimal",
+          },
+        }
+      );
+      if (!r.ok) return res.status(500).json({ error: "Could not delete notifications." });
+      return res.status(200).json({ cleared: true });
+    }
+
     if (req.method === "POST" && action === "mark_all_read") {
       const r = await fetch(
         `${url}/rest/v1/club_notifications?user_id=eq.${encodeURIComponent(user.id)}&read_at=is.null`,

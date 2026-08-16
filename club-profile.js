@@ -1452,9 +1452,11 @@ $('pet-rename-form')?.addEventListener('submit', async (event) => {
 
 // V7.7 ACY Glücksrad
 const WHEEL_SEGMENTS = [
-  {key:'xp_25',angle:0},{key:'xp_50',angle:51.43},{key:'xp_100',angle:102.86},
-  {key:'xp_250',angle:154.29},{key:'pet_care',angle:205.72},
-  {key:'extra_spin',angle:257.15},{key:'twitch_reward',angle:308.58}
+  {key:'xp_25',angle:0},{key:'xp_50',angle:30},{key:'xp_100',angle:60},
+  {key:'xp_250',angle:90},{key:'xp_500',angle:120},{key:'xp_1000',angle:150},
+  {key:'pet_care',angle:180},{key:'pet_boost_big',angle:210},
+  {key:'extra_spin',angle:240},{key:'extra_spin_2',angle:270},
+  {key:'twitch_reward',angle:300},{key:'xp_jackpot',angle:330}
 ];
 
 function formatWheelDate(value){
@@ -1526,7 +1528,8 @@ async function spinWheel(){
     if(data?.cooldown){
       message.textContent=`Dein nächster Dreh ist um ${formatWheelDate(data.next_free_at)} verfügbar.`;
       message.className='club-auth-status error';
-      setWheelCooldown(data.next_free_at, data.spin_tokens);return;
+      setWheelCooldown(data.next_free_at, data.spin_tokens);
+    await loadWheelState();return;
     }
     const seg=WHEEL_SEGMENTS.find(s=>s.key===data.reward_key)||WHEEL_SEGMENTS[0];
     wheel.style.setProperty('--wheel-stop',`${1800+(360-seg.angle)}deg`);
@@ -1550,13 +1553,26 @@ async function spinWheel(){
   }
 }
 document.getElementById('club-wheel-spin')?.addEventListener('click',spinWheel);
-(async()=>{
-  const tokens=await getWheelTokenBalance();
-  if(tokens>0){
+async function loadWheelState(){
+  if(!supabaseClient||!currentUser)return;
+  try{
+    const [{data:profile,error:profileError},{data:latestSpin,error:spinError}]=await Promise.all([
+      supabaseClient.from('profiles').select('wheel_spin_tokens').eq('id',currentUser.id).maybeSingle(),
+      supabaseClient.from('club_wheel_spins').select('created_at').eq('user_id',currentUser.id).order('created_at',{ascending:false}).limit(1).maybeSingle()
+    ]);
+    if(profileError)throw profileError;
+    if(spinError)throw spinError;
+    const tokens=Math.max(0,Number(profile?.wheel_spin_tokens||0));
     setText('reward-spin-token-count',String(tokens));
-    setWheelCooldown(null,tokens);
+    const last=latestSpin?.created_at?new Date(latestSpin.created_at).getTime():0;
+    const nextFreeAt=(last && (Date.now()-last)<86400000) ? new Date(last+86400000).toISOString() : null;
+    setWheelCooldown(nextFreeAt,tokens);
+  }catch(error){
+    console.warn('Wheel state unavailable:',error);
+    setWheelCooldown(null,0);
   }
-})();
+}
+void loadWheelState();
 
 
 // V7.8 Rewards
@@ -2523,17 +2539,51 @@ function renderNotifications(){
   const filtered=activeNotificationFilter==='unread'?cachedNotifications.filter(n=>!n.read_at):cachedNotifications;
   const unread=cachedNotifications.filter(n=>!n.read_at).length;
   if(badge){badge.textContent=unread?String(unread):'';badge.hidden=!unread;}
-  container.innerHTML=filtered.length?filtered.slice(0,12).map(n=>`<button class="notification-row ${n.read_at?'':'is-unread'}" type="button" data-notification-id="${n.id}" data-link="${escapeAttr(n.link_url||'')}"><span class="notification-icon">${notificationIcon(n.notification_type)}</span><span><strong>${escapeHtml(n.title)}</strong><small>${escapeHtml(n.body)}</small><em>${formatRelativeTime(n.created_at)}</em></span></button>`).join(''):'<div class="club-content-empty">Keine Benachrichtigungen in dieser Ansicht.</div>';
+  container.innerHTML=filtered.length?filtered.slice(0,12).map(n=>`<div class="notification-row-wrap"><button class="notification-row ${n.read_at?'':'is-unread'}" type="button" data-notification-id="${n.id}" data-link="${escapeAttr(n.link_url||'')}"><span class="notification-icon">${notificationIcon(n.notification_type)}</span><span><strong>${escapeHtml(n.title)}</strong><small>${escapeHtml(n.body)}</small><em>${formatRelativeTime(n.created_at)}</em></span></button><button class="notification-delete-one" type="button" data-notification-delete="${n.id}" aria-label="Benachrichtigung löschen">×</button></div>`).join(''):'<div class="club-content-empty">Keine Benachrichtigungen in dieser Ansicht.</div>';
   container.querySelectorAll('.notification-row').forEach(row=>row.addEventListener('click',async()=>{
     const id=row.dataset.notificationId;
     try{await supabaseClient.from('club_notifications').update({read_at:new Date().toISOString()}).eq('id',id);}catch(error){console.warn('Notification read state failed:',error);}
     const link=row.dataset.link;
     if(link)window.location.href=link; else await loadNotifications();
   }));
+  container.querySelectorAll('[data-notification-delete]').forEach(btn=>btn.addEventListener('click',async(event)=>{
+    event.stopPropagation();
+    const id=btn.dataset.notificationDelete;
+    try{
+      const {error}=await supabaseClient.from('club_notifications').delete().eq('id',id).eq('user_id',currentUser.id);
+      if(error)throw error;
+      cachedNotifications=cachedNotifications.filter(n=>String(n.id)!==String(id));
+      renderNotifications();
+    }catch(error){console.warn('Notification delete failed:',error);setStatus(error?.message||'Benachrichtigung konnte nicht gelöscht werden.','error');}
+  }));
 }
 function initNotificationFilters(){
-  document.querySelectorAll('[data-notification-filter]').forEach(btn=>btn.addEventListener('click',()=>{activeNotificationFilter=btn.dataset.notificationFilter==='unread'?'unread':'all';document.querySelectorAll('[data-notification-filter]').forEach(b=>b.classList.toggle('is-active',b===btn));renderNotifications();}));
+  document.querySelectorAll('[data-notification-filter]').forEach(btn=>btn.addEventListener('click',()=>{
+    activeNotificationFilter=btn.dataset.notificationFilter==='unread'?'unread':'all';
+    document.querySelectorAll('[data-notification-filter]').forEach(b=>b.classList.toggle('is-active',b===btn));
+    renderNotifications();
+  }));
   $('mobile-dock-notifications')?.addEventListener('click',()=>{$('notification-panel').hidden=false;});
+  $('notification-clear-all')?.addEventListener('click',async()=>{
+    if(!currentUser)return;
+    if(!confirm('Wirklich alle Benachrichtigungen löschen?'))return;
+    const {data}=await supabaseClient.auth.getSession();
+    const token=data?.session?.access_token;
+    if(!token)return;
+    try{
+      const response=await fetch('/api/club-notifications?action=clear_all',{
+        method:'POST',
+        headers:{Authorization:`Bearer ${token}`}
+      });
+      const payload=await response.json().catch(()=>({}));
+      if(!response.ok)throw new Error(payload.error||'Benachrichtigungen konnten nicht gelöscht werden.');
+      cachedNotifications=[];
+      renderNotifications();
+    }catch(error){
+      console.warn('Notification clear failed:',error);
+      setStatus(error?.message||'Benachrichtigungen konnten nicht gelöscht werden.','error');
+    }
+  });
 }
 
 async function loadNotifications() {
