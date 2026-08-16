@@ -1041,3 +1041,9 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Added `getUser()` as a fallback when `getSession()` does not immediately expose the active session.
 - Added an auth-state listener so the homepage personal card updates if the session becomes available after initial render.
 - No SQL changes.
+
+
+## V7.5.2 — Auth Detection Hardening
+- Reworked homepage member detection with four fallbacks: `getSession()`, `getUser()`, persisted Supabase localStorage restoration, and the public Club header's detected member ID.
+- Guest/member UI now updates deterministically instead of silently remaining in the guest state.
+- No SQL changes.

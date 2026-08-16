@@ -290,51 +290,144 @@ async function loadPersonalHomepage() {
   const xp = document.getElementById('homepage-personal-xp');
   const pet = document.getElementById('homepage-personal-pet');
 
+  const showGuest = () => {
+    if (eyebrow) eyebrow.textContent = 'DEIN ACY CLUB';
+    if (title) title.textContent = 'Noch nicht im Club?';
+    if (text) text.textContent = 'Erstelle dein Profil, sammle XP, schalte Achievements frei und lass dein eigenes Pet Teil der Community werden.';
+    if (status) status.textContent = 'Gast';
+    if (xp) xp.textContent = '–';
+    if (pet) pet.textContent = '–';
+    if (primary) {
+      primary.href = '/club.html';
+      primary.textContent = 'ACY Club beitreten';
+    }
+    if (secondary) {
+      secondary.href = '#games';
+      secondary.textContent = 'Games entdecken';
+    }
+    card.classList.remove('is-member');
+  };
+
   try {
-    for (let i = 0; i < 30 && !window.supabase; i += 1) {
+    // Reuse the same browser auth storage that the Club profile uses.
+    for (let i = 0; i < 100 && !window.supabase; i += 1) {
       await new Promise(resolve => setTimeout(resolve, 100));
     }
-    if (!window.supabase) return;
+    if (!window.supabase) {
+      showGuest();
+      return;
+    }
 
-    const configResponse = await fetch('/api/config', { cache: 'no-store' });
+    const configResponse = await fetch('/api/config?_=' + Date.now(), { cache: 'no-store' });
     const config = await configResponse.json();
-    if (!config?.configured) return;
+    if (!config?.configured || !config.supabaseUrl || !config.supabaseAnonKey) {
+      showGuest();
+      return;
+    }
 
     const client = window.supabase.createClient(
       config.supabaseUrl,
       config.supabaseAnonKey,
-      { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } }
+      {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true,
+          flowType: 'pkce'
+        }
+      }
     );
 
-    const { data } = await client.auth.getSession();
-    const user = data?.session?.user;
+    let user = null;
+
+    // 1) Standard Supabase lookup.
+    try {
+      const result = await client.auth.getSession();
+      user = result?.data?.session?.user || null;
+    } catch (error) {
+      console.warn('Homepage getSession failed:', error);
+    }
+
+    // 2) Direct user lookup.
+    if (!user) {
+      try {
+        const result = await client.auth.getUser();
+        user = result?.data?.user || null;
+      } catch (error) {
+        console.warn('Homepage getUser failed:', error);
+      }
+    }
+
+    // 3) Restore the persisted localStorage session directly.
+    // No token is sent anywhere other than to Supabase's own setSession call.
+    if (!user) {
+      try {
+        const keys = Object.keys(window.localStorage || {});
+        const authKey = keys.find(key => /^sb-[a-z0-9-]+-auth-token$/i.test(key));
+
+        if (authKey) {
+          const storedRaw = window.localStorage.getItem(authKey);
+          const stored = storedRaw ? JSON.parse(storedRaw) : null;
+
+          if (stored?.access_token && stored?.refresh_token) {
+            const restored = await client.auth.setSession({
+              access_token: stored.access_token,
+              refresh_token: stored.refresh_token
+            });
+            user = restored?.data?.user || restored?.data?.session?.user || null;
+          }
+        }
+      } catch (error) {
+        console.warn('Homepage persisted-session restore failed:', error);
+      }
+    }
+
+    // 4) The public header can already have identified the current user.
+    if (!user) {
+      const cta = document.getElementById('public-club-cta');
+      const headerName = cta?.dataset?.memberName || '';
+      const headerUserId = cta?.dataset?.userId || '';
+
+      if (headerUserId && /^[0-9a-f-]{36}$/i.test(headerUserId)) {
+        user = { id: headerUserId };
+        if (headerName) {
+          if (eyebrow) eyebrow.textContent = 'WILLKOMMEN ZURÜCK';
+          if (title) title.textContent = `Hey, ${headerName}.`;
+        }
+      }
+    }
 
     if (!user) {
-      if (eyebrow) eyebrow.textContent = 'DEIN ACY CLUB';
-      if (title) title.textContent = 'Noch nicht im Club?';
-      if (text) text.textContent = 'Erstelle dein Profil, sammle XP, schalte Achievements frei und lass dein eigenes Pet Teil der Community werden.';
-      if (status) status.textContent = 'Gast';
-      if (xp) xp.textContent = '–';
-      if (pet) pet.textContent = '–';
+      showGuest();
       return;
     }
 
     const { data: profile } = await client
       .from('profiles')
-      .select('display_name,username,xp')
+      .select('id,display_name,username,xp')
       .eq('id', user.id)
       .maybeSingle();
 
-    const { data: ownPet } = await client.rpc('get_club_pet').catch(() => ({ data: null }));
-
+    // If the header found an ID but the profile lookup fails, still show a
+    // logged-in state instead of falsely claiming the visitor is a guest.
     const name = profile?.display_name || profile?.username || 'Member';
     const currentXp = Number(profile?.xp || 0);
+
+    let ownPet = null;
+    try {
+      const result = await client.rpc('get_club_pet');
+      ownPet = result?.data || null;
+    } catch (error) {
+      console.warn('Homepage pet lookup unavailable:', error);
+    }
+
     const petName = ownPet?.name || '';
     const petSpecies = ownPet?.species || '';
     const petLabels = {
-      cat:'Katze',dog:'Hund',fox:'Fuchs',axolotl:'Axolotl',dragon:'Drache',
-      unicorn:'Einhorn',penguin:'Pinguin',panda:'Panda',bunny:'Hase',koala:'Koala',
-      hamster:'Hamster',turtle:'Schildkröte',owl:'Eule',frog:'Frosch',bee:'Biene'
+      cat:'Katze', dog:'Hund', fox:'Fuchs', axolotl:'Axolotl', dragon:'Drache',
+      unicorn:'Einhorn', penguin:'Pinguin', panda:'Panda', bunny:'Hase',
+      koala:'Koala', hamster:'Hamster', turtle:'Schildkröte', owl:'Eule',
+      frog:'Frosch', bee:'Biene'
     };
 
     if (eyebrow) eyebrow.textContent = 'WILLKOMMEN ZURÜCK';
@@ -346,7 +439,9 @@ async function loadPersonalHomepage() {
     }
     if (status) status.textContent = 'Member';
     if (xp) xp.textContent = `${currentXp.toLocaleString('de-DE')} XP`;
-    if (pet) pet.textContent = petName ? `${petName} · ${petLabels[petSpecies] || 'Pet'}` : 'Noch keins';
+    if (pet) pet.textContent = petName
+      ? `${petName} · ${petLabels[petSpecies] || 'Pet'}`
+      : 'Noch keins';
 
     if (primary) {
       primary.href = '/club-profile.html';
@@ -359,7 +454,8 @@ async function loadPersonalHomepage() {
 
     card.classList.add('is-member');
   } catch (error) {
-    console.warn('Personal homepage unavailable:', error);
+    console.error('Personal homepage failed:', error);
+    showGuest();
   }
 }
 
@@ -552,6 +648,8 @@ async function updatePublicClubHeader() {
     const user = data?.session?.user;
     if (!user) return;
 
+    cta.dataset.userId = user.id;
+
     const { data: profile } = await client
       .from('profiles')
       .select('display_name,username,avatar_url')
@@ -559,6 +657,7 @@ async function updatePublicClubHeader() {
       .maybeSingle();
 
     const name = profile?.display_name || profile?.username || 'Mein Club';
+    cta.dataset.memberName = name;
     const initial = (name.trim().charAt(0) || 'A').toUpperCase();
 
     cta.className = 'nav-club-member';
