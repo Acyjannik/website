@@ -1360,3 +1360,9 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Voting and event attendance now advance their related quests.
 - Quest claims count toward Quest Starter / Runner / Master achievements.
 - Added `supabase/club_quests_v9.5.sql`.
+
+
+## V9.5.1 — Quest RPC Fix
+- Fixed the Quest loader error caused by calling `.catch()` directly on a Supabase RPC builder.
+- Weekly Game quest sync is now handled with a normal `try/catch`.
+- Quest UI remains usable even when the optional weekly sync is temporarily unavailable.
