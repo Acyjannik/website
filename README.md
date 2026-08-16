@@ -1294,3 +1294,12 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Fixed the offline Presence bug in the Discord bot where the previous game name was deleted before it was sent.
 - Added `supabase/discord_presence_links.sql` migration for existing installations.
 - Added `supabase/club_game_presence_log` as part of the same migration.
+
+
+## V9.2 — Live Community Games
+- Community game ranking now counts only presence heartbeats from the last 5 minutes.
+- Public homepage community-game section refreshes every 30 seconds without a page reload.
+- Club member hub community-game section also refreshes every 30 seconds.
+- Newly auto-discovered Twitch games can show a subtle `NEU` badge for 24 hours.
+- Public homepage curated Games section remains limited to the first three games.
+- Added `supabase/club_game_presence_live.sql`.

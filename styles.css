@@ -2008,3 +2008,25 @@ img,video,iframe,svg{
 .discord-link-state{display:flex;align-items:center;gap:7px;margin-top:10px}
 .discord-state-dot{width:8px;height:8px;border-radius:50%;background:#52525b;box-shadow:0 0 0 3px rgba(82,82,91,.12)}
 .discord-link-state.is-connected .discord-state-dot{background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.12)}
+
+/* V9.2 — live community game ranking */
+.community-game-new{
+  display:inline-flex;
+  align-items:center;
+  margin-left:5px;
+  padding:2px 5px;
+  border:1px solid rgba(168,85,247,.28);
+  border-radius:999px;
+  color:#d8b4fe;
+  background:rgba(168,85,247,.10);
+  font-style:normal;
+  font-size:6px;
+  letter-spacing:.08em;
+  vertical-align:middle;
+}
+.community-game-card.is-updated{
+  animation:community-game-refresh .65s ease;
+}
+@keyframes community-game-refresh{
+  50%{transform:translateY(-2px);box-shadow:0 0 0 3px rgba(168,85,247,.07),0 12px 30px rgba(0,0,0,.18)}
+}

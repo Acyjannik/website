@@ -2013,6 +2013,16 @@ function applyEventAttendanceState(item, attending) {
   btn.textContent = attending ? 'Dabei ✓' : 'Teilnehmen';
 }
 
+
+let communityMemberGameTimer = null;
+function startCommunityMemberGamePolling(){
+  if (communityMemberGameTimer) clearInterval(communityMemberGameTimer);
+  if (!$('hub-community-games-grid')) return;
+  communityMemberGameTimer = setInterval(()=>{
+    if (!document.hidden) loadMemberHub().catch(()=>{});
+  },30000);
+}
+
 async function loadMemberHub() {
   const greeting = $('hub-greeting');
   const summary = $('hub-summary');

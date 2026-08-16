@@ -37,7 +37,7 @@ async function loadPublicGames() {
     if (activityGrid) {
       const { data: activity, error: activityError } = await client
         .from('club_game_activity')
-        .select('id,name,tag,image_url,description,member_count')
+        .select('id,name,tag,image_url,description,member_count,discovered_at,discovered_source')
         .order('member_count', { ascending: false })
         .order('name', { ascending: true })
         .limit(8);
@@ -45,17 +45,19 @@ async function loadPublicGames() {
       if (activityError) throw activityError;
       const rows = (activity || []).filter(row => Number(row.member_count) > 0);
 
-      activityGrid.innerHTML = rows.length ? rows.map((game, i) => `
-        <article class="community-game-card reveal visible">
+      activityGrid.innerHTML = rows.length ? rows.map((game, i) => {
+        const discovered = game.discovered_source === 'twitch' && game.discovered_at &&
+          (Date.now() - new Date(game.discovered_at).getTime()) < 86400000;
+        return `<article class="community-game-card reveal visible">
           <div class="community-game-art" ${game.image_url ? `style="background-image:url('${escapeHtml(game.image_url)}')"` : ''}></div>
           <div class="community-game-overlay"></div>
           <div class="community-game-body">
             <span class="community-game-rank">#${i + 1}</span>
-            <strong>${escapeHtml(game.name)}</strong>
+            <strong>${escapeHtml(game.name)}${discovered ? ' <em class="community-game-new">NEU</em>' : ''}</strong>
             <small>${Number(game.member_count).toLocaleString('de-DE')} ${Number(game.member_count) === 1 ? 'Mitglied spielt' : 'Mitglieder spielen'} das gerade</small>
           </div>
-        </article>
-      `).join('') : `
+        </article>`;
+      }).join('') : `
         <div class="community-games-empty">
           <strong>Noch keine Live-Spielstände.</strong>
           <span>Im ACY Club kannst du auswählen, was du gerade spielst. Dann erscheint es hier.</span>
@@ -68,7 +70,16 @@ async function loadPublicGames() {
   }
 }
 
+let communityGamesTimer = null;
+function startCommunityGamesPolling(){
+  if (communityGamesTimer) clearInterval(communityGamesTimer);
+  if (!document.getElementById('community-games-grid')) return;
+  communityGamesTimer = setInterval(() => {
+    if (!document.hidden) loadPublicGames().catch(()=>{});
+  }, 30000);
+}
 loadPublicGames();
+startCommunityGamesPolling();
 
 const observer = new IntersectionObserver((entries) => {
   entries.forEach((entry) => {
