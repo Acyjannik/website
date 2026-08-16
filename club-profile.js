@@ -29,15 +29,15 @@ function setPetStatus(text, type = '') {
 // V10.4 — XP / Rank visual glow system
 function glowTierForXp(xp=0){
   const value=Math.max(0,Number(xp)||0);
-  if(value>=25000)return 8;
-  if(value>=17000)return 7;
-  if(value>=12000)return 6;
-  if(value>=8000)return 5;
-  if(value>=5500)return 4;
-  if(value>=3500)return 3;
-  if(value>=2000)return 2;
-  if(value>=1000)return 1;
-  if(value>=500)return 0;
+  if(value>=920000)return 8;
+  if(value>=390000)return 7;
+  if(value>=170000)return 6;
+  if(value>=80000)return 5;
+  if(value>=35000)return 4;
+  if(value>=15000)return 3;
+  if(value>=6000)return 2;
+  if(value>=1500)return 1;
+  if(value>=600)return 0;
   return -1;
 }
 
@@ -65,44 +65,69 @@ function applyProfileGlow(xp=0){
   }
 }
 
+const CLUB_LEVELS = [
+  { min: 0, title: 'ACY Rookie' },
+  { min: 100, title: 'ACY Member' },
+  { min: 300, title: 'ACY Regular' },
+  { min: 600, title: 'ACY OG' },
+  { min: 1000, title: 'ACY Legend' },
+  { min: 1500, title: 'ACY Champion' },
+  { min: 2500, title: 'ACY Elite' },
+  { min: 4000, title: 'ACY Master' },
+  { min: 6000, title: 'ACY Icon' },
+  { min: 8500, title: 'ACY Mythic' },
+  { min: 11500, title: 'ACY Immortal' },
+  { min: 15000, title: 'ACY Hall of Fame' },
+  { min: 20000, title: 'ACY Ascended' },
+  { min: 27000, title: 'ACY Celestial' },
+  { min: 35000, title: 'ACY Eternal' },
+  { min: 45000, title: 'ACY Apex' },
+  { min: 60000, title: 'ACY Vanguard' },
+  { min: 80000, title: 'ACY Paragon' },
+  { min: 105000, title: 'ACY Overlord' },
+  { min: 135000, title: 'ACY Sovereign' },
+  { min: 170000, title: 'ACY Cosmic' },
+  { min: 210000, title: 'ACY Transcendent' },
+  { min: 260000, title: 'ACY Eternal Flame' },
+  { min: 320000, title: 'ACY Grandmaster' },
+  { min: 390000, title: 'ACY Omega' },
+  { min: 470000, title: 'ACY Apex Legend' },
+  { min: 560000, title: 'ACY Ultra' },
+  { min: 660000, title: 'ACY Infinity' },
+  { min: 780000, title: 'ACY Beyond' },
+  { min: 920000, title: 'ACY Hall of Fame+' }
+];
+
 function levelForXp(xp) {
-  const levels = [
-    { min: 0, title: 'ACY Rookie' },
-    { min: 100, title: 'ACY Member' },
-    { min: 250, title: 'ACY Regular' },
-    { min: 500, title: 'ACY OG' },
-    { min: 1000, title: 'ACY Legend' },
-    { min: 2000, title: 'ACY Champion' },
-    { min: 3500, title: 'ACY Elite' },
-    { min: 5500, title: 'ACY Master' },
-    { min: 8000, title: 'ACY Icon' },
-    { min: 12000, title: 'ACY Mythic' },
-    { min: 17000, title: 'ACY Immortal' },
-    { min: 25000, title: 'ACY Hall of Fame' }
-  ];
-  let current = levels[0];
-  for (const level of levels) {
-    if (xp >= level.min) current = level;
+  const value = Math.max(0, Number(xp) || 0);
+  let current = CLUB_LEVELS[0];
+  for (const level of CLUB_LEVELS) {
+    if (value >= level.min) current = level;
   }
   return current;
 }
 
-function renderProgress(xp) {
-  const thresholds = [0, 100, 250, 500, 1000, 2000, 3500, 5500, 8000, 12000, 17000, 25000];
+function levelIndexForXp(xp) {
+  const value = Math.max(0, Number(xp) || 0);
   let idx = 0;
-  for (let i = 0; i < thresholds.length; i++) {
-    if (xp >= thresholds[i]) idx = i;
-  }
+  CLUB_LEVELS.forEach((level, i) => { if (value >= level.min) idx = i; });
+  return idx;
+}
 
-  const base = thresholds[idx];
-  const next = thresholds[idx + 1] ?? base + 1000;
-  const progress = Math.max(0, Math.min(100, ((xp - base) / (next - base)) * 100));
+function renderProgress(xp) {
+  const idx = levelIndexForXp(xp);
+  const base = CLUB_LEVELS[idx].min;
+  const nextLevel = CLUB_LEVELS[idx + 1];
+  const next = nextLevel ? nextLevel.min : null;
+  const progress = next
+    ? Math.max(0, Math.min(100, ((xp-base) / Math.max(1, next-base)) * 100))
+    : 100;
 
   setText('member-level', String(idx + 1));
   setText('level-number', String(idx + 1));
-  setText('member-xp', `${xp} XP`);
-  setText('xp-current', `${xp} XP`);
-  setText('xp-next', `${next} XP`);
+  setText('member-xp', `${xp.toLocaleString('de-DE')} XP`);
+  setText('xp-current', `${xp.toLocaleString('de-DE')} XP`);
+  setText('xp-next', next ? `${next.toLocaleString('de-DE')} XP` : 'MAX');
   const bar = $('xp-bar-fill');
   if (bar) bar.style.width = `${progress}%`;
   setText('level-title', levelForXp(xp).title);
@@ -2374,16 +2399,46 @@ async function loadMemberHub() {
   if (title) title.textContent = level.title;
   if (xp) xp.textContent = `${currentXp} XP`;
 
-  const thresholds = [0, 100, 250, 500, 1000, 2000];
-  let idx = 0;
-  for (let i = 0; i < thresholds.length; i++) if (currentXp >= thresholds[i]) idx = i;
-  const base = thresholds[idx];
-  const nextThreshold = thresholds[idx + 1] ?? base + 1000;
-  const progress = Math.max(0, Math.min(100, ((currentXp - base) / Math.max(1, nextThreshold - base)) * 100));
+  const idx = levelIndexForXp(currentXp);
+  const base = CLUB_LEVELS[idx].min;
+  const nextLevel = CLUB_LEVELS[idx + 1];
+  const nextThreshold = nextLevel?.min ?? base;
+  const progress = nextLevel
+    ? Math.max(0, Math.min(100, ((currentXp - base) / Math.max(1, nextThreshold - base)) * 100))
+    : 100;
   if (fill) fill.style.width = `${progress}%`;
-  if (next) next.textContent = currentXp >= nextThreshold
-    ? 'Maximales Club-Level erreicht.'
-    : `Noch ${Math.max(0, nextThreshold - currentXp)} XP bis zum nächsten Level.`;
+  if (next) next.textContent = nextLevel
+    ? `Noch ${Math.max(0, nextThreshold - currentXp).toLocaleString('de-DE')} XP bis ${nextLevel.title}.`
+    : 'Hall of Fame+ erreicht. Die Reise geht weiter.';
+  setText('hub-level-title', `${levelForXp(currentXp).title} · Level ${idx + 1}/${CLUB_LEVELS.length}`);
+  setText('hub-level-xp', `${currentXp.toLocaleString('de-DE')} XP`);
+
+  const roadmap = $('hub-level-roadmap');
+  if (roadmap) {
+    const milestones = CLUB_LEVELS.slice(idx, Math.min(CLUB_LEVELS.length, idx + 5));
+    roadmap.innerHTML = milestones.map((level, offset) => {
+      const levelNo = idx + offset + 1;
+      const reached = currentXp >= level.min;
+      return `<div class="hub-roadmap-step ${reached?'is-reached':''}${offset===0?' is-current':''}">
+        <span>${levelNo}</span>
+        <strong>${escapeHtml(level.title)}</strong>
+        <small>${level.min.toLocaleString('de-DE')} XP</small>
+      </div>`;
+    }).join('');
+  }
+
+  const xpSources = $('hub-xp-sources');
+  if (xpSources) {
+    xpSources.innerHTML = [
+      ['🎯','Quests','Tägliche & wöchentliche Aufgaben'],
+      ['🐾','Pet-Pflege','Pflege-XP und tägliche Aktionen'],
+      ['🗳️','Community Votes','Bei Abstimmungen mitmachen'],
+      ['📅','Events','An Events teilnehmen'],
+      ['🎮','Gamespotter','Neue Games entdecken'],
+      ['🔥','Streaks','Regelmäßig im Club aktiv sein'],
+      ['🟣','Twitch','ACY Streamzeit & Watch Points']
+    ].map(([icon,title,desc])=>`<div class="hub-xp-source"><span>${icon}</span><div><strong>${title}</strong><small>${desc}</small></div></div>`).join('');
+  }
 
   const eventsList = $('hub-events-list');
   if (eventsList) {
@@ -3213,12 +3268,13 @@ function renderClubIdentity(state = {}) {
   const profile = state.profile || {};
   const xp = Number(state.xp || 0);
   const level = levelForXp(xp);
-  const thresholds = [0,100,250,500,1000,2000,3500,5500,8000,12000,17000,25000];
-  let idx = 0;
-  for (let i=0;i<thresholds.length;i++) if (xp >= thresholds[i]) idx = i;
-  const base = thresholds[idx];
-  const next = thresholds[idx + 1] ?? base + 5000;
-  const percent = Math.max(0, Math.min(100, ((xp-base)/(next-base))*100));
+  const idx = levelIndexForXp(xp);
+  const base = CLUB_LEVELS[idx].min;
+  const nextLevel = CLUB_LEVELS[idx + 1];
+  const next = nextLevel ? nextLevel.min : base;
+  const percent = nextLevel
+    ? Math.max(0, Math.min(100, ((xp-base)/(next-base))*100))
+    : 100;
 
   setText('identity-name', profile.display_name || profile.username || 'ACY Member');
   setText('identity-handle', `@${profile.username || 'member'}`);

@@ -1552,3 +1552,18 @@ Run `supabase/v10_quality.sql` once after the previous migrations.
 - Friends clearly show `✓ Freunde` and have a visible `Freundschaft beenden` action.
 - Removing a friendship clears stale accepted requests so the same person can be requested again.
 - Sending a request to someone with an existing accepted relationship restores the friendship instead of forcing a duplicate request.
+
+
+## V11.4 — Progression Expansion
+- Removed the redundant Twitch live card from the main ACY Club dashboard. Twitch remains in the dedicated ACY Connect section.
+- Expanded the Club progression from 12 levels to 30 levels, ending at `ACY Hall of Fame+` at 920,000 XP.
+- Dashboard now shows a five-step progression roadmap and a compact list of XP sources.
+- Expanded achievements with additional XP milestones up to 1,000,000 XP, event milestones, game-discovery milestones and quest milestones.
+- Updated public-profile level names to match the 30-level progression.
+- Tuned glow tiers to the longer progression.
+- No database migration required.
+
+
+## V11.4.1 — Achievement Catalog Naming
+- Added display names for the new XP/event/game/quest achievement milestones.
+- No database migration required.

@@ -2473,3 +2473,33 @@ textarea:focus{
   font-weight:800;
   white-space:nowrap;
 }
+
+/* V11.4 — Expanded progression hub */
+.hub-progression-card{
+  grid-column:span 2;
+  padding:18px;
+  border:1px solid rgba(168,85,247,.16);
+  border-radius:18px;
+  background:linear-gradient(135deg,rgba(168,85,247,.045),rgba(255,255,255,.012));
+}
+.hub-progression-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}
+.hub-progression-head h3{margin:3px 0 4px;font-size:18px}
+.hub-progression-head p{margin:0;color:#8a8a94;font-size:8px}
+.hub-level-roadmap{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px;margin-top:14px}
+.hub-roadmap-step{
+  min-width:0;padding:9px;border:1px solid rgba(255,255,255,.06);border-radius:12px;
+  background:rgba(0,0,0,.16);opacity:.55
+}
+.hub-roadmap-step span{display:flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.04);font-size:8px;font-weight:800}
+.hub-roadmap-step strong{display:block;margin-top:6px;font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hub-roadmap-step small{display:block;margin-top:3px;color:#71717a;font-size:6px}
+.hub-roadmap-step.is-reached{opacity:1;border-color:rgba(168,85,247,.18)}
+.hub-roadmap-step.is-current{box-shadow:0 0 20px rgba(168,85,247,.10);background:rgba(168,85,247,.06)}
+.hub-xp-sources{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin-top:10px}
+.hub-xp-source{display:flex;gap:7px;align-items:center;padding:8px;border:1px solid rgba(255,255,255,.05);border-radius:10px;background:rgba(255,255,255,.015)}
+.hub-xp-source>span{font-size:14px}.hub-xp-source strong,.hub-xp-source small{display:block}.hub-xp-source strong{font-size:7px}.hub-xp-source small{margin-top:2px;color:#71717a;font-size:5.5px;line-height:1.3}
+@media(max-width:900px){
+  .hub-progression-card{grid-column:1/-1}
+  .hub-level-roadmap{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .hub-xp-sources{grid-template-columns:repeat(2,minmax(0,1fr))}
+}

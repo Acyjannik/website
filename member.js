@@ -26,15 +26,21 @@ function setMemberText(id,value){
 
 
 function escapeHtml(value=''){return String(value).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[ch]));}
+const PUBLIC_CLUB_LEVELS = [
+  {min:0,title:'ACY Rookie'},{min:100,title:'ACY Member'},{min:300,title:'ACY Regular'},
+  {min:600,title:'ACY OG'},{min:1000,title:'ACY Legend'},{min:1500,title:'ACY Champion'},
+  {min:2500,title:'ACY Elite'},{min:4000,title:'ACY Master'},{min:6000,title:'ACY Icon'},
+  {min:8500,title:'ACY Mythic'},{min:11500,title:'ACY Immortal'},{min:15000,title:'ACY Hall of Fame'},
+  {min:20000,title:'ACY Ascended'},{min:27000,title:'ACY Celestial'},{min:35000,title:'ACY Eternal'},
+  {min:45000,title:'ACY Apex'},{min:60000,title:'ACY Vanguard'},{min:80000,title:'ACY Paragon'},
+  {min:105000,title:'ACY Overlord'},{min:135000,title:'ACY Sovereign'},{min:170000,title:'ACY Cosmic'},
+  {min:210000,title:'ACY Transcendent'},{min:260000,title:'ACY Eternal Flame'},{min:320000,title:'ACY Grandmaster'},
+  {min:390000,title:'ACY Omega'},{min:470000,title:'ACY Apex Legend'},{min:560000,title:'ACY Ultra'},
+  {min:660000,title:'ACY Infinity'},{min:780000,title:'ACY Beyond'},{min:920000,title:'ACY Hall of Fame+'}
+];
 function levelForXp(xp){
-  const levels=[
-    {min:0,title:'ACY Rookie'},
-    {min:100,title:'ACY Member'},
-    {min:250,title:'ACY Regular'},
-    {min:500,title:'ACY OG'},
-    {min:1000,title:'ACY Legend'}
-  ];
-  return levels.reduce((current,level)=>xp>=level.min?level:current,levels[0]);
+  const v=Math.max(0,Number(xp)||0);
+  return PUBLIC_CLUB_LEVELS.reduce((current,level)=>v>=level.min?level:current,PUBLIC_CLUB_LEVELS[0]);
 }
 
 function petSocialLevel(xp=0){

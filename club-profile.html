@@ -4,13 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Mein ACY Club · Acyjannik</title>
-  <link rel="stylesheet" href="styles.css?v=11.2.3">
+  <link rel="stylesheet" href="styles.css?v=11.4.0">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="/pet-companion.js?v=7.2.0" defer></script>
-  <script src="club-profile.js?v=11.2.3" defer></script>
+  <script src="club-profile.js?v=11.4.0" defer></script>
   <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
   <link rel="shortcut icon" href="/assets/favicon.svg">
   <link rel="apple-touch-icon" href="/assets/favicon.svg">
-<link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#0b0b10"><link rel="apple-touch-icon" href="/icons/acy-192.png"><script src="/pwa.js?v=11.2.3"></script></head>
+<link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#0b0b10"><link rel="apple-touch-icon" href="/icons/acy-192.png"><script src="/pwa.js?v=11.4.0"></script></head>
 <body class="club-auth-page">
   <div class="club-auth-shell">
     <header class="club-auth-header">
@@ -183,11 +183,17 @@
           </div>
         </div>
 
-        <div class="hub-live-card" id="hub-live-card">
-          <div class="eyebrow">TWITCH</div>
-          <div class="hub-live-state"><span class="live-dot" id="hub-live-dot"></span><strong id="hub-live-label">OFFLINE</strong></div>
-          <p id="hub-live-game">Kein Stream aktiv.</p>
-          <a class="button button-primary" href="https://www.twitch.tv/acyjannik" target="_blank" rel="noreferrer">Jetzt zuschauen ↗</a>
+        <div class="hub-progression-card" id="hub-progression-card">
+          <div class="eyebrow">PROGRESSION ROADMAP</div>
+          <div class="hub-progression-head">
+            <div>
+              <h3 id="hub-progression-title">Dein nächster Meilenstein</h3>
+              <p>30 Club-Level, damit der Grind nicht nach einem Wochenende vorbei ist.</p>
+            </div>
+            <span class="member-count-chip" id="hub-level-count">30 LEVEL</span>
+          </div>
+          <div class="hub-level-roadmap" id="hub-level-roadmap"></div>
+          <div class="hub-xp-sources" id="hub-xp-sources"></div>
         </div>
 
         <div class="hub-poll-card" id="community-poll">
