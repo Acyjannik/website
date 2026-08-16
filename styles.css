@@ -1682,3 +1682,15 @@ img,video,iframe,svg{
 .reward-catalog-card{grid-template-columns:34px minmax(0,1fr);padding:9px 10px}.reward-catalog-card>span{font-size:18px}.reward-catalog-heading{margin-top:20px}
 .admin-reward-grid{grid-template-columns:1.5fr 1fr}.admin-rewards-list{display:grid;gap:7px}.admin-reward-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px;border-radius:12px;background:#0d0d12;border:1px solid rgba(255,255,255,.06)}.admin-reward-row div{display:grid;gap:3px}.admin-reward-row strong{font-size:10px}.admin-reward-row small{font-size:8px;color:#71717a}.admin-reward-grid .admin-card{margin:0}
 @media(max-width:700px){.rewards-summary-grid{grid-template-columns:1fr}.my-reward-card{grid-template-columns:38px minmax(0,1fr)}.my-reward-card .button{grid-column:1/-1}.admin-reward-grid{grid-template-columns:1fr}}
+
+/* V7.9 — Daily Streak */
+.daily-streak-layout{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(260px,.8fr);gap:18px;align-items:center;margin-bottom:14px}
+.daily-streak-main{display:flex;gap:16px;align-items:center;padding:18px;border-radius:18px;background:rgba(168,85,247,.06);border:1px solid rgba(168,85,247,.14)}
+.streak-number{display:grid;place-items:center;width:86px;height:86px;flex:0 0 auto;border-radius:22px;background:radial-gradient(circle at 35% 30%,rgba(168,85,247,.35),rgba(168,85,247,.06));border:1px solid rgba(168,85,247,.25)}
+.streak-number strong{font-size:30px;line-height:1}.streak-number span{font-size:7px;letter-spacing:.16em;color:#a1a1aa}
+.streak-copy{display:grid;gap:4px}.streak-copy strong{font-size:16px}.streak-copy p{margin:0;color:#71717a;font-size:10px;line-height:1.5}
+.daily-streak-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.daily-streak-stats>div{padding:12px;border:1px solid rgba(255,255,255,.06);border-radius:12px;background:#0d0d12;display:grid;gap:4px}
+.daily-streak-stats span{font-size:7px;letter-spacing:.14em;color:#71717a}.daily-streak-stats strong{font-size:15px}
+@media(max-width:760px){.daily-streak-layout{grid-template-columns:1fr}.daily-streak-stats{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:500px){.daily-streak-main{align-items:flex-start}.streak-number{width:70px;height:70px}.daily-streak-stats{grid-template-columns:1fr}}

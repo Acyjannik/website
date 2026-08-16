@@ -1401,6 +1401,70 @@ async function loadMyRewards(){
   }
 }
 
+
+// V7.9 Daily Streak
+async function loadDailyStreak(){
+  const current=$('daily-streak-current'),best=$('daily-streak-best'),total=$('daily-streak-total');
+  const chip=$('daily-streak-chip'),title=$('daily-streak-title'),text=$('daily-streak-text');
+  const reward=$('daily-streak-reward'),button=$('daily-streak-claim');
+  if(!current||!supabaseClient||!currentUser)return;
+
+  try{
+    const {data,error}=await supabaseClient.from('club_daily_streaks')
+      .select('current_streak,best_streak,total_checkins,last_checkin_date')
+      .eq('user_id',currentUser.id).maybeSingle();
+    if(error)throw error;
+
+    const row=data||{current_streak:0,best_streak:0,total_checkins:0,last_checkin_date:null};
+    const today=new Date().toISOString().slice(0,10);
+    const claimed=row.last_checkin_date===today;
+    const nextStreak=Math.max(1,Number(row.current_streak||0)+1);
+    const nextReward=nextStreak>=30?100:nextStreak>=14?75:nextStreak>=7?50:nextStreak>=3?35:25;
+
+    setText('daily-streak-current',String(row.current_streak||0));
+    setText('daily-streak-best',String(row.best_streak||0));
+    setText('daily-streak-total',String(row.total_checkins||0));
+    setText('daily-streak-chip',`${Number(row.current_streak||0)} Tage`);
+    setText('daily-streak-reward',`+${claimed?(row.current_streak>=30?100:row.current_streak>=14?75:row.current_streak>=7?50:row.current_streak>=3?35:25):nextReward} XP`);
+
+    if(claimed){
+      setText('daily-streak-title','Heute schon erledigt. 💜');
+      setText('daily-streak-text',`Morgen geht deine Serie weiter. Aktuelle Serie: ${row.current_streak} Tage.`);
+      if(button){button.disabled=true;button.textContent='✓ Heute abgeholt';}
+    }else{
+      setText('daily-streak-title',row.current_streak>0?'Weiter so! 🔥':'Starte deine Serie.');
+      setText('daily-streak-text',row.current_streak>0?`Bleib dran und erhöhe deine Serie auf ${nextStreak} Tage.`:'Dein erster Check-in gibt dir direkt XP.');
+      if(button){button.disabled=false;button.textContent=`🔥 +${nextReward} XP abholen`;}
+    }
+  }catch(error){
+    console.warn('Daily streak unavailable:',error);
+  }
+}
+
+async function claimDailyStreak(){
+  const button=$('daily-streak-claim'),message=$('daily-streak-message');
+  if(!button||!supabaseClient||!currentUser)return;
+  button.disabled=true;
+  if(message){message.textContent='Check-in wird gespeichert…';message.className='club-auth-status';}
+  try{
+    const {data,error}=await supabaseClient.rpc('claim_daily_streak');
+    if(error)throw error;
+    if(data?.claimed){
+      setText('daily-streak-message',`🔥 +${data.reward_xp} XP · Serie: ${data.current_streak} Tage!`);
+      const status=$('daily-streak-message');if(status)status.className='club-auth-status success';
+      if(Number.isFinite(data.total_xp)){renderProgress(data.total_xp);setText('member-xp',`${data.total_xp} XP`);}
+    }else{
+      setText('daily-streak-message','Heute bereits abgeholt. Morgen wieder. 💜');
+      const status=$('daily-streak-message');if(status)status.className='club-auth-status';
+    }
+    await loadDailyStreak();
+  }catch(error){
+    if(message){message.textContent=error?.message||'Tagesbonus konnte nicht abgeholt werden.';message.className='club-auth-status error';}
+    button.disabled=false;
+  }
+}
+document.getElementById('daily-streak-claim')?.addEventListener('click',claimDailyStreak);
+
 async function init() {
   try {
     const cfg = await (await fetch('/api/config', { cache: 'no-store' })).json();
@@ -1424,6 +1488,7 @@ async function init() {
     currentUser = data.session.user;
     initMemberSectionNavigation();
     await loadNotificationPreferences();
+    await loadDailyStreak();
     await loadMyRewards();
     await loadWheelHistory();
 

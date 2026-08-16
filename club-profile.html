@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Mein ACY Club · Acyjannik</title>
-  <link rel="stylesheet" href="styles.css?v=7.8.0">
+  <link rel="stylesheet" href="styles.css?v=7.9.0">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="/pet-companion.js?v=7.2.0" defer></script>
-  <script src="club-profile.js?v=7.8.0" defer></script>
+  <script src="club-profile.js?v=7.9.0" defer></script>
   <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
   <link rel="shortcut icon" href="/assets/favicon.svg">
   <link rel="apple-touch-icon" href="/assets/favicon.svg">
@@ -401,6 +401,39 @@
                 </div>
               </div>
             </div>
+          </div>
+        </details>
+
+        <details class="member-card member-span-2 member-fold" id="daily-streak-section">
+          <summary class="member-fold-summary">
+            <span class="member-fold-summary-main">
+              <span class="eyebrow">DAILY</span>
+              <strong>🔥 Deine tägliche Serie</strong>
+              <small>Jeden Tag kurz vorbeischauen und XP mitnehmen.</small>
+            </span>
+            <span class="member-fold-summary-side">
+              <span class="member-count-chip" id="daily-streak-chip">0 Tage</span>
+              <span class="member-fold-chevron">⌄</span>
+            </span>
+          </summary>
+          <div class="member-fold-body">
+            <div class="daily-streak-layout">
+              <div class="daily-streak-main">
+                <div class="streak-number"><strong id="daily-streak-current">0</strong><span>TAGE</span></div>
+                <div class="streak-copy">
+                  <span class="eyebrow">AKTUELL</span>
+                  <strong id="daily-streak-title">Deine Serie wartet.</strong>
+                  <p id="daily-streak-text">Hol dir jeden Tag deinen Check-in.</p>
+                </div>
+              </div>
+              <div class="daily-streak-stats">
+                <div><span>BESTE SERIE</span><strong id="daily-streak-best">0</strong></div>
+                <div><span>CHECK-INS</span><strong id="daily-streak-total">0</strong></div>
+                <div><span>TAGESBONUS</span><strong id="daily-streak-reward">+25 XP</strong></div>
+              </div>
+            </div>
+            <button class="button button-primary" id="daily-streak-claim" type="button">🔥 Tagesbonus abholen</button>
+            <p class="club-auth-status" id="daily-streak-message"></p>
           </div>
         </details>
 

@@ -1082,3 +1082,11 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Added Admin > Rewards for enabling/disabling catalog items and granting rewards to members manually.
 - Rewards are server-side and stored persistently.
 - Run `supabase/club_rewards.sql` once in Supabase.
+
+
+## V7.9.0 — Daily Streak
+- Added daily check-in streaks to the Club profile.
+- One check-in per calendar day, with streak continuation when the previous day was claimed.
+- XP scales to 35/50/75/100 XP at 3/7/14/30 days.
+- Tracks current streak, best streak and total check-ins.
+- Run `supabase/club_daily_streak.sql` once in Supabase.
