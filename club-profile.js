@@ -2,6 +2,23 @@ let supabaseClient = null;
 let currentUser = null;
 
 const $ = (id) => document.getElementById(id);
+
+// V12.8 — never let one slow Supabase/API request freeze the whole dashboard.
+function withTimeout(promise, ms = 8000, label = 'Request') {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error(`${label} Timeout`)), ms))
+  ]);
+}
+
+async function safeLoad(label, fn, ms = 8000) {
+  try {
+    return await withTimeout(Promise.resolve().then(fn), ms, label);
+  } catch (error) {
+    console.warn(`[V12.8] ${label} skipped:`, error);
+    return null;
+  }
+}
 function setText(id, value) {
   const el = $(id);
   if (el) el.textContent = value;
@@ -990,7 +1007,7 @@ function renderProgressionCatalog(state) {
   const xpList = $('xp-catalog-list');
   const achievementList = $('achievement-catalog-list');
   if (!xpList || !achievementList) return;
-  setText('catalog-render-status', 'V12.7 · Progression geladen');
+  setText('catalog-render-status', 'V12.8 · Progression geladen');
 
   const awarded = new Set(state.achievements || []);
   const xpEvents = new Set(state.xpEvents || []);
@@ -1892,18 +1909,21 @@ async function init() {
     }
 
     currentUser = data.session.user;
-    await loadModeratorAccessShortcut();
+
+    // Priority UI: identity, games and pet must not wait behind optional widgets.
     initMemberSectionNavigation();
     initSoundToggle();
     initNotificationFilters();
     initV10SettingsActions();
     initMemberDirectoryFilters();
     initRememberedMemberFolds();
-    await loadNotificationPreferences();
-    await loadDailyStreak();
-    await loadMyRewards();
-    await loadWheelHistory();
-    await loadWheelState();
+    void safeLoad('Profile', loadProfile);
+    void safeLoad('Current Game', loadCurrentGamePresence);
+    void safeLoad('Pet', loadPet);
+    void safeLoad('Twitch', loadTwitch);
+    void safeLoad('Twitch Account', loadTwitchAccountV11);
+    void safeLoad('Discord', loadDiscordLink);
+    void safeLoad('Moderator Access', loadModeratorAccessShortcut);
 
     const dmTarget = new URLSearchParams(window.location.search).get('dm');
 
@@ -1916,13 +1936,8 @@ async function init() {
 
     // Registration XP is awarded after the email-confirmed session exists.
     // The server-side unique constraint makes this safe to call more than once.
-    await awardProgression('registration');
-    await loadProfile();
-    await loadPet();
-    await loadDiscordLink();
-    await loadTwitch();
-    await loadTwitchAccountV11();
-    await initTwitchAccountV11();
+    void safeLoad('Registration XP', () => awardProgression('registration'));
+    void safeLoad('Twitch Init', initTwitchAccountV11);
     startTwitchAutoWatchV11();
     const twitchParams=new URLSearchParams(window.location.search);
     if(twitchParams.get('twitch_connected')==='1'){
@@ -1933,34 +1948,38 @@ async function init() {
       history.replaceState({},'',window.location.pathname+window.location.hash);
     }
     startTwitchStatusPolling();
-    await loadClubContent();
-    await loadMemberDirectory();
-    startMemberDirectoryPolling();
-     await loadSocialConnections();
-     await startSocialPresence();
-    startNotificationRealtime();
-    await loadDirectMessages(dmTarget || '');
-    await loadCommunityPoll();
-    await loadClubChat();
-    await loadClubClips();
-    await checkAchievements();
-    await loadMemberStats();
-    await loadProgressionCatalog();
-    await loadCurrentGamePresence();
     initQuestTabs();
-    await progressQuestsForAction('daily_login');
-    await loadQuests();
-    // Optional dashboard extras are intentionally independent.
-    await Promise.allSettled([
-      checkAchievements(),
-      loadMemberStats(),
-      loadProgressionCatalog(),
-      loadLeaderboard(),
-      loadMemberHub(),
-      loadNotifications(),
-      loadSpotlight(),
-      loadCommunityGameHighlights()
-    ]);
+    startMemberDirectoryPolling();
+    startNotificationRealtime();
+
+    // Everything below is independent. One broken optional module must never
+    // prevent games, pets, profile data or the rest of the dashboard from rendering.
+    const loads = [
+      ['Club Content', loadClubContent],
+      ['Member Directory', loadMemberDirectory],
+      ['Social Connections', loadSocialConnections],
+      ['Social Presence', startSocialPresence],
+      ['Direct Messages', () => loadDirectMessages(dmTarget || '')],
+      ['Community Poll', loadCommunityPoll],
+      ['Club Chat', loadClubChat],
+      ['Club Clips', loadClubClips],
+      ['Achievements', checkAchievements],
+      ['Member Stats', loadMemberStats],
+      ['Progression', loadProgressionCatalog],
+      ['Daily Streak', loadDailyStreak],
+      ['Rewards', loadMyRewards],
+      ['Wheel History', loadWheelHistory],
+      ['Wheel State', loadWheelState],
+      ['Daily Login Quest', () => progressQuestsForAction('daily_login')],
+      ['Quests', loadQuests],
+      ['Leaderboard', loadLeaderboard],
+      ['Member Hub', loadMemberHub],
+      ['Notifications', loadNotifications],
+      ['Spotlight', loadSpotlight],
+      ['Community Games', loadCommunityGameHighlights],
+      ['Notification Preferences', loadNotificationPreferences]
+    ];
+    await Promise.all(loads.map(([label, fn]) => safeLoad(label, fn)));
   } catch (error) {
     const msg = error?.message || 'Profil konnte nicht geladen werden.';
     const status = $('profile-save-status');
@@ -2023,15 +2042,15 @@ async function loadProfile() {
   renderBadges(window.__memberBadges, Number(profile.xp || 0), !!profile.discord_connected);
   applyProfileGlow(Number(profile.xp || 0));
   if ((profile.display_name || '').trim() && (profile.bio || '').trim()) {
-    await awardProgression('profile_complete');
+    void safeLoad('Profile Complete XP', () => awardProgression('profile_complete'));
   }
 
   const created = new Date(profile.created_at || currentUser.created_at);
   const days = Math.floor((Date.now() - created.getTime()) / 86400000);
   if (days >= 30) {
-    await awardProgression('member_30_days');
+    void safeLoad('30 Day XP', () => awardProgression('member_30_days'));
   } else if (days >= 7) {
-    await awardProgression('member_7_days');
+    void safeLoad('7 Day XP', () => awardProgression('member_7_days'));
   }
 
   $('avatar-input').dataset.currentUrl = profile.avatar_url || '';

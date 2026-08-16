@@ -1,4 +1,4 @@
--- ACY V12.7: Repair profile linkage for existing Auth users.
+-- ACY V12.8: Repair profile linkage for existing Auth users.
 -- Run once in Supabase SQL Editor.
 
 create or replace function public.ensure_my_profile()
