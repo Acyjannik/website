@@ -50,8 +50,9 @@ client.on("presenceUpdate",async (oldPresence,newPresence)=>{
 
   if(!game){
     if(lastGames.has(userId)){
+      const oldGame=lastGames.get(userId);
       lastGames.delete(userId);
-      await syncPresence(userId,lastGames.get(userId)||"",false).catch(()=>{});
+      await syncPresence(userId,oldGame,false).catch(()=>{});
     }
     return;
   }

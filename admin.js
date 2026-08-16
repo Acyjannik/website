@@ -622,6 +622,41 @@ async function loadSocials() {
   });
 }
 
+
+async function loadGamePresenceLog(){
+  const list=$('game-presence-log-list');
+  if(!list||!supabaseClient)return;
+  try{
+    const {data,error}=await supabaseClient
+      .from('club_game_presence_log')
+      .select('id,user_id,discord_user_id,game_name,online,detected_at')
+      .order('detected_at',{ascending:false})
+      .limit(20);
+    if(error)throw error;
+    if(!data?.length){
+      list.innerHTML='<div class="admin-empty">Noch keine automatischen Game-Erkennungen.</div>';
+      return;
+    }
+    const userIds=Array.from(new Set(data.map(r=>r.user_id).filter(Boolean)));
+    let profiles=[];
+    if(userIds.length){
+      const result=await supabaseClient.from('profiles').select('id,username,display_name').in('id',userIds);
+      profiles=result.data||[];
+    }
+    const names=new Map(profiles.map(p=>[p.id,p.display_name||p.username||'Mitglied']));
+    list.innerHTML=`<div class="admin-table-row admin-table-head"><span>Mitglied</span><span>Game</span><span>Status</span><span>Zeit</span></div>`+
+      data.map(row=>`<div class="admin-table-row dynamic-admin-row">
+        <div><strong>${escapeHtml(names.get(row.user_id)||'Unbekannt')}</strong><small>${escapeHtml(row.discord_user_id||'')}</small></div>
+        <div>${escapeHtml(row.game_name||'–')}</div>
+        <div><span class="admin-chip">${row.online?'🟢 Online':'⚫ Offline'}</span></div>
+        <div>${escapeHtml(new Date(row.detected_at).toLocaleString('de-DE'))}</div>
+      </div>`).join('');
+  }catch(error){
+    console.warn('Game presence log unavailable:',error);
+    list.innerHTML=`<div class="admin-empty">Presence-Log konnte nicht geladen werden: ${escapeHtml(error.message||'Fehler')}</div>`;
+  }
+}
+
 async function loadGames() {
   const list = $('games-admin-list');
   if (!list) return;

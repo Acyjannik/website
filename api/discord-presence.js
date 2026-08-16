@@ -70,6 +70,21 @@ export default async function handler(req,res){
         headers:{Prefer:"return=minimal"}
       });
       if(!del.ok)throw new Error(`Presence delete ${del.status}: ${await del.text()}`);
+
+      const logRes=await sb("/rest/v1/club_game_presence_log",{
+        method:"POST",
+        headers:{Prefer:"return=minimal"},
+        body:JSON.stringify({
+          user_id:targetUserId,
+          discord_user_id:discordUserId,
+          game_id:null,
+          game_name:gameName||"Unbekannt",
+          online:false,
+          detected_at:new Date().toISOString()
+        })
+      });
+      if(!logRes.ok)console.warn("Presence offline log failed:",await logRes.text());
+
       return json(res,200,{ok:true,updated:true,online:false,game:null});
     }
 
@@ -83,6 +98,20 @@ export default async function handler(req,res){
       })
     });
     if(!upsert.ok)throw new Error(`Presence upsert ${upsert.status}: ${await upsert.text()}`);
+
+    const logRes=await sb("/rest/v1/club_game_presence_log",{
+      method:"POST",
+      headers:{Prefer:"return=minimal"},
+      body:JSON.stringify({
+        user_id:targetUserId,
+        discord_user_id:discordUserId,
+        game_id:resolved.game.id,
+        game_name:resolved.game.name,
+        online:true,
+        detected_at:new Date().toISOString()
+      })
+    });
+    if(!logRes.ok)console.warn("Presence online log failed:",await logRes.text());
 
     return json(res,200,{ok:true,updated:true,online:true,game:resolved.game});
   }catch(error){

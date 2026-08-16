@@ -1761,6 +1761,31 @@ async function loadTwitch() {
 
 
 
+
+async function syncDiscordPresenceLink(){
+  if(!supabaseClient||!currentUser)return;
+  try{
+    const {data}=await supabaseClient.auth.getSession();
+    const token=data?.session?.access_token;
+    if(!token)return null;
+    const response=await fetch('/api/discord-link',{
+      method:'POST',
+      headers:{
+        'Authorization':`Bearer ${token}`,
+        'Content-Type':'application/json'
+      }
+    });
+    if(!response.ok){
+      console.warn('Discord presence link sync:',await response.text());
+      return null;
+    }
+    return await response.json();
+  }catch(error){
+    console.warn('Discord presence link sync skipped:',error);
+    return null;
+  }
+}
+
 async function loadDiscordLink() {
   const connectButton = $('discord-connect-btn');
   const disconnectButton = $('discord-disconnect-btn');
@@ -1804,6 +1829,7 @@ async function loadDiscordLink() {
     if (profileError) console.warn('Discord profile flag sync failed:', profileError);
 
     if (connected) {
+      await syncDiscordPresenceLink();
       const result = await awardProgression('discord_connected');
       if (result?.totalXp !== undefined) {
         renderBadges((window.__memberBadges || []), Number(result.totalXp), true);
@@ -1884,6 +1910,16 @@ async function disconnectDiscord() {
     // Discord is now actually disconnected, so revoke the one-time +50 XP.
     // The DB keeps a zeroed event marker, preventing reconnect farming.
     await revokeDiscordProgression();
+    try {
+      const {data:sessionData}=await supabaseClient.auth.getSession();
+      const token=sessionData?.session?.access_token;
+      if(token){
+        await fetch('/api/discord-link',{
+          method:'DELETE',
+          headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'}
+        }).catch(()=>{});
+      }
+    } catch {}
 
     const { error: profileError } = await supabaseClient
       .from('profiles')

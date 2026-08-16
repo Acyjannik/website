@@ -1284,3 +1284,13 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Added `supabase/club_game_auto_discovery.sql` and `supabase/discord_presence_links.sql`.
 - Requires `TWITCH_CLIENT_ID`, `TWITCH_CLIENT_SECRET`, `PUBLIC_SITE_URL`, `ACY_GAME_DISCOVERY_SECRET`; Discord bridge also requires `DISCORD_BOT_TOKEN`.
 - Discord Presence access requires the appropriate current privileged intent/review setup; Discord changed server data-access requirements in June 2026.
+
+
+## V9.1 — Discord Linking & Presence Diagnostics
+- Discord linking now automatically syncs the authenticated Discord identity into `discord_presence_links`.
+- Disconnecting Discord removes the mapping.
+- Automatic game presence changes are now logged in `club_game_presence_log`.
+- Admin → Games shows the last 20 automatic presence detections.
+- Fixed the offline Presence bug in the Discord bot where the previous game name was deleted before it was sent.
+- Added `supabase/discord_presence_links.sql` migration for existing installations.
+- Added `supabase/club_game_presence_log` as part of the same migration.

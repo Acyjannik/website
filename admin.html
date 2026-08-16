@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>ACYJANNIK Admin</title>
   <meta name="robots" content="noindex,nofollow">
-  <link rel="stylesheet" href="styles.css?v=9.0.0">
+  <link rel="stylesheet" href="styles.css?v=9.1.0">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="admin.js?v=9.0.0" defer></script>
+  <script src="admin.js?v=9.1.0" defer></script>
   <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
   <link rel="shortcut icon" href="/assets/favicon.svg">
   <link rel="apple-touch-icon" href="/assets/favicon.svg">
@@ -188,6 +188,10 @@
             <div class="admin-table" id="games-admin-list">
               <div class="admin-empty">Games werden geladen…</div>
             </div>
+            <details class="admin-subsection" id="game-presence-log-section" open>
+              <summary>🟢 Automatische Game-Erkennung · letzte Aktivitäten</summary>
+              <div class="admin-table" id="game-presence-log-list"><div class="admin-empty">Presence-Log wird geladen…</div></div>
+            </details>
             <div class="admin-inline admin-inline-add">
               <input id="new-game-name" placeholder="Neues Game">
               <input id="new-game-tag" placeholder="Tag, z. B. VARIETY">
