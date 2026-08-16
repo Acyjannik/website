@@ -1366,3 +1366,12 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Fixed the Quest loader error caused by calling `.catch()` directly on a Supabase RPC builder.
 - Weekly Game quest sync is now handled with a normal `try/catch`.
 - Quest UI remains usable even when the optional weekly sync is temporarily unavailable.
+
+
+## V9.6 — Quest Engine & Club Identity
+- Added an action-driven quest engine with explicit action-to-quest mapping.
+- Daily check-in is guarded per browser day so a page reload cannot spam quest progress.
+- Quest claim buttons now have an in-flight guard against double clicks.
+- Added a new Club Identity summary card with level, XP, achievements, games, events, friends and streak.
+- Identity card uses the current avatar and current ACY level.
+- Added compact responsive styling for the new identity block.

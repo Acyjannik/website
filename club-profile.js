@@ -675,7 +675,7 @@ $('dm-form')?.addEventListener('submit', async event => {
     if (error) throw error;
 
     input.value = '';
-          void incrementQuest('daily_social','daily',1);
+          void progressQuestsForAction('social_message');
     updateDmCounter();
   } catch (error) {
     console.warn('Direct message send failed:', error);
@@ -812,9 +812,10 @@ async function voteInPoll(optionId) {
       });
     if (error) throw error;
     await loadCommunityPoll();
-    void incrementQuest('daily_poll','daily',1);
+    void progressQuestsForAction('poll_vote');
     await loadProfile();
     await loadMemberStats();
+    await loadClubIdentity();
   } catch (error) {
     console.warn('Poll vote failed:', error);
     setText('poll-meta', error?.message || 'Stimme konnte nicht gespeichert werden.');
@@ -1259,7 +1260,7 @@ async function performPetAction(action, button) {
     if (error) throw error;
     renderPet(data);
     if (data?.daily_xp_awarded) {
-      void incrementQuest('daily_pet','daily',1);
+      void progressQuestsForAction('pet_daily');
       setPetStatus('Heute gab es +5 XP für die Tierpflege. 🐾', 'success');
       void sendPersonalEmailNotification(
         'pet',
@@ -1272,6 +1273,7 @@ async function performPetAction(action, button) {
     }
     await loadProfile();
     await loadProgressionCatalog();
+    await loadClubIdentity();
     await checkAchievements();
   } catch (error) {
     setPetStatus(error?.message || 'Aktion konnte nicht ausgeführt werden.', 'error');
@@ -1427,7 +1429,7 @@ async function spinWheel(){
     message.className='club-auth-status success';
     if(Number.isFinite(data.total_xp)){renderProgress(data.total_xp);setText('member-xp',`${data.total_xp} XP`);}
     if(data.reward_class==='pet')await loadPet();
-    void incrementQuest('weekly_wheel','weekly',1);
+    void progressQuestsForAction('wheel_spin');
       await loadWheelHistory();
     await loadMyRewards();
     setWheelCooldown(data.next_free_at, data.spin_tokens);
@@ -1677,7 +1679,7 @@ async function init() {
     await loadProgressionCatalog();
     await loadCurrentGamePresence();
     initQuestTabs();
-    await incrementQuest('daily_login','daily',1);
+    await progressQuestsForAction('daily_login');
     await loadQuests();
     // Optional dashboard extras are intentionally independent.
     await Promise.allSettled([
@@ -2611,7 +2613,7 @@ function renderSocialConnections(data={}) {
   document.querySelectorAll('[data-social-accept]').forEach(btn=>btn.onclick=async()=>{
     try{await rpcSocial('respond_friend_request',{p_request_id:btn.dataset.socialAccept,p_accept:true});triggerClubEffect('success','Freundschaft angenommen. 👥');
       void sendDiscordCommunityEvent('friend_accepted', {}, `friend-${btn.dataset.socialAccept}`);
-      void incrementQuest('weekly_social','weekly',1);
+      void progressQuestsForAction('friend_accepted');
       await loadSocialConnections();}catch(e){setStatus(e.message,'error');}
   });
   document.querySelectorAll('[data-social-decline]').forEach(btn=>btn.onclick=async()=>{
@@ -2765,6 +2767,8 @@ function renderQuestList(){
   list.querySelectorAll('.quest-claim').forEach(btn=>btn.onclick=async()=>{
     const key=btn.dataset.quest;
     const reward=Number(btn.dataset.reward||0);
+    if (btn.dataset.claiming === '1') return;
+    btn.dataset.claiming = '1';
     btn.disabled=true;
     btn.textContent='Wird abgeholt…';
     try{
@@ -2786,6 +2790,7 @@ function renderQuestList(){
       console.warn('Quest claim failed:',error);
       setText('quest-message',error?.message||'Quest konnte nicht abgeholt werden.');
       setStatus(error?.message||'Quest konnte nicht abgeholt werden.','error');
+      btn.dataset.claiming = '0';
       btn.disabled=false;
       btn.textContent=`+${reward} XP abholen`;
     }
@@ -2849,6 +2854,145 @@ function initQuestTabs(){
     document.querySelectorAll('[data-quest-tab]').forEach(b=>b.classList.toggle('is-active',b===btn));
     renderQuestList();
   });
+}
+
+
+// ------------------------------------------------------------
+// V9.6 — Quest Engine: action -> quest progress
+// ------------------------------------------------------------
+const QUEST_ACTIONS = Object.freeze({
+  profile_complete: ['daily_login'],
+  daily_login: ['daily_login'],
+  pet_daily: ['daily_pet'],
+  social_message: ['daily_social'],
+  poll_vote: ['daily_poll'],
+  wheel_spin: ['weekly_wheel'],
+  friend_accepted: ['weekly_social'],
+  event_attended: ['weekly_event']
+});
+
+async function progressQuestsForAction(actionKey, amount = 1) {
+  if (!actionKey || !currentUser || !supabaseClient) return;
+  const quests = QUEST_ACTIONS[actionKey] || [];
+  if (!quests.length) return;
+
+  const periodMap = {
+    daily_login: 'daily',
+    daily_pet: 'daily',
+    daily_social: 'daily',
+    daily_poll: 'daily',
+    weekly_wheel: 'weekly',
+    weekly_social: 'weekly',
+    weekly_event: 'weekly'
+  };
+
+  for (const questKey of quests) {
+    const periodType = periodMap[questKey] || 'daily';
+    const period = questPeriodKey(periodType);
+    if (!period) continue;
+
+    try {
+      await supabaseClient.rpc('increment_quest', {
+        p_quest_key: questKey,
+        p_period_start: period,
+        p_increment: Math.max(1, Number(amount) || 1)
+      });
+    } catch (error) {
+      console.warn(`Quest progress skipped for ${questKey}:`, error);
+    }
+  }
+  loadQuests().catch(() => {});
+}
+
+
+// ------------------------------------------------------------
+// V9.6 — Club Identity
+// ------------------------------------------------------------
+function renderClubIdentity(state = {}) {
+  const profile = state.profile || {};
+  const xp = Number(state.xp || 0);
+  const level = levelForXp(xp);
+  const thresholds = [0,100,250,500,1000,2000,3500,5500,8000,12000,17000,25000];
+  let idx = 0;
+  for (let i=0;i<thresholds.length;i++) if (xp >= thresholds[i]) idx = i;
+  const base = thresholds[idx];
+  const next = thresholds[idx + 1] ?? base + 5000;
+  const percent = Math.max(0, Math.min(100, ((xp-base)/(next-base))*100));
+
+  setText('identity-name', profile.display_name || profile.username || 'ACY Member');
+  setText('identity-handle', `@${profile.username || 'member'}`);
+  setText('identity-meta', profile.discord_connected ? 'Discord verbunden · ACY Club Member' : 'ACY Club Member');
+  setText('identity-title', level.title);
+  setText('identity-level-chip', `LEVEL ${idx+1}`);
+  setText('identity-xp', xp.toLocaleString('de-DE'));
+  setText('identity-achievements', String(state.achievementCount || 0));
+  setText('identity-games', String(state.uniqueGames || 0));
+  setText('identity-events', String(state.events || 0));
+  setText('identity-friends', String(state.friendCount || 0));
+  setText('identity-streak', `${Number(state.streak || 0)} Tage`);
+  setText('identity-progress-caption', level.title);
+  setText('identity-next', xp >= next ? `LEVEL ${idx+2}` : `Noch ${(next-xp).toLocaleString('de-DE')} XP`);
+
+  const fill = $('identity-progress-fill');
+  if (fill) fill.style.width = `${percent}%`;
+
+  const avatar = $('identity-avatar');
+  if (avatar) {
+    if (profile.avatar_url) {
+      avatar.style.backgroundImage = `url('${escapeAttr(profile.avatar_url)}')`;
+      avatar.textContent = '';
+      avatar.classList.add('has-image');
+    } else {
+      avatar.style.backgroundImage = '';
+      avatar.textContent = (profile.display_name || profile.username || 'A').charAt(0).toUpperCase();
+      avatar.classList.remove('has-image');
+    }
+  }
+
+  const badgeWrap = $('identity-badges');
+  if (badgeWrap) {
+    const badges = Array.isArray(state.achievementsList) ? state.achievementsList.slice(0,5) : [];
+    badgeWrap.innerHTML = badges.length
+      ? badges.map(b => `<span class="identity-badge">${escapeHtml(b)}</span>`).join('')
+      : '<span class="identity-badge is-muted">Noch keine Achievements</span>';
+  }
+}
+
+async function loadClubIdentity() {
+  if (!supabaseClient || !currentUser || !$('club-identity-card')) return;
+  try {
+    const [
+      { data: profile },
+      { data: attendance },
+      { data: achievements },
+      { data: gameLog },
+      { data: friendsData },
+      { data: streakData }
+    ] = await Promise.all([
+      supabaseClient.from('profiles').select('username,display_name,avatar_url,xp,discord_connected').eq('id', currentUser.id).maybeSingle(),
+      supabaseClient.from('club_event_attendance').select('id').eq('user_id', currentUser.id),
+      supabaseClient.from('club_achievements').select('achievement_key').eq('user_id', currentUser.id).order('created_at',{ascending:false}).limit(20),
+      supabaseClient.from('club_game_presence_log').select('game_id').eq('user_id', currentUser.id).eq('online', true),
+      supabaseClient.rpc('get_my_social_connections'),
+      supabaseClient.from('club_daily_streaks').select('current_streak').eq('user_id', currentUser.id).maybeSingle()
+    ]);
+
+    const friends = Array.isArray(friendsData?.friends) ? friendsData.friends.length : 0;
+    const achievementList = (achievements || []).map(a => a.achievement_key).filter(Boolean);
+
+    renderClubIdentity({
+      profile: profile || {},
+      xp: Number(profile?.xp || 0),
+      events: (attendance || []).length,
+      achievementCount: achievementList.length,
+      achievementsList: achievementList,
+      uniqueGames: new Set((gameLog || []).map(r => r.game_id).filter(Boolean)).size,
+      friendCount: friends,
+      streak: Number(streakData?.current_streak || 0)
+    });
+  } catch (error) {
+    console.warn('Club identity unavailable:', error);
+  }
 }
 
 // V8.3 — Live member refresh + interface effects/sounds
@@ -3248,7 +3392,7 @@ async function loadClubContent(){
             const result=await response.json();
             if(!response.ok) throw new Error(result.error||'Teilnahme konnte nicht gespeichert werden.');
             applyEventAttendanceState(item, !!result.attending);
-            if(result.attending) void incrementQuest('weekly_event','weekly',1);
+            if(result.attending) void progressQuestsForAction('event_attended');
             const countEl=item.querySelector('.event-attendee-count');
             if(countEl) countEl.textContent=String(result.count);
             await loadProfile();
