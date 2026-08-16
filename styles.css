@@ -2086,3 +2086,7 @@ img,video,iframe,svg{
 .catalog-levels-scroll .catalog-level{
   flex:0 0 138px;
 }
+
+/* V9.5 — quest rotation polish */
+.quest-row.is-complete{box-shadow:inset 0 0 0 1px rgba(168,85,247,.06),0 8px 25px rgba(0,0,0,.08)}
+.quest-head .quest-claim{box-shadow:0 4px 14px rgba(168,85,247,.14)}

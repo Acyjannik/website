@@ -812,6 +812,7 @@ async function voteInPoll(optionId) {
       });
     if (error) throw error;
     await loadCommunityPoll();
+    void incrementQuest('daily_poll','daily',1);
     await loadProfile();
     await loadMemberStats();
   } catch (error) {
@@ -880,6 +881,9 @@ const ACHIEVEMENT_CATALOG = [
   { key: 'member_365_days', icon: '🎂', title: '1 Jahr ACY', detail: '365 Tage Mitglied sein.', progress: s => ({ value: s.days, max: 365 }) },
   { key: 'game_explorer', icon: '🧭', title: 'Game Explorer', detail: 'Mindestens 5 verschiedene Games über Discord entdecken.', progress: s => ({ value: s.uniqueGames, max: 5 }) },
   { key: 'game_hunter', icon: '🎮', title: 'Game Hunter', detail: 'Mindestens 15 verschiedene Games über Discord entdecken.', progress: s => ({ value: s.uniqueGames, max: 15 }) },
+  { key: 'quest_starter', icon: '🎯', title: 'Quest Starter', detail: 'Deine erste Quest erfolgreich abholen.', progress: s => ({ value: s.questClaims, max: 1 }) },
+  { key: 'quest_runner', icon: '🏃', title: 'Quest Runner', detail: '10 Quests erfolgreich abschließen.', progress: s => ({ value: s.questClaims, max: 10 }) },
+  { key: 'quest_master', icon: '🧠', title: 'Quest Master', detail: '25 Quests erfolgreich abschließen.', progress: s => ({ value: s.questClaims, max: 25 }) },
   { key: 'member_of_month', icon: '👑', title: 'Member of the Month', detail: 'Von der Community als Spotlight-Mitglied ausgewählt werden.', special: true }
 ];
 
@@ -928,12 +932,13 @@ function renderProgressionCatalog(state) {
 
 async function loadProgressionCatalog() {
   try {
-    const [{ data: profile }, { data: attendance }, { data: achievements }, { data: xpEvents }, { data: gameLog }] = await Promise.all([
+    const [{ data: profile }, { data: attendance }, { data: achievements }, { data: xpEvents }, { data: gameLog }, { data: questProgress }] = await Promise.all([
       supabaseClient.from('profiles').select('xp,created_at,display_name,bio,discord_connected').eq('id', currentUser.id).maybeSingle(),
       supabaseClient.from('club_event_attendance').select('id'),
       supabaseClient.from('club_achievements').select('achievement_key'),
       supabaseClient.from('club_xp_events').select('event_key,xp'),
-      supabaseClient.from('club_game_presence_log').select('game_id').eq('user_id', currentUser.id).eq('online', true)
+      supabaseClient.from('club_game_presence_log').select('game_id').eq('user_id', currentUser.id).eq('online', true),
+      supabaseClient.from('club_quest_progress').select('claimed').eq('user_id', currentUser.id).eq('claimed', true)
     ]);
 
     const created = profile?.created_at || currentUser.created_at;
@@ -945,6 +950,7 @@ async function loadProgressionCatalog() {
       discord: !!profile?.discord_connected,
       profileComplete: !!(profile?.display_name || '').trim() && !!(profile?.bio || '').trim(),
       uniqueGames: new Set((gameLog || []).map(row => row.game_id).filter(Boolean)).size,
+      questClaims: (questProgress || []).length,
       achievements: (achievements || []).map(a => a.achievement_key),
       xpEvents: (xpEvents || []).filter(e => Number(e.xp || 0) > 0).map(e => e.event_key)
     };
@@ -2770,6 +2776,7 @@ function renderQuestList(){
       if(error)throw error;
       const total=Number(data?.total_xp);
       if(Number.isFinite(total)) renderProgress(total);
+      void awardProgression(`quest_claimed_${key}`);
       playUISound('reward');
       triggerClubEffect('reward',`Quest abgeschlossen! +${reward} XP 🎯`);
       await loadQuests();
@@ -2793,6 +2800,7 @@ async function loadQuests(){
     if(error)throw error;
     questData=data||{daily:[],weekly:[],periods:{}};
 
+    await supabaseClient.rpc('sync_weekly_game_quest').catch(()=>{});
     for(const type of ['daily','weekly']){
       const items=Array.isArray(questData[type])?questData[type]:[];
       const period=questPeriodKey(type);
@@ -3236,6 +3244,7 @@ async function loadClubContent(){
             const result=await response.json();
             if(!response.ok) throw new Error(result.error||'Teilnahme konnte nicht gespeichert werden.');
             applyEventAttendanceState(item, !!result.attending);
+            if(result.attending) void incrementQuest('weekly_event','weekly',1);
             const countEl=item.querySelector('.event-attendee-count');
             if(countEl) countEl.textContent=String(result.count);
             await loadProfile();

@@ -1351,3 +1351,12 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Fixed the progression catalog still showing only the original 5 levels.
 - Added all 12 current levels up to 25,000 XP to the visible level strip.
 - Made the level strip horizontally scrollable so it stays compact.
+
+
+## V9.5 — Quest Rotation & Quest Achievements
+- Added a fourth daily quest: Community Vote.
+- Added weekly Game Explorer and Community Event quests.
+- Weekly Game Explorer progress is synced securely from Discord game history.
+- Voting and event attendance now advance their related quests.
+- Quest claims count toward Quest Starter / Runner / Master achievements.
+- Added `supabase/club_quests_v9.5.sql`.

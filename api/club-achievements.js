@@ -100,19 +100,23 @@ export default async function handler(req, res) {
     const profile = profileRows[0];
     if (!profile) return res.status(404).json({ error: "Profile not found." });
 
-    const [attendanceRes, xpRes, gameLogRes] = await Promise.all([
+    const [attendanceRes, xpRes, gameLogRes, questRes] = await Promise.all([
       fetch(`${url}/rest/v1/club_event_attendance?user_id=eq.${userId}&select=id`, { headers }),
       fetch(`${url}/rest/v1/club_xp_events?user_id=eq.${userId}&select=event_key,xp`, { headers }),
-      fetch(`${url}/rest/v1/club_game_presence_log?user_id=eq.${userId}&online=eq.true&select=game_id`, { headers })
+      fetch(`${url}/rest/v1/club_game_presence_log?user_id=eq.${userId}&online=eq.true&select=game_id`, { headers }),
+      fetch(`${url}/rest/v1/club_quest_progress?user_id=eq.${userId}&claimed=eq.true&select=quest_key`, { headers })
     ]);
 
     const attendanceText = await attendanceRes.text();
     const xpText = await xpRes.text();
     const gameLogText = await gameLogRes.text();
+    const questText = await questRes.text();
     const attendance = attendanceText ? JSON.parse(attendanceText) : [];
     const xpEvents = xpText ? JSON.parse(xpText) : [];
     const gameLog = gameLogText ? JSON.parse(gameLogText) : [];
+    const questClaims = questText ? JSON.parse(questText) : [];
     const uniqueGames = new Set((gameLog || []).map(row => row.game_id).filter(Boolean)).size;
+    const questClaimCount = (questClaims || []).length;
 
     const days = Math.floor((Date.now() - new Date(profile.created_at).getTime()) / 86400000);
     const eventCount = attendance.length;
@@ -139,7 +143,10 @@ export default async function handler(req, res) {
       ["member_180_days", days >= 180],
       ["member_365_days", days >= 365],
       ["game_explorer", uniqueGames >= 5],
-      ["game_hunter", uniqueGames >= 15]
+      ["game_hunter", uniqueGames >= 15],
+      ["quest_starter", questClaimCount >= 1],
+      ["quest_runner", questClaimCount >= 10],
+      ["quest_master", questClaimCount >= 25]
     ];
 
     const newlyAwarded = [];
@@ -184,7 +191,10 @@ export default async function handler(req, res) {
       member_180_days: "Half-Year Club",
       member_365_days: "1 Jahr ACY",
       game_explorer: "Game Explorer",
-      game_hunter: "Game Hunter"
+      game_hunter: "Game Hunter",
+      quest_starter: "Quest Starter",
+      quest_runner: "Quest Runner",
+      quest_master: "Quest Master"
     };
 
     for (const keyName of newlyAwarded) {
