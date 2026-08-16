@@ -990,7 +990,7 @@ function renderProgressionCatalog(state) {
   const xpList = $('xp-catalog-list');
   const achievementList = $('achievement-catalog-list');
   if (!xpList || !achievementList) return;
-  setText('catalog-render-status', 'V12.6 · Progression geladen');
+  setText('catalog-render-status', 'V12.7 · Progression geladen');
 
   const awarded = new Set(state.achievements || []);
   const xpEvents = new Set(state.xpEvents || []);
@@ -1973,13 +1973,32 @@ async function init() {
 }
 
 async function loadProfile() {
-  const { data, error } = await supabaseClient
+  let { data, error } = await supabaseClient
     .from('profiles')
     .select('username,display_name,bio,avatar_url,created_at,xp,badges,discord_connected')
     .eq('id', currentUser.id)
     .maybeSingle();
 
   if (error) throw error;
+
+  // Existing Auth users can predate the profile trigger. In that case the
+  // session is valid, but the dashboard falls back to the generic "Member"
+  // profile. Repair the missing profile through a security-definer RPC.
+  if (!data) {
+    try {
+      const { data: repaired, error: repairError } = await supabaseClient.rpc('ensure_my_profile');
+      if (!repairError && repaired) {
+        const refreshed = await supabaseClient
+          .from('profiles')
+          .select('username,display_name,bio,avatar_url,created_at,xp,badges,discord_connected')
+          .eq('id', currentUser.id)
+          .maybeSingle();
+        if (!refreshed.error && refreshed.data) data = refreshed.data;
+      }
+    } catch (repairError) {
+      console.warn('Profile auto-repair unavailable:', repairError);
+    }
+  }
 
   const profile = data || {
     username: currentUser.user_metadata?.username || 'member',
