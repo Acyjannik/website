@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ACY Club · Moderation</title>
+<link rel="stylesheet" href="/styles.css?v=9.8.0">
+</head>
+<body class="admin-body">
+<div class="admin-shell">
+  <aside class="admin-sidebar">
+    <div class="admin-brand"><span class="eyebrow">ACY CLUB</span><strong>MOD CENTER</strong><small>Community Moderation</small></div>
+    <nav class="admin-nav">
+      <div class="admin-nav-group">
+        <span class="admin-nav-label">Moderation</span>
+        <button class="mod-tab admin-tab is-active" data-tab="dashboard">Dashboard</button>
+        <button class="mod-tab admin-tab" data-tab="polls">Community Votes</button>
+        <button class="mod-tab admin-tab" data-tab="reports">Meldungen</button>
+        <button class="mod-tab admin-tab" data-tab="members">Mitglieder</button>
+      </div>
+      <div class="admin-nav-group">
+        <span class="admin-nav-label">Kommunikation</span>
+        <button class="mod-tab admin-tab" data-tab="announcement">Ankündigung</button>
+      </div>
+    </nav>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-toolbar">
+      <div>
+        <span class="eyebrow" id="mod-view-kicker">MODERATION</span>
+        <h1 id="mod-view-title">Dashboard</h1>
+      </div>
+      <div class="admin-toolbar-meta">
+        <span class="admin-chip" id="mod-role-chip">Prüfe Rolle…</span>
+        <a class="button button-secondary button-small" href="/club-profile.html">Zurück zum Club</a>
+      </div>
+    </div>
+
+    <section class="mod-view is-active" data-view="dashboard">
+      <div class="admin-grid">
+        <div class="admin-card admin-span-2">
+          <div class="eyebrow">MOD CENTER</div>
+          <h2>Willkommen im Moderationsbereich</h2>
+          <p class="admin-muted">Hier liegen nur Community-Aufgaben. Website, XP, Rewards, Admins und Systemeinstellungen bleiben außerhalb des Mod-Bereichs.</p>
+          <div class="admin-stats admin-stats-4">
+            <div class="admin-stat"><span>Aktive Votes</span><strong id="mod-stat-polls">–</strong></div>
+            <div class="admin-stat"><span>Mitglieder</span><strong id="mod-stat-members">–</strong></div>
+            <div class="admin-stat"><span>Meldungen</span><strong id="mod-stat-reports">–</strong></div>
+            <div class="admin-stat"><span>Deine Rolle</span><strong id="mod-stat-role">–</strong></div>
+          </div>
+        </div>
+        <div class="admin-card">
+          <div class="eyebrow">DEINE RECHTE</div>
+          <div class="mod-permission-list">
+            <div>✅ Community Votes erstellen</div>
+            <div>✅ Votes beenden</div>
+            <div>✅ Community-Meldungen bearbeiten</div>
+            <div>✅ Chat-/Community-Moderation</div>
+            <div>✅ Mitglieder ansehen</div>
+            <div>✅ Community-Ankündigungen</div>
+            <div>❌ XP / Rewards verändern</div>
+            <div>❌ Admins / Mods verwalten</div>
+            <div>❌ Website / Games bearbeiten</div>
+            <div>❌ SMTP / Systemsettings ändern</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="mod-view" data-view="polls">
+      <div class="admin-card">
+        <div class="section-heading">
+          <div><div class="eyebrow">COMMUNITY</div><h2>Community Votes</h2><p class="admin-muted">Moderatoren dürfen Umfragen erstellen, aktivieren und beenden.</p></div>
+        </div>
+        <div class="admin-form admin-form-grid">
+          <label>Frage<input id="mod-poll-question" placeholder="Welche Game-Night soll als Nächstes stattfinden?"></label>
+          <label>Beschreibung<textarea id="mod-poll-description" rows="2" placeholder="Kurze Erklärung zur Abstimmung."></textarea></label>
+          <label>Antworten<textarea id="mod-poll-options" rows="5" placeholder="Overwatch&#10;Dead by Daylight&#10;Roblox"></textarea></label>
+          <label>Ende<input id="mod-poll-closes" type="datetime-local"></label>
+          <button class="button button-primary" id="mod-add-poll" type="button">Vote veröffentlichen</button>
+        </div>
+        <div id="mod-poll-list" class="admin-table"></div>
+        <p class="admin-note" id="mod-poll-message"></p>
+      </div>
+    </section>
+
+    <section class="mod-view" data-view="reports">
+      <div class="admin-card">
+        <div class="eyebrow">COMMUNITY SAFETY</div>
+        <h2>Meldungen</h2>
+        <p class="admin-muted">Hier können gemeldete Community-Inhalte später geprüft und moderiert werden.</p>
+        <div id="mod-report-list" class="admin-table"><div class="admin-note">Noch kein Meldungssystem eingerichtet.</div></div>
+      </div>
+    </section>
+
+    <section class="mod-view" data-view="members">
+      <div class="admin-card">
+        <div class="section-heading"><div><div class="eyebrow">COMMUNITY</div><h2>Mitglieder</h2><p class="admin-muted">Moderatoren können Profile und Community-Status ansehen, aber keine Rollen oder XP ändern.</p></div></div>
+        <input id="mod-member-search" class="admin-input" placeholder="Mitglied suchen …">
+        <div id="mod-member-list" class="badge-member-list"><div class="admin-note">Mitglieder werden geladen…</div></div>
+      </div>
+    </section>
+
+    <section class="mod-view" data-view="announcement">
+      <div class="admin-card">
+        <div class="eyebrow">COMMUNICATION</div>
+        <h2>Community-Ankündigung</h2>
+        <p class="admin-muted">Kurze Hinweise für die Community. Keine Website-News oder System-Einstellungen.</p>
+        <div class="admin-form admin-form-grid">
+          <label>Titel<input id="mod-ann-title" placeholder="Community Update"></label>
+          <label>Nachricht<textarea id="mod-ann-body" rows="5" placeholder="Kurze Nachricht an die Community."></textarea></label>
+          <button class="button button-primary" id="mod-send-ann" type="button">Ankündigung senden</button>
+        </div>
+        <p class="admin-note" id="mod-ann-message"></p>
+      </div>
+    </section>
+  </main>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/mod.js?v=9.8.0"></script>
+</body>
+</html>

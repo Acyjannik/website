@@ -1383,3 +1383,13 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Added Admin → XP & Badges controls to assign/remove the Mod badge.
 - Club Identity now includes the Mod badge and is directly reachable from the section navigation.
 - Added the badge icon `🛡️` and role-specific visual styling.
+
+
+## V9.8 — Moderator Center
+- Added `club_moderators` role table with admin-only assignment.
+- Added `/mod.html` + `/mod.js` as a separate moderator login/workspace using the same Supabase authentication.
+- Moderator permissions: create/end community votes, review members, prepare community announcements, and future community reports/chat moderation.
+- Moderator restrictions: no XP, rewards, badges, admins/mods, games, website content, SMTP or system settings.
+- Added `/api/mod-auth`, `/api/admin-moderators`, `/api/admin-moderators-list`, `/api/mod-announcement`.
+- Added `supabase/moderators_v9.8.sql`.
+- Admin remains the only role allowed to manage moderator assignments.

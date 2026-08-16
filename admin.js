@@ -404,6 +404,7 @@ function bindSpotlightAdmin() {
   $('spotlight-refresh')?.addEventListener('click', loadSpotlightAdmin);
   $('refresh-badges-btn')?.addEventListener('click', refreshAllAchievements);
   bindModBadgeAdmin();
+  loadModeratorAssignments();
   $('progression-search')?.addEventListener('input', () => loadBadgeMembers());
   $('spotlight-clear')?.addEventListener('click', clearSpotlight);
   $('spotlight-search')?.addEventListener('input', () => loadSpotlightAdmin());
@@ -418,7 +419,7 @@ async function setMemberModBadge(userId, action){
     const {data}=await supabaseClient.auth.getSession();
     const token=data?.session?.access_token;
     if(!token) throw new Error('Sitzung abgelaufen.');
-    const response=await fetch('/api/admin-mod-badge',{
+    const response=await fetch('/api/admin-moderators',{
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
       body:JSON.stringify({userId,action})
@@ -470,6 +471,25 @@ function bindModBadgeAdmin(){
     if(id) setMemberModBadge(id,'remove');
   });
   loadModBadgeMembers();
+}
+
+
+async function loadModeratorAssignments(){
+  const select=$('mod-badge-member');
+  if(!select||!supabaseClient)return;
+  try{
+    const {data:sessionData}=await supabaseClient.auth.getSession();
+    const token=sessionData?.session?.access_token||'';
+    const [membersResponse,modsResponse]=await Promise.all([
+      fetch('/api/club-members?includeAchievements=true',{headers:{Authorization:`Bearer ${token}`},cache:'no-store'}),
+      fetch('/api/admin-moderators-list',{headers:{Authorization:`Bearer ${token}`},cache:'no-store'})
+    ]);
+    const membersPayload=await membersResponse.json();
+    const modsPayload=await modsResponse.json();
+    const modIds=new Set((modsPayload.moderators||[]).map(m=>String(m.user_id)));
+    const members=(membersPayload.members||[]).sort((a,b)=>(a.display_name||a.username||'').localeCompare(b.display_name||b.username||'','de'));
+    select.innerHTML=members.map(m=>`<option value="${escapeAttr(m.id)}">${escapeHtml(m.display_name||m.username||'Member')} (@${escapeHtml(m.username||'')})${modIds.has(String(m.id))?' · 🛡️ Mod':''}</option>`).join('');
+  }catch(error){select.innerHTML='<option value="">Laden fehlgeschlagen</option>'}
 }
 
 async function loadBadgeMembers() {

@@ -2122,3 +2122,10 @@ img,video,iframe,svg{
   color:#bfdbfe!important;
 }
 .mod-badge-admin{margin-top:12px}
+
+/* V9.8 — Moderator Center */
+.mod-permission-list{display:grid;gap:7px;font-size:9px;color:#a1a1aa}
+.mod-permission-list div{padding:7px 9px;border:1px solid rgba(255,255,255,.05);border-radius:9px;background:rgba(255,255,255,.015)}
+.mod-view{display:none}
+.mod-view.is-active{display:block}
+.mod-tab.is-active{color:#fff}
