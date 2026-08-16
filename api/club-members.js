@@ -224,7 +224,7 @@ export default async function handler(req, res) {
       achievements: achievementMap.get(row.id) || [],
       online: Boolean(onlinePresence.get(row.id)?.online),
       game_name: presence.get(row.id)?.game_name || '',
-      last_seen: presence.get(row.id)?.updated_at || null,
+      last_seen: onlinePresence.get(row.id)?.updated_at || presence.get(row.id)?.updated_at || null,
       pet: pets.get(row.id) ? {
         species: pets.get(row.id).species,
         name: pets.get(row.id).name,

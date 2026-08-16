@@ -67,6 +67,17 @@ async function addPoll(){
   }catch(e){msg('mod-poll-message',e.message,true);}
 }
 
+
+async function loadReports(){
+  const s=await session(); const list=$('mod-report-list'); if(!list)return;
+  const response=await fetch('/api/mod-reports',{headers:{Authorization:`Bearer ${s.token}`},cache:'no-store'}); const payload=await response.json();
+  if(!response.ok)throw new Error(payload.error||'Meldungen konnten nicht geladen werden.');
+  const reports=Array.isArray(payload.reports)?payload.reports:[]; const open=reports.filter(r=>r.status==='open').length;
+  if($('mod-reports-count'))$('mod-reports-count').textContent=`${open} offen`;
+  list.innerHTML=reports.length?reports.map(r=>{const target=r.target?.display_name||r.target?.username||'Unbekannt';const reporter=r.reporter?.display_name||r.reporter?.username||'Mitglied';return `<div class="admin-table-row report-row-v10"><div><strong>${esc(target)}</strong><small>Gemeldet von ${esc(reporter)}</small></div><div><strong>${esc(r.reason)}</strong><small>${esc(r.details||'Keine Details')}</small></div><div><span class="report-status-${esc(r.status)}">${esc(r.status)}</span><small>${new Date(r.created_at).toLocaleString('de-DE')}</small></div><div class="report-actions-v10">${r.status==='open'?`<button class="button button-secondary button-small" data-report-action="ignore" data-report-id="${r.id}">Ignorieren</button><button class="button button-secondary button-small" data-report-action="warn" data-report-id="${r.id}">Verwarnen</button><button class="button button-secondary button-small" data-report-action="mute24" data-report-id="${r.id}">24h Chat-Mute</button><button class="button button-danger button-small" data-report-action="escalate" data-report-id="${r.id}">An Admin</button>`:''}</div></div>`;}).join(''):'<div class="admin-note">Keine Meldungen.</div>';
+  list.querySelectorAll('[data-report-action]').forEach(btn=>btn.onclick=async()=>{btn.disabled=true;try{const r=await fetch('/api/mod-reports',{method:'PATCH',headers:{Authorization:`Bearer ${s.token}`,'Content-Type':'application/json'},body:JSON.stringify({id:btn.dataset.reportId,action:btn.dataset.reportAction})});const p=await r.json();if(!r.ok)throw new Error(p.error||'Aktion fehlgeschlagen.');await loadReports();}catch(e){alert(e.message)}finally{btn.disabled=false;}});
+}
+
 async function loadMembers(){
   const s=await session();
   const list=$('mod-member-list');
@@ -115,10 +126,12 @@ async function boot(){
       $('mod-view-title').textContent=({dashboard:'Dashboard',polls:'Community Votes',reports:'Meldungen',members:'Mitglieder',announcement:'Ankündigung'})[btn.dataset.tab];
       if(btn.dataset.tab==='polls')loadPolls().catch(e=>msg('mod-poll-message',e.message,true));
       if(btn.dataset.tab==='members')loadMembers().catch(e=>console.warn(e));
+      if(btn.dataset.tab==='reports')loadReports().catch(e=>console.warn(e));
     });
     $('mod-add-poll').onclick=()=>addPoll().catch(e=>msg('mod-poll-message',e.message,true));
     $('mod-member-search').oninput=()=>loadMembers().catch(()=>{});
     $('mod-send-ann').onclick=()=>announce().catch(e=>msg('mod-ann-message',e.message,true));
+    $('mod-reports-refresh').onclick=()=>loadReports().catch(e=>msg('mod-reports-count',e.message,true));
 
     const polls=await s.client.from('club_polls').select('id').eq('active',true);
     const members=await s.client.from('profiles').select('id',{count:'exact',head:true});

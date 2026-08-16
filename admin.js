@@ -33,6 +33,7 @@ const VIEW_META = {
   clips: ['ACY CLIPS', 'Clips'],
   media: ['MEDIA', 'Bilder'],
   security: ['SECURITY', 'Sicherheit'],
+  health: ['SYSTEM', 'System Health'],
 };
 
 
@@ -169,6 +170,7 @@ function switchTab(tab) {
     loadBadgeMembers().catch(error => console.error('Badge member load error:', error));
   }
   if (tab === 'rewards' && supabaseClient) loadRewardsAdmin().catch(console.error);
+  if (tab === 'health' && supabaseClient) { loadSystemHealth().catch(console.error); }
   if (tab === 'spotlight' && supabaseClient) {
     loadSpotlightAdmin().catch(error => {
       const el = $('spotlight-admin-message');
@@ -1711,3 +1713,11 @@ async function initializeAdmin() {
 }
 
 initializeAdmin();
+
+async function loadSystemHealth(){
+  const grid=$('health-grid-v10'), summary=$('health-summary-v10'); if(!grid)return;
+  grid.innerHTML='<div class="admin-note">Prüfe Systeme…</div>';
+  try{const {data}=await supabaseClient.auth.getSession();const token=data?.session?.access_token;if(!token)throw new Error('Keine aktive Admin-Sitzung.');const r=await fetch('/api/system-health',{headers:{Authorization:`Bearer ${token}`},cache:'no-store'});const p=await r.json();if(!r.ok)throw new Error(p.error||'Health Check fehlgeschlagen.');const labels={supabase:'Supabase',database:'Datenbank',push:'Push',smtp:'SMTP',discord:'Discord',twitch:'Twitch',storage:'Storage',realtime:'Realtime'};grid.innerHTML=Object.entries(p.checks||{}).map(([k,v])=>`<div class="health-card-v10 ${v.ok?'is-ok':'is-bad'}"><span>${v.ok?'🟢':'🔴'}</span><div><strong>${labels[k]||k}</strong><small>${v.ok?'OK':'Nicht bereit'}${v.ms?` · ${v.ms} ms`:''}</small></div></div>`).join('');if(summary)summary.textContent=`Letzter Check: ${new Date(p.checkedAt).toLocaleString('de-DE')} · Gesamtdauer ${p.durationMs} ms`;}catch(e){grid.innerHTML=`<div class="admin-note">${escapeHtml(e.message||'Health Check fehlgeschlagen.')}</div>`;}
+}
+
+$('health-refresh-btn')?.addEventListener('click',()=>loadSystemHealth());

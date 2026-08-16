@@ -164,6 +164,7 @@ async function loadCurrentGamePresence() {
           if (error) throw error;
           const game = (games || []).find(item => item.id === gameId);
           setText('current-game-status', 'Aktuell gesetzt');
+          void progressQuestsForAction('daily_game');
           setText('current-game-note', `${game?.name || 'Game'} wird jetzt in der Community-Übersicht gezählt.`);
         }
       } catch (error) {
@@ -265,6 +266,13 @@ document.getElementById('notification-read-all')?.addEventListener('click', asyn
 
 
 // ------------------------------------------------------------
+function formatRelativeTime(value){
+  const t=new Date(value||0).getTime(); if(!Number.isFinite(t)||!t)return '';
+  const sec=Math.max(0,Math.floor((Date.now()-t)/1000));
+  if(sec<60)return 'gerade eben'; if(sec<3600)return `vor ${Math.floor(sec/60)} Min.`; if(sec<86400)return `vor ${Math.floor(sec/3600)} Std.`; if(sec<604800)return `vor ${Math.floor(sec/86400)} Tagen`;
+  return new Date(t).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'});
+}
+
 // V6.2 Direct Messages
 // ------------------------------------------------------------
 let dmMessages = [];
@@ -881,6 +889,11 @@ const ACHIEVEMENT_CATALOG = [
   { key: 'veteran_member', icon: '🛡️', title: 'ACY Veteran', detail: '90 Tage Mitglied sein.', progress: s => ({ value: s.days, max: 90 }) },
   { key: 'member_180_days', icon: '🗓️', title: 'Half-Year Club', detail: '180 Tage Mitglied sein.', progress: s => ({ value: s.days, max: 180 }) },
   { key: 'member_365_days', icon: '🎂', title: '1 Jahr ACY', detail: '365 Tage Mitglied sein.', progress: s => ({ value: s.days, max: 365 }) },
+  { key: 'streak_7', icon: '🔥', title: '7-Tage-Serie', detail: '7 Tage Daily Streak erreichen.', progress: s => ({ value: s.streak, max: 7 }) },
+  { key: 'streak_14', icon: '🔥', title: '14-Tage-Serie', detail: '14 Tage Daily Streak erreichen.', progress: s => ({ value: s.streak, max: 14 }) },
+  { key: 'streak_30', icon: '💥', title: '30-Tage-Serie', detail: '30 Tage Daily Streak erreichen.', progress: s => ({ value: s.streak, max: 30 }) },
+  { key: 'streak_60', icon: '⚡', title: '60-Tage-Serie', detail: '60 Tage Daily Streak erreichen.', progress: s => ({ value: s.streak, max: 60 }) },
+  { key: 'streak_100', icon: '💎', title: '100-Tage-Serie', detail: '100 Tage Daily Streak erreichen.', progress: s => ({ value: s.streak, max: 100 }) },
   { key: 'game_explorer', icon: '🧭', title: 'Game Explorer', detail: 'Mindestens 5 verschiedene Games über Discord entdecken.', progress: s => ({ value: s.uniqueGames, max: 5 }) },
   { key: 'game_hunter', icon: '🎮', title: 'Game Hunter', detail: 'Mindestens 15 verschiedene Games über Discord entdecken.', progress: s => ({ value: s.uniqueGames, max: 15 }) },
   { key: 'quest_starter', icon: '🎯', title: 'Quest Starter', detail: 'Deine erste Quest erfolgreich abholen.', progress: s => ({ value: s.questClaims, max: 1 }) },
@@ -888,6 +901,17 @@ const ACHIEVEMENT_CATALOG = [
   { key: 'quest_master', icon: '🧠', title: 'Quest Master', detail: '25 Quests erfolgreich abschließen.', progress: s => ({ value: s.questClaims, max: 25 }) },
   { key: 'member_of_month', icon: '👑', title: 'Member of the Month', detail: 'Von der Community als Spotlight-Mitglied ausgewählt werden.', special: true }
 ];
+
+function achievementCategoryV10(key){
+  const k=String(key||'');
+  if(k.startsWith('xp_')||k==='acy_og'||k==='acy_legend')return 'XP';
+  if(k.includes('event'))return 'EVENTS';
+  if(k.includes('game'))return 'GAMES';
+  if(k.includes('quest'))return 'QUESTS';
+  if(k.includes('member')||k.includes('profile')||k==='acy_rookie'||k==='discord_member'||k==='early_member'||k==='veteran_member')return 'PROFIL';
+  if(k.includes('streak'))return 'STREAK';
+  return 'COMMUNITY';
+}
 
 function renderProgressionCatalog(state) {
   const xpList = $('xp-catalog-list');
@@ -913,20 +937,16 @@ function renderProgressionCatalog(state) {
     </div>`;
   }).join('');
 
-  achievementList.innerHTML = ACHIEVEMENT_CATALOG.map(item => {
-    const p = item.progress ? item.progress(state) : null;
-    const unlocked = item.special ? awarded.has(item.key) : awarded.has(item.key);
-    const value = p ? Math.min(p.value, p.max) : null;
-    const percent = p ? Math.round((value / p.max) * 100) : (unlocked ? 100 : 0);
-    const progressText = p ? `${value.toLocaleString('de-DE')} / ${p.max.toLocaleString('de-DE')}` : 'Spezial';
-    return `<div class="catalog-row achievement-row${unlocked ? ' is-unlocked' : ''}">
-      <span class="catalog-icon">${item.icon}</span>
-      <span class="catalog-main"><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.detail)}</small>
-        ${p ? `<span class="catalog-progress"><span style="width:${percent}%"></span></span>` : ''}
-      </span>
-      <span class="catalog-status">${unlocked ? '✓ freigeschaltet' : progressText}</span>
-    </div>`;
-  }).join('');
+  const unlockedRows = ACHIEVEMENT_CATALOG.map(item => {
+    const progress = item.progress(state) || { value: 0, max: 1 };
+    const value = Math.max(0, Number(progress.value || 0));
+    const max = Math.max(1, Number(progress.max || 1));
+    const unlocked = awarded.has(item.key);
+    const percent = Math.max(0, Math.min(100, Math.round((value/max)*100)));
+    return {item,progress,value,max,unlocked,percent,category:achievementCategoryV10(item.key)};
+  });
+  const cats=[...new Set(unlockedRows.map(x=>x.category))];
+  achievementList.innerHTML=cats.map(cat=>`<section class="achievement-category-v10"><div class="achievement-category-head-v10"><span>${escapeHtml(cat)}</span><small>${unlockedRows.filter(x=>x.category===cat&&x.unlocked).length}/${unlockedRows.filter(x=>x.category===cat).length}</small></div><div class="achievement-category-grid-v10">${unlockedRows.filter(x=>x.category===cat).map(x=>{const item=x.item;return `<div class="catalog-row achievement-row${x.unlocked?' is-unlocked':''}"><div class="catalog-icon">${escapeHtml(item.icon)}</div><div class="catalog-main"><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.detail)}</small><div class="catalog-progress"><span style="width:${x.percent}%"></span></div></div><div class="catalog-status">${x.unlocked?'✓ freigeschaltet':`${x.value}/${x.max}`}</div></div>`;}).join('')}</div></section>`).join('');
 
   const earnedCount = ACHIEVEMENT_CATALOG.filter(item => awarded.has(item.key)).length;
   setText('catalog-earned-summary', `${earnedCount} / ${ACHIEVEMENT_CATALOG.length} Achievements`);
@@ -934,13 +954,14 @@ function renderProgressionCatalog(state) {
 
 async function loadProgressionCatalog() {
   try {
-    const [{ data: profile }, { data: attendance }, { data: achievements }, { data: xpEvents }, { data: gameLog }, { data: questProgress }] = await Promise.all([
+    const [{ data: profile }, { data: attendance }, { data: achievements }, { data: xpEvents }, { data: gameLog }, { data: questProgress }, { data: streakRow }] = await Promise.all([
       supabaseClient.from('profiles').select('xp,created_at,display_name,bio,discord_connected').eq('id', currentUser.id).maybeSingle(),
       supabaseClient.from('club_event_attendance').select('id'),
       supabaseClient.from('club_achievements').select('achievement_key'),
       supabaseClient.from('club_xp_events').select('event_key,xp'),
-      supabaseClient.from('club_game_presence_log').select('game_id').eq('user_id', currentUser.id).eq('online', true),
-      supabaseClient.from('club_quest_progress').select('claimed').eq('user_id', currentUser.id).eq('claimed', true)
+      supabaseClient.from('club_game_presence_log').select('game_id').eq('user_id', currentUser.id).gte('detected_at', new Date(Date.now()-90*86400000).toISOString()),
+      supabaseClient.from('club_quest_progress').select('claimed').eq('user_id', currentUser.id).eq('claimed', true),
+      supabaseClient.from('club_daily_streaks').select('current_streak').eq('user_id', currentUser.id).maybeSingle()
     ]);
 
     const created = profile?.created_at || currentUser.created_at;
@@ -953,6 +974,7 @@ async function loadProgressionCatalog() {
       profileComplete: !!(profile?.display_name || '').trim() && !!(profile?.bio || '').trim(),
       uniqueGames: new Set((gameLog || []).map(row => row.game_id).filter(Boolean)).size,
       questClaims: (questProgress || []).length,
+      streak: Number(streakRow?.current_streak || 0),
       achievements: (achievements || []).map(a => a.achievement_key),
       xpEvents: (xpEvents || []).filter(e => Number(e.xp || 0) > 0).map(e => e.event_key)
     };
@@ -1088,6 +1110,11 @@ function renderPet(pet) {
   if ($('pet-rename-input')) $('pet-rename-input').value = pet.name;
 }
 
+
+function initV10SettingsActions(){
+  $('settings-open-notifications')?.addEventListener('click',()=>{$('notification-settings')?.setAttribute('open','');$('notification-settings')?.scrollIntoView({behavior:'smooth',block:'center'});});
+  $('settings-toggle-sounds')?.addEventListener('click',()=>{const enabled=!soundEnabled();setSoundEnabled(enabled);setText('settings-v10-message',enabled?'Interface-Sounds aktiviert.':'Interface-Sounds deaktiviert.');});
+}
 
 async function loadNotificationPreferences() {
   const { data, error } = await supabaseClient.rpc('get_my_notification_preferences');
@@ -1667,6 +1694,8 @@ async function init() {
     await loadModeratorAccessShortcut();
     initMemberSectionNavigation();
     initSoundToggle();
+    initNotificationFilters();
+    initV10SettingsActions();
     initMemberDirectoryFilters();
     initRememberedMemberFolds();
     await loadNotificationPreferences();
@@ -1716,7 +1745,8 @@ async function init() {
       loadLeaderboard(),
       loadMemberHub(),
       loadNotifications(),
-      loadSpotlight()
+      loadSpotlight(),
+      loadCommunityGameHighlights()
     ]);
   } catch (error) {
     const msg = error?.message || 'Profil konnte nicht geladen werden.';
@@ -2199,47 +2229,48 @@ function startNotificationRealtime() {
   }, 60000);
 }
 
-async function loadNotifications() {
-  const container = $('notifications-list');
-  const badge = $('notification-count');
-  if (!container) return;
-  try {
-    const { data } = await supabaseClient.auth.getSession();
-    const token = data?.session?.access_token;
-    if (!token) return;
-    const response = await fetch(`/api/club-notifications?_=${Date.now()}`, {
-      cache: 'no-store',
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    const payload = await response.json();
-    if (!response.ok) throw new Error(payload.error || 'Benachrichtigungen konnten nicht geladen werden.');
-    const notifications = Array.isArray(payload.notifications) ? payload.notifications : [];
-    const unread = notifications.filter(n => !n.read_at).length;
-    if (badge) {
-      badge.textContent = unread ? String(unread) : '';
-      badge.hidden = !unread;
-    }
-    container.innerHTML = notifications.length
-      ? notifications.slice(0, 8).map(n => `
-          <button class="notification-row ${n.read_at ? '' : 'is-unread'}" type="button" data-notification-id="${n.id}" data-link="${escapeAttr(n.link_url || '')}">
-            <span class="notification-icon">${n.notification_type === 'live' ? '🔴' : n.notification_type === 'badge' ? '🏆' : n.notification_type === 'event' ? '📅' : n.notification_type === 'direct_message' ? '💌' : '💜'}</span>
-            <span><strong>${escapeHtml(n.title)}</strong><small>${escapeHtml(n.body)}</small></span>
-          </button>`).join('')
-      : '<div class="club-content-empty">Keine neuen Benachrichtigungen.</div>';
+let activeNotificationFilter = 'all';
+let cachedNotifications = [];
+function notificationIcon(type){
+  return type==='live'?'🔴':type==='badge'?'🏆':type==='event'?'📅':type==='direct_message'?'💌':type==='reward'?'🎁':type==='pet'?'🐾':type==='poll'?'🗳️':'💜';
+}
+function renderNotifications(){
+  const container=$('notifications-list'); const badge=$('notification-count');
+  if(!container)return;
+  const filtered=activeNotificationFilter==='unread'?cachedNotifications.filter(n=>!n.read_at):cachedNotifications;
+  const unread=cachedNotifications.filter(n=>!n.read_at).length;
+  if(badge){badge.textContent=unread?String(unread):'';badge.hidden=!unread;}
+  container.innerHTML=filtered.length?filtered.slice(0,12).map(n=>`<button class="notification-row ${n.read_at?'':'is-unread'}" type="button" data-notification-id="${n.id}" data-link="${escapeAttr(n.link_url||'')}"><span class="notification-icon">${notificationIcon(n.notification_type)}</span><span><strong>${escapeHtml(n.title)}</strong><small>${escapeHtml(n.body)}</small><em>${formatRelativeTime(n.created_at)}</em></span></button>`).join(''):'<div class="club-content-empty">Keine Benachrichtigungen in dieser Ansicht.</div>';
+  container.querySelectorAll('.notification-row').forEach(row=>row.addEventListener('click',async()=>{
+    const id=row.dataset.notificationId;
+    try{await supabaseClient.from('club_notifications').update({read_at:new Date().toISOString()}).eq('id',id);}catch(error){console.warn('Notification read state failed:',error);}
+    const link=row.dataset.link;
+    if(link)window.location.href=link; else await loadNotifications();
+  }));
+}
+function initNotificationFilters(){
+  document.querySelectorAll('[data-notification-filter]').forEach(btn=>btn.addEventListener('click',()=>{activeNotificationFilter=btn.dataset.notificationFilter==='unread'?'unread':'all';document.querySelectorAll('[data-notification-filter]').forEach(b=>b.classList.toggle('is-active',b===btn));renderNotifications();}));
+  $('mobile-dock-notifications')?.addEventListener('click',()=>{$('notification-panel').hidden=false;});
+}
 
-    container.querySelectorAll('.notification-row').forEach(row => {
-      row.addEventListener('click', async () => {
-        const id = row.dataset.notificationId;
-        const { error } = await supabaseClient.from('club_notifications').update({ read_at: new Date().toISOString() }).eq('id', id);
-        if (error) console.warn('Notification read state failed:', error);
-        const link = row.dataset.link;
-        if (link) window.location.href = link;
-        else await loadNotifications();
-      });
-    });
-  } catch (error) {
-    console.warn('Notifications unavailable:', error);
-  }
+async function loadNotifications() {
+  if (!supabaseClient || !currentUser) return;
+  try {
+    const {data}=await supabaseClient.auth.getSession(); const token=data?.session?.access_token; if(!token)return;
+    const response=await fetch(`/api/club-notifications?_=${Date.now()}`,{cache:'no-store',headers:{Authorization:`Bearer ${token}`}});
+    const payload=await response.json(); if(!response.ok)throw new Error(payload.error||'Benachrichtigungen konnten nicht geladen werden.');
+    cachedNotifications=Array.isArray(payload.notifications)?payload.notifications:[];
+    renderNotifications();
+  }catch(error){console.warn('Notifications unavailable:',error);}
+}
+
+async function loadCommunityGameHighlights(){
+  const box=$('hub-games-list'); if(!box||!supabaseClient)return;
+  try{
+    const {data,error}=await supabaseClient.from('club_game_activity').select('id,name,image_url,member_count,sessions_7d').order('member_count',{ascending:false}).order('sessions_7d',{ascending:false}).limit(6);
+    if(error)throw error; const rows=Array.isArray(data)?data:[];
+    box.innerHTML=rows.length?rows.map((g,i)=>`<article class="hub-game-row-v10"><span class="hub-game-rank-v10">#${i+1}</span><div class="hub-game-thumb-v10" style="background-image:url('${escapeAttr(g.image_url||'')}')"></div><div class="hub-game-info-v10"><strong>${escapeHtml(g.name)}</strong><small>${Number(g.member_count||0)} live · ${Number(g.sessions_7d||0)}× diese Woche</small></div></article>`).join(''):'<div class="club-content-empty">Noch keine aktiven Community-Games.</div>';
+  }catch(error){console.warn('Community game highlights unavailable:',error);box.innerHTML='<div class="club-content-empty">Community-Games momentan nicht verfügbar.</div>';}
 }
 
 async function loadSpotlight() {
@@ -2528,6 +2559,7 @@ async function loadClubChat() {
           }
         } else {
           input.value = '';
+          void progressQuestsForAction('weekly_chat');
           updateChatCounter();
           input.focus();
         }
@@ -2890,6 +2922,8 @@ function initQuestTabs(){
 const QUEST_ACTIONS = Object.freeze({
   profile_complete: ['daily_login'],
   daily_login: ['daily_login'],
+  daily_game: ['daily_game'],
+  profile_complete: ['daily_profile'],
   pet_daily: ['daily_pet'],
   social_message: ['daily_social'],
   poll_vote: ['daily_poll'],
@@ -2905,6 +2939,8 @@ async function progressQuestsForAction(actionKey, amount = 1) {
 
   const periodMap = {
     daily_login: 'daily',
+    daily_game: 'daily',
+    daily_profile: 'daily',
     daily_pet: 'daily',
     daily_social: 'daily',
     daily_poll: 'daily',
@@ -2957,6 +2993,8 @@ function renderClubIdentity(state = {}) {
   setText('identity-events', String(state.events || 0));
   setText('identity-friends', String(state.friendCount || 0));
   setText('identity-streak', `${Number(state.streak || 0)} Tage`);
+  setText('identity-favorite-game', state.favoriteGame || 'Noch keine Spieldaten');
+  setText('identity-streak-highlight', `${Number(state.streak || 0)} Tage`);
   setText('identity-progress-caption', level.title);
   setText('identity-next', xp >= next ? `LEVEL ${idx+2}` : `Noch ${(next-xp).toLocaleString('de-DE')} XP`);
 
@@ -2985,43 +3023,25 @@ function renderClubIdentity(state = {}) {
   }
 }
 
-async function loadClubIdentity() {
-  if (!supabaseClient || !currentUser || !$('club-identity-card')) return;
-  try {
-    const [
-      { data: profile },
-      { data: attendance },
-      { data: achievements },
-      { data: gameLog },
-      { data: friendsData },
-      { data: streakData }
-    ] = await Promise.all([
-      supabaseClient.from('profiles').select('username,display_name,avatar_url,xp,discord_connected,badges').eq('id', currentUser.id).maybeSingle(),
-      supabaseClient.from('club_event_attendance').select('id').eq('user_id', currentUser.id),
-      supabaseClient.from('club_achievements').select('achievement_key').eq('user_id', currentUser.id).order('created_at',{ascending:false}).limit(20),
-      supabaseClient.from('club_game_presence_log').select('game_id').eq('user_id', currentUser.id).eq('online', true),
+async function loadClubIdentity(){
+  if(!supabaseClient||!currentUser||!$('club-identity-card'))return;
+  try{
+    const [{data:profile},{data:attendance},{data:achievements},{data:gameLog},{data:friendsData},{data:streakData},{data:gameCatalog}]=await Promise.all([
+      supabaseClient.from('profiles').select('username,display_name,avatar_url,xp,discord_connected,badges').eq('id',currentUser.id).maybeSingle(),
+      supabaseClient.from('club_event_attendance').select('id').eq('user_id',currentUser.id),
+      supabaseClient.from('club_achievements').select('achievement_key').eq('user_id',currentUser.id).order('created_at',{ascending:false}).limit(30),
+      supabaseClient.from('club_game_presence_log').select('game_id,detected_at').eq('user_id',currentUser.id).gte('detected_at',new Date(Date.now()-7*86400000).toISOString()),
       supabaseClient.rpc('get_my_social_connections'),
-      supabaseClient.from('club_daily_streaks').select('current_streak').eq('user_id', currentUser.id).maybeSingle()
+      supabaseClient.from('club_daily_streaks').select('current_streak').eq('user_id',currentUser.id).maybeSingle(),
+      supabaseClient.from('games').select('id,name').eq('enabled',true)
     ]);
-
-    const friends = Array.isArray(friendsData?.friends) ? friendsData.friends.length : 0;
-    const achievementList = (achievements || []).map(a => a.achievement_key).filter(Boolean);
-    const roleBadges = Array.isArray(profile?.badges) ? profile.badges.filter(Boolean) : [];
-    const combinedBadges = Array.from(new Set([...roleBadges, ...achievementList])).slice(0, 6);
-
-    renderClubIdentity({
-      profile: profile || {},
-      xp: Number(profile?.xp || 0),
-      events: (attendance || []).length,
-      achievementCount: achievementList.length + roleBadges.filter(b => b === 'Mod').length,
-      achievementsList: combinedBadges,
-      uniqueGames: new Set((gameLog || []).map(r => r.game_id).filter(Boolean)).size,
-      friendCount: friends,
-      streak: Number(streakData?.current_streak || 0)
-    });
-  } catch (error) {
-    console.warn('Club identity unavailable:', error);
-  }
+    const counts=new Map(); (gameLog||[]).forEach(r=>counts.set(r.game_id,(counts.get(r.game_id)||0)+1));
+    let fav='Noch keine Spieldaten',max=0; for(const g of gameCatalog||[]){const n=counts.get(g.id)||0;if(n>max){max=n;fav=g.name;}}
+    const achievementList=(achievements||[]).map(a=>a.achievement_key).filter(Boolean);
+    const roleBadges=Array.isArray(profile?.badges)?profile.badges.filter(Boolean):[];
+    const combinedBadges=Array.from(new Set([...roleBadges,...achievementList])).slice(0,8);
+    renderClubIdentity({profile:profile||{},xp:Number(profile?.xp||0),events:(attendance||[]).length,achievementCount:achievementList.length,achievementsList:combinedBadges,uniqueGames:new Set((gameLog||[]).map(r=>r.game_id).filter(Boolean)).size,friendCount:Array.isArray(friendsData?.friends)?friendsData.friends.length:0,streak:Number(streakData?.current_streak||0),favoriteGame:fav});
+  }catch(error){console.warn('Club identity unavailable:',error);}
 }
 
 // V8.3 — Live member refresh + interface effects/sounds
@@ -3202,6 +3222,7 @@ async function loadMemberDirectory(search = '', options = {}) {
         : `<div class="member-directory-avatar-fallback">${escapeHtml((member.display_name||member.username||'A').charAt(0).toUpperCase())}</div>`;
       const level=levelForXp(Number(member.xp||0)).title;
       const badges=(Array.isArray(member.badges)?member.badges:[]).slice(0,3).map(b=>`${badgeIcon[b]||'✦'} ${escapeHtml(b)}`).join(' · ');
+      const lastSeen=member.last_seen?formatRelativeTime(member.last_seen):'';
       const pet=member.pet||null;
       const petPreview=pet
         ? `<div class="member-directory-pet"><img src="assets/pet-${escapeAttr(pet.species)}.webp" alt="${escapeAttr(petLabels[pet.species]||'Begleiter')}" loading="lazy"><span><strong>${escapeHtml(pet.name)}</strong><small>${escapeHtml(petLabels[pet.species]||'Begleiter')} · ${Number(pet.social_xp||0)} Social XP</small></span></div>`
@@ -3216,7 +3237,7 @@ async function loadMemberDirectory(search = '', options = {}) {
         <div class="member-directory-avatar">${avatar}</div>
         <div class="member-directory-main">
           <div class="member-directory-name">${escapeHtml(member.display_name||member.username)}</div>
-          <div class="member-directory-handle">@${escapeHtml(member.username||'')} · ${member.online ? '<span class="member-online-label">🟢 Online</span>' : '<span class="member-online-label is-offline">⚫ Offline'}</span></div>
+          <div class="member-directory-handle">@${escapeHtml(member.username||'')} · ${member.online ? '<span class="member-online-label">🟢 Online</span>' : `<span class="member-online-label is-offline">⚫ Offline${lastSeen?` · ${escapeHtml(lastSeen)}`:''}</span>`}</div>
           <p>${member.online && member.game_name ? `🎮 ${escapeHtml(member.game_name)}` : escapeHtml(member.bio||'ACY Club Member')}</p>
           ${petPreview}
         </div>
@@ -3261,7 +3282,22 @@ async function loadMemberDirectory(search = '', options = {}) {
         try{await rpcSocial('block_member',{p_blocked_user_id:btn.dataset.blockMember});setStatus('Kontakt blockiert.','success');await loadSocialConnections();await loadMemberDirectory();}catch(e){setStatus(e.message,'error');}
       });
     });
-    list.querySelectorAll('[data-message-member]').forEach(btn=>{
+    list.querySelectorAll('[data-report-member]').forEach(btn=>{
+      btn.addEventListener('click',async event=>{
+        event.stopPropagation();
+        const id=btn.dataset.reportMember;
+        const reason=window.prompt('Warum möchtest du dieses Mitglied melden?','Unangemessenes Verhalten');
+        if(!reason)return;
+        try{
+          const {data}=await supabaseClient.auth.getSession(); const token=data?.session?.access_token; if(!token)throw new Error('Sitzung abgelaufen.');
+          const response=await fetch('/api/reports',{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({targetUserId:id,reason:reason.slice(0,180),details:''})});
+          const payload=await response.json().catch(()=>({})); if(!response.ok)throw new Error(payload.error||'Meldung fehlgeschlagen.');
+          triggerClubEffect('success','Meldung wurde an die Moderation gesendet.');
+        }catch(error){setStatus(error.message,'error');}
+      });
+    });
+    
+list.querySelectorAll('[data-message-member]').forEach(btn=>{
       btn.addEventListener('click',event=>{
         event.stopPropagation();
         const id=btn.dataset.messageMember;
@@ -3485,6 +3521,7 @@ $('profile-form')?.addEventListener('submit', async (event) => {
   setText('member-name', displayName);
   setText('member-bio', bio || 'Willkommen in deinem persönlichen ACY Club.');
   setStatus('Profil gespeichert.', 'success');
+    void progressQuestsForAction('profile_complete');
   triggerClubEffect('success', 'Profil gespeichert.');
 });
 

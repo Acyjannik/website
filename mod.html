@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ACY Club · Moderation</title>
-<link rel="stylesheet" href="/styles.css?v=9.9.2">
+<link rel="stylesheet" href="/styles.css?v=10.0.0">
 </head>
 <body class="admin-body">
 <div class="admin-shell">
@@ -90,7 +90,7 @@
         <div class="eyebrow">COMMUNITY SAFETY</div>
         <h2>Meldungen</h2>
         <p class="admin-muted">Hier können gemeldete Community-Inhalte später geprüft und moderiert werden.</p>
-        <div id="mod-report-list" class="admin-table"><div class="admin-note">Noch kein Meldungssystem eingerichtet.</div></div>
+        <div class="admin-toolbar-inline-v10"><button class="button button-secondary button-small" id="mod-reports-refresh" type="button">↻ Aktualisieren</button><span id="mod-reports-count" class="admin-chip">0 offen</span></div><div id="mod-report-list" class="admin-table"><div class="admin-note">Meldungen werden geladen…</div></div>
       </div>
     </section>
 
@@ -118,6 +118,6 @@
   </main>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="/mod.js?v=9.9.2"></script>
+<script src="/mod.js?v=10.0.0"></script>
 </body>
 </html>

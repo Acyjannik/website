@@ -4,13 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Mein ACY Club · Acyjannik</title>
-  <link rel="stylesheet" href="styles.css?v=9.9.2">
+  <link rel="stylesheet" href="styles.css?v=10.0.0">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="/pet-companion.js?v=7.2.0" defer></script>
-  <script src="club-profile.js?v=9.9.2" defer></script>
+  <script src="club-profile.js?v=10.0.0" defer></script>
   <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
   <link rel="shortcut icon" href="/assets/favicon.svg">
   <link rel="apple-touch-icon" href="/assets/favicon.svg">
-<link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#0b0b10"><link rel="apple-touch-icon" href="/icons/acy-192.png"><script src="/pwa.js?v=9.9.0"></script></head>
+<link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#0b0b10"><link rel="apple-touch-icon" href="/icons/acy-192.png"><script src="/pwa.js?v=10.0.0"></script></head>
 <body class="club-auth-page">
   <div class="club-auth-shell">
     <header class="club-auth-header">
@@ -29,6 +29,7 @@
 
       <div class="notification-panel" id="notification-panel" hidden>
         <div class="notification-panel-head"><strong>Benachrichtigungen</strong><div class="notification-panel-actions"><button id="notification-read-all" type="button">Alle gelesen</button><button id="notification-close" type="button">×</button></div></div>
+        <div class="notification-filter-row" role="tablist" aria-label="Benachrichtigungsfilter"><button type="button" class="notification-filter is-active" data-notification-filter="all">Alle</button><button type="button" class="notification-filter" data-notification-filter="unread">Ungelesen</button></div>
         <div id="notifications-list"><div class="club-content-empty">Keine neuen Benachrichtigungen.</div></div>
       </div>
     </header>
@@ -116,6 +117,22 @@
         </div>
       </details>
 
+      <details class="member-card member-span-2 member-fold central-settings-card" id="club-settings-section">
+        <summary class="member-fold-summary">
+          <span class="member-fold-summary-main"><span class="eyebrow">SETTINGS</span><strong>⚙️ Einstellungen</strong><small>Benachrichtigungen, Mobile, Sounds und wichtige Account-Links.</small></span>
+          <span class="member-fold-summary-side"><span class="member-fold-chevron">⌄</span></span>
+        </summary>
+        <div class="member-fold-body">
+          <div class="settings-grid-v10">
+            <div class="settings-tile-v10"><span class="settings-tile-icon">🔔</span><div><strong>Push & Mobile</strong><small>Push für Handy und installierte ACY-App.</small></div><button class="button button-secondary button-small" type="button" id="settings-open-notifications">Öffnen</button></div>
+            <div class="settings-tile-v10"><span class="settings-tile-icon">🔊</span><div><strong>Interface-Sounds</strong><small>Kleine Töne bei Aktionen und Erfolgen.</small></div><button class="button button-secondary button-small" type="button" id="settings-toggle-sounds">Sounds an/aus</button></div>
+            <div class="settings-tile-v10"><span class="settings-tile-icon">🔐</span><div><strong>Sicherheit</strong><small>Passwort, Account und Sicherheitsoptionen.</small></div><a class="button button-secondary button-small" href="/club-account.html">Account</a></div>
+            <div class="settings-tile-v10"><span class="settings-tile-icon">🛡️</span><div><strong>Datenschutz</strong><small>Infos zur Datenverarbeitung und Club-Nutzung.</small></div><a class="button button-secondary button-small" href="/datenschutz.html">Öffnen</a></div>
+          </div>
+          <p class="club-auth-status" id="settings-v10-message"></p>
+        </div>
+      </details>
+
 <main class="member-dashboard">
       <section class="member-hero-card">
         <div class="member-identity">
@@ -197,6 +214,12 @@
           <div class="eyebrow">LETZTE ERFOLGE</div>
           <div id="hub-achievements-list"><div class="club-content-empty">Wird geladen…</div></div>
         </div>
+
+        <div class="hub-games-card" id="hub-community-games">
+          <div class="eyebrow">COMMUNITY GAMES</div>
+          <div class="hub-games-head"><div><strong>Was wird gerade gespielt?</strong><small>Live jetzt und Trend der letzten 7 Tage.</small></div><a class="button button-secondary button-small" href="#current-game-card">Eigenes Game setzen</a></div>
+          <div id="hub-games-list"><div class="club-content-empty">Wird geladen…</div></div>
+        </div>
       </section>
         <section class="member-card member-span-2 current-game-card" id="current-game-card">
           <div class="member-card-head">
@@ -220,7 +243,7 @@
 
       <nav class="member-section-nav" aria-label="Club Bereiche">
         <span class="member-section-nav-label">BEREICHE</span>
-        <a href="#club-identity-card">Identity</a><a href="#member-hub">Übersicht</a><a href="/mod.html" id="moderator-access-btn" class="moderator-nav-link" hidden>🛡️ Moderator</a>
+        <a href="#club-identity-card">Identity</a><a href="#member-hub">Übersicht</a><a href="#club-settings-section">Einstellungen</a><a href="/mod.html" id="moderator-access-btn" class="moderator-nav-link" hidden>🛡️ Moderator</a>
         <a href="#profile-section">Profil</a>
         <a href="#progression-catalog">Fortschritt</a>
         <a href="#member-events-section">Events</a>

@@ -42,6 +42,8 @@ export default async function handler(req,res){
 
     let sent=0,failed=0,removed=0;
     for(const userId of targetUserIds){
+      const prefRes=await sb(url,key,`/rest/v1/club_notification_preferences?user_id=eq.${encodeURIComponent(userId)}&select=push_enabled&limit=1`);
+      if(prefRes.ok){const prefRows=await prefRes.json(); if(prefRows?.[0] && prefRows[0].push_enabled!==true) continue;}
       const subRes=await sb(url,key,`/rest/v1/club_push_subscriptions?user_id=eq.${encodeURIComponent(userId)}&select=id,endpoint,p256dh,auth`);
       if(!subRes.ok){failed++;continue;}
       const subs=await subRes.json();

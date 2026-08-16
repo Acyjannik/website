@@ -1417,3 +1417,34 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Fixed Push subscription registration when the main Club page keeps `supabaseClient` in a module/local scope.
 - `pwa.js` now creates its own Supabase client from `/api/config` to reliably read the logged-in session.
 - Added `/api/push-status` and an Admin diagnostic button to verify whether the current account has a stored push subscription.
+
+
+## V10.0 — ACY Quality Update
+
+### UI / UX
+- Central settings section added to the Club profile.
+- Mobile bottom navigation added for the main Club areas.
+- Notification panel now has All / Unread filters and relative timestamps.
+- Member directory shows a useful last-seen hint when a member is offline.
+- Achievement catalog is grouped into categories instead of one long list.
+- ACY Identity now highlights favourite game (7-day activity) and current streak.
+
+### Progression
+- Added rotating daily and weekly quest pool backed by `club_quest_catalog`.
+- Quest rewards are now server-controlled from the quest catalog instead of trusting the browser reward value.
+- Added 7 / 14 / 30 / 60 / 100 day streak achievements.
+
+### Moderation
+- Added `club_reports` and member reporting.
+- Mod Center now contains live report handling with ignore / warn / 24h chat mute / escalate-to-admin actions.
+- Existing chat ban enforcement now allows moderators as well as admins to manage bans.
+
+### Push / Settings
+- Added `push_enabled` master preference and wired subscription on/off state to it.
+- Push dispatch now respects the user's push master setting.
+
+### Admin
+- Added System Health dashboard for Supabase, DB, Push, SMTP, Discord, Twitch, Storage and Realtime configuration checks.
+
+### SQL
+Run `supabase/v10_quality.sql` once after the previous migrations.
