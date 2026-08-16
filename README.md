@@ -1257,3 +1257,12 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - New notifications trigger the existing subtle UI sound/toast.
 - Added `supabase/club_notifications_realtime.sql` once in Supabase.
 - API version bumped to 7.1.14.
+
+
+## V8.8.0 — Expanded Game Library
+- Added Overwatch, MECCHA CHAMELEON, Dead by Daylight and Roblox to the enabled game catalog.
+- Each added game has a cover image URL; Roblox uses an original bundled ACY-style SVG cover.
+- Club profile game selector automatically shows all enabled games.
+- Public homepage "Games" section now deliberately shows only the first 3 games by `sort_order`: Fortnite, GTA V and Thick As Thieves.
+- Added `supabase/club_games_v8.8.sql` for existing installations.
+- Fresh setup seed updated too.

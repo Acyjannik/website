@@ -61,7 +61,11 @@ insert into public.games (name, description, tag, image_url, featured, sort_orde
 values
   ('Fortnite', 'Main Game · Ranked · Community', 'MAIN GAME', null, true, 1),
   ('GTA V', 'Aktuell · Open World · Fun', 'AKTUELL', null, false, 2),
-  ('Thick As Thieves', 'Variety · Community · Fun', 'VARIETY', null, false, 4)
+  ('Thick As Thieves', 'Variety · Community · Fun', 'VARIETY', 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/3341000/header.jpg', false, 3),
+  ('Overwatch', 'Hero Shooter · Competitive · Community', 'COMPETITIVE', 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/2357570/header.jpg', false, 4),
+  ('MECCHA CHAMELEON', 'Hide & Seek · Party · Community', 'VARIETY', 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/4704690/header.jpg', false, 5),
+  ('Dead by Daylight', 'Horror · Multiplayer · Community', 'HORROR', 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/381210/header.jpg', false, 6),
+  ('Roblox', 'Variety · Community · Fun', 'VARIETY', '/assets/games/roblox-acy-cover.svg', false, 7)
 on conflict (name) do nothing;
 
 

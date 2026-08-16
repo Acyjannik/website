@@ -16,10 +16,9 @@ async function loadPublicGames() {
         .from('games')
         .select('id,name,description,tag,image_url,enabled,featured,sort_order')
         .eq('enabled', true)
-        .order('featured', { ascending: false })
         .order('sort_order', { ascending: true })
         .order('name', { ascending: true })
-        .limit(6);
+        .limit(3);
 
       if (error) throw error;
       const rows = games || [];
@@ -675,10 +674,13 @@ async function loadPublicContent() {
     }
 
     const fallbackGames = [
-      { name: 'Fortnite', description: 'Main Game · Ranked · Community', image_url: 'https://commons.wikimedia.org/wiki/Special:Redirect/file/Fortnite_at_E3_2018_(42719678112).jpg', featured: true },
-      { name: 'GTA V', description: 'Open World · Aktuell · Fun', image_url: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/271590/header.jpg', featured: false },
-      { name: '', description: 'Variety · Hide & Seek · Community', image_url: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/4704690/header.jpg', featured: false },
-      { name: 'Thick As Thieves', description: 'Stealth · Heist · Community', image_url: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/3341000/header.jpg', featured: false }
+      { name: 'Fortnite', description: 'Main Game · Ranked · Community', image_url: 'https://commons.wikimedia.org/wiki/Special:Redirect/file/Fortnite_at_E3_2018_(42719678112).jpg', featured: true, sort_order: 1 },
+      { name: 'GTA V', description: 'Open World · Aktuell · Fun', image_url: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/271590/header.jpg', featured: false, sort_order: 2 },
+      { name: 'Thick As Thieves', description: 'Stealth · Heist · Community', image_url: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/3341000/header.jpg', featured: false, sort_order: 3 },
+      { name: 'Overwatch', description: 'Hero Shooter · Competitive · Community', image_url: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/2357570/header.jpg', featured: false, sort_order: 4 },
+      { name: 'MECCHA CHAMELEON', description: 'Hide & Seek · Party · Community', image_url: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/4704690/header.jpg', featured: false, sort_order: 5 },
+      { name: 'Dead by Daylight', description: 'Horror · Multiplayer · Community', image_url: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/381210/header.jpg', featured: false, sort_order: 6 },
+      { name: 'Roblox', description: 'Variety · Community · Fun', image_url: '/assets/games/roblox-acy-cover.svg', featured: false, sort_order: 7 }
     ];
     const canonicalCovers = {
       'Fortnite': 'https://cdn.startselect.com/production/blog/preview-images/new-fortnite-season.jpg',
@@ -686,7 +688,9 @@ async function loadPublicContent() {
       'Thick As Thieves': 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/3341000/header.jpg'
     };
     const games = (Array.isArray(payload.games) && payload.games.length ? payload.games : fallbackGames)
-      .map(game => ({ ...game, image_url: canonicalCovers[game.name] || game.image_url }));
+      .map(game => ({ ...game, image_url: canonicalCovers[game.name] || game.image_url }))
+      .sort((a,b) => Number(a.sort_order ?? 999) - Number(b.sort_order ?? 999))
+      .slice(0,3);
     const gamesGrid = document.getElementById('games-grid');
     if (gamesGrid && games.length) {
       gamesGrid.innerHTML = games.map((game, index) => {
