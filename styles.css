@@ -3169,3 +3169,117 @@ textarea:focus{
     scroll-behavior:auto!important;
   }
 }
+
+
+/* ============================================================
+   ACY V14 — Liquid Glass / Pointer Atmosphere
+   ============================================================ */
+:root{
+  --acy-mx:50vw;
+  --acy-my:35vh;
+  --acy-glass-border:rgba(255,255,255,.085);
+  --acy-glass-hi:rgba(192,132,252,.12);
+}
+
+/* A single soft light source follows the mouse across the page.
+   It is intentionally subtle so the UI remains readable. */
+body{
+  background:
+    radial-gradient(520px circle at var(--acy-mx) var(--acy-my), rgba(168,85,247,.075), transparent 62%),
+    radial-gradient(900px circle at 18% 10%, rgba(124,58,237,.035), transparent 58%),
+    #09090d;
+}
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  z-index:-1;
+  pointer-events:none;
+  background:
+    radial-gradient(300px circle at var(--acy-mx) var(--acy-my), rgba(255,255,255,.035), transparent 66%);
+  mix-blend-mode:screen;
+}
+.club-auth-page .member-card,
+.club-auth-page .member-hero-card,
+.club-auth-page .hub-main-card,
+.club-auth-page .hub-progression-card,
+.club-auth-page .catalog-level,
+.club-auth-page .member-badge,
+.club-auth-page .club-content-item{
+  background:
+    radial-gradient(380px circle at var(--acy-mx) var(--acy-my), rgba(192,132,252,.055), transparent 62%),
+    linear-gradient(145deg, rgba(255,255,255,.028), rgba(255,255,255,.008));
+  border-color:var(--acy-glass-border);
+  backdrop-filter:blur(12px) saturate(125%);
+  -webkit-backdrop-filter:blur(12px) saturate(125%);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.035),
+    0 14px 42px rgba(0,0,0,.18);
+  transition:
+    border-color .22s ease,
+    box-shadow .22s ease,
+    transform .22s ease,
+    background .22s ease;
+}
+.club-auth-page .member-card:hover,
+.club-auth-page .member-hero-card:hover,
+.club-auth-page .hub-main-card:hover,
+.club-auth-page .hub-progression-card:hover,
+.club-auth-page .catalog-level:hover,
+.club-auth-page .member-badge:hover,
+.club-auth-page .club-content-item:hover,
+.club-auth-page .acy-pointer-active{
+  border-color:rgba(192,132,252,.28);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.055),
+    0 18px 55px rgba(0,0,0,.24),
+    0 0 28px rgba(168,85,247,.055);
+}
+.club-auth-page button,
+.club-auth-page a.button,
+.club-auth-page .button{
+  position:relative;
+  overflow:hidden;
+  isolation:isolate;
+}
+.club-auth-page button::after,
+.club-auth-page a.button::after,
+.club-auth-page .button::after{
+  content:"";
+  position:absolute;
+  inset:-2px;
+  pointer-events:none;
+  opacity:0;
+  background:radial-gradient(170px circle at var(--acy-mx) var(--acy-my), rgba(255,255,255,.16), transparent 62%);
+  transition:opacity .18s ease;
+}
+.club-auth-page button:hover::after,
+.club-auth-page a.button:hover::after,
+.club-auth-page .button:hover::after{
+  opacity:1;
+}
+.club-auth-page .catalog-level:hover{
+  transform:translateY(-2px);
+}
+@media(max-width:600px){
+  body::before{display:none}
+  .club-auth-page .member-card,
+  .club-auth-page .member-hero-card,
+  .club-auth-page .hub-main-card,
+  .club-auth-page .hub-progression-card{
+    backdrop-filter:blur(8px);
+    -webkit-backdrop-filter:blur(8px);
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  body{background:#09090d}
+  .club-auth-page .member-card,
+  .club-auth-page .member-hero-card,
+  .club-auth-page .hub-main-card,
+  .club-auth-page .hub-progression-card,
+  .club-auth-page .catalog-level,
+  .club-auth-page .member-badge,
+  .club-auth-page .club-content-item{
+    transition:none;
+  }
+}
