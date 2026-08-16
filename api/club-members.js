@@ -99,9 +99,28 @@ export default async function handler(req, res) {
 
     const memberId = String(req.query?.id || "").trim();
 
+    const blockResponse = await fetch(
+      `${supabaseUrl}/rest/v1/club_blocks?or=(blocker_id.eq.${encodeURIComponent((await meResponse.json()).id)},blocked_user_id.eq.${encodeURIComponent((await meResponse.json()).id)})&select=blocker_id,blocked_user_id`,
+      {headers:{apikey:serviceKey,Authorization:`Bearer ${serviceKey}`},cache:"no-store"}
+    );
+    let blockRows=[];
+    if(blockResponse.ok) blockRows=await blockResponse.json();
+    const currentUserId=(await fetch(`${supabaseUrl}/auth/v1/user`,{headers:{apikey:serviceKey,Authorization:`Bearer ${token}`}}).then(r=>r.json())).id;
+    const blockedSet=new Set();
+    for(const b of blockRows||[]){
+      if(b.blocker_id===currentUserId) blockedSet.add(b.blocked_user_id);
+      if(b.blocked_user_id===currentUserId) blockedSet.add(b.blocker_id);
+    }
+
     if (memberId) {
       if (!/^[0-9a-f-]{36}$/i.test(memberId)) {
         return res.status(400).json({ error: "Invalid member id" });
+      }
+
+      if (memberId === currentUserId || blockedSet.has(memberId) === false) {
+        // continue
+      } else {
+        return res.status(404).json({ error: "Member not found." });
       }
 
       const profileResponse = await fetch(
@@ -187,11 +206,12 @@ export default async function handler(req, res) {
     }
 
     const rows = text ? JSON.parse(text) : [];
+    const visibleRows = rows.filter(r => r.id === currentUserId || !blockedSet.has(r.id));
     let achievementMap = new Map();
 
-    if (includeAchievements && rows.length) {
+    if (includeAchievements && visibleRows.length) {
       const achievementsResponse = await fetch(
-        `${supabaseUrl}/rest/v1/club_achievements?select=user_id,achievement_key&user_id=in.(${rows.map(r => encodeURIComponent(r.id)).join(",")})`,
+        `${supabaseUrl}/rest/v1/club_achievements?select=user_id,achievement_key&user_id=in.(${visibleRows.map(r => encodeURIComponent(r.id)).join(",")})`,
         {
           headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
           cache: "no-store",
@@ -208,11 +228,11 @@ export default async function handler(req, res) {
       }
     }
 
-    const pets = await loadPetsForUserIds(rows.map(row => row.id));
-    const presence = await loadPresenceForUserIds(rows.map(row => row.id));
-    const onlinePresence = await loadOnlinePresenceForUserIds(rows.map(row => row.id));
+    const pets = await loadPetsForUserIds(visibleRows.map(row => row.id));
+    const presence = await loadPresenceForUserIds(visibleRows.map(row => row.id));
+    const onlinePresence = await loadOnlinePresenceForUserIds(visibleRows.map(row => row.id));
 
-    const memberRows = rows.map((row) => ({
+    const memberRows = visibleRows.map((row) => ({
       id: row.id,
       username: row.username,
       display_name: row.display_name || row.username,

@@ -1456,3 +1456,11 @@ Run `supabase/v10_quality.sql` once after the previous migrations.
 - Social pet interactions (greet/play/pet) now trigger a push notification to the pet owner.
 - Added server-side `/api/push-private-message` and `/api/push-pet-social`.
 - Added shared server-side Push utility to remove expired subscriptions automatically.
+
+
+## V10.3 — Block Privacy Enforcement
+- Blocks are now enforced at the database layer for direct-message reads/inserts.
+- Profile/member APIs hide blocked users in both directions; blocked profiles resolve as not found.
+- Pet social interactions are blocked in both directions.
+- Private-message push and pet-social push are suppressed for blocked pairs.
+- Block lists remain visible to the blocker for unblocking.

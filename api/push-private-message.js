@@ -21,6 +21,13 @@ export default async function handler(req,res){
     if(!message)return res.status(400).json({error:'Nachricht fehlt.'});
 
     // Prevent spoofing: the caller's user id is the sender of the push.
+
+    const blockCheck=await fetch(`${url}/rest/v1/club_blocks?or=(and(blocker_id.eq.${sender.id},blocked_user_id.eq.${recipientId}),and(blocker_id.eq.${recipientId},blocked_user_id.eq.${sender.id}))&select=blocker_id&limit=1`,{headers});
+    if(blockCheck.ok){
+      const blockRows=await blockCheck.json();
+      if(Array.isArray(blockRows)&&blockRows.length) return res.status(200).json({ok:true,sent:0,blocked:true});
+    }
+
     const push=await sendPushToUser({
       supabaseUrl:url,
       serviceKey:key,

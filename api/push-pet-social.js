@@ -22,6 +22,13 @@ export default async function handler(req,res){
     const labels={greet:'begrüßt',play:'spielt mit',pet:'streichelt'};
     if(!labels[action])return res.status(400).json({error:'Ungültige Pet-Aktion.'});
 
+
+    const blockCheck=await fetch(`${url}/rest/v1/club_blocks?or=(and(blocker_id.eq.${actor.id},blocked_user_id.eq.${ownerId}),and(blocker_id.eq.${ownerId},blocked_user_id.eq.${actor.id}))&select=blocker_id&limit=1`,{headers});
+    if(blockCheck.ok){
+      const blockRows=await blockCheck.json();
+      if(Array.isArray(blockRows)&&blockRows.length) return res.status(200).json({ok:true,sent:0,blocked:true});
+    }
+
     const push=await sendPushToUser({
       supabaseUrl:url,
       serviceKey:key,
