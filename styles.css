@@ -1821,3 +1821,22 @@ img,video,iframe,svg{
     padding:11px;
   }
 }
+
+/* V8.2 — Member directory filters */
+.member-directory-toolbar{display:grid;gap:9px}
+.member-directory-filters{display:flex;flex-wrap:wrap;gap:6px}
+.member-filter{
+  appearance:none;
+  border:1px solid rgba(255,255,255,.07);
+  background:#0d0d12;
+  color:#a1a1aa;
+  border-radius:999px;
+  min-height:29px;
+  padding:0 10px;
+  font:600 9px/1 Inter,system-ui,sans-serif;
+  cursor:pointer;
+  transition:background .15s ease,border-color .15s ease,color .15s ease,transform .15s ease;
+}
+.member-filter:hover{transform:translateY(-1px);color:#e4e4e7;border-color:rgba(168,85,247,.28)}
+.member-filter.is-active{background:rgba(168,85,247,.12);border-color:rgba(168,85,247,.32);color:#d8b4fe}
+.member-directory-item[hidden]{display:none!important}

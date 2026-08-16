@@ -1157,3 +1157,10 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Actions now sit compactly in one flexible row instead of forming tall full-width button stacks.
 - Pet previews are smaller and tighter.
 - No SQL changes.
+
+
+## V8.2.0 — Member Directory Filters
+- Added compact member filters: Alle, Online, Freunde and Mit Pet.
+- Friend matching is based on the current accepted friend list.
+- Filters work client-side without another database request.
+- No SQL changes.

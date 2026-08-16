@@ -1537,6 +1537,7 @@ async function init() {
 
     currentUser = data.session.user;
     initMemberSectionNavigation();
+    initMemberDirectoryFilters();
     initRememberedMemberFolds();
     await loadNotificationPreferences();
     await loadDailyStreak();
@@ -2363,6 +2364,7 @@ function renderSocialConnections(data={}) {
   const friends=Array.isArray(data.friends)?data.friends:[];
   const incoming=Array.isArray(data.incoming)?data.incoming:[];
   const blocked=Array.isArray(data.blocked)?data.blocked:[];
+  window.__socialFriendIds = new Set(friends.map(person => String(person.user_id)));
   const requestCount=incoming.length;
   setText('social-friend-count', `${friends.length} Freunde${requestCount?` · ${requestCount} Anfrage${requestCount===1?'':'n'}`:''}`);
 
@@ -2443,6 +2445,31 @@ async function sendFriendRequest(userId){
   }catch(error){setStatus(error?.message||'Anfrage konnte nicht gesendet werden.','error');}
 }
 
+
+let currentMemberFilter = 'all';
+function applyMemberDirectoryFilter(filter='all'){
+  currentMemberFilter = filter;
+  const list=$('member-directory-list');
+  if(!list)return;
+  list.querySelectorAll('.member-directory-item').forEach(card=>{
+    const matches = filter==='all'
+      || (filter==='online' && card.dataset.online==='true')
+      || (filter==='friends' && card.dataset.isFriend==='true')
+      || (filter==='pets' && card.dataset.hasPet==='true');
+    card.hidden = !matches;
+  });
+  document.querySelectorAll('.member-filter').forEach(btn=>{
+    btn.classList.toggle('is-active',btn.dataset.memberFilter===filter);
+  });
+}
+function initMemberDirectoryFilters(){
+  document.querySelectorAll('[data-member-filter]').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      applyMemberDirectoryFilter(btn.dataset.memberFilter||'all');
+    });
+  });
+}
+
 async function loadMemberDirectory(search = '') {
   const list = $('member-directory-list');
   const countEl = $('member-directory-count');
@@ -2481,7 +2508,12 @@ async function loadMemberDirectory(search = '') {
         ? `<div class="member-directory-pet"><img src="assets/pet-${escapeAttr(pet.species)}.webp" alt="${escapeAttr(petLabels[pet.species]||'Begleiter')}" loading="lazy"><span><strong>${escapeHtml(pet.name)}</strong><small>${escapeHtml(petLabels[pet.species]||'Begleiter')} · ${Number(pet.social_xp||0)} Social XP</small></span></div>`
         : `<div class="member-directory-pet is-empty"><span>🐾</span><span><strong>Kein Pet</strong><small>Noch kein Begleiter</small></span></div>`;
 
-      return `<article class="member-directory-item member-directory-clickable" data-member-id="${escapeAttr(member.id)}">
+      const isFriend = window.__socialFriendIds?.has(String(member.id)) === true;
+      return `<article class="member-directory-item member-directory-clickable"
+        data-member-id="${escapeAttr(member.id)}"
+        data-online="${member.online ? 'true' : 'false'}"
+        data-has-pet="${member.pet ? 'true' : 'false'}"
+        data-is-friend="${isFriend ? 'true' : 'false'}">
         <div class="member-directory-avatar">${avatar}</div>
         <div class="member-directory-main">
           <div class="member-directory-name">${escapeHtml(member.display_name||member.username)}</div>
@@ -2499,6 +2531,7 @@ async function loadMemberDirectory(search = '') {
       </article>`;
     }).join('');
 
+    applyMemberDirectoryFilter(currentMemberFilter);
     list.querySelectorAll('.member-directory-clickable').forEach(card=>{
       card.addEventListener('click',event=>{
         if(event.target.closest('[data-message-member],[data-pet-member],[data-friend-member],[data-block-member]'))return;
