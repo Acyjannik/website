@@ -1,12 +1,4 @@
 ACY BUILD V14.4
-Liquid Glass FX · Rich UI Sounds · Cosmic Easter Egg
-Base: V14.3 Progressive Level Surfaces
 
-- richer synthesized interface sounds via Web Audio API
-- refresh / primary / danger / pet / toggle / spin / unlock sound signatures
-- click ripple + glass button interaction effects
-- hover micro-sound for interactive controls
-- hidden ACY Cosmic Protocol Easter Egg: type A C Y or double-click the ACY logo mark
-- Cosmic Easter Egg uses the existing dragon pet artwork
-- respects prefers-reduced-motion and the existing sound preference
-- no database migration required
+Base: V14.3 Progressive Level Surfaces
+Release: V14.4 Liquid Glass FX, Sounds & Easter Egg

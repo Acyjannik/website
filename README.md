@@ -1,4 +1,4 @@
-# ACYJANNIK V14.2 — Refresh & UX Audit
+# ACYJANNIK V14.4 — Liquid Glass FX & Sounds
 
 ## Aktueller Stand
 - Bounded Loading statt eines großen ungebremsten `Promise.all`: optionale Module werden in kleinen Batches geladen.
@@ -12,7 +12,7 @@
 - Toter Identity-Code und veraltete DOM-Referenzen wurden entfernt bzw. korrigiert.
 - Service Worker enthält keine veraltete Selbst-Unregister-Logik mehr.
 
-## V14.2 Deployment
+## V14.4 Deployment
 1. V14.2 auf Vercel deployen.
 2. Browser einmal hart neu laden (`Strg+F5`).
 3. Die V14.1-Daily-Streak-SQL-Migration bleibt gültig. Nur ausführen, falls sie noch nicht in Supabase eingespielt wurde.
