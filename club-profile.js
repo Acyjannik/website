@@ -1276,18 +1276,40 @@ async function loadWheelHistory(){
   if(error){console.warn('Wheel history unavailable:',error);return;}
   list.innerHTML=data?.length?data.map(row=>`<div class="wheel-history-row"><strong>${escapeHtml(row.reward_label||'Reward')}</strong><small>${formatWheelDate(row.created_at)}</small></div>`).join(''):'<div class="club-content-empty">Noch keine Drehungen.</div>';
 }
-function setWheelCooldown(nextFreeAt){
-  const button=$('club-wheel-spin'),chip=$('wheel-status-chip');
-  if(!nextFreeAt){if(button){button.disabled=false;button.textContent='🎡 Drehen';}if(chip)chip.textContent='1 Dreh verfügbar';return;}
+function setWheelCooldown(nextFreeAt, spinTokens = 0){
+  const button=$('club-wheel-spin');
+  const chip=$('wheel-status-chip');
+
+  const tokens = Math.max(0, Number(spinTokens || 0));
+  if (tokens > 0) {
+    if (button){button.disabled=false;button.textContent=`🎡 Drehen · Extra-Dreh (${tokens})`;}
+    if (chip)chip.textContent=`${tokens} Extra-Dreh${tokens===1?'':'e'} verfügbar`;
+    return;
+  }
+
+  if(!nextFreeAt){
+    if(button){button.disabled=false;button.textContent='🎡 Drehen';}
+    if(chip)chip.textContent='1 Dreh verfügbar';
+    return;
+  }
+
   const next=new Date(nextFreeAt).getTime();
-  const timer=setInterval(()=>{
+  const tick=()=>{
     const left=Math.max(0,next-Date.now());
-    if(!left){clearInterval(timer);if(button){button.disabled=false;button.textContent='🎡 Drehen';}if(chip)chip.textContent='1 Dreh verfügbar';return;}
+    if(!left){
+      if(button){button.disabled=false;button.textContent='🎡 Drehen';}
+      if(chip)chip.textContent='1 Dreh verfügbar';
+      clearInterval(timer);
+      return;
+    }
     const h=Math.floor(left/3600000),m=Math.floor(left%3600000/60000);
     if(button){button.disabled=true;button.textContent='⏳ Später wieder';}
     if(chip)chip.textContent=`Nächster Dreh in ${h}h ${m}m`;
-  },30000);
+  };
+  tick();
+  const timer=setInterval(tick,30000);
 }
+
 async function spinWheel(){
   const button=$('club-wheel-spin'),message=$('wheel-message'),wheel=$('club-wheel');
   if(!button||!message||!wheel||!supabaseClient||!currentUser)return;
@@ -1298,17 +1320,17 @@ async function spinWheel(){
     if(data?.cooldown){
       message.textContent=`Dein nächster Dreh ist um ${formatWheelDate(data.next_free_at)} verfügbar.`;
       message.className='club-auth-status error';
-      setWheelCooldown(data.next_free_at);return;
+      setWheelCooldown(data.next_free_at, data.spin_tokens);return;
     }
     const seg=WHEEL_SEGMENTS.find(s=>s.key===data.reward_key)||WHEEL_SEGMENTS[0];
     wheel.style.setProperty('--wheel-stop',`${1800+(360-seg.angle)}deg`);
     wheel.classList.remove('is-spinning');void wheel.offsetWidth;wheel.classList.add('is-spinning');
     await new Promise(resolve=>setTimeout(resolve,3400));
-    message.textContent=`🎉 ${data.reward_label}${data.total_xp!=null?` · Jetzt ${Number(data.total_xp).toLocaleString('de-DE')} XP.`:''}`;
+    message.textContent=`🎉 ${data.reward_label}${data.reward_class==='spin'?' · Du kannst sofort noch einmal drehen.':data.total_xp!=null?` · Jetzt ${Number(data.total_xp).toLocaleString('de-DE')} XP.`:''}`;
     message.className='club-auth-status success';
     if(Number.isFinite(data.total_xp)){renderProgress(data.total_xp);setText('member-xp',`${data.total_xp} XP`);}
     if(data.reward_class==='pet')await loadPet();
-    await loadWheelHistory();setWheelCooldown(data.next_free_at);
+    await loadWheelHistory();setWheelCooldown(data.next_free_at, data.spin_tokens);
   }catch(error){
     console.error('Wheel spin error:',error);message.textContent=error?.message||'Das Glücksrad konnte nicht gedreht werden.';
     message.className='club-auth-status error';button.disabled=false;

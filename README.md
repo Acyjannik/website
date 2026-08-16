@@ -1065,3 +1065,11 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Added recent reward history.
 - Twitch Channel Points are not directly grantable through the standard Twitch API; the Twitch reward is tracked in ACY until the Twitch bot integration is authorized.
 - Run `supabase/club_wheel.sql` once in Supabase.
+
+
+## V7.7.1 — Extra-Dreh Fix
+- Extra-Dreh is now a real server-side token.
+- Winning an Extra-Dreh adds one spin token to the member.
+- A spin token bypasses the 24-hour cooldown and is consumed when used.
+- The UI now shows available extra spins and keeps the button enabled while a token exists.
+- Run `supabase/club_wheel.sql` again after deployment.
