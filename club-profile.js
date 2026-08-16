@@ -1164,7 +1164,7 @@ function renderPet(pet) {
     step.classList.toggle('is-current', Number(step.dataset.petLevel) === level.level);
     step.classList.toggle('is-complete', Number(step.dataset.petLevel) < level.level);
   });
-  setText('pet-care-note', 'Hunger −1/h · Laune −0,5/h · Energie regeneriert sich bis 100%. · 72h bei 0 = Tod.');
+  setText('pet-care-note', 'Hunger −1/h · Laune −0,5/h · Energie −0,5/h · 72h bei 0 = Tod.');
   if ($('pet-rename-input')) $('pet-rename-input').value = pet.name;
 }
 
@@ -1336,77 +1336,36 @@ $('pet-release-toggle')?.addEventListener('click', async () => {
 });
 
 async function performPetAction(action, button) {
-  if (!currentPet || !button || !action) return;
-  if (button.disabled) return;
-
+  if (!currentPet || !button) return;
   button.disabled = true;
-  const original = button.innerHTML;
-  button.setAttribute('aria-busy','true');
-  button.innerHTML = action === 'feed'
-    ? '🍖 Füttere…'
-    : action === 'play'
-      ? '🎾 Spiele…'
-      : '💜 Streicheln…';
+  const original = button.textContent;
+  button.textContent = action === 'feed' ? 'Füttere…' : action === 'play' ? 'Spiele…' : 'Streicheln…';
 
   try {
-    setPetStatus('Pet-Aktion wird gespeichert…', 'success');
-
-    const { data, error } = await supabaseClient.rpc('club_pet_action', {
-      p_action: action
-    });
-
+    const { data, error } = await supabaseClient.rpc('club_pet_action', { p_action: action });
     if (error) throw error;
-    if (!data) throw new Error('Das Pet-System hat keine Daten zurückgegeben.');
-
     renderPet(data);
-
-    const careXp = Number(data.care_xp_awarded || 0);
-    const actionsToday = Number(data.care_actions_today || 0);
-
-    if (careXp > 0) {
+    if (data?.daily_xp_awarded) {
       void progressQuestsForAction('pet_daily');
-      const remaining = Math.max(0, 4 - actionsToday);
-      setPetStatus(
-        `+${careXp} Pflege-XP. ${remaining
-          ? `Noch ${remaining} Pflege-XP-Aktion${remaining === 1 ? '' : 'en'} heute möglich.`
-          : 'Das heutige Pflege-XP-Limit ist erreicht.'} 🐾`,
-        'success'
+      setPetStatus('Heute gab es +5 XP für die Tierpflege. 🐾', 'success');
+      void sendPersonalEmailNotification(
+        'pet',
+        'Dein Pet war aktiv 🐾',
+        'Deine heutige Tierpflege ist erledigt. Dein Pet hat dafür Pflege-XP erhalten.',
+        '/club-profile.html#pet-section'
       );
-
-      if (data.daily_xp_awarded) {
-        void sendPersonalEmailNotification(
-          'pet',
-          'Dein Pet war aktiv 🐾',
-          'Deine heutige Tierpflege wurde belohnt. Dein Pet hat dafür Pflege-XP erhalten.',
-          '/club-profile.html#pet-section'
-        );
-      }
     } else {
-      setPetStatus(
-        actionsToday >= 4
-          ? 'Aktion ausgeführt. Das tägliche Pflege-XP-Limit ist bereits erreicht. 🐾'
-          : 'Aktion ausgeführt. Dein Pet freut sich. 🐾',
-        'success'
-      );
+      setPetStatus('Dein Tier freut sich. 🐾', 'success');
     }
-
-    await Promise.allSettled([
-      loadQuests(),
-      loadProfile(),
-      loadProgressionCatalog(),
-      loadClubIdentity(),
-      checkAchievements()
-    ]);
+    await loadProfile();
+    await loadProgressionCatalog();
+    await loadClubIdentity();
+    await checkAchievements();
   } catch (error) {
-    console.error('Pet action failed:', error);
-    setPetStatus(
-      error?.message || 'Die Pet-Aktion konnte nicht gespeichert werden.',
-      'error'
-    );
+    setPetStatus(error?.message || 'Aktion konnte nicht ausgeführt werden.', 'error');
   } finally {
     button.disabled = false;
-    button.removeAttribute('aria-busy');
-    button.innerHTML = original;
+    button.textContent = original;
   }
 }
 
@@ -1435,11 +1394,8 @@ $('pet-create-form')?.addEventListener('submit', async (event) => {
   }
 });
 
-document.addEventListener('click', (event) => {
-  const button = event.target.closest?.('.pet-action-btn');
-  if (!button) return;
-  event.preventDefault();
-  void performPetAction(button.dataset.petAction, button);
+document.querySelectorAll('.pet-action-btn').forEach(button => {
+  button.addEventListener('click', () => performPetAction(button.dataset.petAction, button));
 });
 
 $('pet-rename-toggle')?.addEventListener('click', () => {
@@ -2918,23 +2874,19 @@ function renderSocialConnections(data={}) {
 
   const incomingList=$('social-incoming-list');
   if(incomingList){
-    const incomingMarkup=incoming.map(r=>renderPerson(r,
+    incomingList.innerHTML=incoming.length?incoming.map(r=>renderPerson(r,
       `<button class="button button-primary button-small" data-social-accept="${escapeAttr(r.id)}">Annehmen</button>
        <button class="button button-secondary button-small" data-social-decline="${escapeAttr(r.id)}">Ablehnen</button>
        <button class="button button-danger button-small" data-social-block="${escapeAttr(r.user_id)}">Blockieren</button>`
-    ));
-    const outgoingMarkup=outgoing.map(r=>renderPerson(r,
-      `<span class="quest-state">Anfrage gesendet</span>
-       <button class="button button-secondary button-small" data-social-cancel-outgoing="${escapeAttr(r.id)}">Zurückziehen</button>`));
-    const allRequests=[...incomingMarkup,...outgoingMarkup];
-    incomingList.innerHTML=allRequests.length?allRequests.join(''):'<div class="club-content-empty">Keine offenen Anfragen.</div>';
+    )).join(''):'<div class="club-content-empty">Keine offenen Anfragen.</div>';
   }
 
   const friendsList=$('social-friends-list');
   if(friendsList){
     friendsList.innerHTML=friends.length?friends.map(person=>renderPerson(person,
-      `<button class="button button-secondary button-small" data-social-message="${escapeAttr(person.user_id)}">Nachricht</button>
-       <button class="button button-secondary button-small" data-social-remove="${escapeAttr(person.user_id)}">Entfernen</button>
+      `<span class="social-friend-state">✓ Freunde</span>
+       <button class="button button-secondary button-small" data-social-message="${escapeAttr(person.user_id)}">Nachricht</button>
+       <button class="button button-secondary button-small" data-social-remove="${escapeAttr(person.user_id)}">Freundschaft beenden</button>
        <button class="button button-danger button-small" data-social-block="${escapeAttr(person.user_id)}">Blockieren</button>`
     )).join(''):'<div class="club-content-empty">Noch keine Freunde.</div>';
   }
@@ -2955,12 +2907,6 @@ function renderSocialConnections(data={}) {
   document.querySelectorAll('[data-social-decline]').forEach(btn=>btn.onclick=async()=>{
     try{await rpcSocial('respond_friend_request',{p_request_id:btn.dataset.socialDecline,p_accept:false});await loadSocialConnections();}catch(e){setStatus(e.message,'error');}
   });
-  document.querySelectorAll('[data-social-cancel-outgoing]').forEach(btn=>btn.onclick=async()=>{
-    try{
-      await rpcSocial('respond_friend_request',{p_request_id:btn.dataset.socialCancelOutgoing,p_accept:false});
-      await loadSocialConnections();
-    }catch(e){setStatus(e.message,'error');}
-  });
   document.querySelectorAll('[data-social-remove]').forEach(btn=>btn.onclick=async()=>{
     if(!confirm('Freundschaft wirklich entfernen?'))return;
     try{await rpcSocial('remove_friend',{p_friend_user_id:btn.dataset.socialRemove});await loadSocialConnections();}catch(e){setStatus(e.message,'error');}
@@ -2979,21 +2925,29 @@ function renderSocialConnections(data={}) {
 
 async function loadSocialConnections(){
   try{
-    await rpcSocial('sync_my_friendships');
+    try{ await rpcSocial('sync_my_friendships'); }catch(syncError){
+      console.warn('Friendship sync skipped:',syncError);
+    }
     const data=await rpcSocial('get_my_social_connections');
     renderSocialConnections(data||{});
-    void loadQuests();
   }catch(error){
     console.warn('Social connections unavailable:',error);
     setText('social-friend-count','– Freunde');
+    const friendsList=$('social-friends-list');
+    if(friendsList) friendsList.innerHTML='<div class="club-content-empty">Freunde konnten gerade nicht geladen werden.</div>';
   }
 }
 
 async function sendFriendRequest(userId){
   try{
-    await rpcSocial('send_friend_request',{p_target_user_id:userId});
-    setStatus('Freundschaftsanfrage gesendet.','success');
-    triggerClubEffect('success', 'Freundschaftsanfrage gesendet. 💜');
+    const result=await rpcSocial('send_friend_request',{p_target_user_id:userId});
+    if(result?.status==='accepted'){
+      setStatus('Ihr seid bereits befreundet. Die Freundschaft wurde synchronisiert. 👥','success');
+      triggerClubEffect('success','Freundschaft synchronisiert. 👥');
+    }else{
+      setStatus('Freundschaftsanfrage gesendet.','success');
+      triggerClubEffect('success', 'Freundschaftsanfrage gesendet. 💜');
+    }
     await loadSocialConnections();
     await loadMemberDirectory();
   }catch(error){setStatus(error?.message||'Anfrage konnte nicht gesendet werden.','error');}
