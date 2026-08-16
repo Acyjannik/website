@@ -3782,37 +3782,58 @@ function playUISound(kind = 'click') {
   if (!ctx) return;
   if (ctx.state === 'suspended') ctx.resume().catch(() => {});
 
+  const now = ctx.currentTime;
   const presets = {
-    click:  { f: 520, g: 0.025, d: 0.045, type: 'sine' },
+    click:  { f: 520, g: 0.022, d: 0.045, type: 'sine' },
+    hover:  { f: 680, g: 0.008, d: 0.028, type: 'sine' },
     success:{ f: 740, g: 0.045, d: 0.12, type: 'triangle' },
     reward: { f: 660, g: 0.045, d: 0.16, type: 'sine' },
     level:  { f: 880, g: 0.05,  d: 0.18, type: 'triangle' },
-    error:  { f: 180, g: 0.035, d: 0.12, type: 'sawtooth' }
+    error:  { f: 180, g: 0.035, d: 0.12, type: 'sawtooth' },
+    toggle: { f: 460, g: 0.028, d: 0.07, type: 'sine' },
+    pet:    { f: 540, g: 0.032, d: 0.11, type: 'sine' },
+    whoosh: { f: 210, g: 0.028, d: 0.18, type: 'triangle' },
+    spin:   { f: 420, g: 0.024, d: 0.07, type: 'triangle' },
+    unlock: { f: 523, g: 0.042, d: 0.22, type: 'triangle' }
   };
   const p = presets[kind] || presets.click;
-  const now = ctx.currentTime;
-  const osc = ctx.createOscillator();
-  const gain = ctx.createGain();
-  osc.type = p.type;
-  osc.frequency.setValueAtTime(p.f, now);
-  gain.gain.setValueAtTime(0.0001, now);
-  gain.gain.exponentialRampToValueAtTime(p.g, now + 0.01);
-  gain.gain.exponentialRampToValueAtTime(0.0001, now + p.d);
-  osc.connect(gain).connect(ctx.destination);
-  osc.start(now);
-  osc.stop(now + p.d + 0.02);
 
-  if (kind === 'success' || kind === 'reward' || kind === 'level') {
-    const osc2 = ctx.createOscillator();
-    const gain2 = ctx.createGain();
-    osc2.type = 'sine';
-    osc2.frequency.setValueAtTime(p.f * 1.25, now + 0.045);
-    gain2.gain.setValueAtTime(0.0001, now);
-    gain2.gain.exponentialRampToValueAtTime(p.g * 0.6, now + 0.055);
-    gain2.gain.exponentialRampToValueAtTime(0.0001, now + p.d + 0.05);
-    osc2.connect(gain2).connect(ctx.destination);
-    osc2.start(now + 0.045);
-    osc2.stop(now + p.d + 0.07);
+  const tone = (frequency, gainValue, duration, type = 'sine', offset = 0, endFrequency = null) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(frequency, now + offset);
+    if (endFrequency) osc.frequency.exponentialRampToValueAtTime(endFrequency, now + offset + duration);
+    gain.gain.setValueAtTime(0.0001, now + offset);
+    gain.gain.exponentialRampToValueAtTime(gainValue, now + offset + 0.008);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + offset + duration);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(now + offset);
+    osc.stop(now + offset + duration + 0.02);
+  };
+
+  if (kind === 'whoosh') {
+    tone(180, p.g, p.d, p.type, 0, 820);
+    tone(420, p.g * 0.45, 0.12, 'sine', 0.03, 980);
+    return;
+  }
+  if (kind === 'spin') {
+    [0, .07, .14, .21, .28].forEach((offset, i) => tone(360 + i * 115, p.g, p.d, p.type, offset));
+    return;
+  }
+  if (kind === 'unlock') {
+    [523, 659, 784, 1047, 1319].forEach((freq, i) => tone(freq, p.g * (1 - i * .08), .20, 'triangle', i * .075));
+    tone(1568, p.g * .55, .32, 'sine', .38);
+    return;
+  }
+  tone(p.f, p.g, p.d, p.type);
+
+  if (kind === 'success' || kind === 'reward' || kind === 'level' || kind === 'pet' || kind === 'toggle') {
+    const second = kind === 'pet' ? p.f * 1.18 : p.f * 1.25;
+    tone(second, p.g * 0.58, p.d * 0.82, 'sine', 0.045);
+  }
+  if (kind === 'level' || kind === 'reward') {
+    tone(p.f * 1.5, p.g * 0.36, .14, 'triangle', .10);
   }
 }
 
@@ -4315,4 +4336,101 @@ function escapeAttr(value = '') {
   return escapeHtml(value);
 }
 
+
+/* V14.4 — Liquid Glass interaction layer, richer UI sounds & secret ACY protocol. */
+function acyReducedMotion() {
+  return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+}
+
+function acyButtonRipple(button, event) {
+  if (!button || acyReducedMotion()) return;
+  const rect = button.getBoundingClientRect();
+  const ripple = document.createElement('span');
+  ripple.className = 'acy-button-ripple';
+  ripple.style.left = `${(event.clientX || rect.left + rect.width / 2) - rect.left}px`;
+  ripple.style.top = `${(event.clientY || rect.top + rect.height / 2) - rect.top}px`;
+  button.appendChild(ripple);
+  ripple.addEventListener('animationend', () => ripple.remove(), { once: true });
+}
+
+function acyButtonSound(button) {
+  if (!button || button.disabled) return;
+  if (button.closest('[data-acy-sfx-silent]')) return;
+  if (button.matches('#quest-claim, .quest-claim, #daily-streak-claim, #club-wheel-spin')) return;
+  if (button.matches('.pet-action-btn, [data-pet-action]')) return;
+  if (button.matches('#sound-toggle, #settings-toggle-sounds')) return;
+  if (button.matches('[data-acy-refresh], #club-refresh-all')) return playUISound('whoosh');
+  if (button.matches('.button-danger, [data-danger]')) return playUISound('error');
+  if (button.matches('.button-primary')) return playUISound('success');
+  playUISound('click');
+}
+
+function acyUnlockCosmicProtocol() {
+  if (window.__acyCosmicCooldown) return;
+  window.__acyCosmicCooldown = true;
+  const overlay = document.createElement('div');
+  overlay.className = 'acy-cosmic-easter-egg';
+  overlay.innerHTML = `
+    <div class="acy-cosmic-stars" aria-hidden="true"></div>
+    <div class="acy-cosmic-card" role="dialog" aria-label="ACY Cosmic Protocol">
+      <div class="acy-cosmic-eyebrow">SECRET PROTOCOL</div>
+      <div class="acy-cosmic-pet"><img src="/assets/pet-dragon.webp" alt="Cosmic ACY Pet"></div>
+      <div class="acy-cosmic-title">ACY COSMIC MODE</div>
+      <p>Du hast das geheime Protokoll gefunden.</p>
+      <span>✦ +∞ Aura · Cosmic Pet online · 1 geheime Entdeckung</span>
+    </div>`;
+  document.body.appendChild(overlay);
+  document.body.classList.add('acy-cosmic-active');
+  playUISound('unlock');
+  if (!acyReducedMotion()) spawnClubConfetti(70);
+  requestAnimationFrame(() => overlay.classList.add('is-visible'));
+  setTimeout(() => {
+    overlay.classList.remove('is-visible');
+    document.body.classList.remove('acy-cosmic-active');
+    setTimeout(() => overlay.remove(), 500);
+  }, 5200);
+  setTimeout(() => { window.__acyCosmicCooldown = false; }, 6500);
+}
+
+function initAcyEnhancedEffects() {
+  document.addEventListener('click', event => {
+    const button = event.target.closest?.('button, a.button');
+    if (!button) return;
+    acyButtonRipple(button, event);
+    acyButtonSound(button);
+  }, { passive: true });
+
+  document.addEventListener('pointerover', event => {
+    const button = event.target.closest?.('button.button, a.button, .pet-choice, .catalog-level-v14');
+    if (!button || button.matches(':disabled') || acyReducedMotion()) return;
+    if (button.dataset.acyHoverSound === '1') return;
+    button.dataset.acyHoverSound = '1';
+    playUISound('hover');
+  }, { passive: true });
+
+  let secretBuffer = '';
+  let secretTimer = null;
+  document.addEventListener('keydown', event => {
+    if (event.ctrlKey || event.metaKey || event.altKey) return;
+    const key = String(event.key || '').toLowerCase();
+    if (!/^[acy]$/.test(key)) return;
+    secretBuffer = (secretBuffer + key).slice(-3);
+    clearTimeout(secretTimer);
+    secretTimer = setTimeout(() => { secretBuffer = ''; }, 2500);
+    if (secretBuffer === 'acy') {
+      secretBuffer = '';
+      acyUnlockCosmicProtocol();
+    }
+  });
+
+  document.querySelectorAll('.brand-mark').forEach(mark => {
+    mark.setAttribute('title', 'ACY');
+    mark.addEventListener('dblclick', event => {
+      event.preventDefault();
+      acyUnlockCosmicProtocol();
+    });
+  });
+}
+
+initAcyEnhancedEffects();
 init();

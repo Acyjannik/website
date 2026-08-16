@@ -3537,3 +3537,132 @@ body::before{
 .club-auth-page .catalog-levels-scroll .catalog-level-v14:nth-child(n+21):nth-child(-n+29).is-complete{border-color:rgba(216,180,254,.32);box-shadow:0 0 30px rgba(192,132,252,.16),inset 0 0 16px rgba(216,180,254,.05)}
 .club-auth-page .catalog-levels-scroll .catalog-level-v14:nth-child(30){border-color:rgba(245,230,255,.58);box-shadow:0 0 18px rgba(216,180,254,.32),0 0 48px rgba(168,85,247,.20),inset 0 0 24px rgba(255,255,255,.07)}
 .club-auth-page .catalog-levels-scroll .catalog-level-v14:nth-child(30)>span{box-shadow:0 0 12px rgba(255,255,255,.28),0 0 30px rgba(216,180,254,.44)}
+
+/* ============================================================
+   ACY V14.4 — richer Liquid Glass controls & Cosmic Easter Egg
+   ============================================================ */
+.club-auth-page button,
+.club-auth-page a.button{
+  --acy-button-glow:rgba(168,85,247,.18);
+  transform:translateZ(0);
+  transition:
+    transform .2s cubic-bezier(.2,.8,.2,1),
+    border-color .2s ease,
+    box-shadow .2s ease,
+    background .2s ease,
+    filter .2s ease;
+}
+.club-auth-page button:not(:disabled):active,
+.club-auth-page a.button:active{
+  transform:translateY(1px) scale(.985);
+  filter:saturate(1.15);
+}
+.club-auth-page .button-primary:not(:disabled):hover{
+  box-shadow:
+    0 12px 34px rgba(168,85,247,.28),
+    0 0 0 1px rgba(233,213,255,.08),
+    0 0 32px var(--acy-button-glow);
+}
+.club-auth-page .button-secondary:not(:disabled):hover,
+.club-auth-page .sound-toggle:not(:disabled):hover,
+.club-auth-page .notification-bell:not(:disabled):hover{
+  box-shadow:
+    0 12px 28px rgba(0,0,0,.22),
+    inset 0 1px 0 rgba(255,255,255,.07),
+    0 0 24px var(--acy-button-glow);
+}
+.acy-button-ripple{
+  position:absolute;
+  width:14px;
+  height:14px;
+  border-radius:50%;
+  pointer-events:none;
+  z-index:4;
+  background:radial-gradient(circle,rgba(255,255,255,.52),rgba(216,180,254,.20) 35%,transparent 72%);
+  transform:translate(-50%,-50%) scale(.2);
+  animation:acy-ripple .58s cubic-bezier(.16,.75,.3,1) forwards;
+}
+@keyframes acy-ripple{
+  0%{opacity:.9;transform:translate(-50%,-50%) scale(.2)}
+  70%{opacity:.34}
+  100%{opacity:0;transform:translate(-50%,-50%) scale(16)}
+}
+.club-auth-page .acy-header-refresh.is-refreshing{
+  box-shadow:0 0 0 1px rgba(216,180,254,.12),0 0 30px rgba(168,85,247,.18);
+}
+.club-auth-page .acy-section-refresh.is-refreshing{
+  box-shadow:0 0 0 1px rgba(216,180,254,.10),0 0 24px rgba(168,85,247,.18);
+}
+
+.acy-cosmic-easter-egg{
+  position:fixed;
+  inset:0;
+  z-index:20000;
+  display:grid;
+  place-items:center;
+  padding:24px;
+  background:rgba(4,3,9,.72);
+  backdrop-filter:blur(22px) saturate(135%);
+  -webkit-backdrop-filter:blur(22px) saturate(135%);
+  opacity:0;
+  transition:opacity .45s ease;
+}
+.acy-cosmic-easter-egg.is-visible{opacity:1}
+.acy-cosmic-stars,
+.acy-cosmic-stars::before,
+.acy-cosmic-stars::after{
+  position:absolute;
+  inset:0;
+  content:"";
+  pointer-events:none;
+  background-image:
+    radial-gradient(circle at 18% 22%,rgba(255,255,255,.75) 0 1px,transparent 1.5px),
+    radial-gradient(circle at 72% 18%,rgba(216,180,254,.7) 0 1px,transparent 1.5px),
+    radial-gradient(circle at 46% 78%,rgba(255,255,255,.6) 0 1px,transparent 1.5px),
+    radial-gradient(circle at 82% 68%,rgba(192,132,252,.55) 0 1px,transparent 1.5px);
+  background-size:220px 190px,310px 260px,390px 330px,270px 230px;
+  animation:acy-stars-drift 12s linear infinite;
+}
+.acy-cosmic-stars::before{transform:scale(1.4);opacity:.5;animation-duration:18s;animation-direction:reverse}
+.acy-cosmic-stars::after{transform:scale(1.9);opacity:.24;animation-duration:26s}
+@keyframes acy-stars-drift{to{transform:translate3d(24px,-18px,0) scale(1.02)}}
+.acy-cosmic-card{
+  position:relative;
+  width:min(520px,100%);
+  padding:42px 34px 34px;
+  text-align:center;
+  border:1px solid rgba(233,213,255,.32);
+  border-radius:32px;
+  background:
+    radial-gradient(circle at 50% 0%,rgba(192,132,252,.22),transparent 52%),
+    linear-gradient(145deg,rgba(255,255,255,.09),rgba(255,255,255,.025));
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.10),
+    0 35px 120px rgba(0,0,0,.58),
+    0 0 80px rgba(168,85,247,.22);
+  backdrop-filter:blur(24px) saturate(145%);
+  -webkit-backdrop-filter:blur(24px) saturate(145%);
+  transform:translateY(18px) scale(.96);
+  transition:transform .55s cubic-bezier(.2,.9,.2,1);
+}
+.acy-cosmic-easter-egg.is-visible .acy-cosmic-card{transform:none}
+.acy-cosmic-eyebrow{font-size:10px;letter-spacing:.25em;color:#d8b4fe;font-weight:900}
+.acy-cosmic-pet{
+  width:170px;
+  height:170px;
+  margin:16px auto 12px;
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(216,180,254,.22),rgba(168,85,247,.07) 55%,transparent 72%);
+  box-shadow:0 0 50px rgba(168,85,247,.22),inset 0 0 30px rgba(255,255,255,.04);
+}
+.acy-cosmic-pet img{width:145px;height:145px;object-fit:contain;filter:drop-shadow(0 0 22px rgba(216,180,254,.42))}
+.acy-cosmic-title{font-family:'Space Grotesk',Inter,sans-serif;font-size:30px;font-weight:900;letter-spacing:-.05em;color:#fff;text-shadow:0 0 26px rgba(216,180,254,.32)}
+.acy-cosmic-card p{margin:8px 0 10px!important;color:#d4d4d8!important;font-size:14px!important;line-height:1.5!important}
+.acy-cosmic-card>span{font-size:10px;color:#a78bfa}
+body.acy-cosmic-active .club-auth-shell{filter:saturate(1.12)}
+@media(prefers-reduced-motion:reduce){
+  .acy-button-ripple,.acy-cosmic-stars,.acy-cosmic-stars::before,.acy-cosmic-stars::after{animation:none}
+  .acy-cosmic-easter-egg,.acy-cosmic-card{transition:none}
+}

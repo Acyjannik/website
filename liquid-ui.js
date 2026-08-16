@@ -1,5 +1,5 @@
 
-/* ACY V14 — lightweight global pointer / liquid-glass interaction.
+/* ACY V14.4 — lightweight global pointer / liquid-glass interaction.
    No animation loop unless the pointer actually moves. */
 (() => {
   if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
@@ -20,7 +20,7 @@
     if (!raf) raf = requestAnimationFrame(paint);
   }, {passive:true});
 
-  // V14.2 — event delegation avoids attaching dozens/hundreds of pointer listeners
+  // V14.4 — event delegation avoids attaching dozens/hundreds of pointer listeners
   // to dynamic Club cards that are re-rendered after every refresh.
   document.addEventListener('pointerover', event => {
     const el = event.target.closest?.('button, a, .member-card, .club-content-item, .member-badge, .catalog-level, .hub-roadmap-step');
