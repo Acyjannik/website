@@ -1,6 +1,6 @@
 const tls = require('node:tls');
 
-const NOTIFICATION_EMAIL_API_VERSION = '7.1.10';
+const NOTIFICATION_EMAIL_API_VERSION = '7.1.11';
 const env = (name, fallback='') => String(process.env[name] || fallback);
 
 function json(res, status, payload) {
@@ -132,6 +132,73 @@ function assertAllowedSender() {
   return { smtpUser, emailFrom };
 }
 
+async function smtpSendMinimal({to}) {
+  const host = cleanEmail(env('SMTP_HOST'));
+  const port = Number(env('SMTP_PORT', '587'));
+  const {smtpUser} = assertAllowedSender();
+  const recipient = cleanEmail(to);
+  let socket;
+
+  try {
+    socket = await openTcpSocket(host, port);
+    await smtpResponse(socket, [220]);
+
+    socket.write(`EHLO ${cleanEmail(env('SMTP_HELO', 'acyjannik.de'))}\r\n`);
+    await smtpResponse(socket, [250]);
+
+    if (port === 587) {
+      socket.write('STARTTLS\r\n');
+      await smtpResponse(socket, [220]);
+      socket = await upgradeToTls(socket, host);
+      socket.write(`EHLO ${cleanEmail(env('SMTP_HELO', 'acyjannik.de'))}\r\n`);
+      await smtpResponse(socket, [250]);
+    }
+
+    socket.write('AUTH LOGIN\r\n');
+    await smtpResponse(socket, [334]);
+    socket.write(`${Buffer.from(smtpUser).toString('base64')}\r\n`);
+    await smtpResponse(socket, [334]);
+    socket.write(`${Buffer.from(cleanEmail(env('SMTP_PASS'))).toString('base64')}\r\n`);
+    await smtpResponse(socket, [235]);
+
+    socket.write(`MAIL FROM:<${smtpUser}>\r\n`);
+    await smtpResponse(socket, [250]);
+    socket.write(`RCPT TO:<${recipient}>\r\n`);
+    await smtpResponse(socket, [250, 251]);
+
+    socket.write('DATA\r\n');
+    await smtpResponse(socket, [354]);
+
+    const now = new Date().toUTCString();
+    const domain = smtpUser.slice(smtpUser.lastIndexOf('@') + 1);
+    const messageId = `<minimal-${Date.now()}.${Math.random().toString(16).slice(2)}@${domain}>`;
+    const message = [
+      `Date: ${now}`,
+      `Message-ID: ${messageId}`,
+      `From: <${smtpUser}>`,
+      `To: <${recipient}>`,
+      'Subject: ACY IONOS Minimal SMTP Test',
+      'MIME-Version: 1.0',
+      'Content-Type: text/plain; charset=UTF-8',
+      'Content-Transfer-Encoding: 8bit',
+      '',
+      'ACYJANNIK IONOS Minimal SMTP Test',
+      '',
+      'Wenn diese Mail ankommt, akzeptiert IONOS den authentifizierten Absender in dieser Minimalform.',
+      ''
+    ].join('\r\n').replace(/^\./gm, '..');
+
+    socket.write(message + '\r\n.\r\n');
+    await smtpResponse(socket, [250]);
+    socket.write('QUIT\r\n');
+    await smtpResponse(socket, [221, 250]);
+
+    return {host,port,smtpUser,envelopeFrom:smtpUser,headerFrom:smtpUser};
+  } finally {
+    socket?.end?.();
+  }
+}
+
 async function smtpSend({to, subject, text, html}) {
   const host = cleanEmail(env('SMTP_HOST'));
   const port = Number(env('SMTP_PORT', '587'));
@@ -241,6 +308,33 @@ module.exports = async (req, res) => {
     }
 
     const body = typeof req.body === 'object' ? (req.body || {}) : JSON.parse(req.body || '{}');
+
+    // V7.1.11: isolated IONOS sender test. This intentionally sends the
+    // smallest possible plain-text message using the authenticated mailbox.
+    if (body.testSmtpMinimal === true) {
+      const selfRes = await sbFetch(`/auth/v1/admin/users/${encodeURIComponent(user.id)}`);
+      if (!selfRes.ok) throw new Error(`Eigene E-Mail konnte nicht geladen werden. Auth HTTP ${selfRes.status}`);
+      const self = await selfRes.json();
+      if (!self.email) return json(res, 400, {apiVersion: NOTIFICATION_EMAIL_API_VERSION,error:'Dein Admin-Account hat keine E-Mail-Adresse.'});
+
+      const result = await smtpSendMinimal({to:self.email});
+      return json(res, 200, {
+        apiVersion: NOTIFICATION_EMAIL_API_VERSION,
+        ok: true,
+        mode: 'minimal',
+        sentTo: self.email,
+        smtpHost: result.host,
+        smtpPort: result.port,
+        smtpUserMasked: result.smtpUser
+          ? `${result.smtpUser.slice(0, Math.min(2, result.smtpUser.length))}***${result.smtpUser.slice(result.smtpUser.lastIndexOf('@'))}`
+          : '(leer)',
+        smtpUserDomain: result.smtpUser.slice(result.smtpUser.lastIndexOf('@') + 1),
+        authAccepted: true,
+        dataAccepted: true,
+        envelopeFrom: result.envelopeFrom,
+        headerFrom: result.headerFrom
+      });
+    }
 
     // V7.1.5: direct SMTP test through the EXISTING deployed API route.
     // This avoids relying on a brand-new Vercel function path.

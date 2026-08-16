@@ -1219,3 +1219,12 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Enforced the IONOS sender rule in code: SMTP_USER is used exactly for both SMTP envelope and From header, and EMAIL_FROM must be on the same domain.
 - Post-DATA SMTP rejection is now reported explicitly as `SMTP DATA abgewiesen`.
 - No database changes.
+
+
+## V8.5.2 — IONOS Minimal SMTP Test
+- Added `IONOS Minimal-Test` to the Admin tool.
+- Sends a minimal plain-text message using the exact authenticated SMTP mailbox as envelope and From.
+- The test deliberately omits HTML, display name, Reply-To and custom headers.
+- The result reports authentication/DATA success plus masked SMTP user and envelope sender.
+- API version bumped to 7.1.11.
+- No database changes.

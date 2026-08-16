@@ -1286,6 +1286,41 @@ $('test-email-btn')?.addEventListener('click', async () => {
   }
 });
 
+$('test-email-minimal-btn')?.addEventListener('click', async () => {
+  const button = $('test-email-minimal-btn');
+  if (button) { button.disabled = true; button.textContent = 'IONOS-Test läuft…'; }
+
+  try {
+    const { data } = await supabaseClient.auth.getSession();
+    const token = data?.session?.access_token;
+    if (!token) throw new Error('Keine aktive Admin-Sitzung.');
+
+    const response = await fetch('/api/club-notification-email', {
+      method:'POST',
+      headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},
+      body:JSON.stringify({testSmtpMinimal:true})
+    });
+    const payload = await response.json().catch(()=>({}));
+
+    if (!response.ok) {
+      const diag = payload.smtpUserMasked
+        ? ` · SMTP-User ${payload.smtpUserMasked} · Domain ${payload.smtpUserDomain||'–'} · Envelope ${payload.envelopeFrom||'–'}`
+        : '';
+      message('poll-admin-message',
+        `IONOS Minimal-Test fehlgeschlagen · API ${payload.apiVersion||'–'} · ${payload.error||`HTTP ${response.status}`}${diag}`);
+      return;
+    }
+
+    message('poll-admin-message',
+      `IONOS Minimal-Test erfolgreich · Auth ${payload.authAccepted?'OK':'–'} · DATA ${payload.dataAccepted?'OK':'–'} · Envelope ${payload.envelopeFrom||'–'} · Ziel ${payload.sentTo||'–'}`,
+      true);
+  } catch (error) {
+    message('poll-admin-message',`IONOS Minimal-Test fehlgeschlagen · ${error?.message||'Unbekannter Fehler'}`);
+  } finally {
+    if (button) { button.disabled = false; button.textContent = 'IONOS Minimal-Test'; }
+  }
+});
+
 $('twitch-test-btn')?.addEventListener('click', async () => {
   const button = $('twitch-test-btn');
   if (button) { button.disabled = true; button.textContent = 'Teste Twitch…'; }
