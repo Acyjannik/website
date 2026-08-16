@@ -44,11 +44,6 @@ for all to authenticated
 using (exists (select 1 from public.admin_users a where a.user_id = auth.uid()))
 with check (exists (select 1 from public.admin_users a where a.user_id = auth.uid()));
 
-insert into public.club_events (title, description, event_date, location, twitch_url, enabled)
-select 'Fortnite Community Night','Gemeinsame Runden mit der ACY Community.',
-       now() + interval '1 day' + interval '18 hours',
-       'Twitch','https://www.twitch.tv/acyjannik',true
-where not exists (select 1 from public.club_events where title='Fortnite Community Night');
 
 insert into public.club_news (title, body, published_at, enabled)
 select 'Willkommen im ACY Club','Der ACY Club ist jetzt live. Mehr Community-Funktionen folgen nach und nach.',now(),true

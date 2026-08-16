@@ -1311,3 +1311,12 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Club member hub gets a compact top-game trend list.
 - Admin Games status includes a tooltip with the current top live games.
 - Added `supabase/club_game_trends.sql`.
+
+
+## V9.3.1 — Event Cleanup & Attendance Fix
+- Removed the automatic `Fortnite Community Night` demo-event seed from the standard events SQL.
+- Added a one-time cleanup migration for the already-created demo event and expired events.
+- The public event feed now returns only future enabled events.
+- Attendance API validates event status/time before allowing join/leave.
+- Past events can no longer show an active `Teilnehmen` action.
+- Added more robust attendance handling before XP removal.

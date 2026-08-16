@@ -3050,7 +3050,7 @@ async function loadClubContent(){
         const count=Number(e.attendee_count||0);
         const attending = !!e.user_attending;
         return `<article class="club-content-item event-item" data-event-id="${e.id}" data-attending="${attending}">
-          <div class="club-content-date">${escapeHtml(when)}</div>
+          <div class="club-content-date" data-iso="${escapeAttr(e.event_date)}">${escapeHtml(when)}</div>
           <div class="club-content-main"><strong>${escapeHtml(e.title)}</strong><p>${escapeHtml(e.description||'')}</p><small>${escapeHtml(e.location||'Community')} · <span class="event-attendee-count">${count}</span> dabei</small></div>
           <button type="button" class="button button-small ${attending?'button-secondary':'button-primary'} event-attend-btn">${attending?'Dabei ✓':'Teilnehmen'}</button>
         </article>`;
@@ -3062,6 +3062,12 @@ async function loadClubContent(){
           const eventId=Number(item?.dataset.eventId);
           if(!eventId) return;
           const isAttending = item?.dataset.attending === 'true';
+          const eventTime=Date.parse(item?.querySelector('.club-content-date')?.dataset?.iso || '');
+          if(Number.isFinite(eventTime) && eventTime<Date.now()){
+            btn.disabled=true;
+            btn.textContent='Vorbei';
+            return;
+          }
           btn.disabled=true;
           btn.textContent=isAttending?'Abmelden…':'Dabei…';
           try{

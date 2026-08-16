@@ -21,7 +21,7 @@ export default async function handler(req,res){
     return t?JSON.parse(t):[];
   }
   try{
-    const events=await rows("club_events?select=*&enabled=eq.true&order=event_date.asc&limit=8");
+    const events=await rows("club_events?select=*&enabled=eq.true&event_date=gte."+encodeURIComponent(new Date().toISOString())+"&order=event_date.asc&limit=8");
     const news=await rows("club_news?select=*&enabled=eq.true&order=published_at.desc&limit=8");
 
     for(const event of events){

@@ -19,6 +19,15 @@ export default async function handler(req,res){
 
     const headers={apikey:serviceKey,Authorization:`Bearer ${serviceKey}`,"Content-Type":"application/json"};
 
+    const eventRes=await fetch(`${url}/rest/v1/club_events?id=eq.${eventId}&select=id,title,event_date,enabled&limit=1`,{headers});
+    if(!eventRes.ok) return res.status(500).json({error:`Event konnte nicht geprüft werden (${eventRes.status}).`});
+    const eventRows=await eventRes.json();
+    const event=eventRows?.[0];
+    if(!event) return res.status(404).json({error:"Event nicht gefunden."});
+    if(event.enabled!==true) return res.status(410).json({error:"Dieses Event ist nicht mehr aktiv."});
+    const eventTime=new Date(event.event_date).getTime();
+    if(Number.isFinite(eventTime) && eventTime<Date.now()) return res.status(410).json({error:"Dieses Event ist bereits vorbei."});
+
     if(action==="join"){
       const r=await fetch(`${url}/rest/v1/club_event_attendance`,{
         method:"POST",headers,
@@ -37,6 +46,10 @@ export default async function handler(req,res){
         const t=await rpc.text(); console.error("XP award:",t);
       }
     } else {
+      const existingAttendance=await fetch(`${url}/rest/v1/club_event_attendance?event_id=eq.${eventId}&user_id=eq.${user.id}&select=id&limit=1`,{headers});
+      if(!existingAttendance.ok) return res.status(500).json({error:`Teilnahme konnte nicht geprüft werden (${existingAttendance.status}).`});
+      const hadAttendance=(await existingAttendance.json()).length>0;
+
       const r=await fetch(`${url}/rest/v1/club_event_attendance?event_id=eq.${eventId}&user_id=eq.${user.id}`,{
         method:"DELETE",headers
       });
@@ -45,13 +58,15 @@ export default async function handler(req,res){
       }
 
       // Reverse the one-time attendance XP only when the attendance record existed.
-      const rpc=await fetch(`${url}/rest/v1/rpc/revoke_club_xp`,{
-        method:"POST",headers,
-        body:JSON.stringify({p_user_id:user.id,p_event_key:`event_attended_${eventId}`,p_xp:100})
-      });
-      if(!rpc.ok){
-        const t=await rpc.text();
-        console.error("XP revoke:",t);
+      if(hadAttendance){
+        const rpc=await fetch(`${url}/rest/v1/rpc/revoke_club_xp`,{
+          method:"POST",headers,
+          body:JSON.stringify({p_user_id:user.id,p_event_key:`event_attended_${eventId}`,p_xp:100})
+        });
+        if(!rpc.ok){
+          const t=await rpc.text();
+          console.error("XP revoke:",t);
+        }
       }
     }
 
