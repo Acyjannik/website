@@ -2800,7 +2800,11 @@ async function loadQuests(){
     if(error)throw error;
     questData=data||{daily:[],weekly:[],periods:{}};
 
-    await supabaseClient.rpc('sync_weekly_game_quest').catch(()=>{});
+    try {
+      await supabaseClient.rpc('sync_weekly_game_quest');
+    } catch (questSyncError) {
+      console.warn('Weekly game quest sync skipped:', questSyncError);
+    }
     for(const type of ['daily','weekly']){
       const items=Array.isArray(questData[type])?questData[type]:[];
       const period=questPeriodKey(type);
@@ -2819,7 +2823,7 @@ async function loadQuests(){
   }catch(error){
     console.warn('Quests unavailable:',error);
     list.innerHTML=`<div class="club-content-empty">Aufgaben konnten nicht geladen werden: ${escapeHtml(error?.message||'Unbekannter Fehler')}</div>`;
-    setText('quest-count-chip','Fehler');
+    setText('quest-count-chip','Nicht verfügbar');
   }
 }
 
