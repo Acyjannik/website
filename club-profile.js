@@ -1618,6 +1618,31 @@ async function claimDailyStreak(){
 }
 document.getElementById('daily-streak-claim')?.addEventListener('click',claimDailyStreak);
 
+
+async function loadModeratorAccessShortcut(){
+  const link=$('moderator-access-btn');
+  if(!link||!currentUser)return;
+  try{
+    const {data}=await supabaseClient.auth.getSession();
+    const token=data?.session?.access_token;
+    if(!token)return;
+    const response=await fetch('/api/mod-auth',{
+      headers:{Authorization:`Bearer ${token}`},
+      cache:'no-store'
+    });
+    const payload=await response.json().catch(()=>({}));
+    if(!response.ok)return;
+    const allowed=payload?.isModerator===true;
+    link.hidden=!allowed;
+    if(allowed){
+      link.textContent=payload.isAdmin ? '⚙️ Admin / Mod' : '🛡️ Moderator';
+      link.title=payload.isAdmin ? 'Admin- und Moderationsbereich öffnen' : 'Moderationsbereich öffnen';
+    }
+  }catch(error){
+    console.warn('Moderator shortcut unavailable:',error);
+  }
+}
+
 async function init() {
   try {
     const cfg = await (await fetch('/api/config', { cache: 'no-store' })).json();
@@ -1639,6 +1664,7 @@ async function init() {
     }
 
     currentUser = data.session.user;
+    await loadModeratorAccessShortcut();
     initMemberSectionNavigation();
     initSoundToggle();
     initMemberDirectoryFilters();

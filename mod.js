@@ -11,7 +11,11 @@ async function session(){
   const client=window.supabase.createClient(config.supabaseUrl,config.supabaseAnonKey);
   const {data}=await client.auth.getSession();
   const token=data?.session?.access_token;
-  if(!token)throw new Error('Bitte zuerst im ACY Club einloggen.');
+  if(!token){
+    const returnTo=encodeURIComponent('/mod.html');
+    window.location.href=`/club.html?redirect=${returnTo}`;
+    throw new Error('Weiterleitung zum ACY Club Login…');
+  }
   const role=await fetch('/api/mod-auth',{headers:{Authorization:`Bearer ${token}`},cache:'no-store'}).then(r=>r.json());
   if(!role.isModerator)throw new Error('Dieser Account ist nicht als Moderator freigeschaltet.');
   modSession={client,token,role};

@@ -24,8 +24,11 @@ export default async function handler(req,res){
     let targetUserIds=[];
     if(body.adminBroadcast===true){
       if(!isAdmin)return json(res,403,{error:"Nur Admins dürfen Push-Broadcasts senden."});
-      const profiles=await (await sb(url,key,"/rest/v1/profiles?select=id")).json();
+      const profilesRes=await sb(url,key,"/rest/v1/profiles?select=id");
+      if(!profilesRes.ok)return json(res,500,{error:"Mitglieder konnten nicht geladen werden."});
+      const profiles=await profilesRes.json();
       targetUserIds=(profiles||[]).map(p=>p.id);
+      if(!targetUserIds.length)return json(res,200,{ok:true,sent:0,failed:0,removed:0,note:"Keine Mitglieder vorhanden."});
     }else{
       targetUserIds=[String(body.userId||caller.id)];
       if(targetUserIds[0]!==caller.id&&!isAdmin)return json(res,403,{error:"Keine Berechtigung für diesen Empfänger."});

@@ -1390,6 +1390,43 @@ async function loadPollsAdmin() {
   }
 }
 
+
+$('test-push-all-btn')?.addEventListener('click', async () => {
+  const button=$('test-push-all-btn');
+  const status=$('push-test-message');
+  if(!confirm('Test-Push wirklich an ALLE aktuell registrierten Geräte senden?')) return;
+  button.disabled=true;
+  button.textContent='📱 Push wird gesendet…';
+  if(status)status.textContent='';
+  try{
+    const {data}=await supabaseClient.auth.getSession();
+    const token=data?.session?.access_token;
+    if(!token)throw new Error('Keine aktive Admin-Sitzung.');
+    const response=await fetch('/api/push-send',{
+      method:'POST',
+      headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},
+      body:JSON.stringify({
+        adminBroadcast:true,
+        title:'ACY Club · Push-Test 🔔',
+        body:'Wenn du diese Nachricht siehst, funktionieren die ACY Push-Benachrichtigungen auf deinem Gerät.',
+        url:'/club-profile.html#notification-settings',
+        tag:'acy-push-test'
+      })
+    });
+    const payload=await response.json().catch(()=>({}));
+    if(!response.ok)throw new Error(payload.error||`HTTP ${response.status}`);
+    if(status){
+      status.textContent=`Push-Test gesendet · ${payload.sent||0} zugestellt · ${payload.removed||0} alte Abos entfernt · ${payload.failed||0} Fehler.`;
+      status.classList.toggle('error',Number(payload.failed||0)>0);
+    }
+  }catch(error){
+    if(status){status.textContent=error.message||'Push-Test fehlgeschlagen.';status.classList.add('error');}
+  }finally{
+    button.disabled=false;
+    button.textContent='📱 Push-Test an alle Geräte';
+  }
+});
+
 $('test-email-btn')?.addEventListener('click', async () => {
   const button = $('test-email-btn');
   if (button) {

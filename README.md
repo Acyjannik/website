@@ -1403,3 +1403,11 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Added `push-subscribe`, `push-config` and `push-send` APIs.
 - Existing ACY email/in-app notifications can now also dispatch a push notification to subscribed devices when VAPID keys are configured.
 - Android is supported through standard browser PWA installation/Web Push; exact install UI varies by browser.
+
+
+## V9.9.1 — Moderator Shortcut & Push Test
+- Added a role-aware `🛡️ Moderator` shortcut directly inside the Club section navigation.
+- Admin accounts can see an `⚙️ Admin / Mod` shortcut.
+- `/mod.html` now redirects unauthenticated users to the normal ACY Club login instead of showing a dead-end error.
+- Added an Admin → Sicherheit → Mobile Push test button.
+- The Push Test sends one notification to every currently registered push device; expired subscriptions are automatically removed.
