@@ -6,7 +6,7 @@ export default async function handler(_req, res) {
       hero_kicker: "GAMING · STREAMING · COMMUNITY",
       hero_title: "ACYJANNIK",
       hero_description: "Willkommen im digitalen Zuhause von Acyjannik. Streams, Games und der ACY Club an einem Ort.",
-      about_text: "Gaming, Streaming und eine Community, die weit über einen Stream hinausgeht.",
+      about_text: 'Hi, ich bin Jannik! 💜\\nIch bin 24 Jahre alt und streame seit Januar 2024. Angefangen hat alles auf TikTok, mittlerweile gibt es meine Streams auch hier auf Twitch.\\n\\nBei mir dreht sich vieles um Fortnite, Horror-Games und alles, was gerade Spaß macht. Mal entspannt, mal komplett chaotisch und manchmal vermutlich etwas fragwürdig. 😅\\n\\nWas mir aber genauso wichtig ist wie die Games, ist die Community. Für mich soll der Stream ein Ort sein, an dem man gerne vorbeikommt, zusammen lacht, quatscht, neue Leute kennenlernt und einfach eine gute Zeit hat.\\n\\nGenau deshalb gibt es auch den ACY Club: ein Ort, an dem die Community nicht nur zuschaut, sondern selbst Teil davon wird. Mit Profilen, XP, Achievements, Events, Freunden, Pets und noch vielem mehr, das nach und nach dazukommt.\\n\\nDanke für jede Form von Unterstützung. Ob Follow, Chatnachricht, Lurk, Sub, Raid oder einfach nur da sein: Ich weiß das wirklich zu schätzen. 🫶\\n\\nSchön, dass du hier bist. Willkommen bei ACY. 💜',
       community_text: "Mehr als nur ein Chat. Die Community rund um Acyjannik, zusammengebracht an einem Ort.",
       hero_image_url: "/assets/acyjannik-hero.png",
     },
@@ -72,6 +72,10 @@ export default async function handler(_req, res) {
     }));
 
     // Prevent accidental disappearance of the required current games.
+    // V7.4.8 fixes a regression where `mergedGames` was referenced before
+    // initialization, causing the whole public-content endpoint to fall back
+    // to the static placeholder content.
+    const mergedGames = [...normalizedGames];
     const required = new Map(fallback.games.map(g => [g.name, g]));
     for (const fallbackGame of fallback.games) {
       if (!mergedGames.some(g => g.name === fallbackGame.name)) {

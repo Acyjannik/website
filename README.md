@@ -1056,3 +1056,12 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Added persistent `Cookie-Einstellungen` link in the footer.
 - The login/session is intentionally **not** stored as a password or hand-built cookie. Supabase keeps the authenticated session in its browser auth storage, which remains available for the expressly requested login function.
 - No SQL changes.
+
+
+## V7.7.0 — ACY Glücksrad
+- Added daily server-side Glücksrad to the Club profile.
+- Rewards: XP, Pet-Bonus, Extra Dreh and a tracked Twitch-Reward placeholder.
+- Reward result is decided server-side; animation is only visual.
+- Added recent reward history.
+- Twitch Channel Points are not directly grantable through the standard Twitch API; the Twitch reward is tracked in ACY until the Twitch bot integration is authorized.
+- Run `supabase/club_wheel.sql` once in Supabase.

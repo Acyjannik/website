@@ -1256,6 +1256,66 @@ $('pet-rename-form')?.addEventListener('submit', async (event) => {
   }
 });
 
+
+// V7.7 ACY Glücksrad
+const WHEEL_SEGMENTS = [
+  {key:'xp_25',angle:0},{key:'xp_50',angle:51.43},{key:'xp_100',angle:102.86},
+  {key:'xp_250',angle:154.29},{key:'pet_care',angle:205.72},
+  {key:'extra_spin',angle:257.15},{key:'twitch_reward',angle:308.58}
+];
+
+function formatWheelDate(value){
+  try{return new Date(value).toLocaleString('de-DE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});}catch{return '';}
+}
+async function loadWheelHistory(){
+  const list=$('wheel-history');
+  if(!list||!supabaseClient||!currentUser)return;
+  const {data,error}=await supabaseClient.from('club_wheel_spins')
+    .select('reward_label,reward_value,created_at').eq('user_id',currentUser.id)
+    .order('created_at',{ascending:false}).limit(5);
+  if(error){console.warn('Wheel history unavailable:',error);return;}
+  list.innerHTML=data?.length?data.map(row=>`<div class="wheel-history-row"><strong>${escapeHtml(row.reward_label||'Reward')}</strong><small>${formatWheelDate(row.created_at)}</small></div>`).join(''):'<div class="club-content-empty">Noch keine Drehungen.</div>';
+}
+function setWheelCooldown(nextFreeAt){
+  const button=$('club-wheel-spin'),chip=$('wheel-status-chip');
+  if(!nextFreeAt){if(button){button.disabled=false;button.textContent='🎡 Drehen';}if(chip)chip.textContent='1 Dreh verfügbar';return;}
+  const next=new Date(nextFreeAt).getTime();
+  const timer=setInterval(()=>{
+    const left=Math.max(0,next-Date.now());
+    if(!left){clearInterval(timer);if(button){button.disabled=false;button.textContent='🎡 Drehen';}if(chip)chip.textContent='1 Dreh verfügbar';return;}
+    const h=Math.floor(left/3600000),m=Math.floor(left%3600000/60000);
+    if(button){button.disabled=true;button.textContent='⏳ Später wieder';}
+    if(chip)chip.textContent=`Nächster Dreh in ${h}h ${m}m`;
+  },30000);
+}
+async function spinWheel(){
+  const button=$('club-wheel-spin'),message=$('wheel-message'),wheel=$('club-wheel');
+  if(!button||!message||!wheel||!supabaseClient||!currentUser)return;
+  button.disabled=true;message.textContent='Das Rad dreht…';message.className='club-auth-status';
+  try{
+    const {data,error}=await supabaseClient.rpc('spin_club_wheel');
+    if(error)throw error;
+    if(data?.cooldown){
+      message.textContent=`Dein nächster Dreh ist um ${formatWheelDate(data.next_free_at)} verfügbar.`;
+      message.className='club-auth-status error';
+      setWheelCooldown(data.next_free_at);return;
+    }
+    const seg=WHEEL_SEGMENTS.find(s=>s.key===data.reward_key)||WHEEL_SEGMENTS[0];
+    wheel.style.setProperty('--wheel-stop',`${1800+(360-seg.angle)}deg`);
+    wheel.classList.remove('is-spinning');void wheel.offsetWidth;wheel.classList.add('is-spinning');
+    await new Promise(resolve=>setTimeout(resolve,3400));
+    message.textContent=`🎉 ${data.reward_label}${data.total_xp!=null?` · Jetzt ${Number(data.total_xp).toLocaleString('de-DE')} XP.`:''}`;
+    message.className='club-auth-status success';
+    if(Number.isFinite(data.total_xp)){renderProgress(data.total_xp);setText('member-xp',`${data.total_xp} XP`);}
+    if(data.reward_class==='pet')await loadPet();
+    await loadWheelHistory();setWheelCooldown(data.next_free_at);
+  }catch(error){
+    console.error('Wheel spin error:',error);message.textContent=error?.message||'Das Glücksrad konnte nicht gedreht werden.';
+    message.className='club-auth-status error';button.disabled=false;
+  }
+}
+document.getElementById('club-wheel-spin')?.addEventListener('click',spinWheel);
+
 async function init() {
   try {
     const cfg = await (await fetch('/api/config', { cache: 'no-store' })).json();
@@ -1279,6 +1339,7 @@ async function init() {
     currentUser = data.session.user;
     initMemberSectionNavigation();
     await loadNotificationPreferences();
+    await loadWheelHistory();
 
     const dmTarget = new URLSearchParams(window.location.search).get('dm');
 

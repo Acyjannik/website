@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Mein ACY Club · Acyjannik</title>
-  <link rel="stylesheet" href="styles.css?v=7.4.3">
+  <link rel="stylesheet" href="styles.css?v=7.7.0">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="/pet-companion.js?v=7.2.0" defer></script>
-  <script src="club-profile.js?v=7.4.6" defer></script>
+  <script src="club-profile.js?v=7.7.0" defer></script>
   <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
   <link rel="shortcut icon" href="/assets/favicon.svg">
   <link rel="apple-touch-icon" href="/assets/favicon.svg">
@@ -366,6 +366,42 @@
             <span class="member-fold-summary-side"><span class="member-fold-chevron">⌄</span></span>
           </summary>
           <div class="member-fold-body"><div class="club-content-list" id="member-events-list"><div class="club-content-empty">Events werden geladen…</div></div></div>
+        </details>
+
+        <details class="member-card member-span-2 member-fold" id="club-wheel-section">
+          <summary class="member-fold-summary">
+            <span class="member-fold-summary-main">
+              <span class="eyebrow">COMMUNITY GAME</span><strong>🎡 ACY Glücksrad</strong>
+              <small>Einmal täglich drehen und eine zufällige Belohnung gewinnen.</small>
+            </span>
+            <span class="member-fold-summary-side"><span class="member-count-chip" id="wheel-status-chip">1 Dreh verfügbar</span><span class="member-fold-chevron">⌄</span></span>
+          </summary>
+          <div class="member-fold-body wheel-body">
+            <div class="wheel-layout">
+              <div class="wheel-machine">
+                <div class="wheel-pointer" aria-hidden="true">▼</div>
+                <div class="wheel" id="club-wheel" aria-label="Glücksrad"><div class="wheel-inner"><span class="wheel-center">A</span></div></div>
+                <button class="button button-primary wheel-spin-button" id="club-wheel-spin" type="button">🎡 Drehen</button>
+                <p class="club-auth-status" id="wheel-message"></p>
+              </div>
+              <div class="wheel-rewards">
+                <span class="eyebrow">MÖGLICHE GEWINNE</span>
+                <div class="wheel-reward-list">
+                  <div><span>🟣</span><strong>+25 XP</strong><small>Häufig</small></div>
+                  <div><span>💜</span><strong>+50 XP</strong><small>Häufig</small></div>
+                  <div><span>✨</span><strong>+100 XP</strong><small>Gut</small></div>
+                  <div><span>💎</span><strong>+250 XP</strong><small>Selten</small></div>
+                  <div><span>🐾</span><strong>Pet-Bonus</strong><small>Pflege-Boost</small></div>
+                  <div><span>🎡</span><strong>Extra Dreh</strong><small>Selten</small></div>
+                  <div><span>💜</span><strong>Twitch-Reward</strong><small>Für Twitch vorbereitet</small></div>
+                </div>
+                <div class="wheel-history-wrap">
+                  <div class="section-mini-title">LETZTE GEWINNE</div>
+                  <div id="wheel-history" class="wheel-history"><div class="club-content-empty">Noch keine Drehungen.</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
         </details>
 
         <details class="member-card member-span-2 member-fold" id="member-news-section">
