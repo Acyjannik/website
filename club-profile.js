@@ -1966,17 +1966,14 @@ function startTwitchAutoWatchV11(){
 
 async function stopTwitchWatchV11(){
   if(twitchWatchTimerV11){clearInterval(twitchWatchTimerV11);twitchWatchTimerV11=null;}
-  if(twitchWatchActiveV11){
-    try{
-      const {data}=await supabaseClient.auth.getSession();
-      const token=data?.session?.access_token;
-      if(token) await fetch('/api/twitch-watch',{method:'DELETE',headers:{Authorization:`Bearer ${token}`}});
-    }catch{}
-  }
+  try{
+    const {data}=await supabaseClient.auth.getSession();
+    const token=data?.session?.access_token;
+    if(token) await fetch('/api/twitch-watch',{method:'DELETE',headers:{Authorization:`Bearer ${token}`}});
+  }catch{}
   twitchWatchActiveV11=false;
-  const start=$('twitch-watch-start'),stop=$('twitch-watch-stop');
-  if(start)start.hidden=false;if(stop)stop.hidden=true;
 }
+
 async function heartbeatTwitchWatchV11(){
   const {data}=await supabaseClient.auth.getSession();
   const token=data?.session?.access_token;
@@ -2002,15 +1999,6 @@ async function heartbeatTwitchWatchV11(){
   setText('twitch-best-streak',String(p.bestStreak??p.best_streak??0));
   return true;
 }
-function startTwitchWatchV11(){
-  if(twitchWatchActiveV11)return;
-  twitchWatchActiveV11=true;
-  $('twitch-watch-start')?.setAttribute('hidden','hidden');
-  $('twitch-watch-stop')?.removeAttribute('hidden');
-  heartbeatTwitchWatchV11().catch(()=>{});
-  twitchWatchTimerV11=setInterval(()=>heartbeatTwitchWatchV11().catch(()=>{}),60000);
-}
-
 async function initTwitchAccountV11(){
   const connect=$('twitch-connect-btn'), disconnect=$('twitch-disconnect-btn');
   connect?.addEventListener('click',async()=>{
@@ -2035,8 +2023,6 @@ async function initTwitchAccountV11(){
     await loadTwitchAccountV11();
     setStatus('Twitch wurde getrennt.','success');
   });
-  $('twitch-watch-start')?.addEventListener('click',()=>startTwitchWatchV11());
-  $('twitch-watch-stop')?.addEventListener('click',()=>{void stopTwitchWatchV11();});
 }
 
 function startTwitchStatusPolling() {

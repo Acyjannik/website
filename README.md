@@ -1528,3 +1528,11 @@ Run `supabase/v10_quality.sql` once after the previous migrations.
 - Added live stream title, category, viewer count and stream uptime to the Twitch card.
 - Watchtime remains an ACY Club activity metric, not an official Twitch watchtime value.
 - No new SQL migration required.
+
+
+## V11.2.1 — Twitch Tracking UI Cleanup
+- Removed obsolete manual start/stop buttons from the Twitch card.
+- Twitch tracking is now presented and operated as fully automatic.
+- When Twitch is offline, the card clearly shows that automatic tracking is paused.
+- Disconnect still safely stops any active ACY watch session on the server.
+- No database changes required.
