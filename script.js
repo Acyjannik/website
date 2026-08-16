@@ -301,11 +301,11 @@ async function loadPublicContent() {
     if (description && settings.hero_description) {
       description.textContent = settings.hero_description;
     }
-    if (community && settings.community_text) {
-      community.textContent = settings.community_text;
+    if (community && Object.prototype.hasOwnProperty.call(settings, 'community_text')) {
+      community.textContent = settings.community_text || '';
     }
-    if (about && settings.about_text) {
-      about.textContent = settings.about_text;
+    if (about && Object.prototype.hasOwnProperty.call(settings, 'about_text')) {
+      about.textContent = settings.about_text || '';
     }
     if (heroImage && settings.hero_image_url) {
       heroImage.src = settings.hero_image_url;

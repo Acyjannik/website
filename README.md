@@ -1011,3 +1011,11 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Reciprocal Pet friendship updates are now written safely inside the server-side RPC instead of incorrectly calling a user-scoped helper with the other member's ID.
 - Added a CSS safety rule so hidden/public Pet states cannot both render.
 - Run `supabase/club_pets_repair.sql` again after deployment.
+
+
+## V7.4.8 — Public Content Sync Fix
+- Fixed the public `/api/site-content` endpoint crash caused by `mergedGames` being referenced before initialization.
+- This crash forced the homepage into its static fallback content, which is why saved About/Community texts appeared to be ignored.
+- Public About/Community text now also accepts an intentionally empty saved value.
+- Admin content save now re-reads the database row after writing it and reports verification errors.
+- No SQL changes.

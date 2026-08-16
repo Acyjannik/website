@@ -1061,9 +1061,19 @@ function bindAdminEvents() {
     if (error) {
       message('settings-message', error.message);
     } else {
-      message('settings-message', 'Website-Inhalte gespeichert – inklusive „Über Jannik“.', true);
-      updatePreview(payload);
-      saveStamp();
+      const { data: verified, error: verifyError } = await supabaseClient
+        .from('site_settings')
+        .select('hero_kicker,hero_title,hero_description,about_text,community_text,hero_image_url')
+        .eq('id', true)
+        .single();
+
+      if (verifyError) {
+        message('settings-message', `Gespeichert, aber Prüfung fehlgeschlagen: ${verifyError.message}`);
+      } else {
+        message('settings-message', 'Website-Inhalte gespeichert – inklusive „Über Jannik“.', true);
+        updatePreview(verified);
+        saveStamp();
+      }
     }
   });
 

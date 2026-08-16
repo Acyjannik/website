@@ -72,6 +72,10 @@ export default async function handler(_req, res) {
     }));
 
     // Prevent accidental disappearance of the required current games.
+    // V7.4.8 fixes a regression where `mergedGames` was referenced before
+    // initialization, causing the whole public-content endpoint to fall back
+    // to the static placeholder content.
+    const mergedGames = [...normalizedGames];
     const required = new Map(fallback.games.map(g => [g.name, g]));
     for (const fallbackGame of fallback.games) {
       if (!mergedGames.some(g => g.name === fallbackGame.name)) {
