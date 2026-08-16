@@ -2591,6 +2591,57 @@ textarea:focus{
 }
 
 
+/* V14.3 — Progress-aware level card surfaces
+   Reached levels become gradually more opaque. Future levels stay quieter,
+   while the current level gets the strongest surface treatment. */
+.catalog-levels-scroll .catalog-level-v14{
+  background:
+    linear-gradient(145deg,rgba(168,85,247,var(--level-card-alpha,.025)),rgba(255,255,255,calc(var(--level-card-alpha,.025) * .32)) 52%,rgba(12,10,18,.78));
+  border-color:rgba(216,180,254,calc(.08 + (var(--level-card-progress,0) * .24)));
+}
+.catalog-levels-scroll .catalog-level-v14.is-complete{
+  box-shadow:
+    0 0 calc(8px + (var(--level-card-progress,0) * 24px)) rgba(168,85,247,calc(.06 + (var(--level-card-progress,0) * .22))),
+    inset 0 1px 0 rgba(255,255,255,calc(.025 + (var(--level-card-progress,0) * .075)));
+}
+.catalog-levels-scroll .catalog-level-v14.is-complete > span{
+  background:
+    radial-gradient(circle at 35% 28%,rgba(255,255,255,.28),transparent 28%),
+    radial-gradient(circle,rgba(168,85,247,calc(.16 + (var(--level-card-progress,0) * .24))),rgba(20,15,30,.90) 70%);
+  border-color:rgba(216,180,254,calc(.18 + (var(--level-card-progress,0) * .30)));
+}
+.catalog-levels-scroll .catalog-level-v14.is-complete strong{
+  color:rgba(255,255,255,calc(.82 + (var(--level-card-progress,0) * .16)));
+}
+.catalog-levels-scroll .catalog-level-v14.is-complete small{
+  color:rgba(216,180,254,calc(.54 + (var(--level-card-progress,0) * .28)));
+}
+.catalog-levels-scroll .catalog-level-v14.is-current{
+  background:
+    linear-gradient(145deg,rgba(168,85,247,.22),rgba(255,255,255,.055) 52%,rgba(22,14,32,.90));
+  border-color:rgba(233,213,255,.72);
+  box-shadow:
+    0 0 32px rgba(168,85,247,.26),
+    inset 0 0 24px rgba(216,180,254,.075),
+    inset 0 1px 0 rgba(255,255,255,.12);
+}
+.catalog-levels-scroll .catalog-level-v14.is-current > span{
+  background:
+    radial-gradient(circle at 35% 28%,rgba(255,255,255,.42),transparent 28%),
+    radial-gradient(circle,rgba(168,85,247,.48),rgba(28,18,42,.88) 70%);
+  border-color:rgba(245,230,255,.72);
+  box-shadow:0 0 22px rgba(216,180,254,.46),inset 0 0 12px rgba(255,255,255,.12);
+}
+.catalog-levels-scroll .catalog-level-v14:not(.is-complete){
+  filter:saturate(.72);
+}
+.catalog-levels-scroll .catalog-level-v14:not(.is-complete) strong{
+  color:rgba(255,255,255,.48);
+}
+.catalog-levels-scroll .catalog-level-v14:not(.is-complete) small{
+  color:rgba(161,161,170,.50);
+}
+
 /* V12.6 — Progressive Club-Level Glow
    Each level becomes visibly more premium as XP increases. */
 .catalog-levels-scroll .catalog-level{
@@ -3292,7 +3343,7 @@ body::before{
 
 
 /* ============================================================
-   ACY V14.2 — UX refresh, readability & visual anchors
+   ACY V14.3 — UX refresh, readability & visual anchors
    ============================================================ */
 .sr-only{
   position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;

@@ -20,7 +20,7 @@ async function safeLoad(label, fn, ms = 8000) {
   }
 }
 
-// V14.2 — Central refresh system. The dashboard used to fire a small army of
+// V14.3 — Central refresh system. The dashboard used to fire a small army of
 // independent requests at once, which made slow Supabase calls feel like a
 // frozen page. Refreshes are now explicit, bounded and visible.
 const ACY_REFRESH_REGISTRY = new Map();
@@ -62,7 +62,7 @@ async function runAcyRefresh(key, { silent = false } = {}) {
     if (!silent) setAcyRefreshStatus(`${entry.label} aktualisiert · ${time}`, 'success');
     return result;
   } catch (error) {
-    console.warn(`[V14.2] ${entry.label} refresh failed:`, error);
+    console.warn(`[V14.3] ${entry.label} refresh failed:`, error);
     buttons.forEach(button => button.classList.remove('is-refreshing'));
     if (!silent) setAcyRefreshStatus(`${entry.label} konnte nicht aktualisiert werden.`, 'error');
     throw error;
@@ -302,7 +302,11 @@ function renderProgress(xp) {
     levelGrid.innerHTML = CLUB_LEVELS.map((item, levelIndex) => {
       const reached = xp >= item.min;
       const current = levelIndex === idx;
-      return `<div class="catalog-level catalog-level-v14 ${reached ? 'is-complete' : ''} ${current ? 'is-current' : ''}" data-level="${levelIndex + 1}">
+      const levelRatio = CLUB_LEVELS.length > 1 ? levelIndex / (CLUB_LEVELS.length - 1) : 0;
+      const achievedAlpha = Math.min(0.19, 0.055 + (levelRatio * 0.135));
+      const futureAlpha = 0.018 + (levelRatio * 0.012);
+      const cardAlpha = reached ? achievedAlpha : futureAlpha;
+      return `<div class="catalog-level catalog-level-v14 ${reached ? 'is-complete' : ''} ${current ? 'is-current' : ''}" data-level="${levelIndex + 1}" style="--level-card-alpha:${cardAlpha.toFixed(3)};--level-card-progress:${levelRatio.toFixed(3)};">
         <span>${levelIndex + 1}</span><strong>${escapeHtml(item.title)}</strong><small>${item.min.toLocaleString('de-DE')} XP</small>
       </div>`;
     }).join('');
@@ -365,7 +369,7 @@ function renderAvatar(profile) {
 
 
 
-// V14.2 — local art fallbacks keep game UI visual even when Supabase image_url is empty.
+// V14.3 — local art fallbacks keep game UI visual even when Supabase image_url is empty.
 const ACY_GAME_ART = {
   'fortnite': '/assets/games/fortnite.svg',
   'gta v': '/assets/games/gta-v.svg',
@@ -1228,7 +1232,7 @@ function renderProgressionCatalog(state) {
   const achievementList = $('achievement-catalog-list');
   if (!xpList || !achievementList) return;
   renderProgress(Number(state.xp || 0));
-  setText('catalog-render-status', 'V14.2 · Progression geladen');
+  setText('catalog-render-status', 'V14.3 · Progression geladen');
 
   const awarded = new Set(state.achievements || []);
   const xpEvents = new Set(state.xpEvents || []);
@@ -2230,7 +2234,7 @@ async function init() {
     startMemberDirectoryPolling();
     startNotificationRealtime();
 
-    // V14.2 — load in bounded batches instead of launching ~25 requests at once.
+    // V14.3 — load in bounded batches instead of launching ~25 requests at once.
     // Critical identity/game/pet/Twitch modules already started above. Optional
     // modules are queued in small groups so a slow endpoint cannot make the whole
     // dashboard feel blocked.
