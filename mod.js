@@ -72,7 +72,28 @@ async function addPoll(){
     if(error)throw error;
     const {error:oe}=await s.client.from('club_poll_options').insert(options.map((label,i)=>({poll_id:data.id,label,sort_order:i})));
     if(oe)throw oe;
-    msg('mod-poll-message','Vote veröffentlicht.',false);
+
+    // Notify the ACY Discord server after the vote is actually published.
+    try{
+      const discordResponse=await fetch('/api/mod-poll-discord',{
+        method:'POST',
+        headers:{'Authorization':`Bearer ${s.token}`,'Content-Type':'application/json'},
+        body:JSON.stringify({
+          question,
+          description,
+          options,
+          closesAt:closes_at
+        })
+      });
+      const discordPayload=await discordResponse.json().catch(()=>({}));
+      if(!discordResponse.ok){
+        msg('mod-poll-message',`Vote veröffentlicht, aber Discord konnte nicht benachrichtigt werden: ${discordPayload.error||'Unbekannter Fehler'}`,true);
+      }else{
+        msg('mod-poll-message','Vote veröffentlicht und in Discord angekündigt.',false);
+      }
+    }catch(discordError){
+      msg('mod-poll-message','Vote veröffentlicht, aber Discord konnte nicht benachrichtigt werden.',true);
+    }
     $('mod-poll-question').value='';$('mod-poll-description').value='';$('mod-poll-options').value='';
     loadPolls();
   }catch(e){msg('mod-poll-message',e.message,true);}

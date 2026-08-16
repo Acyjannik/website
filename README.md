@@ -1504,3 +1504,10 @@ Run `supabase/v10_quality.sql` once after the previous migrations.
 - The stream-time metric is explicitly ACY active stream time during a live session, not an official Twitch watch-time value.
 - Existing Twitch live-status/EventSub infrastructure remains in place.
 - Community vote RLS migration now allows moderators to create/update polls and options.
+
+
+## V11.1 — Vote → Discord
+- When a moderator successfully publishes a Community Vote, ACY automatically posts a Discord announcement via `DISCORD_EVENT_WEBHOOK_URL`.
+- The Discord message includes the vote question, optional description, all answer options, and the closing time.
+- If Discord fails, the vote remains published and the Mod Center reports the Discord delivery failure separately.
+- No new SQL migration required.
