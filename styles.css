@@ -2351,3 +2351,110 @@ body.pwa-modal-open{overflow:hidden}
   .twitch-live-detail-v11{grid-template-columns:1fr 1fr}
   .twitch-live-detail-v11>div:first-child{grid-column:1/-1}
 }
+
+/* V11.2.2 — ACY Unified Button System
+   Replaces browser-white secondary buttons with a consistent dark/glass ACY style. */
+.button{
+  appearance:none;
+  -webkit-appearance:none;
+  color:#f4f4f5;
+  background:rgba(255,255,255,.045);
+  border:1px solid rgba(255,255,255,.09);
+  box-shadow:0 8px 24px rgba(0,0,0,.16);
+  cursor:pointer;
+  text-shadow:none;
+}
+.button:hover{
+  color:#fff;
+  background:rgba(168,85,247,.10);
+  border-color:rgba(168,85,247,.28);
+  box-shadow:0 10px 28px rgba(0,0,0,.22),0 0 18px rgba(168,85,247,.08);
+}
+.button:focus-visible{
+  outline:2px solid rgba(192,132,252,.75);
+  outline-offset:2px;
+}
+.button:disabled,
+.button[disabled]{
+  opacity:.55;
+  cursor:not-allowed;
+  transform:none!important;
+  box-shadow:none;
+}
+.button-secondary{
+  color:#e7e7ec !important;
+  background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.025)) !important;
+  border:1px solid rgba(168,85,247,.16) !important;
+  box-shadow:0 8px 22px rgba(0,0,0,.14);
+}
+.button-secondary:hover{
+  color:#fff !important;
+  background:linear-gradient(180deg,rgba(168,85,247,.16),rgba(168,85,247,.07)) !important;
+  border-color:rgba(168,85,247,.40) !important;
+  box-shadow:0 10px 28px rgba(0,0,0,.20),0 0 18px rgba(168,85,247,.10);
+}
+.button-primary{
+  color:#fff !important;
+  background:linear-gradient(135deg,#b76bf8,#8b5cf6) !important;
+  border-color:rgba(216,180,254,.32) !important;
+  box-shadow:0 10px 30px rgba(168,85,247,.22),0 0 18px rgba(168,85,247,.06);
+}
+.button-primary:hover{
+  background:linear-gradient(135deg,#c483ff,#9568ff) !important;
+  border-color:rgba(232,210,255,.52) !important;
+  box-shadow:0 12px 34px rgba(168,85,247,.28),0 0 22px rgba(168,85,247,.12);
+}
+.button-danger{
+  color:#fecaca !important;
+  background:linear-gradient(180deg,rgba(127,29,29,.16),rgba(127,29,29,.08)) !important;
+  border:1px solid rgba(248,113,113,.28) !important;
+  box-shadow:0 8px 22px rgba(0,0,0,.14);
+}
+.button-danger:hover{
+  color:#fee2e2 !important;
+  background:linear-gradient(180deg,rgba(127,29,29,.26),rgba(127,29,29,.12)) !important;
+  border-color:rgba(248,113,113,.52) !important;
+  box-shadow:0 10px 28px rgba(127,29,29,.16);
+}
+/* Compact pet actions keep the same visual language. */
+.pet-action-btn.button-secondary{
+  min-height:50px;
+  border-radius:14px !important;
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.02)) !important;
+}
+.pet-action-btn.button-secondary:hover{
+  background:
+    linear-gradient(135deg,rgba(168,85,247,.18),rgba(124,58,237,.09)) !important;
+  box-shadow:0 10px 28px rgba(0,0,0,.20),0 0 20px rgba(168,85,247,.10);
+}
+/* Native-looking controls are also themed to avoid white browser chrome in dark mode. */
+select,
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="search"],
+input[type="url"],
+input[type="datetime-local"],
+textarea{
+  color:#f4f4f5;
+  background:#0d0d12;
+  border-color:rgba(255,255,255,.09);
+}
+select:focus,
+input:focus,
+textarea:focus{
+  border-color:rgba(168,85,247,.42);
+  box-shadow:0 0 0 3px rgba(168,85,247,.08);
+}
+/* Keep icon/mini buttons visually aligned with the same system. */
+.sound-toggle{
+  background:rgba(255,255,255,.035);
+  border-color:rgba(168,85,247,.14);
+  color:#d4d4d8;
+}
+.twitch-connected-button{
+  background:linear-gradient(135deg,rgba(124,58,237,.97),rgba(168,85,247,.97)) !important;
+  border-color:rgba(216,180,254,.50) !important;
+  box-shadow:0 0 18px rgba(168,85,247,.38),0 0 38px rgba(168,85,247,.18) !important;
+}

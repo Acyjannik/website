@@ -1536,3 +1536,11 @@ Run `supabase/v10_quality.sql` once after the previous migrations.
 - When Twitch is offline, the card clearly shows that automatic tracking is paused.
 - Disconnect still safely stops any active ACY watch session on the server.
 - No database changes required.
+
+
+## V11.2.2 — Twitch Identity + Unified UI
+- Twitch account display name is now preserved in the account status row during live/offline polling.
+- Offline polling no longer replaces `Verbunden als <Name>` with a generic Twitch status.
+- Added a global ACY button system so secondary/pet/action buttons no longer fall back to white browser styling.
+- Unified primary, secondary, danger, compact pet actions, focus states and dark form controls.
+- No database changes required.

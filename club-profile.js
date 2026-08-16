@@ -1880,6 +1880,7 @@ let twitchStatusTimer = null;
 let twitchWatchTimerV11=null;
 let twitchWatchActiveV11=false;
 let twitchConnectedV11=false;
+let twitchConnectedNameV11='';
 let twitchAutoWatchV11=true;
 
 async function loadTwitchAccountV11(){
@@ -1894,7 +1895,8 @@ async function loadTwitchAccountV11(){
     if(!response.ok)throw new Error(payload.error||'Twitch-Profil konnte nicht geladen werden.');
     if(payload.connected){
       twitchConnectedV11=true;
-      status.innerHTML=`🟣 Verbunden als <strong>${escapeHtml(payload.account.display_name||payload.account.login||'Twitch')}</strong>`;
+      twitchConnectedNameV11=String(payload.account.display_name||payload.account.login||'Twitch');
+      status.innerHTML=`🟣 Verbunden als <strong>${escapeHtml(twitchConnectedNameV11)}</strong>`;
       if(connect){
         connect.hidden=false;
         connect.disabled=true;
@@ -1911,6 +1913,7 @@ async function loadTwitchAccountV11(){
       setText('twitch-best-streak',String(Number(p.best_stream_streak||0)));
     }else{
       twitchConnectedV11=false;
+      twitchConnectedNameV11='';
       status.textContent='Noch nicht mit ACY verbunden.';
       if(connect){
         connect.hidden=false;
@@ -1982,12 +1985,14 @@ async function heartbeatTwitchWatchV11(){
   const payload=await response.json().catch(()=>({}));
   if(!response.ok)throw new Error(payload.error||'Streamzeit konnte nicht aktualisiert werden.');
   if(!payload.live){
-    setText('twitch-account-status',twitchConnectedV11?'🟣 Verbunden · Twitch ist aktuell offline.':'Twitch ist aktuell offline.');
+    if(twitchConnectedV11 && twitchConnectedNameV11){
+      setText('twitch-account-status',`🟣 Verbunden als ${twitchConnectedNameV11} · offline`);
+    }else{
+      setText('twitch-account-status','Twitch ist aktuell offline.');
+    }
     setText('twitch-live-activity','⏹ Stream offline');
     return false;
   }
-  const liveText=`🟢 LIVE · ${payload.stream?.game||'Twitch'}`;
-  setText('twitch-account-status',liveText);
   setText('twitch-live-activity',`${formatTwitchUptimeV11(payload.stream?.startedAt)} · ${Number(payload.stream?.viewerCount||0).toLocaleString('de-DE')} Zuschauer`);
   setText('twitch-current-title',payload.stream?.title||'Live');
   setText('twitch-current-game',payload.stream?.game||'–');
