@@ -1865,6 +1865,116 @@ async function loadProfile() {
 
 let twitchStatusTimer = null;
 
+
+let twitchWatchTimerV11=null;
+let twitchWatchActiveV11=false;
+
+async function loadTwitchAccountV11(){
+  const status=$('twitch-account-status'), connect=$('twitch-connect-btn'), disconnect=$('twitch-disconnect-btn'), stats=$('twitch-club-stats');
+  if(!status)return;
+  try{
+    const {data}=await supabaseClient.auth.getSession();
+    const token=data?.session?.access_token;
+    if(!token)return;
+    const response=await fetch('/api/twitch-profile',{headers:{Authorization:`Bearer ${token}`},cache:'no-store'});
+    const payload=await response.json();
+    if(!response.ok)throw new Error(payload.error||'Twitch-Profil konnte nicht geladen werden.');
+    if(payload.connected){
+      status.innerHTML=`🟣 Verbunden als <strong>${escapeHtml(payload.account.display_name||payload.account.login||'Twitch')}</strong>`;
+      if(connect)connect.hidden=true;
+      if(disconnect)disconnect.hidden=false;
+      if(stats)stats.hidden=false;
+      const p=payload.points||{};
+      setText('twitch-watch-minutes',formatWatchMinutesV11(p.watch_minutes));
+      setText('twitch-watch-points',String(Number(p.watch_points||0)));
+      setText('twitch-stream-days',String(Number(p.stream_days||0)));
+      setText('twitch-stream-streak',String(Number(p.current_stream_streak||0)));
+      setText('twitch-best-streak',String(Number(p.best_stream_streak||0)));
+    }else{
+      status.textContent='Noch nicht mit ACY verbunden.';
+      if(connect)connect.hidden=false;
+      if(disconnect)disconnect.hidden=true;
+      if(stats)stats.hidden=true;
+    }
+  }catch(error){
+    console.warn('Twitch account unavailable:',error);
+    status.textContent=error.message||'Twitch-Konto konnte nicht geladen werden.';
+  }
+}
+
+function formatWatchMinutesV11(minutes){
+  const value=Math.max(0,Number(minutes)||0);
+  const h=Math.floor(value/60),m=value%60;
+  return h?`${h}h ${m}m`:`${m}m`;
+}
+async function stopTwitchWatchV11(){
+  if(twitchWatchTimerV11){clearInterval(twitchWatchTimerV11);twitchWatchTimerV11=null;}
+  if(twitchWatchActiveV11){
+    try{
+      const {data}=await supabaseClient.auth.getSession();
+      const token=data?.session?.access_token;
+      if(token) await fetch('/api/twitch-watch',{method:'DELETE',headers:{Authorization:`Bearer ${token}`}});
+    }catch{}
+  }
+  twitchWatchActiveV11=false;
+  const start=$('twitch-watch-start'),stop=$('twitch-watch-stop');
+  if(start)start.hidden=false;if(stop)stop.hidden=true;
+}
+async function heartbeatTwitchWatchV11(){
+  const {data}=await supabaseClient.auth.getSession();
+  const token=data?.session?.access_token;
+  if(!token)return;
+  const response=await fetch('/api/twitch-watch',{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({})});
+  const payload=await response.json().catch(()=>({}));
+  if(!response.ok)throw new Error(payload.error||'Streamzeit konnte nicht aktualisiert werden.');
+  if(!payload.live){
+    setText('twitch-account-status','Twitch ist aktuell offline.');
+    return;
+  }
+  const p=payload.points||{};
+  setText('twitch-watch-minutes',formatWatchMinutesV11(p.watchMinutes??p.watch_minutes??0));
+  setText('twitch-watch-points',String(p.watchPoints??p.watch_points??0));
+  setText('twitch-stream-days',String(p.streamDays??p.stream_days??0));
+  setText('twitch-stream-streak',String(p.currentStreak??p.current_stream_streak??0));
+  setText('twitch-best-streak',String(p.bestStreak??p.best_streak??0));
+}
+function startTwitchWatchV11(){
+  if(twitchWatchActiveV11)return;
+  twitchWatchActiveV11=true;
+  $('twitch-watch-start')?.setAttribute('hidden','hidden');
+  $('twitch-watch-stop')?.removeAttribute('hidden');
+  heartbeatTwitchWatchV11().catch(()=>{});
+  twitchWatchTimerV11=setInterval(()=>heartbeatTwitchWatchV11().catch(()=>{}),60000);
+}
+
+async function initTwitchAccountV11(){
+  const connect=$('twitch-connect-btn'), disconnect=$('twitch-disconnect-btn');
+  connect?.addEventListener('click',async()=>{
+    try{
+      const {data}=await supabaseClient.auth.getSession();
+      const token=data?.session?.access_token;
+      if(!token)throw new Error('Sitzung abgelaufen.');
+      const r=await fetch('/api/twitch-connect',{headers:{Authorization:`Bearer ${token}`},cache:'no-store'});
+      const payload=await r.json(); if(!r.ok)throw new Error(payload.error||'Twitch OAuth konnte nicht gestartet werden.');
+      window.location.href=payload.url;
+    }catch(error){setStatus(error.message||'Twitch-Verbindung konnte nicht gestartet werden.','error');}
+  });
+  disconnect?.addEventListener('click',async()=>{
+    if(!confirm('Twitch wirklich von deinem ACY Club Account trennen?'))return;
+    const {data}=await supabaseClient.auth.getSession();
+    const token=data?.session?.access_token;
+    if(!token)return;
+    const r=await fetch('/api/twitch-profile',{method:'DELETE',headers:{Authorization:`Bearer ${token}`}});
+    const payload=await r.json().catch(()=>({}));
+    if(!r.ok){setStatus(payload.error||'Twitch konnte nicht getrennt werden.','error');return;}
+    stopTwitchWatchV11();
+    await loadTwitchAccountV11();
+    setStatus('Twitch wurde getrennt.','success');
+  });
+  $('twitch-watch-start')?.addEventListener('click',()=>startTwitchWatchV11());
+  $('twitch-watch-stop')?.addEventListener('click',()=>{void stopTwitchWatchV11();});
+}
+
 function startTwitchStatusPolling() {
   if (twitchStatusTimer) clearInterval(twitchStatusTimer);
   twitchStatusTimer = setInterval(() => {

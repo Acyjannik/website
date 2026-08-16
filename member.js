@@ -1,3 +1,21 @@
+
+async function loadPublicTwitchV11(memberId){
+  const card=document.getElementById('public-twitch-v11');
+  if(!card||!memberId)return;
+  // The public profile intentionally exposes only non-sensitive ACY Twitch stats.
+  try{
+    const token=(await supabaseClient.auth.getSession()).data?.session?.access_token;
+    if(!token)return;
+    const r=await fetch(`/api/twitch-public?userId=${encodeURIComponent(memberId)}`,{headers:{Authorization:`Bearer ${token}`},cache:'no-store'});
+    const p=await r.json(); if(!r.ok||!p.connected)return;
+    card.hidden=false;
+    setMemberText('public-twitch-name',p.displayName||p.login||'Twitch');
+    setMemberText('public-twitch-watch',formatWatchMinutesV11(p.watchMinutes||0));
+    setMemberText('public-twitch-points',String(p.watchPoints||0));
+    setMemberText('public-twitch-streak',String(p.currentStreak||0));
+  }catch{}
+}
+
 let supabaseClient=null;
 const $=id=>document.getElementById(id);
 function setMemberText(id,value){
@@ -140,6 +158,7 @@ function renderMemberPet(pet,targetId,ownId){
 }
 
 
+function formatWatchMinutesV11(minutes){const v=Math.max(0,Number(minutes)||0);const h=Math.floor(v/60),mm=v%60;return h?`${h}h ${mm}m`:`${mm}m`;}
 function publicGlowTierForXp(xp=0){
   const value=Math.max(0,Number(xp)||0);
   if(value>=25000)return 8;
@@ -213,6 +232,7 @@ async function init(){
     }
 
     renderBadges(m.badges,m.xp,m.discord_connected);
+    void loadPublicTwitchV11(id);
     renderMemberPet(m.pet || null, id, data.session.user.id);
     loadPetFriendshipsForMember(id, data.session.user.id);
 

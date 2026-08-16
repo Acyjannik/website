@@ -2318,3 +2318,14 @@ body.pwa-modal-open{overflow:hidden}
 @media(max-width:700px){
   .member-glow-title{font-size:6px}
 }
+
+/* V11 — Twitch Account / ACY Stream Stats */
+.twitch-account-connect-v11{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-top:14px;padding:12px;border:1px solid rgba(168,85,247,.13);border-radius:12px;background:rgba(168,85,247,.035)}
+.twitch-connect-copy strong,.twitch-connect-copy small{display:block}.twitch-connect-copy strong{font-size:11px}.twitch-connect-copy small{font-size:8px;color:#71717a;margin-top:4px}.twitch-connect-actions{display:flex;gap:6px}
+.twitch-club-stats-v11{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-top:12px}.twitch-club-stats-v11>div{padding:9px;border:1px solid rgba(255,255,255,.05);border-radius:10px;background:#0d0d12}.twitch-club-stats-v11 span,.twitch-club-stats-v11 strong{display:block}.twitch-club-stats-v11 span{font-size:6px;color:#71717a;letter-spacing:.08em}.twitch-club-stats-v11 strong{margin-top:3px;font-size:12px;color:#d8b4fe}
+.twitch-watch-controls-v11{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}.twitch-watch-note-v11{display:block;color:#71717a;font-size:7px;line-height:1.5;margin:8px 0 10px}
+@media(max-width:700px){.twitch-club-stats-v11{grid-template-columns:repeat(2,1fr)}.twitch-account-connect-v11{align-items:flex-start;flex-direction:column}.twitch-connect-actions,.twitch-watch-controls-v11{width:100%}.twitch-connect-actions .button,.twitch-watch-controls-v11 .button{flex:1}}
+
+.public-twitch-v11{margin-top:14px;padding:14px;border:1px solid rgba(168,85,247,.14);border-radius:14px;background:linear-gradient(135deg,rgba(168,85,247,.05),rgba(255,255,255,.015))}
+.public-twitch-head-v11{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-top:4px}.public-twitch-head-v11 strong{font-size:14px}.public-twitch-head-v11 span{font-size:8px;color:#d8b4fe}
+.public-twitch-stats-v11{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:10px}.public-twitch-stats-v11>div{padding:9px;border:1px solid rgba(255,255,255,.05);border-radius:10px;background:#0d0d12}.public-twitch-stats-v11 span,.public-twitch-stats-v11 strong{display:block}.public-twitch-stats-v11 span{font-size:6px;color:#71717a}.public-twitch-stats-v11 strong{margin-top:3px;font-size:12px;color:#d8b4fe}

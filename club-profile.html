@@ -4,13 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Mein ACY Club · Acyjannik</title>
-  <link rel="stylesheet" href="styles.css?v=10.4.1">
+  <link rel="stylesheet" href="styles.css?v=11.0.0">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="/pet-companion.js?v=7.2.0" defer></script>
-  <script src="club-profile.js?v=10.4.1" defer></script>
+  <script src="club-profile.js?v=11.0.0" defer></script>
   <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
   <link rel="shortcut icon" href="/assets/favicon.svg">
   <link rel="apple-touch-icon" href="/assets/favicon.svg">
-<link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#0b0b10"><link rel="apple-touch-icon" href="/icons/acy-192.png"><script src="/pwa.js?v=10.4.1"></script></head>
+<link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#0b0b10"><link rel="apple-touch-icon" href="/icons/acy-192.png"><script src="/pwa.js?v=11.0.0"></script></head>
 <body class="club-auth-page">
   <div class="club-auth-shell">
     <header class="club-auth-header">
@@ -361,7 +361,7 @@
 
         <!-- Twitch -->
         <section class="member-card member-twitch-card" id="twitch-section">
-          <div class="eyebrow">TWITCH</div>
+          <div class="eyebrow">TWITCH · ACY CONNECT</div>
           <div class="member-card-head">
             <div>
               <h2 id="twitch-member-title">ACYJANNIK</h2>
@@ -373,7 +373,32 @@
             <div><span>Game</span><strong id="member-twitch-game">–</strong></div>
             <div><span>Zuschauer</span><strong id="member-twitch-viewers">–</strong></div>
           </div>
-          <a class="button button-primary" href="https://www.twitch.tv/acyjannik" target="_blank" rel="noreferrer">Twitch öffnen ↗</a>
+
+          <div class="twitch-account-connect-v11" id="twitch-account-connect">
+            <div class="twitch-connect-copy">
+              <strong>Dein Twitch-Konto</strong>
+              <small id="twitch-account-status">Noch nicht mit ACY verbunden.</small>
+            </div>
+            <div class="twitch-connect-actions">
+              <button class="button button-secondary button-small" id="twitch-connect-btn" type="button">🟣 Twitch verbinden</button>
+              <button class="button button-danger button-small" id="twitch-disconnect-btn" type="button" hidden>Trennen</button>
+            </div>
+          </div>
+
+          <div class="twitch-club-stats-v11" id="twitch-club-stats" hidden>
+            <div><span>STREAM-ZEIT</span><strong id="twitch-watch-minutes">0m</strong></div>
+            <div><span>WATCH POINTS</span><strong id="twitch-watch-points">0</strong></div>
+            <div><span>STREAM-TAGE</span><strong id="twitch-stream-days">0</strong></div>
+            <div><span>🔥 SERIE</span><strong id="twitch-stream-streak">0</strong></div>
+            <div><span>BESTE SERIE</span><strong id="twitch-best-streak">0</strong></div>
+          </div>
+
+          <div class="twitch-watch-controls-v11">
+            <button class="button button-primary" id="twitch-watch-start" type="button">▶️ Streamzeit starten</button>
+            <button class="button button-secondary" id="twitch-watch-stop" type="button" hidden>⏹ Streamzeit stoppen</button>
+          </div>
+          <small class="twitch-watch-note-v11">ACY misst hierfür aktive ACY-Streamzeit während der Live-Phase. Das ist keine von Twitch gelieferte offizielle Watchtime.</small>
+          <a class="button button-secondary" href="https://www.twitch.tv/acyjannik" target="_blank" rel="noreferrer">Twitch öffnen ↗</a>
         </section>
 
         <!-- Level + badges -->

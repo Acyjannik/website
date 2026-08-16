@@ -1492,3 +1492,15 @@ Run `supabase/v10_quality.sql` once after the previous migrations.
 - Fixed the Mod Center Vote form so Windows CRLF line endings and pasted bullet/dash lists are parsed correctly.
 - The form now de-duplicates answers and shows how many options it actually detected if validation fails.
 - Updated `mod.html` to load the new `mod.js?v=10.4.1` cache-busted script.
+
+
+## V11.0 — Twitch Connect & ACY Stream Stats
+- Added Twitch OAuth account linking (`/api/twitch-connect`, `/api/twitch-callback`).
+- Added secure server-side storage for Twitch account tokens (`club_twitch_accounts`) and minimal public Twitch identity.
+- Added ACY stream attendance/watch-time tracking (`club_twitch_stream_sessions`, `club_twitch_points`).
+- Added Watch Points, stream days, current streak and best streak.
+- Added profile UI for connect/disconnect and personal Twitch stats.
+- Added public profile Twitch stats.
+- The stream-time metric is explicitly ACY active stream time during a live session, not an official Twitch watch-time value.
+- Existing Twitch live-status/EventSub infrastructure remains in place.
+- Community vote RLS migration now allows moderators to create/update polls and options.
