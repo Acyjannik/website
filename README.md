@@ -1550,3 +1550,12 @@ Run `supabase/v10_quality.sql` once after the previous migrations.
 - Pet care feedback now shows the actual care XP earned.
 - Quest state refreshes immediately after pet actions.
 - Pet load applies passive hunger/mood decay and energy regeneration so the dashboard no longer shows stale stats.
+
+
+## V11.3.2 — Pet Interaction Hardening
+- Pet action clicks now use event delegation, so dynamically rendered pet controls remain interactive.
+- Every click immediately shows a save state and reports server errors visibly.
+- Pet actions refresh profile, quest, achievement and identity state after success.
+- Updated Pet action labels reflect real stat changes.
+- Updated care-XP text to the 4-actions/20-XP daily model.
+- No new SQL beyond the existing `supabase/v11.3_quests_pets.sql`.

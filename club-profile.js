@@ -1164,7 +1164,7 @@ function renderPet(pet) {
     step.classList.toggle('is-current', Number(step.dataset.petLevel) === level.level);
     step.classList.toggle('is-complete', Number(step.dataset.petLevel) < level.level);
   });
-  setText('pet-care-note', 'Hunger −1/h · Laune −0,5/h · Energie −0,5/h · 72h bei 0 = Tod.');
+  setText('pet-care-note', 'Hunger −1/h · Laune −0,5/h · Energie regeneriert sich bis 100%. · 72h bei 0 = Tod.');
   if ($('pet-rename-input')) $('pet-rename-input').value = pet.name;
 }
 
@@ -1336,22 +1336,44 @@ $('pet-release-toggle')?.addEventListener('click', async () => {
 });
 
 async function performPetAction(action, button) {
-  if (!currentPet || !button) return;
+  if (!currentPet || !button || !action) return;
+  if (button.disabled) return;
+
   button.disabled = true;
-  const original = button.textContent;
-  button.textContent = action === 'feed' ? 'Füttere…' : action === 'play' ? 'Spiele…' : 'Streicheln…';
+  const original = button.innerHTML;
+  button.setAttribute('aria-busy','true');
+  button.innerHTML = action === 'feed'
+    ? '🍖 Füttere…'
+    : action === 'play'
+      ? '🎾 Spiele…'
+      : '💜 Streicheln…';
 
   try {
-    const { data, error } = await supabaseClient.rpc('club_pet_action', { p_action: action });
+    setPetStatus('Pet-Aktion wird gespeichert…', 'success');
+
+    const { data, error } = await supabaseClient.rpc('club_pet_action', {
+      p_action: action
+    });
+
     if (error) throw error;
+    if (!data) throw new Error('Das Pet-System hat keine Daten zurückgegeben.');
+
     renderPet(data);
-    const careXp = Number(data?.care_xp_awarded || 0);
+
+    const careXp = Number(data.care_xp_awarded || 0);
+    const actionsToday = Number(data.care_actions_today || 0);
+
     if (careXp > 0) {
       void progressQuestsForAction('pet_daily');
-      const actionsToday = Number(data?.care_actions_today || 0);
       const remaining = Math.max(0, 4 - actionsToday);
-      setPetStatus(`+${careXp} Pflege-XP. ${remaining ? `Noch ${remaining} Pflege-XP-Aktion${remaining===1?'':'en'} heute möglich.` : 'Das heutige Pflege-XP-Limit ist erreicht.'} 🐾`, 'success');
-      if (data?.daily_xp_awarded) {
+      setPetStatus(
+        `+${careXp} Pflege-XP. ${remaining
+          ? `Noch ${remaining} Pflege-XP-Aktion${remaining === 1 ? '' : 'en'} heute möglich.`
+          : 'Das heutige Pflege-XP-Limit ist erreicht.'} 🐾`,
+        'success'
+      );
+
+      if (data.daily_xp_awarded) {
         void sendPersonalEmailNotification(
           'pet',
           'Dein Pet war aktiv 🐾',
@@ -1360,18 +1382,31 @@ async function performPetAction(action, button) {
         );
       }
     } else {
-      setPetStatus('Aktion ausgeführt. Dein Pet freut sich. 🐾', 'success');
+      setPetStatus(
+        actionsToday >= 4
+          ? 'Aktion ausgeführt. Das tägliche Pflege-XP-Limit ist bereits erreicht. 🐾'
+          : 'Aktion ausgeführt. Dein Pet freut sich. 🐾',
+        'success'
+      );
     }
-    await loadQuests();
-    await loadProfile();
-    await loadProgressionCatalog();
-    await loadClubIdentity();
-    await checkAchievements();
+
+    await Promise.allSettled([
+      loadQuests(),
+      loadProfile(),
+      loadProgressionCatalog(),
+      loadClubIdentity(),
+      checkAchievements()
+    ]);
   } catch (error) {
-    setPetStatus(error?.message || 'Aktion konnte nicht ausgeführt werden.', 'error');
+    console.error('Pet action failed:', error);
+    setPetStatus(
+      error?.message || 'Die Pet-Aktion konnte nicht gespeichert werden.',
+      'error'
+    );
   } finally {
     button.disabled = false;
-    button.textContent = original;
+    button.removeAttribute('aria-busy');
+    button.innerHTML = original;
   }
 }
 
@@ -1400,8 +1435,11 @@ $('pet-create-form')?.addEventListener('submit', async (event) => {
   }
 });
 
-document.querySelectorAll('.pet-action-btn').forEach(button => {
-  button.addEventListener('click', () => performPetAction(button.dataset.petAction, button));
+document.addEventListener('click', (event) => {
+  const button = event.target.closest?.('.pet-action-btn');
+  if (!button) return;
+  event.preventDefault();
+  void performPetAction(button.dataset.petAction, button);
 });
 
 $('pet-rename-toggle')?.addEventListener('click', () => {
