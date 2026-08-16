@@ -1448,3 +1448,11 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 
 ### SQL
 Run `supabase/v10_quality.sql` once after the previous migrations.
+
+
+## V10.2 — Private & Pet Social Push
+- Private direct messages now trigger a push notification for the recipient when they have an active push subscription.
+- Public ACY Club Chat intentionally does not send push notifications to avoid notification spam.
+- Social pet interactions (greet/play/pet) now trigger a push notification to the pet owner.
+- Added server-side `/api/push-private-message` and `/api/push-pet-social`.
+- Added shared server-side Push utility to remove expired subscriptions automatically.

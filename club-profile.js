@@ -683,6 +683,24 @@ $('dm-form')?.addEventListener('submit', async event => {
 
     if (error) throw error;
 
+    // Private messages get a push notification; public chat deliberately does not.
+    try {
+      const senderProfile = await supabaseClient.from('profiles').select('display_name,username').eq('id', currentUser.id).maybeSingle();
+      const { data:sessionData } = await supabaseClient.auth.getSession();
+      const token = sessionData?.session?.access_token;
+      if (token) {
+        void fetch('/api/push-private-message',{
+          method:'POST',
+          headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},
+          body:JSON.stringify({
+            recipientId:dmActiveUserId,
+            senderName:senderProfile?.data?.display_name || senderProfile?.data?.username || 'Jemand',
+            message
+          })
+        }).catch(()=>{});
+      }
+    } catch {}
+
     input.value = '';
           void progressQuestsForAction('social_message');
     updateDmCounter();

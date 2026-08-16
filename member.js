@@ -116,6 +116,20 @@ function renderMemberPet(pet,targetId,ownId){
         const labels={greet:'begrüßt',play:'spielt mit',pet:'streichelt'};
         if(status){status.textContent=`Dein Pet hat ${payload.target_pet?.name||'den Begleiter'} ${labels[button.dataset.petAction]||'besucht'}. +${payload.social_xp_awarded||0} Social XP für beide Pets.`;status.className='club-auth-status success';}
         if(payload.target_pet?.social_xp!=null && $('public-pet-social-xp'))$('public-pet-social-xp').textContent=`${payload.target_pet.social_xp} Social XP`;
+
+        // Notify the pet owner, but never the public chat.
+        try{
+          void fetch('/api/push-pet-social',{
+            method:'POST',
+            headers:{'Content-Type':'application/json','Authorization':`Bearer ${data.session.access_token}`},
+            body:JSON.stringify({
+              ownerId:targetId,
+              action:button.dataset.petAction,
+              visitorName:document.querySelector('#public-name')?.textContent || 'Jemand',
+              petName:payload.target_pet?.name || 'dein Pet'
+            })
+          }).catch(()=>{});
+        }catch{}
       }catch(error){
         if(status){status.textContent=error?.message||'Pet-Interaktion fehlgeschlagen.';status.className='club-auth-status error';}
       }finally{
