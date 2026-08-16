@@ -47,9 +47,20 @@ async function addPoll(){
   const s=await session();
   const question=$('mod-poll-question').value.trim();
   const description=$('mod-poll-description').value.trim();
-  const options=$('mod-poll-options').value.split('\n').map(x=>x.trim()).filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i).slice(0,8);
+  const optionsRaw=String($('mod-poll-options')?.value||'')
+    .replace(/\r\n/g,'\n')
+    .replace(/\r/g,'\n');
+  const options=[...new Set(
+    optionsRaw
+      .split(/\n+/)
+      .map(value=>value.replace(/^\s*[•-]\s*/,'').trim())
+      .filter(Boolean)
+  )].slice(0,8);
+
   if(!question)return msg('mod-poll-message','Bitte eine Frage eingeben.',true);
-  if(options.length<2)return msg('mod-poll-message','Mindestens zwei Antworten nötig.',true);
+  if(options.length<2){
+    return msg('mod-poll-message',`Mindestens zwei unterschiedliche Antworten nötig. Erkannt: ${options.length}.`,true);
+  }
   const closesRaw=$('mod-poll-closes').value;
   const closes_at=closesRaw?new Date(closesRaw).toISOString():null;
 

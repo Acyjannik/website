@@ -1486,3 +1486,9 @@ Run `supabase/v10_quality.sql` once after the previous migrations.
 - Added a small live ACY Glow label next to the profile handle.
 - High tiers use subtle animated sheen/pulse; reduced-motion users get static visuals.
 - No database changes required.
+
+
+## V10.4.1 — Community Vote Input Fix
+- Fixed the Mod Center Vote form so Windows CRLF line endings and pasted bullet/dash lists are parsed correctly.
+- The form now de-duplicates answers and shows how many options it actually detected if validation fails.
+- Updated `mod.html` to load the new `mod.js?v=10.4.1` cache-busted script.
