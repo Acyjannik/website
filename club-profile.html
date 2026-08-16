@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Mein ACY Club · Acyjannik</title>
-  <link rel="stylesheet" href="styles.css?v=7.7.1">
+  <link rel="stylesheet" href="styles.css?v=7.8.0">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="/pet-companion.js?v=7.2.0" defer></script>
-  <script src="club-profile.js?v=7.7.1" defer></script>
+  <script src="club-profile.js?v=7.8.0" defer></script>
   <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
   <link rel="shortcut icon" href="/assets/favicon.svg">
   <link rel="apple-touch-icon" href="/assets/favicon.svg">
@@ -401,6 +401,25 @@
                 </div>
               </div>
             </div>
+          </div>
+        </details>
+
+        <details class="member-card member-span-2 member-fold" id="club-rewards-section">
+          <summary class="member-fold-summary">
+            <span class="member-fold-summary-main"><span class="eyebrow">REWARDS</span><strong>🎁 Meine Belohnungen</strong><small>Gewinne sammeln, ansehen und einlösen.</small></span>
+            <span class="member-fold-summary-side"><span class="member-count-chip" id="my-rewards-count">0 verfügbar</span><span class="member-fold-chevron">⌄</span></span>
+          </summary>
+          <div class="member-fold-body">
+            <div class="rewards-summary-grid">
+              <div class="reward-stat"><span>VERFÜGBAR</span><strong id="reward-available-count">0</strong></div>
+              <div class="reward-stat"><span>EINGELÖST</span><strong id="reward-used-count">0</strong></div>
+              <div class="reward-stat"><span>EXTRA-DREHS</span><strong id="reward-spin-token-count">0</strong></div>
+            </div>
+            <div class="section-mini-title">MEINE REWARDS</div>
+            <div id="my-rewards-list" class="my-rewards-list"><div class="club-content-empty">Rewards werden geladen…</div></div>
+            <div class="section-mini-title reward-catalog-heading">VERFÜGBARE REWARDS</div>
+            <div id="reward-catalog-list" class="reward-catalog-list"><div class="club-content-empty">Katalog wird geladen…</div></div>
+            <p class="club-auth-status" id="rewards-message"></p>
           </div>
         </details>
 

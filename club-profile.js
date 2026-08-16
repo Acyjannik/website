@@ -1338,6 +1338,69 @@ async function spinWheel(){
 }
 document.getElementById('club-wheel-spin')?.addEventListener('click',spinWheel);
 
+
+// V7.8 Rewards
+let myRewardsState = {catalog:[],inventory:[]};
+
+async function loadMyRewards(){
+  const list=$('my-rewards-list'), catalog=$('reward-catalog-list');
+  if(!list||!catalog||!supabaseClient)return;
+  try{
+    const {data,error}=await supabaseClient.rpc('get_my_rewards');
+    if(error)throw error;
+    myRewardsState=data||{catalog:[],inventory:[]};
+    const inv=Array.isArray(myRewardsState.inventory)?myRewardsState.inventory:[];
+    const available=inv.filter(x=>x.status==='available');
+    const used=inv.filter(x=>x.status==='used');
+    const spinTokens=available.filter(x=>x.reward_type==='wheel_spin').reduce((sum,x)=>sum+Number(x.reward_value||1),0);
+    setText('my-rewards-count',`${available.length} verfügbar`);
+    setText('reward-available-count',String(available.length));
+    setText('reward-used-count',String(used.length));
+    setText('reward-spin-token-count',String(spinTokens));
+
+    list.innerHTML=available.length?available.map(item=>`
+      <article class="my-reward-card">
+        <div class="my-reward-icon">${escapeHtml(item.icon||'🎁')}</div>
+        <div class="my-reward-main"><strong>${escapeHtml(item.name||'Reward')}</strong><small>${escapeHtml(item.description||'')}</small></div>
+        <button class="button button-primary button-small" type="button" data-use-reward="${escapeAttr(item.id)}">Einlösen</button>
+      </article>
+    `).join(''):'<div class="club-content-empty">Noch keine verfügbaren Rewards. Vielleicht dreht das Glücksrad ja mal für dich.</div>';
+
+    const cats=Array.isArray(myRewardsState.catalog)?myRewardsState.catalog:[];
+    catalog.innerHTML=cats.length?cats.map(item=>`
+      <article class="reward-catalog-card">
+        <span>${escapeHtml(item.icon||'🎁')}</span>
+        <div><strong>${escapeHtml(item.name||'Reward')}</strong><small>${escapeHtml(item.description||'')}</small></div>
+      </article>
+    `).join(''):'<div class="club-content-empty">Noch kein Reward-Katalog.</div>';
+
+    list.querySelectorAll('[data-use-reward]').forEach(btn=>{
+      btn.addEventListener('click',async()=>{
+        btn.disabled=true;btn.textContent='Wird eingelöst…';
+        try{
+          const {data:result,error}=await supabaseClient.rpc('use_reward',{p_inventory_id:btn.dataset.useReward});
+          if(error)throw error;
+          if(Number.isFinite(result?.total_xp)){renderProgress(result.total_xp);setText('member-xp',`${result.total_xp} XP`);}
+          setText('rewards-message',`🎁 ${result?.name||'Reward'} eingelöst.`,);
+          const status=$('rewards-message'); if(status)status.className='club-auth-status success';
+          await loadMyRewards();
+          if(result?.reward_type==='wheel_spin'){
+            setText('wheel-status-chip','Extra-Dreh verfügbar');
+            setText('wheel-message','Du hast einen Extra-Dreh erhalten.');
+          }
+        }catch(error){
+          btn.disabled=false;btn.textContent='Einlösen';
+          const status=$('rewards-message');if(status){status.textContent=error?.message||'Reward konnte nicht eingelöst werden.';status.className='club-auth-status error';}
+        }
+      });
+    });
+  }catch(error){
+    console.warn('Rewards unavailable:',error);
+    list.innerHTML='<div class="club-content-empty">Rewards konnten gerade nicht geladen werden.</div>';
+    catalog.innerHTML='';
+  }
+}
+
 async function init() {
   try {
     const cfg = await (await fetch('/api/config', { cache: 'no-store' })).json();
@@ -1361,6 +1424,7 @@ async function init() {
     currentUser = data.session.user;
     initMemberSectionNavigation();
     await loadNotificationPreferences();
+    await loadMyRewards();
     await loadWheelHistory();
 
     const dmTarget = new URLSearchParams(window.location.search).get('dm');

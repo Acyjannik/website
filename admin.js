@@ -27,12 +27,65 @@ const VIEW_META = {
   events: ['COMMUNITY', 'Events'],
   news: ['CONTENT', 'News'],
   progression: ['MEMBERS', 'XP & Badges'],
+  rewards: ['COMMUNITY', 'Rewards'],
   spotlight: ['COMMUNITY', 'Spotlight'],
   polls: ['COMMUNITY', 'Community Votes'],
   clips: ['ACY CLIPS', 'Clips'],
   media: ['MEDIA', 'Bilder'],
   security: ['SECURITY', 'Sicherheit'],
 };
+
+
+async function loadRewardsAdmin(){
+  const list=$('admin-rewards-list');
+  const rewardSelect=$('reward-select');
+  const memberSelect=$('reward-member-select');
+  if(!list||!supabaseClient)return;
+  try{
+    const {data:rewards,error}=await supabaseClient.from('club_rewards').select('*').order('sort_order').order('name');
+    if(error)throw error;
+    const rows=rewards||[];
+    if(rewardSelect){
+      rewardSelect.innerHTML='<option value="">Auswählen…</option>'+rows.map(r=>`<option value="${escapeAttr(r.reward_key)}">${escapeHtml(r.icon||'🎁')} ${escapeHtml(r.name)}</option>`).join('');
+    }
+    list.innerHTML=rows.length?rows.map(r=>`
+      <div class="admin-reward-row">
+        <div><strong>${escapeHtml(r.icon||'🎁')} ${escapeHtml(r.name)}</strong><small>${escapeHtml(r.description||'')} · ${escapeHtml(r.reward_type)}</small></div>
+        <label class="admin-check"><input type="checkbox" data-reward-enabled="${escapeAttr(r.id)}" ${r.enabled!==false?'checked':''}> aktiv</label>
+      </div>
+    `).join(''):'<div class="admin-note">Noch keine Rewards.</div>';
+    list.querySelectorAll('[data-reward-enabled]').forEach(chk=>{
+      chk.addEventListener('change',async()=>{
+        const {error}=await supabaseClient.from('club_rewards').update({enabled:chk.checked,updated_at:new Date().toISOString()}).eq('id',chk.dataset.rewardEnabled);
+        if(error){chk.checked=!chk.checked;message('rewards-admin-message',error.message);}
+      });
+    });
+
+    if(memberSelect){
+      const {data:members,error:memberError}=await supabaseClient.from('profiles').select('id,username,display_name').order('display_name');
+      if(!memberError){
+        memberSelect.innerHTML='<option value="">Auswählen…</option>'+(members||[]).map(m=>`<option value="${escapeAttr(m.id)}">${escapeHtml(m.display_name||m.username||'Member')} · @${escapeHtml(m.username||'')}</option>`).join('');
+      }
+    }
+  }catch(error){
+    list.innerHTML=`<div class="admin-note">${escapeHtml(error?.message||'Rewards konnten nicht geladen werden.')}</div>`;
+  }
+}
+
+async function grantRewardAdmin(){
+  const userId=$('reward-member-select')?.value;
+  const rewardKey=$('reward-select')?.value;
+  if(!userId||!rewardKey)return message('rewards-admin-message','Mitglied und Reward auswählen.');
+  try{
+    const {data,error}=await supabaseClient.rpc('grant_reward_to_user',{
+      p_user_id:userId,p_reward_key:rewardKey,p_source:'admin',p_source_ref:`admin-${Date.now()}`
+    });
+    if(error)throw error;
+    message('rewards-admin-message',data?.created?'Reward erfolgreich vergeben.':'Reward war bereits vergeben.',true);
+  }catch(error){message('rewards-admin-message',error?.message||'Reward konnte nicht vergeben werden.');}
+}
+document.getElementById('rewards-refresh')?.addEventListener('click',loadRewardsAdmin);
+document.getElementById('grant-reward-btn')?.addEventListener('click',grantRewardAdmin);
 
 async function loadConfig() {
   const response = await fetch('/api/config', {
@@ -115,6 +168,7 @@ function switchTab(tab) {
   if (tab === 'progression' && supabaseClient) {
     loadBadgeMembers().catch(error => console.error('Badge member load error:', error));
   }
+  if (tab === 'rewards' && supabaseClient) loadRewardsAdmin().catch(console.error);
   if (tab === 'spotlight' && supabaseClient) {
     loadSpotlightAdmin().catch(error => {
       const el = $('spotlight-admin-message');

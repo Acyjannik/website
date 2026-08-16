@@ -1073,3 +1073,12 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - A spin token bypasses the 24-hour cooldown and is consumed when used.
 - The UI now shows available extra spins and keeps the button enabled while a token exists.
 - Run `supabase/club_wheel.sql` again after deployment.
+
+
+## V7.8.0 — ACY Rewards System
+- Added a central Reward catalog and member reward inventory.
+- Members can view available rewards and redeem them.
+- Supported reward types: XP, Pet-Bonus, Extra-Dreh, Twitch placeholder, badge/custom-ready.
+- Added Admin > Rewards for enabling/disabling catalog items and granting rewards to members manually.
+- Rewards are server-side and stored persistently.
+- Run `supabase/club_rewards.sql` once in Supabase.
