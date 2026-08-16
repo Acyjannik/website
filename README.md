@@ -1228,3 +1228,12 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - The result reports authentication/DATA success plus masked SMTP user and envelope sender.
 - API version bumped to 7.1.11.
 - No database changes.
+
+
+## V8.5.3 — Production SMTP Sender Fix
+- Production notification SMTP now mirrors the proven IONOS minimal envelope/header setup.
+- Removed display-name/Reply-To/X-Mailer extras from the production message path.
+- Keeps normal HTML + plain-text multipart content.
+- Exact authenticated mailbox remains the envelope and From address.
+- API version bumped to 7.1.12.
+- No database changes.

@@ -1,6 +1,6 @@
 const tls = require('node:tls');
 
-const NOTIFICATION_EMAIL_API_VERSION = '7.1.11';
+const NOTIFICATION_EMAIL_API_VERSION = '7.1.12';
 const env = (name, fallback='') => String(process.env[name] || fallback);
 
 function json(res, status, payload) {
@@ -203,6 +203,7 @@ async function smtpSend({to, subject, text, html}) {
   const host = cleanEmail(env('SMTP_HOST'));
   const port = Number(env('SMTP_PORT', '587'));
   const {smtpUser} = assertAllowedSender();
+  const recipient = cleanEmail(to);
   let socket;
 
   try {
@@ -227,58 +228,52 @@ async function smtpSend({to, subject, text, html}) {
     socket.write(`${Buffer.from(cleanEmail(env('SMTP_PASS'))).toString('base64')}\r\n`);
     await smtpResponse(socket, [235]);
 
-    // Crucial: envelope sender and From header are exactly the authenticated mailbox.
+    // Same envelope as the proven minimal IONOS test.
     socket.write(`MAIL FROM:<${smtpUser}>\r\n`);
     await smtpResponse(socket, [250]);
-
-    socket.write(`RCPT TO:<${cleanEmail(to)}>\r\n`);
+    socket.write(`RCPT TO:<${recipient}>\r\n`);
     await smtpResponse(socket, [250, 251]);
-
     socket.write('DATA\r\n');
     await smtpResponse(socket, [354]);
 
+    const domain = smtpUser.slice(smtpUser.lastIndexOf('@') + 1);
+    const now = new Date().toUTCString();
+    const messageId = `<${Date.now()}.${Math.random().toString(16).slice(2)}@${domain}>`;
+    const safeSubject = String(subject || '').replace(/[\r\n]/g, ' ');
+    const encodedSubject = `=?UTF-8?B?${Buffer.from(safeSubject, 'utf8').toString('base64')}?=`;
+    const safeText = String(text || '').replace(/\r?\n/g, '\r\n');
+    const safeHtml = String(html || '').replace(/\r?\n/g, '\r\n');
     const boundary = `=_ACY_${Date.now()}_${Math.random().toString(16).slice(2)}`;
-    const encodedSubject = `=?UTF-8?B?${Buffer.from(String(subject || ''), 'utf8').toString('base64')}?=`;
-    const fromName = String(env('EMAIL_FROM_NAME', 'ACYJANNIK · ACY Club')).replace(/[\r\n]/g, ' ');
-    const date = new Date().toUTCString();
-    const messageId = `<${Date.now()}.${Math.random().toString(16).slice(2)}@${smtpUser.slice(smtpUser.lastIndexOf('@') + 1)}>`;
 
+    // Keep the structure intentionally close to the successful minimal test:
+    // exact mailbox in From, no display name, no Reply-To, no custom headers.
     const message = [
-      `Date: ${date}`,
+      `Date: ${now}`,
       `Message-ID: ${messageId}`,
-      `From: ${fromName} <${smtpUser}>`,
-      `Reply-To: <${smtpUser}>`,
-      `To: <${cleanEmail(to)}>`,
+      `From: <${smtpUser}>`,
+      `To: <${recipient}>`,
       `Subject: ${encodedSubject}`,
       'MIME-Version: 1.0',
-      'X-Mailer: ACYJANNIK ACY Club',
       `Content-Type: multipart/alternative; boundary="${boundary}"`,
       '',
       `--${boundary}`,
       'Content-Type: text/plain; charset=UTF-8',
       'Content-Transfer-Encoding: 8bit',
       '',
-      String(text || ''),
+      safeText,
       '',
       `--${boundary}`,
       'Content-Type: text/html; charset=UTF-8',
       'Content-Transfer-Encoding: 8bit',
       '',
-      String(html || ''),
+      safeHtml,
       '',
       `--${boundary}--`,
       ''
     ].join('\r\n').replace(/^\./gm, '..');
 
     socket.write(message + '\r\n.\r\n');
-
-    try {
-      await smtpResponse(socket, [250]);
-    } catch (error) {
-      // Surface the exact post-DATA response. This is the point where IONOS
-      // rejected the previous implementation.
-      throw new Error(`SMTP DATA abgewiesen: ${error?.message || error}`);
-    }
+    await smtpResponse(socket, [250]);
 
     socket.write('QUIT\r\n');
     await smtpResponse(socket, [221, 250]);
@@ -394,6 +389,7 @@ module.exports = async (req, res) => {
           smtpHost: env('SMTP_HOST'),
           senderMode: 'SMTP_USER as envelope + From',
           ionosSenderRule: 'SMTP_USER und From verwenden exakt dasselbe Postfach',
+          minimalTestAvailable: true,
 
           smtpPort: Number(env('SMTP_PORT', '587')),
           smtpUserMasked,
