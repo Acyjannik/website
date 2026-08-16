@@ -1090,3 +1090,17 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - XP scales to 35/50/75/100 XP at 3/7/14/30 days.
 - Tracks current streak, best streak and total check-ins.
 - Run `supabase/club_daily_streak.sql` once in Supabase.
+
+
+## V8.0.0 — Streak Achievements
+- Daily streak milestones now unlock permanent achievements at 3, 7, 14 and 30 days.
+- Achievement keys: `streak_3`, `streak_7`, `streak_14`, `streak_30`.
+- The daily check-in reports a newly unlocked milestone in the success message.
+- Run `supabase/club_daily_streak.sql` again after deployment.
+
+
+## V8.0.1 — Reward Token Schema Repair
+- `supabase/club_rewards.sql` now creates the shared `profiles.wheel_spin_tokens` column itself.
+- This fixes `column "wheel_spin_tokens" does not exist` when redeeming an Extra-Dreh reward.
+- Reward UI now shows a clear migration message if the schema is still old.
+- Run `supabase/club_rewards.sql` again after deployment.

@@ -30,6 +30,10 @@ create table if not exists public.club_reward_inventory (
 alter table public.club_rewards enable row level security;
 alter table public.club_reward_inventory enable row level security;
 
+-- Extra-Dreh token balance (shared with the wheel system).
+alter table public.profiles add column if not exists wheel_spin_tokens integer not null default 0;
+
+
 drop policy if exists "members can read enabled rewards" on public.club_rewards;
 create policy "members can read enabled rewards"
 on public.club_rewards for select to authenticated

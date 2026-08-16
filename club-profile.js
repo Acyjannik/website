@@ -1450,7 +1450,8 @@ async function claimDailyStreak(){
     const {data,error}=await supabaseClient.rpc('claim_daily_streak');
     if(error)throw error;
     if(data?.claimed){
-      setText('daily-streak-message',`🔥 +${data.reward_xp} XP · Serie: ${data.current_streak} Tage!`);
+      const achievementText = data.new_achievement ? ` · 🏆 ${data.new_achievement}` : '';
+      setText('daily-streak-message',`🔥 +${data.reward_xp} XP · Serie: ${data.current_streak} Tage!${achievementText}`);
       const status=$('daily-streak-message');if(status)status.className='club-auth-status success';
       if(Number.isFinite(data.total_xp)){renderProgress(data.total_xp);setText('member-xp',`${data.total_xp} XP`);}
     }else{

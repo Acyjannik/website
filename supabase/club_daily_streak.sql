@@ -27,7 +27,7 @@ declare
   new_streak integer;
   reward_xp integer;
   xp_total integer;
-  claimed boolean := false;
+  new_achievement text := null;
 begin
   if auth.uid() is null then raise exception 'Nicht angemeldet.'; end if;
 
@@ -37,19 +37,19 @@ begin
   for update;
 
   if row.user_id is null then
-    insert into public.club_daily_streaks(
-      user_id,current_streak,best_streak,last_checkin_date,total_checkins
-    ) values(auth.uid(),1,1,today,1)
+    insert into public.club_daily_streaks(user_id,current_streak,best_streak,last_checkin_date,total_checkins)
+    values(auth.uid(),1,1,today,1)
     returning * into row;
     new_streak := 1;
-    claimed := true;
   elsif row.last_checkin_date = today then
     return jsonb_build_object(
       'ok',true,'claimed',false,
       'current_streak',row.current_streak,
       'best_streak',row.best_streak,
       'total_checkins',row.total_checkins,
-      'last_checkin_date',row.last_checkin_date
+      'last_checkin_date',row.last_checkin_date,
+      'reward_xp',0,
+      'new_achievement',null
     );
   else
     if row.last_checkin_date = today - 1 then
@@ -66,10 +66,8 @@ begin
         updated_at=now()
     where user_id=auth.uid()
     returning * into row;
-    claimed := true;
   end if;
 
-  -- Rewards rise gently with the streak and cap at 100 XP/day.
   reward_xp := case
     when new_streak >= 30 then 100
     when new_streak >= 14 then 75
@@ -79,20 +77,45 @@ begin
   end;
 
   update public.profiles
-  set xp=greatest(0,coalesce(xp,0)+reward_xp),
-      updated_at=now()
+  set xp=greatest(0,coalesce(xp,0)+reward_xp),updated_at=now()
   where id=auth.uid()
   returning xp into xp_total;
 
+  -- Milestone achievements are permanent and idempotent.
+  if new_streak >= 3 then
+    insert into public.club_achievements(user_id,achievement_key)
+    values(auth.uid(),'streak_3')
+    on conflict do nothing;
+    if found then new_achievement := 'streak_3'; end if;
+  end if;
+  if new_streak >= 7 then
+    insert into public.club_achievements(user_id,achievement_key)
+    values(auth.uid(),'streak_7')
+    on conflict do nothing;
+    if found then new_achievement := 'streak_7'; end if;
+  end if;
+  if new_streak >= 14 then
+    insert into public.club_achievements(user_id,achievement_key)
+    values(auth.uid(),'streak_14')
+    on conflict do nothing;
+    if found then new_achievement := 'streak_14'; end if;
+  end if;
+  if new_streak >= 30 then
+    insert into public.club_achievements(user_id,achievement_key)
+    values(auth.uid(),'streak_30')
+    on conflict do nothing;
+    if found then new_achievement := 'streak_30'; end if;
+  end if;
+
   return jsonb_build_object(
-    'ok',true,
-    'claimed',claimed,
+    'ok',true,'claimed',true,
     'current_streak',row.current_streak,
     'best_streak',row.best_streak,
     'total_checkins',row.total_checkins,
     'last_checkin_date',row.last_checkin_date,
     'reward_xp',reward_xp,
-    'total_xp',xp_total
+    'total_xp',xp_total,
+    'new_achievement',new_achievement
   );
 end;
 $$;
