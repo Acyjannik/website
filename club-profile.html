@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Mein ACY Club · Acyjannik</title>
-  <link rel="stylesheet" href="styles.css?v=8.2.1">
+  <link rel="stylesheet" href="styles.css?v=8.3.0">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="/pet-companion.js?v=7.2.0" defer></script>
-  <script src="club-profile.js?v=8.2.1" defer></script>
+  <script src="club-profile.js?v=8.3.0" defer></script>
   <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
   <link rel="shortcut icon" href="/assets/favicon.svg">
   <link rel="apple-touch-icon" href="/assets/favicon.svg">
@@ -16,6 +16,9 @@
     <header class="club-auth-header">
       <a class="brand" href="/"><span class="brand-mark">A</span><strong>ACY<span>JANNIK</span></strong></a>
       <div class="member-header-actions">
+        <button class="sound-toggle" id="sound-toggle" type="button" aria-pressed="true" aria-label="Interface-Sounds aktivieren oder deaktivieren">
+          🔊 <span id="sound-toggle-label">Sounds an</span>
+        </button>
         <button class="notification-bell" id="notification-bell" type="button" aria-label="Benachrichtigungen">
           🔔<span class="notification-count" id="notification-count" hidden></span>
         </button>

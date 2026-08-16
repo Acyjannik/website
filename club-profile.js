@@ -1376,6 +1376,7 @@ async function spinWheel(){
     wheel.classList.remove('is-spinning');void wheel.offsetWidth;wheel.classList.add('is-spinning');
     await new Promise(resolve=>setTimeout(resolve,3400));
     message.textContent=`🎉 ${data.reward_label}${data.reward_class==='spin'?' · Du kannst sofort noch einmal drehen.':data.total_xp!=null?` · Jetzt ${Number(data.total_xp).toLocaleString('de-DE')} XP.`:''}`;
+    triggerClubEffect(data.reward_class==='xp' ? 'reward' : 'level', `🎉 ${data.reward_label}`);
     message.className='club-auth-status success';
     if(Number.isFinite(data.total_xp)){renderProgress(data.total_xp);setText('member-xp',`${data.total_xp} XP`);}
     if(data.reward_class==='pet')await loadPet();
@@ -1431,6 +1432,7 @@ async function loadMyRewards(){
           if(error)throw error;
           if(Number.isFinite(result?.total_xp)){renderProgress(result.total_xp);setText('member-xp',`${result.total_xp} XP`);}
           setText('rewards-message',`🎁 ${result?.name||'Reward'} eingelöst.`,);
+          triggerClubEffect('reward', `🎁 ${result?.name||'Reward'} eingelöst.`);
           const status=$('rewards-message'); if(status)status.className='club-auth-status success';
           await loadMyRewards();
           if(result?.reward_type==='wheel_spin'){
@@ -1501,6 +1503,7 @@ async function claimDailyStreak(){
     if(data?.claimed){
       const achievementText = data.new_achievement ? ` · 🏆 ${data.new_achievement}` : '';
       setText('daily-streak-message',`🔥 +${data.reward_xp} XP · Serie: ${data.current_streak} Tage!${achievementText}`);
+      triggerClubEffect(data.new_achievement ? 'level' : 'reward', data.new_achievement ? `🏆 ${data.new_achievement} freigeschaltet!` : `🔥 Tagesbonus +${data.reward_xp} XP`);
       const status=$('daily-streak-message');if(status)status.className='club-auth-status success';
       if(Number.isFinite(data.total_xp)){renderProgress(data.total_xp);setText('member-xp',`${data.total_xp} XP`);}
     }else{
@@ -1537,6 +1540,7 @@ async function init() {
 
     currentUser = data.session.user;
     initMemberSectionNavigation();
+    initSoundToggle();
     initMemberDirectoryFilters();
     initRememberedMemberFolds();
     await loadNotificationPreferences();
@@ -1563,6 +1567,7 @@ async function init() {
     startTwitchStatusPolling();
     await loadClubContent();
     await loadMemberDirectory();
+    startMemberDirectoryPolling();
      await loadSocialConnections();
      await startSocialPresence();
     await loadDirectMessages(dmTarget || '');
@@ -2404,7 +2409,7 @@ function renderSocialConnections(data={}) {
   }
 
   document.querySelectorAll('[data-social-accept]').forEach(btn=>btn.onclick=async()=>{
-    try{await rpcSocial('respond_friend_request',{p_request_id:btn.dataset.socialAccept,p_accept:true});await loadSocialConnections();}catch(e){setStatus(e.message,'error');}
+    try{await rpcSocial('respond_friend_request',{p_request_id:btn.dataset.socialAccept,p_accept:true});triggerClubEffect('success','Freundschaft angenommen. 👥');await loadSocialConnections();}catch(e){setStatus(e.message,'error');}
   });
   document.querySelectorAll('[data-social-decline]').forEach(btn=>btn.onclick=async()=>{
     try{await rpcSocial('respond_friend_request',{p_request_id:btn.dataset.socialDecline,p_accept:false});await loadSocialConnections();}catch(e){setStatus(e.message,'error');}
@@ -2440,6 +2445,7 @@ async function sendFriendRequest(userId){
   try{
     await rpcSocial('send_friend_request',{p_target_user_id:userId});
     setStatus('Freundschaftsanfrage gesendet.','success');
+    triggerClubEffect('success', 'Freundschaftsanfrage gesendet. 💜');
     await loadSocialConnections();
     await loadMemberDirectory();
   }catch(error){setStatus(error?.message||'Anfrage konnte nicht gesendet werden.','error');}
@@ -2470,11 +2476,151 @@ function initMemberDirectoryFilters(){
   });
 }
 
-async function loadMemberDirectory(search = '') {
+
+// V8.3 — Live member refresh + interface effects/sounds
+let memberDirectoryTimer = null;
+let memberDirectoryLoading = false;
+const SOUND_PREF_KEY = 'acy-ui-sounds-v1';
+
+function soundEnabled() {
+  try {
+    const stored = localStorage.getItem(SOUND_PREF_KEY);
+    return stored === null ? true : stored === 'on';
+  } catch {
+    return true;
+  }
+}
+
+function setSoundEnabled(enabled) {
+  try { localStorage.setItem(SOUND_PREF_KEY, enabled ? 'on' : 'off'); } catch {}
+  const toggle = $('sound-toggle');
+  const label = $('sound-toggle-label');
+  if (toggle) {
+    toggle.setAttribute('aria-pressed', String(enabled));
+    toggle.classList.toggle('is-muted', !enabled);
+  }
+  if (label) label.textContent = enabled ? 'Sounds an' : 'Sounds aus';
+}
+
+let audioContext = null;
+
+function getAudioContext() {
+  if (audioContext) return audioContext;
+  const Ctx = window.AudioContext || window.webkitAudioContext;
+  if (!Ctx) return null;
+  audioContext = new Ctx();
+  return audioContext;
+}
+
+function playUISound(kind = 'click') {
+  if (!soundEnabled()) return;
+  const ctx = getAudioContext();
+  if (!ctx) return;
+  if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+
+  const presets = {
+    click:  { f: 520, g: 0.025, d: 0.045, type: 'sine' },
+    success:{ f: 740, g: 0.045, d: 0.12, type: 'triangle' },
+    reward: { f: 660, g: 0.045, d: 0.16, type: 'sine' },
+    level:  { f: 880, g: 0.05,  d: 0.18, type: 'triangle' },
+    error:  { f: 180, g: 0.035, d: 0.12, type: 'sawtooth' }
+  };
+  const p = presets[kind] || presets.click;
+  const now = ctx.currentTime;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = p.type;
+  osc.frequency.setValueAtTime(p.f, now);
+  gain.gain.setValueAtTime(0.0001, now);
+  gain.gain.exponentialRampToValueAtTime(p.g, now + 0.01);
+  gain.gain.exponentialRampToValueAtTime(0.0001, now + p.d);
+  osc.connect(gain).connect(ctx.destination);
+  osc.start(now);
+  osc.stop(now + p.d + 0.02);
+
+  if (kind === 'success' || kind === 'reward' || kind === 'level') {
+    const osc2 = ctx.createOscillator();
+    const gain2 = ctx.createGain();
+    osc2.type = 'sine';
+    osc2.frequency.setValueAtTime(p.f * 1.25, now + 0.045);
+    gain2.gain.setValueAtTime(0.0001, now);
+    gain2.gain.exponentialRampToValueAtTime(p.g * 0.6, now + 0.055);
+    gain2.gain.exponentialRampToValueAtTime(0.0001, now + p.d + 0.05);
+    osc2.connect(gain2).connect(ctx.destination);
+    osc2.start(now + 0.045);
+    osc2.stop(now + p.d + 0.07);
+  }
+}
+
+function showClubToast(message, kind = 'success') {
+  let toast = document.getElementById('club-effect-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'club-effect-toast';
+    toast.className = 'club-effect-toast';
+    document.body.appendChild(toast);
+  }
+  toast.className = `club-effect-toast ${kind}`;
+  toast.textContent = message;
+  clearTimeout(window.__clubToastTimer);
+  requestAnimationFrame(() => toast.classList.add('is-visible'));
+  window.__clubToastTimer = setTimeout(() => toast.classList.remove('is-visible'), 3200);
+}
+
+function spawnClubConfetti(count = 30) {
+  if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+  const layer = document.createElement('div');
+  layer.className = 'club-confetti-layer';
+  const symbols = ['✦','◆','●','★','♥'];
+  for (let i = 0; i < count; i += 1) {
+    const piece = document.createElement('span');
+    piece.className = 'club-confetti';
+    piece.textContent = symbols[i % symbols.length];
+    piece.style.left = `${Math.random() * 100}%`;
+    piece.style.animationDelay = `${Math.random() * 0.35}s`;
+    piece.style.animationDuration = `${1.8 + Math.random() * 1.2}s`;
+    layer.appendChild(piece);
+  }
+  document.body.appendChild(layer);
+  setTimeout(() => layer.remove(), 3400);
+}
+
+function triggerClubEffect(kind = 'success', message = '') {
+  if (kind === 'reward' || kind === 'level') {
+    spawnClubConfetti(kind === 'level' ? 44 : 28);
+  }
+  playUISound(kind);
+  if (message) showClubToast(message, kind);
+}
+
+function initSoundToggle() {
+  const toggle = $('sound-toggle');
+  if (!toggle) return;
+  setSoundEnabled(soundEnabled());
+  toggle.addEventListener('click', () => {
+    const enabled = !soundEnabled();
+    setSoundEnabled(enabled);
+    if (enabled) playUISound('success');
+  });
+}
+
+function startMemberDirectoryPolling() {
+  if (memberDirectoryTimer) clearInterval(memberDirectoryTimer);
+  memberDirectoryTimer = setInterval(() => {
+    const search = $('member-directory-search')?.value || '';
+    if (document.hidden || memberDirectoryLoading) return;
+    loadMemberDirectory(search, { silent: true }).catch(error =>
+      console.warn('Member directory refresh failed:', error)
+    );
+  }, 30000);
+}
+
+async function loadMemberDirectory(search = '', options = {}) {
   const list = $('member-directory-list');
   const countEl = $('member-directory-count');
   if (!list) return;
 
+  memberDirectoryLoading = true;
   try {
     const { data: sessionData } = await supabaseClient.auth.getSession();
     const token = sessionData?.session?.access_token;
@@ -2488,6 +2634,12 @@ async function loadMemberDirectory(search = '') {
     if (!response.ok) throw new Error(payload.error || 'Mitglieder konnten nicht geladen werden.');
 
     const rows = Array.isArray(payload.members) ? payload.members : [];
+    const previousOnline = window.__memberOnlineState || new Map();
+    const nextOnline = new Map(rows.map(member => [String(member.id), Boolean(member.online)]));
+    const onlineTransitions = rows
+      .filter(member => previousOnline.has(String(member.id)) && previousOnline.get(String(member.id)) !== Boolean(member.online))
+      .map(member => ({ id:String(member.id), online:Boolean(member.online), name:member.display_name || member.username || 'Mitglied' }));
+    window.__memberOnlineState = nextOnline;
     if (countEl) countEl.textContent = `${rows.length} Mitglieder`;
     if (!rows.length) {
       list.innerHTML='<div class="club-content-empty">Keine Mitglieder gefunden.</div>';
@@ -2533,6 +2685,12 @@ async function loadMemberDirectory(search = '') {
 
     applyMemberDirectoryFilter(currentMemberFilter);
     list.querySelectorAll('.member-directory-clickable').forEach(card=>{
+      const transition = onlineTransitions.find(item => item.id === card.dataset.memberId);
+      if (transition) {
+        card.classList.add(transition.online ? 'member-online-changed' : 'member-offline-changed');
+        setTimeout(() => card.classList.remove('member-online-changed','member-offline-changed'), 1500);
+      }
+
       card.addEventListener('click',event=>{
         if(event.target.closest('[data-message-member],[data-pet-member],[data-friend-member],[data-block-member]'))return;
         const id=card.dataset.memberId;
@@ -2563,10 +2721,21 @@ async function loadMemberDirectory(search = '') {
         if(id&&id!==currentUser.id)window.location.href=`/club-profile.html?dm=${encodeURIComponent(id)}`;
       });
     });
+    if (onlineTransitions.length && options.silent) {
+      const first = onlineTransitions[0];
+      triggerClubEffect(
+        'success',
+        `${first.name} ist jetzt ${first.online ? 'online 🟢' : 'offline ⚫'}.`
+      );
+    }
   }catch(error){
     console.warn('Member directory unavailable:',error);
-    if(countEl)countEl.textContent='– Mitglieder';
-    list.innerHTML=`<div class="club-content-empty">${escapeHtml(error?.message||'Mitglieder konnten nicht geladen werden.')}</div>`;
+    if(!options.silent){
+      if(countEl)countEl.textContent='– Mitglieder';
+      list.innerHTML=`<div class="club-content-empty">${escapeHtml(error?.message||'Mitglieder konnten nicht geladen werden.')}</div>`;
+    }
+  } finally {
+    memberDirectoryLoading = false;
   }
 }
 
@@ -2733,7 +2902,10 @@ let memberSearchTimer = null;
 $('member-directory-search')?.addEventListener('input', (event) => {
   clearTimeout(memberSearchTimer);
   const value = event.target.value;
-  memberSearchTimer = setTimeout(() => loadMemberDirectory(value), 250);
+  memberSearchTimer = setTimeout(() => {
+    playUISound('click');
+    loadMemberDirectory(value).catch(console.warn);
+  }, 250);
 });
 
 $('profile-form')?.addEventListener('submit', async (event) => {
@@ -2759,6 +2931,7 @@ $('profile-form')?.addEventListener('submit', async (event) => {
   setText('member-name', displayName);
   setText('member-bio', bio || 'Willkommen in deinem persönlichen ACY Club.');
   setStatus('Profil gespeichert.', 'success');
+  triggerClubEffect('success', 'Profil gespeichert.');
 });
 
 $('avatar-input')?.addEventListener('change', async (event) => {
@@ -2814,6 +2987,7 @@ $('avatar-input')?.addEventListener('change', async (event) => {
 
     await awardProgression('avatar_added');
     setStatus('Profilbild gespeichert.', 'success');
+    triggerClubEffect('success', 'Profilbild gespeichert.');
   } catch (error) {
     console.error('Avatar upload failed:', error);
     setStatus(error.message || 'Profilbild-Upload fehlgeschlagen. Bitte prüfe den Supabase-Bucket club-avatars.', 'error');

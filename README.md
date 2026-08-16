@@ -1172,3 +1172,15 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Secondary actions now use clearer light text and subtle borders; block actions remain visibly destructive.
 - Member filter pills also get stronger contrast.
 - No SQL changes.
+
+
+## V8.3.0 — Live Refresh, Effects & Sounds
+- Member directory now refreshes automatically every 30 seconds while the tab is visible.
+- Existing search and member filters are preserved across refreshes.
+- Online/offline changes get a subtle visual pulse and a small toast.
+- Added an interface sound toggle with user preference stored in localStorage.
+- Added lightweight Web Audio UI sounds without external audio files.
+- Added visual reward effects/confetti for rewards, streak milestones and wheel results.
+- Added subtle success feedback for profile, avatar, friend and other successful actions.
+- Respects `prefers-reduced-motion` for confetti.
+- No SQL changes.
