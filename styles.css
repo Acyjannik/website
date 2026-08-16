@@ -2168,3 +2168,68 @@ body.pwa-modal-open{overflow:hidden}
 @media(prefers-reduced-motion:reduce){.member-online-changed,.member-offline-changed{animation:none!important}}
 
 .hub-games-head{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-top:5px}.hub-games-head strong,.hub-games-head small{display:block}.hub-games-head strong{font-size:11px}.hub-games-head small{font-size:7px;color:#71717a;margin-top:2px}.hub-games-head a{flex:0 0 auto}.hub-game-row-v10{display:grid;grid-template-columns:20px 42px minmax(0,1fr);gap:8px;align-items:center;padding:7px 0;border-top:1px solid rgba(255,255,255,.04)}.hub-game-rank-v10{font-size:8px;color:#7c3aed;font-weight:800}.hub-game-thumb-v10{width:42px;height:28px;border-radius:8px;background:#111118 center/cover no-repeat;border:1px solid rgba(255,255,255,.05)}.hub-game-info-v10 strong,.hub-game-info-v10 small{display:block}.hub-game-info-v10 strong{font-size:9px}.hub-game-info-v10 small{font-size:7px;color:#71717a;margin-top:2px}
+
+/* V10.3.2 — Mobile club header/action layout */
+@media (max-width: 760px){
+  .club-auth-shell{padding-left:14px;padding-right:14px}
+  .club-auth-header{
+    display:grid;
+    grid-template-columns:1fr;
+    align-items:stretch;
+    gap:10px;
+    margin-bottom:28px;
+  }
+  .club-auth-header .brand{
+    min-width:0;
+    width:100%;
+  }
+  .member-header-actions{
+    width:100%;
+    min-width:0;
+    display:grid;
+    grid-template-columns:38px 38px repeat(3,minmax(0,1fr));
+    gap:6px;
+    align-items:stretch;
+  }
+  .member-header-actions > *{
+    min-width:0;
+    width:100%;
+    box-sizing:border-box;
+    justify-content:center;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .member-header-actions .sound-toggle{
+    padding:0 6px;
+    min-height:38px;
+  }
+  .member-header-actions .notification-bell{
+    width:38px;
+    height:38px;
+  }
+  .member-header-actions .button{
+    min-height:38px;
+    padding:0 7px;
+    font-size:10px;
+    line-height:1;
+  }
+}
+
+@media (max-width: 390px){
+  .member-header-actions{
+    grid-template-columns:34px 34px repeat(3,minmax(0,1fr));
+    gap:5px;
+  }
+  .member-header-actions .sound-toggle,
+  .member-header-actions .notification-bell{
+    width:34px;
+    min-height:34px;
+    height:34px;
+  }
+  .member-header-actions .button{
+    min-height:34px;
+    padding:0 5px;
+    font-size:9px;
+  }
+}

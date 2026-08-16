@@ -1470,3 +1470,10 @@ Run `supabase/v10_quality.sql` once after the previous migrations.
 - Fixed the member directory failure introduced by the V10.3 block-privacy patch.
 - `/api/club-members` now reads the Supabase auth response once and reuses the user id.
 - Block lookup is isolated so a failed block query does not take down the whole member directory.
+
+
+## V10.3.2 — Mobile Header Polish
+- Reworked the Club profile header on mobile into a compact responsive grid.
+- Logout is now always visible on iPhone-sized screens instead of being pushed off the right edge.
+- Account, Website and Logout receive equal flexible widths; Sound and Notifications stay compact.
+- Added a tighter layout for very small screens.
