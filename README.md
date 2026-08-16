@@ -1034,3 +1034,10 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Member actions switch automatically to `Zum Club-Profil` and either community discovery or Pet adoption.
 - Added smooth in-page navigation and subtle pointer-reactive card highlights for games/social cards.
 - No SQL changes.
+
+
+## V7.5.1 — Member Session Detection Fix
+- Reused one shared Supabase browser client for the public homepage/header.
+- Added `getUser()` as a fallback when `getSession()` does not immediately expose the active session.
+- Added an auth-state listener so the homepage personal card updates if the session becomes available after initial render.
+- No SQL changes.
