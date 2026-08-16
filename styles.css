@@ -2516,3 +2516,40 @@ textarea:focus{
    The lower card is intentionally badges-only. */
 .badges-section-v11 .member-card-head{margin-bottom:12px}
 .badges-section-v11 .badge-grid{margin-top:4px}
+
+/* V12.1 — Club Hub full-width alignment */
+.member-hub{
+  grid-column:1 / -1 !important;
+  width:100%;
+  min-width:0;
+}
+.member-hub .hub-main-card,
+.member-hub .hub-progression-card,
+.member-hub .hub-poll-card,
+.member-hub .hub-events-card,
+.member-hub .hub-achievements-card,
+.member-hub .hub-games-card{
+  min-width:0;
+}
+.hub-main-card{
+  width:100%;
+  box-sizing:border-box;
+}
+@media(max-width:900px){
+  .member-hub{grid-column:1 / -1 !important}
+}
+
+/* V12.1 — Generated per-level badge visuals */
+.catalog-level-v12 .catalog-level-orb{
+  position:relative;
+  background:
+    radial-gradient(circle at 35% 30%,rgba(255,255,255,.24),transparent 28%),
+    radial-gradient(circle,rgba(168,85,247,.30),rgba(20,15,30,.96) 68%);
+  border:1px solid rgba(216,180,254,.42);
+}
+.catalog-level-v12.is-complete .catalog-level-orb{
+  box-shadow:0 0 16px rgba(168,85,247,.25),inset 0 0 14px rgba(255,255,255,.08);
+}
+.catalog-level-v12.is-current .catalog-level-orb{
+  box-shadow:0 0 24px rgba(216,180,254,.70),inset 0 0 18px rgba(255,255,255,.14);
+}

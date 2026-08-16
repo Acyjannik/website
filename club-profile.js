@@ -1024,40 +1024,88 @@ function renderProgressionCatalog(state) {
 }
 
 async function loadProgressionCatalog() {
+  if (!currentUser) return;
+
+  const xp = Number($('member-xp')?.textContent?.replace(/[^\d]/g,'') || 0);
+  const name = ($('member-name')?.textContent || '').trim();
+  const bio = ($('member-bio')?.textContent || '').trim();
+
+  // Always render the complete catalog immediately. No network call may block the UI.
+  const localState = {
+    xp,
+    days: Math.max(0, Math.floor((Date.now() - new Date(currentUser.created_at || Date.now()).getTime()) / 86400000)),
+    events: 0,
+    discord: false,
+    profileComplete: !!name && !!bio,
+    uniqueGames: 0,
+    questClaims: 0,
+    streak: 0,
+    achievements: [],
+    xpEvents: new Set()
+  };
+
+  renderProgressionCatalog(localState);
+  renderClubLevelCatalog(xp);
+  applyClubHubGlow(xp);
+
+  // Then enrich the catalog from Supabase without ever replacing the already rendered UI with
+  // an empty state. Each request is isolated so one RLS error cannot cancel the rest.
+  const safe = async (promise, fallback) => {
+    try {
+      const result = await promise;
+      if (result?.error) {
+        console.warn('Progression query skipped:', result.error);
+        return fallback;
+      }
+      return result?.data ?? fallback;
+    } catch (error) {
+      console.warn('Progression query failed:', error);
+      return fallback;
+    }
+  };
+
   try {
-    const [{ data: profile }, { data: attendance }, { data: achievements }, { data: xpEvents }, { data: gameLog }, { data: questProgress }, { data: streakRow }] = await Promise.all([
-      supabaseClient.from('profiles').select('xp,created_at,display_name,bio,discord_connected').eq('id', currentUser.id).maybeSingle(),
-      supabaseClient.from('club_event_attendance').select('id'),
-      supabaseClient.from('club_achievements').select('achievement_key'),
-      supabaseClient.from('club_xp_events').select('event_key,xp'),
-      supabaseClient.from('club_game_presence_log').select('game_id').eq('user_id', currentUser.id).gte('detected_at', new Date(Date.now()-90*86400000).toISOString()),
-      supabaseClient.from('club_quest_progress').select('claimed').eq('user_id', currentUser.id).eq('claimed', true),
-      supabaseClient.from('club_daily_streaks').select('current_streak').eq('user_id', currentUser.id).maybeSingle()
+    const [profile, attendance, achievements, xpEvents, gameLog, questProgress, streakRow] = await Promise.all([
+      safe(supabaseClient.from('profiles').select('xp,created_at,display_name,bio,discord_connected').eq('id',currentUser.id).maybeSingle(), null),
+      safe(supabaseClient.from('club_event_attendance').select('id').eq('user_id',currentUser.id), []),
+      safe(supabaseClient.from('club_achievements').select('achievement_key').eq('user_id',currentUser.id), []),
+      safe(supabaseClient.from('club_xp_events').select('event_key,xp').eq('user_id',currentUser.id), []),
+      safe(supabaseClient.from('club_game_presence_log').select('game_id').eq('user_id',currentUser.id).gte('detected_at',new Date(Date.now()-90*86400000).toISOString()), []),
+      safe(supabaseClient.from('club_quest_progress').select('claimed').eq('user_id',currentUser.id).eq('claimed',true), []),
+      safe(supabaseClient.from('club_daily_streaks').select('current_streak').eq('user_id',currentUser.id).maybeSingle(), null)
     ]);
 
+    const effectiveXp = Number(profile?.xp ?? xp);
     const created = profile?.created_at || currentUser.created_at;
     const days = Math.max(0, Math.floor((Date.now() - new Date(created).getTime()) / 86400000));
+
     const state = {
-      xp: Number(profile?.xp || 0),
+      xp: effectiveXp,
       days,
       events: (attendance || []).length,
       discord: !!profile?.discord_connected,
-      profileComplete: !!(profile?.display_name || '').trim() && !!(profile?.bio || '').trim(),
-      uniqueGames: new Set((gameLog || []).map(row => row.game_id).filter(Boolean)).size,
+      profileComplete: !!(profile?.display_name || name).trim() && !!(profile?.bio || bio).trim(),
+      uniqueGames: new Set((gameLog || []).map(row=>row.game_id).filter(Boolean)).size,
       questClaims: (questProgress || []).length,
       streak: Number(streakRow?.current_streak || 0),
-      achievements: (achievements || []).map(a => a.achievement_key),
-      xpEvents: (xpEvents || []).filter(e => Number(e.xp || 0) > 0).map(e => e.event_key)
+      achievements: (achievements || []).map(a=>a.achievement_key).filter(Boolean),
+      xpEvents: new Set((xpEvents || []).filter(e=>Number(e.xp||0)>0).map(e=>e.event_key))
     };
 
-    // event_attended_<id> and poll_vote_<id> are repeatable current-state keys.
-    // Keep the catalog status meaningful without pretending there is only one.
-    state.xpEvents = new Set((xpEvents || []).filter(e => Number(e.xp || 0) > 0).map(e => e.event_key));
     renderProgressionCatalog(state);
+    renderClubLevelCatalog(effectiveXp);
+    applyClubHubGlow(effectiveXp);
+
+    const summary = $('catalog-earned-summary');
+    if (summary && summary.textContent === 'Wird geladen…') {
+      setText('catalog-earned-summary', `0 / ${ACHIEVEMENT_CATALOG.length} Achievements`);
+    }
   } catch (error) {
-    console.warn('Progression catalog unavailable:', error);
+    // The UI is already rendered above, so a backend problem cannot leave it stuck loading.
+    console.warn('Progression enrichment unavailable:', error);
   }
 }
+
 
 function handleDiscordOAuthCallback() {
   const params = new URLSearchParams(window.location.search);
