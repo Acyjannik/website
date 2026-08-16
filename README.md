@@ -1119,3 +1119,10 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Accepting a request also cancels a duplicate reverse pending request for the same pair.
 - Added a small sync status note in the Friends & Contacts section.
 - Run `supabase/club_social.sql` again after deployment.
+
+
+## V8.1.1 — Friends SQL Fix
+- Fixed the `GET DIAGNOSTICS ...` syntax error in `sync_my_friendships()`.
+- The sync now reads `ROW_COUNT` into a variable after each insert and sums the inserted rows correctly.
+- No frontend changes.
+- Run `supabase/club_social.sql` again after deployment.

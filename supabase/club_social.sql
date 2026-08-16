@@ -218,8 +218,9 @@ security definer
 set search_path=public
 as $$
 declare
-  inserted_count integer := 0;
   pair record;
+  inserted_total integer := 0;
+  changed_rows integer := 0;
 begin
   if auth.uid() is null then raise exception 'Nicht angemeldet.'; end if;
 
@@ -231,13 +232,21 @@ begin
       and (requester_id=auth.uid() or addressee_id=auth.uid())
   loop
     insert into public.club_friendships(user_id,friend_user_id)
-    values(pair.requester_id,pair.addressee_id),(pair.addressee_id,pair.requester_id)
+    values(pair.requester_id,pair.addressee_id)
     on conflict do nothing;
 
-    get diagnostics inserted_count = inserted_count + row_count;
+    get diagnostics changed_rows = row_count;
+    inserted_total := inserted_total + changed_rows;
+
+    insert into public.club_friendships(user_id,friend_user_id)
+    values(pair.addressee_id,pair.requester_id)
+    on conflict do nothing;
+
+    get diagnostics changed_rows = row_count;
+    inserted_total := inserted_total + changed_rows;
   end loop;
 
-  return inserted_count;
+  return inserted_total;
 end;
 $$;
 
