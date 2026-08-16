@@ -74,13 +74,16 @@ let acyPushSupabaseClient = null;
 async function getAcyAccessToken(){
   try{
     if(!acyPushSupabaseClient){
-      const cfg = await (await fetch('/api/config',{cache:'no-store'})).json();
-      if(!cfg?.configured || !window.supabase?.createClient) return null;
-      acyPushSupabaseClient = window.supabase.createClient(
-        cfg.supabaseUrl,
-        cfg.supabaseAnonKey,
-        { auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true} }
-      );
+      acyPushSupabaseClient = window.__acySupabaseClient || null;
+      if(!acyPushSupabaseClient){
+        const cfg = await (await fetch('/api/config',{cache:'no-store'})).json();
+        if(!cfg?.configured || !window.supabase?.createClient) return null;
+        acyPushSupabaseClient = window.supabase.createClient(
+          cfg.supabaseUrl,
+          cfg.supabaseAnonKey,
+          { auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true} }
+        );
+      }
     }
     const {data,error}=await acyPushSupabaseClient.auth.getSession();
     if(error) throw error;
@@ -112,7 +115,7 @@ async function subscribeAcyPush(){
   const permission=await Notification.requestPermission();
   if(permission!=='granted') throw new Error('Benachrichtigungen wurden nicht erlaubt.');
 
-  const registration=await navigator.serviceWorker.register('/service-worker.js?v=12.2.0',{scope:'/'});
+  const registration=await navigator.serviceWorker.register('/service-worker.js?v=14.2.0',{scope:'/'});
   const ready=await navigator.serviceWorker.ready;
   let subscription=await ready.pushManager.getSubscription();
   if(!subscription){
@@ -215,6 +218,6 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('acy-pwa-install-overlay')?.addEventListener('click',e=>{
     if(e.target.id==='acy-pwa-install-overlay')closePwaInstallHelp();
   });
-  if('serviceWorker' in navigator)navigator.serviceWorker.register('/service-worker.js?v=12.2.0',{scope:'/'}).catch(()=>{});
+  if('serviceWorker' in navigator)navigator.serviceWorker.register('/service-worker.js?v=14.2.0',{scope:'/'}).catch(()=>{});
   setTimeout(updatePwaUi,250);
 });

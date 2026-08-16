@@ -1,3 +1,24 @@
+# ACYJANNIK V14.2 — Refresh & UX Audit
+
+## Aktueller Stand
+- Bounded Loading statt eines großen ungebremsten `Promise.all`: optionale Module werden in kleinen Batches geladen.
+- Globaler **„Aktualisieren“**-Button und sichtbare Refresh-Buttons für dynamische Club-Bereiche.
+- 30 Club-Level werden direkt aus der zentralen `CLUB_LEVELS`-Definition gerendert. Damit stimmen Levelnamen und XP-Schwellen in UI und Logik überein.
+- Game-Auswahl mit Bildvorschau und lokalen Fallback-Artworks.
+- Daily Streak zeigt den eigenen generierten ACY-Pet-Begleiter als visuellen Anker.
+- Pet Companion, PWA und Club Profile teilen nach Möglichkeit denselben Supabase-Client.
+- Liquid-UI nutzt Event Delegation statt vieler einzelner Pointer-Listener.
+- V10-Kleinstschrift wurde in den zentralen Club-Bereichen angehoben.
+- Toter Identity-Code und veraltete DOM-Referenzen wurden entfernt bzw. korrigiert.
+- Service Worker enthält keine veraltete Selbst-Unregister-Logik mehr.
+
+## V14.2 Deployment
+1. V14.2 auf Vercel deployen.
+2. Browser einmal hart neu laden (`Strg+F5`).
+3. Die V14.1-Daily-Streak-SQL-Migration bleibt gültig. Nur ausführen, falls sie noch nicht in Supabase eingespielt wurde.
+
+---
+
 # Acyjannik V2.1
 
 Aktualisierte Website-Version mit Acyjannik-Portrait für **acyjannik.de**.

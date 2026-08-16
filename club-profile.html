@@ -4,13 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Mein ACY Club · Acyjannik</title>
-  <link rel="stylesheet" href="styles.css?v=14.0.0">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="/pet-companion.js?v=7.2.0" defer></script>
-  <script src="club-profile.js?v=14.1.0" defer></script>
+  <link rel="stylesheet" href="styles.css?v=14.2.0">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="/pet-companion.js?v=8.0.0" defer></script>
+  <script src="club-profile.js?v=14.2.0" defer></script>
   <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
   <link rel="shortcut icon" href="/assets/favicon.svg">
   <link rel="apple-touch-icon" href="/assets/favicon.svg">
-<link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#0b0b10"><link rel="apple-touch-icon" href="/icons/acy-192.png"><script src="/pwa.js?v=12.2.0"></script></head>
+<link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#0b0b10"><link rel="apple-touch-icon" href="/icons/acy-192.png"><script src="/pwa.js?v=14.2.0"></script></head>
 <body class="club-auth-page">
   <div class="club-auth-shell">
     <header class="club-auth-header">
@@ -24,8 +24,11 @@
         </button>
         <a class="button button-secondary" href="/club-account.html">Account</a>
         <a class="button button-secondary" href="/">Website</a>
+        <button class="button button-secondary acy-header-refresh" id="club-refresh-all" type="button" title="Alle Club-Daten aktualisieren">↻ <span>Aktualisieren</span></button>
         <button class="button button-secondary" id="logout">Abmelden</button>
       </div>
+
+      <div class="acy-refresh-status" id="club-refresh-status" aria-live="polite">Zuletzt aktualisiert: –</div>
 
       <div class="notification-panel" id="notification-panel" hidden>
         <div class="notification-panel-head"><strong>Benachrichtigungen</strong><div class="notification-panel-actions"><button id="notification-read-all" type="button">Alle gelesen</button><button id="notification-clear-all" type="button">Alle löschen</button><button id="notification-close" type="button">×</button></div></div>
@@ -242,6 +245,10 @@
             </select>
             <button class="button button-primary" type="button" id="current-game-save">Speichern</button>
           </div>
+          <div class="current-game-preview" id="current-game-preview" hidden>
+            <div class="current-game-preview-art"><img id="current-game-preview-img" alt=""></div>
+            <div><span class="eyebrow">AKTUELL GEWÄHLT</span><strong id="current-game-preview-name">–</strong><small id="current-game-preview-tag">–</small></div>
+          </div>
           <div class="current-game-note" id="current-game-note"></div>
         </section>
 
@@ -249,7 +256,7 @@
 
       <nav class="member-section-nav" aria-label="Club Bereiche">
         <span class="member-section-nav-label">BEREICHE</span>
-        <a href="#club-identity-card">Identity</a><a href="#member-hub">Übersicht</a><a href="#club-settings-section">Einstellungen</a><a href="/mod.html" id="moderator-access-btn" class="moderator-nav-link" hidden>🛡️ Moderator</a>
+        <a href="#profile-section">Identity</a><a href="#member-hub">Übersicht</a><a href="#club-settings-section">Einstellungen</a><a href="/mod.html" id="moderator-access-btn" class="moderator-nav-link" hidden>🛡️ Moderator</a>
         <a href="#profile-section">Profil</a><a href="#twitch-section">Twitch</a>
         <a href="#progression-catalog">Fortschritt</a>
         <a href="#member-events-section">Events</a>
@@ -435,21 +442,8 @@
             <span class="member-fold-summary-side"><span class="member-count-chip" id="catalog-earned-summary">Wird geladen…</span><span class="member-fold-chevron">⌄</span></span>
           </summary>
           <div class="member-fold-body">
-            <div class="catalog-levels catalog-levels-scroll">
-              <div class="catalog-level"><span>1</span><strong>ACY Rookie</strong><small>0 XP</small></div>
-              <div class="catalog-level"><span>2</span><strong>ACY Member</strong><small>100 XP</small></div>
-              <div class="catalog-level"><span>3</span><strong>ACY Regular</strong><small>250 XP</small></div>
-              <div class="catalog-level"><span>4</span><strong>ACY OG</strong><small>500 XP</small></div>
-              <div class="catalog-level"><span>5</span><strong>ACY Legend</strong><small>1.000 XP</small></div>
-              <div class="catalog-level"><span>6</span><strong>ACY Champion</strong><small>2.000 XP</small></div>
-              <div class="catalog-level"><span>7</span><strong>ACY Elite</strong><small>3.500 XP</small></div>
-              <div class="catalog-level"><span>8</span><strong>ACY Master</strong><small>5.500 XP</small></div>
-              <div class="catalog-level"><span>9</span><strong>ACY Icon</strong><small>8.000 XP</small></div>
-              <div class="catalog-level"><span>10</span><strong>ACY Mythic</strong><small>12.000 XP</small></div>
-              <div class="catalog-level"><span>11</span><strong>ACY Immortal</strong><small>17.000 XP</small></div>
-              <div class="catalog-level"><span>12</span><strong>ACY Hall of Fame</strong><small>25.000 XP</small></div>
-            </div>
-            <div id="catalog-render-status" class="catalog-render-status" aria-live="polite">V12.6 · Progression wird geladen…</div>
+            <div class="catalog-levels catalog-levels-scroll" id="catalog-levels-render" aria-label="Alle 30 Club-Level"></div>
+            <div id="catalog-render-status" class="catalog-render-status" aria-live="polite">V14.2 · Progression wird geladen…</div>
             <div class="catalog-columns">
               <div><div class="section-mini-title">XP VERDIENEN</div><div class="catalog-list" id="xp-catalog-list"></div></div>
               <div><div class="section-mini-title">ACHIEVEMENTS</div><div class="catalog-list" id="achievement-catalog-list"></div></div>
@@ -522,6 +516,7 @@
           <div class="member-fold-body">
             <div class="daily-streak-layout">
               <div class="daily-streak-main">
+                <div class="daily-streak-pet-art" id="daily-streak-pet-art" aria-hidden="true"><img src="assets/pet-cat.webp" alt=""></div>
                 <div class="streak-number"><strong id="daily-streak-current">0</strong><span>TAGE</span></div>
                 <div class="streak-copy">
                   <span class="eyebrow">AKTUELL</span>
@@ -671,6 +666,14 @@
       </div>
     </main>
   </div>
+<nav class="mobile-club-dock" aria-label="Schnellnavigation">
+  <a href="#member-hub"><span>⌂</span><span>Übersicht</span></a>
+  <a href="#pet-section"><span>🐾</span><span>Pet</span></a>
+  <a href="#club-quests-section"><span>🎯</span><span>Quests</span></a>
+  <a href="#club-chat"><span>💬</span><span>Chat</span></a>
+  <button id="mobile-dock-notifications" type="button" aria-label="Benachrichtigungen"><span>🔔</span><span>Hinweise</span></button>
+</nav>
+
 <footer class="legal-footer"><a href="/impressum.html">Impressum</a><span>·</span><a href="/datenschutz.html">Datenschutz</a></footer>
 <div id="acy-build-marker" aria-hidden="true"
      style="position:fixed;right:10px;bottom:10px;z-index:99999;
@@ -678,9 +681,9 @@
             border-radius:999px;background:rgba(12,9,18,.92);
             color:#c084fc;font:700 10px/1 system-ui,sans-serif;
             letter-spacing:.08em;pointer-events:none;opacity:.75">
-  ACY BUILD V14.1
+  ACY BUILD V14.2
 </div>
 
-  <script src="liquid-ui.js?v=14.0.0" defer></script>
+  <script src="liquid-ui.js?v=14.2.0" defer></script>
 </body>
 </html>

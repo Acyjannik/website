@@ -18,9 +18,12 @@
   async function init(){
     if(!window.supabase?.createClient) return;
     try{
-      const cfg=await (await fetch('/api/config',{cache:'no-store'})).json();
-      if(!cfg?.configured) return;
-      const client=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseAnonKey,{auth:{persistSession:true,autoRefreshToken:true}});
+      let client=window.__acySupabaseClient || null;
+      if(!client){
+        const cfg=await (await fetch('/api/config',{cache:'no-store'})).json();
+        if(!cfg?.configured) return;
+        client=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseAnonKey,{auth:{persistSession:true,autoRefreshToken:true}});
+      }
       const {data}=await client.auth.getSession();
       if(!data?.session?.user) return;
 
@@ -48,6 +51,11 @@
     }catch(e){console.debug('ACY pet companion unavailable',e);}
   }
 
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init,{once:true});
-  else init();
+  let sharedClientReady = false;
+  window.addEventListener('acy:supabase-ready', () => {
+    sharedClientReady = true;
+    init();
+  }, { once: true });
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',() => { if(!sharedClientReady) init(); },{once:true});
+  else if(!window.__acySupabaseClient) init();
 })();

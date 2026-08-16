@@ -19,6 +19,164 @@ async function safeLoad(label, fn, ms = 8000) {
     return null;
   }
 }
+
+// V14.2 — Central refresh system. The dashboard used to fire a small army of
+// independent requests at once, which made slow Supabase calls feel like a
+// frozen page. Refreshes are now explicit, bounded and visible.
+const ACY_REFRESH_REGISTRY = new Map();
+const ACY_REFRESH_BUSY = new Set();
+
+function registerAcyRefresh(key, label, fn, targetId) {
+  if (!key || typeof fn !== 'function') return;
+  ACY_REFRESH_REGISTRY.set(key, { key, label, fn, targetId });
+}
+
+function acyRefreshTime() {
+  return new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+}
+
+function setAcyRefreshStatus(text, type = '') {
+  const el = $('club-refresh-status');
+  if (!el) return;
+  el.textContent = text;
+  el.className = `acy-refresh-status ${type}`.trim();
+}
+
+async function runAcyRefresh(key, { silent = false } = {}) {
+  const entry = ACY_REFRESH_REGISTRY.get(key);
+  if (!entry || ACY_REFRESH_BUSY.has(key)) return null;
+  ACY_REFRESH_BUSY.add(key);
+  const buttons = [...document.querySelectorAll(`[data-acy-refresh="${CSS.escape(key)}"]`)];
+  buttons.forEach(button => {
+    button.disabled = true;
+    button.classList.add('is-refreshing');
+    button.setAttribute('aria-busy', 'true');
+  });
+  try {
+    const result = await withTimeout(Promise.resolve().then(entry.fn), 12000, entry.label);
+    const time = acyRefreshTime();
+    buttons.forEach(button => {
+      button.classList.remove('is-refreshing');
+      button.title = `${entry.label} · zuletzt ${time}`;
+    });
+    if (!silent) setAcyRefreshStatus(`${entry.label} aktualisiert · ${time}`, 'success');
+    return result;
+  } catch (error) {
+    console.warn(`[V14.2] ${entry.label} refresh failed:`, error);
+    buttons.forEach(button => button.classList.remove('is-refreshing'));
+    if (!silent) setAcyRefreshStatus(`${entry.label} konnte nicht aktualisiert werden.`, 'error');
+    throw error;
+  } finally {
+    ACY_REFRESH_BUSY.delete(key);
+    buttons.forEach(button => {
+      button.disabled = false;
+      button.setAttribute('aria-busy', 'false');
+    });
+  }
+}
+
+function injectAcyRefreshButtons() {
+  const definitions = [
+    ['profile','Profil','profile-section'],
+    ['twitch','Twitch','twitch-section'],
+    ['badges','Badges','member-badges-section'],
+    ['progression','Fortschritt','progression-catalog'],
+    ['events','Events','member-events-section'],
+    ['wheel','Glücksrad','club-wheel-section'],
+    ['streak','Daily-Serie','daily-streak-section'],
+    ['quests','Quests','club-quests-section'],
+    ['rewards','Rewards','club-rewards-section'],
+    ['news','News','member-news-section'],
+    ['messages','Nachrichten','club-messages'],
+    ['chat','Club Chat','club-chat'],
+    ['social','Freunde','social-connections-section'],
+    ['directory','Mitglieder','member-directory-section'],
+    ['clips','Clips','clips-section'],
+    ['leaderboard','Ranking','member-leaderboard-section'],
+    ['stats','Statistik','stats-section'],
+    ['discord','Discord','discord-section'],
+    ['pet','Pet','pet-section'],
+    ['game','Aktuelles Game','current-game-card'],
+    ['spotlight','Spotlight','member-spotlight'],
+    ['hub','ACY Club Übersicht','member-hub'],
+    ['community-games','Community Games','hub-community-games'],
+    ['poll','Community Vote','community-poll'],
+    ['notifications','Benachrichtigungen','notification-settings'],
+    ['settings','Einstellungen','club-settings-section']
+  ];
+  definitions.forEach(([key, label, targetId]) => {
+    const target = $(targetId);
+    if (!target || target.querySelector(`[data-acy-refresh="${key}"]`)) return;
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'acy-section-refresh';
+    button.dataset.acyRefresh = key;
+    button.setAttribute('aria-label', `${label} aktualisieren`);
+    button.title = `${label} aktualisieren`;
+    button.innerHTML = '<span aria-hidden="true">↻</span><span class="sr-only">Aktualisieren</span>';
+    button.addEventListener('click', event => {
+      event.preventDefault();
+      event.stopPropagation();
+      runAcyRefresh(key).catch(() => {});
+    });
+    target.appendChild(button);
+  });
+}
+
+async function runAcyRefreshAll() {
+  const button = $('club-refresh-all');
+  if (button) { button.disabled = true; button.classList.add('is-refreshing'); }
+  setAcyRefreshStatus('Club-Daten werden aktualisiert…');
+  try {
+    // Profile is the shared source for identity/XP. Resolve it first.
+    await runAcyRefresh('profile', { silent: true }).catch(() => null);
+    const keys = [...ACY_REFRESH_REGISTRY.keys()].filter(key => key !== 'profile');
+    const concurrency = 4;
+    let cursor = 0;
+    async function worker() {
+      while (cursor < keys.length) {
+        const key = keys[cursor++];
+        await runAcyRefresh(key, { silent: true }).catch(() => null);
+      }
+    }
+    await Promise.all(Array.from({ length: Math.min(concurrency, keys.length) }, worker));
+    setAcyRefreshStatus(`Alles aktualisiert · ${acyRefreshTime()}`, 'success');
+  } finally {
+    if (button) { button.disabled = false; button.classList.remove('is-refreshing'); }
+  }
+}
+
+function initAcyRefreshSystem() {
+  registerAcyRefresh('profile', 'Profil', async () => { await loadProfile(); await loadMemberHub(); }, 'profile-section');
+  registerAcyRefresh('twitch', 'Twitch', async () => { await loadTwitch(); await loadTwitchAccountV11(); }, 'twitch-section');
+  registerAcyRefresh('badges', 'Badges', async () => { await loadProfile(); await checkAchievements(); }, 'member-badges-section');
+  registerAcyRefresh('progression', 'Fortschritt', loadProgressionCatalog, 'progression-catalog');
+  registerAcyRefresh('events', 'Events', loadClubContent, 'member-events-section');
+  registerAcyRefresh('wheel', 'Glücksrad', async () => { await loadWheelState(); await loadWheelHistory(); }, 'club-wheel-section');
+  registerAcyRefresh('streak', 'Daily-Serie', loadDailyStreak, 'daily-streak-section');
+  registerAcyRefresh('quests', 'Quests', loadQuests, 'club-quests-section');
+  registerAcyRefresh('rewards', 'Rewards', loadMyRewards, 'club-rewards-section');
+  registerAcyRefresh('news', 'News', loadClubContent, 'member-news-section');
+  registerAcyRefresh('messages', 'Nachrichten', async () => { await loadDirectMessages(new URLSearchParams(location.search).get('dm') || ''); await loadDmUnreadCount(); }, 'club-messages');
+  registerAcyRefresh('chat', 'Club Chat', loadClubChat, 'club-chat');
+  registerAcyRefresh('social', 'Freunde', loadSocialConnections, 'social-connections-section');
+  registerAcyRefresh('directory', 'Mitglieder', () => loadMemberDirectory($('member-directory-search')?.value || ''), 'member-directory-section');
+  registerAcyRefresh('clips', 'Clips', loadClubClips, 'clips-section');
+  registerAcyRefresh('leaderboard', 'Ranking', loadLeaderboard, 'member-leaderboard-section');
+  registerAcyRefresh('stats', 'Statistik', loadMemberStats, 'stats-section');
+  registerAcyRefresh('discord', 'Discord', loadDiscordLink, 'discord-section');
+  registerAcyRefresh('pet', 'Pet', loadPet, 'pet-section');
+  registerAcyRefresh('game', 'Aktuelles Game', loadCurrentGamePresence, 'current-game-card');
+  registerAcyRefresh('spotlight', 'Spotlight', loadSpotlight, 'member-spotlight');
+  registerAcyRefresh('hub', 'ACY Club Übersicht', loadMemberHub, 'member-hub');
+  registerAcyRefresh('community-games', 'Community Games', loadCommunityGameHighlights, 'hub-community-games');
+  registerAcyRefresh('poll', 'Community Vote', loadCommunityPoll, 'community-poll');
+  registerAcyRefresh('notifications', 'Benachrichtigungen', loadNotifications, 'notification-settings');
+  registerAcyRefresh('settings', 'Einstellungen', loadNotificationPreferences, 'club-settings-section');
+  injectAcyRefreshButtons();
+  $('club-refresh-all')?.addEventListener('click', runAcyRefreshAll);
+}
+
 function setText(id, value) {
   const el = $(id);
   if (el) el.textContent = value;
@@ -26,7 +184,7 @@ function setText(id, value) {
 }
 
 function setStatus(text, type = '') {
-  const el = $('profile-save-status') || $('member-social-status') || $('poll-admin-message');
+  const el = $('profile-save-status');
   if (!el) {
     console.warn('Status element missing:', text);
     return;
@@ -67,9 +225,9 @@ function applyGlowTier(element, xp=0){
 }
 
 function applyProfileGlow(xp=0){
-  applyGlowTier($('.member-hero-card'),xp);
-  applyGlowTier($('.member-avatar-wrap'),xp);
-  applyGlowTier($('.member-quick'),xp);
+  applyGlowTier(document.querySelector('.member-hero-card'),xp);
+  applyGlowTier(document.querySelector('.member-avatar-wrap'),xp);
+  applyGlowTier(document.querySelector('.member-quick'),xp);
 
   const badgeGrid=$('badge-grid');
   applyGlowTier(badgeGrid,xp);
@@ -133,9 +291,22 @@ function levelIndexForXp(xp) {
 
 function renderProgress(xp) {
   const idx = levelIndexForXp(xp);
+  const level = CLUB_LEVELS[idx];
   setText('member-level', String(idx + 1));
   setText('level-number', String(idx + 1));
   setText('member-xp', `${xp.toLocaleString('de-DE')} XP`);
+  setText('member-glow-title', `${level.title} · Level ${idx + 1}`);
+
+  const levelGrid = $('catalog-levels-render');
+  if (levelGrid) {
+    levelGrid.innerHTML = CLUB_LEVELS.map((item, levelIndex) => {
+      const reached = xp >= item.min;
+      const current = levelIndex === idx;
+      return `<div class="catalog-level catalog-level-v14 ${reached ? 'is-complete' : ''} ${current ? 'is-current' : ''}" data-level="${levelIndex + 1}">
+        <span>${levelIndex + 1}</span><strong>${escapeHtml(item.title)}</strong><small>${item.min.toLocaleString('de-DE')} XP</small>
+      </div>`;
+    }).join('');
+  }
 }
 
 function renderBadges(badges = [], xp = 0, discordConnected = false) {
@@ -194,6 +365,35 @@ function renderAvatar(profile) {
 
 
 
+// V14.2 — local art fallbacks keep game UI visual even when Supabase image_url is empty.
+const ACY_GAME_ART = {
+  'fortnite': '/assets/games/fortnite.svg',
+  'gta v': '/assets/games/gta-v.svg',
+  'thick as thieves': '/assets/games/thick-as-thieves.svg',
+  'meccha chameleon': '/assets/games/meccha-chameleon.jpg',
+  'roblox': '/assets/games/roblox-acy-cover.svg'
+};
+function acyGameArt(game = {}) {
+  const direct = String(game.image_url || '').trim();
+  if (direct) return direct;
+  const key = String(game.name || '').trim().toLowerCase();
+  return ACY_GAME_ART[key] || '';
+}
+function renderCurrentGamePreview(game) {
+  const preview = $('current-game-preview');
+  const img = $('current-game-preview-img');
+  const name = $('current-game-preview-name');
+  const tag = $('current-game-preview-tag');
+  if (!preview || !img || !name || !tag) return;
+  if (!game) { preview.hidden = true; return; }
+  const art = acyGameArt(game);
+  if (art) { img.src = art; img.alt = game.name || 'Game'; img.hidden = false; }
+  else { img.removeAttribute('src'); img.hidden = true; }
+  name.textContent = game.name || 'Game';
+  tag.textContent = game.tag || 'COMMUNITY';
+  preview.hidden = false;
+}
+
 // ------------------------------------------------------------
 // V6.1 Community Games: current-game presence
 // ------------------------------------------------------------
@@ -203,17 +403,37 @@ async function loadCurrentGamePresence() {
   if (!select || !save || !currentUser) return;
 
   try {
-    const [{ data: games, error: gamesError }, { data: presence, error: presenceError }] = await Promise.all([
-      supabaseClient.from('games').select('id,name,tag').eq('enabled', true).order('sort_order').order('name'),
-      supabaseClient.from('club_game_presence').select('game_id,updated_at').eq('user_id', currentUser.id).maybeSingle()
-    ]);
-    if (gamesError) throw gamesError;
+    let games = [];
+    let gamesError = null;
+    const { data: dbGames, error: dbGamesError } = await supabaseClient
+      .from('games').select('id,name,tag,image_url').eq('enabled', true).order('sort_order').order('name');
+    games = Array.isArray(dbGames) ? dbGames : [];
+    gamesError = dbGamesError;
+    if (gamesError) {
+      // If the games table is temporarily blocked by an RLS/config mismatch,
+      // use the public content API for the visual selector instead of leaving
+      // the control empty. Saving still requires a real database game id.
+      try {
+        const response = await fetch(`/api/site-content?_=${Date.now()}`, { cache:'no-store' });
+        const payload = await response.json();
+        const fallbackGames = Array.isArray(payload?.games) ? payload.games : [];
+        if (fallbackGames.length) games = fallbackGames;
+      } catch (fallbackError) {
+        console.warn('Game catalog fallback unavailable:', fallbackError);
+      }
+      if (!games.length) throw gamesError;
+    }
+    const { data: presence, error: presenceError } = await supabaseClient
+      .from('club_game_presence').select('game_id,updated_at').eq('user_id', currentUser.id).maybeSingle();
     if (presenceError) throw presenceError;
 
     select.innerHTML = '<option value="">Ich spiele gerade nichts / ausblenden</option>' +
-      (games || []).map(game => `<option value="${escapeAttr(game.id)}">${escapeHtml(game.name)}</option>`).join('');
+      games.map(game => `<option value="${escapeAttr(game.id)}">${escapeHtml(game.name)}</option>`).join('');
     select.value = presence?.game_id || '';
+    const selectedGame = (games || []).find(item => String(item.id) === String(select.value));
+    renderCurrentGamePreview(selectedGame || null);
     setText('current-game-status', presence?.game_id ? 'Aktuell gesetzt' : 'Noch nicht gesetzt');
+    select.onchange = () => renderCurrentGamePreview((games || []).find(item => String(item.id) === String(select.value)) || null);
 
     save.onclick = async () => {
       save.disabled = true;
@@ -912,7 +1132,7 @@ async function voteInPoll(optionId) {
     void progressQuestsForAction('poll_vote');
     await loadProfile();
     await loadMemberStats();
-    await loadClubIdentity();
+    await loadMemberHub();
   } catch (error) {
     console.warn('Poll vote failed:', error);
     setText('poll-meta', error?.message || 'Stimme konnte nicht gespeichert werden.');
@@ -1007,7 +1227,8 @@ function renderProgressionCatalog(state) {
   const xpList = $('xp-catalog-list');
   const achievementList = $('achievement-catalog-list');
   if (!xpList || !achievementList) return;
-  setText('catalog-render-status', 'V12.9 · Progression geladen');
+  renderProgress(Number(state.xp || 0));
+  setText('catalog-render-status', 'V14.2 · Progression geladen');
 
   const awarded = new Set(state.achievements || []);
   const xpEvents = new Set(state.xpEvents || []);
@@ -1453,7 +1674,7 @@ async function performPetAction(action, button) {
     }
     await loadProfile();
     await loadProgressionCatalog();
-    await loadClubIdentity();
+    await loadMemberHub();
     await checkAchievements();
   } catch (error) {
     setPetStatus(error?.message || 'Aktion konnte nicht ausgeführt werden.', 'error');
@@ -1809,6 +2030,12 @@ function renderDailyStreakState(){
   const state=dailyStreakState;
   if(!state)return;
   const {row,button,title,text,reward}=state;
+  const petArt = $('daily-streak-pet-art');
+  if (petArt) {
+    const species = currentPet?.species || 'cat';
+    const label = PET_SPECIES[species]?.label || 'Begleiter';
+    petArt.innerHTML = `<img src="assets/pet-${escapeAttr(species)}.webp" alt="${escapeAttr(label)}">`;
+  }
   const now=Date.now();
   const lastMs=row.last_checkin_at?new Date(row.last_checkin_at).getTime():0;
   const cooldownUntil=lastMs+24*60*60*1000;
@@ -1948,6 +2175,9 @@ async function init() {
       flowType: 'pkce'
     }
     });
+    window.__acySupabaseClient = supabaseClient;
+    window.dispatchEvent(new CustomEvent('acy:supabase-ready', { detail: { client: supabaseClient } }));
+    initAcyRefreshSystem();
 
     const oauthCallback = handleDiscordOAuthCallback();
     const { data } = await supabaseClient.auth.getSession();
@@ -2000,11 +2230,13 @@ async function init() {
     startMemberDirectoryPolling();
     startNotificationRealtime();
 
-    // Everything below is independent. One broken optional module must never
-    // prevent games, pets, profile data or the rest of the dashboard from rendering.
+    // V14.2 — load in bounded batches instead of launching ~25 requests at once.
+    // Critical identity/game/pet/Twitch modules already started above. Optional
+    // modules are queued in small groups so a slow endpoint cannot make the whole
+    // dashboard feel blocked.
     const loads = [
       ['Club Content', loadClubContent],
-      ['Member Directory', loadMemberDirectory],
+      ['Member Directory', () => loadMemberDirectory('')],
       ['Social Connections', loadSocialConnections],
       ['Social Presence', startSocialPresence],
       ['Direct Messages', () => loadDirectMessages(dmTarget || '')],
@@ -2027,7 +2259,16 @@ async function init() {
       ['Community Games', loadCommunityGameHighlights],
       ['Notification Preferences', loadNotificationPreferences]
     ];
-    await Promise.all(loads.map(([label, fn]) => safeLoad(label, fn)));
+    let cursor = 0;
+    const worker = async () => {
+      while (cursor < loads.length) {
+        const [label, fn] = loads[cursor++];
+        await safeLoad(label, fn, 7000);
+      }
+    };
+    void Promise.all(Array.from({length: 4}, worker)).then(() => {
+      setAcyRefreshStatus(`Club bereit · ${acyRefreshTime()}`, 'success');
+    });
   } catch (error) {
     const msg = error?.message || 'Profil konnte nicht geladen werden.';
     const status = $('profile-save-status');
@@ -2185,8 +2426,6 @@ async function autoTwitchWatchTickV11(){
     if(live && !twitchWatchActiveV11){
       // Heartbeat already registered a session. Switch the UI into auto mode.
       twitchWatchActiveV11=true;
-      $('twitch-watch-start')?.setAttribute('hidden','hidden');
-      $('twitch-watch-stop')?.setAttribute('hidden','hidden');
       setText('twitch-watch-mode','🤖 Automatisches Stream-Tracking aktiv');
       setText('twitch-watch-mode-note','ACY erfasst deine aktive Stream-Zeit automatisch, sobald ACYJANNIK live ist.');
     }else if(!live && twitchWatchActiveV11){
@@ -2274,7 +2513,7 @@ function startTwitchStatusPolling() {
 }
 
 async function loadTwitch() {
-  const sub = $('member-twitch-sub');
+  const sub = $('twitch-member-sub');
   const game = $('member-twitch-game');
   const viewers = $('member-twitch-viewers');
   const title = $('twitch-member-title');
@@ -2566,34 +2805,7 @@ function applyEventAttendanceState(item, attending) {
 }
 
 
-let communityMemberGameTimer = null;
-function startCommunityMemberGamePolling(){
-  if (communityMemberGameTimer) clearInterval(communityMemberGameTimer);
-  if (!$('hub-community-games-grid')) return;
-  communityMemberGameTimer = setInterval(()=>{
-    if (!document.hidden) loadMemberHub().catch(()=>{});
-  },30000);
-}
-
 async function loadMemberHub() {
-  try{
-    const hubGameBox=$('hub-community-games-grid');
-    if(hubGameBox&&supabaseClient){
-      const {data:games,error}=await supabaseClient.from('club_game_activity')
-        .select('id,name,image_url,member_count,sessions_7d')
-        .order('member_count',{ascending:false})
-        .order('sessions_7d',{ascending:false})
-        .limit(6);
-      if(error)throw error;
-      hubGameBox.innerHTML=(games||[]).length
-        ? games.map((g,i)=>`<article class="hub-community-game-mini">
-            <div class="hub-community-game-mini-art" style="background-image:url('${escapeAttr(g.image_url||'')}')"></div>
-            <div><strong>#${i+1} ${escapeHtml(g.name)}</strong><small>${Number(g.member_count||0)} live · ${Number(g.sessions_7d||0)}× diese Woche</small></div>
-          </article>`).join('')
-        : '<div class="club-content-empty">Noch keine aktiven Community-Games.</div>';
-    }
-  }catch(error){console.warn('Hub community games unavailable:',error);}
-
   const greeting = $('hub-greeting');
   const summary = $('hub-summary');
   const title = $('hub-level-title');
@@ -2806,7 +3018,7 @@ async function loadNotifications() {
     const payload=await response.json(); if(!response.ok)throw new Error(payload.error||'Benachrichtigungen konnten nicht geladen werden.');
     cachedNotifications=Array.isArray(payload.notifications)?payload.notifications:[];
     renderNotifications();
-  }catch(error){console.warn('Notifications unavailable:',error);}
+  }catch(error){console.warn('Notifications unavailable:',error); throw error;}
 }
 
 async function loadCommunityGameHighlights(){
@@ -2814,8 +3026,8 @@ async function loadCommunityGameHighlights(){
   try{
     const {data,error}=await supabaseClient.from('club_game_activity').select('id,name,image_url,member_count,sessions_7d').order('member_count',{ascending:false}).order('sessions_7d',{ascending:false}).limit(6);
     if(error)throw error; const rows=Array.isArray(data)?data:[];
-    box.innerHTML=rows.length?rows.map((g,i)=>`<article class="hub-game-row-v10"><span class="hub-game-rank-v10">#${i+1}</span><div class="hub-game-thumb-v10" style="background-image:url('${escapeAttr(g.image_url||'')}')"></div><div class="hub-game-info-v10"><strong>${escapeHtml(g.name)}</strong><small>${Number(g.member_count||0)} live · ${Number(g.sessions_7d||0)}× diese Woche</small></div></article>`).join(''):'<div class="club-content-empty">Noch keine aktiven Community-Games.</div>';
-  }catch(error){console.warn('Community game highlights unavailable:',error);box.innerHTML='<div class="club-content-empty">Community-Games momentan nicht verfügbar.</div>';}
+    box.innerHTML=rows.length?rows.map((g,i)=>`<article class="hub-game-row-v10"><span class="hub-game-rank-v10">#${i+1}</span><div class="hub-game-thumb-v10" style="background-image:url('${escapeAttr(acyGameArt(g))}')"></div><div class="hub-game-info-v10"><strong>${escapeHtml(g.name)}</strong><small>${Number(g.member_count||0)} live · ${Number(g.sessions_7d||0)}× diese Woche</small></div></article>`).join(''):'<div class="club-content-empty">Noch keine aktiven Community-Games.</div>';
+  }catch(error){console.warn('Community game highlights unavailable:',error);box.innerHTML='<div class="club-content-empty">Community-Games momentan nicht verfügbar.</div>'; throw error;}
 }
 
 async function loadSpotlight() {
@@ -2843,6 +3055,7 @@ async function loadSpotlight() {
   } catch (error) {
     console.warn('Spotlight unavailable:', error);
     box.innerHTML = '<div class="club-content-empty">Spotlight momentan nicht verfügbar.</div>';
+    throw error;
   }
 }
 
@@ -2874,6 +3087,7 @@ async function loadClubClips(){
   }catch(error){
     console.warn('Club clips unavailable:',error);
     list.innerHTML=`<div class="club-content-empty">${escapeHtml(error?.message||'Clips momentan nicht verfügbar.')}</div>`;
+    throw error;
   }
 }
 
@@ -3523,88 +3737,6 @@ async function progressQuestsForAction(actionKey, amount = 1) {
 }
 
 
-// ------------------------------------------------------------
-// V9.6 — Club Identity
-// ------------------------------------------------------------
-function renderClubIdentity(state = {}) {
-  const profile = state.profile || {};
-  const xp = Number(state.xp || 0);
-  const level = levelForXp(xp);
-  const idx = levelIndexForXp(xp);
-  const base = CLUB_LEVELS[idx].min;
-  const nextLevel = CLUB_LEVELS[idx + 1];
-  const next = nextLevel ? nextLevel.min : base;
-  const percent = nextLevel
-    ? Math.max(0, Math.min(100, ((xp-base)/(next-base))*100))
-    : 100;
-
-  setText('identity-name', profile.display_name || profile.username || 'ACY Member');
-  setText('identity-handle', `@${profile.username || 'member'}`);
-  setText('identity-meta', profile.discord_connected ? 'Discord verbunden · ACY Club Member' : 'ACY Club Member');
-  setText('identity-title', level.title);
-  setText('identity-level-chip', `LEVEL ${idx+1}`);
-  setText('identity-xp', xp.toLocaleString('de-DE'));
-  setText('identity-achievements', String(state.achievementCount || 0));
-  setText('identity-games', String(state.uniqueGames || 0));
-  setText('identity-events', String(state.events || 0));
-  setText('identity-friends', String(state.friendCount || 0));
-  setText('identity-streak', `${Number(state.streak || 0)} Tage`);
-  setText('identity-favorite-game', state.favoriteGame || 'Noch keine Spieldaten');
-  setText('identity-streak-highlight', `${Number(state.streak || 0)} Tage`);
-  setText('identity-progress-caption', level.title);
-  setText('identity-next', xp >= next ? `LEVEL ${idx+2}` : `Noch ${(next-xp).toLocaleString('de-DE')} XP`);
-
-  const fill = $('identity-progress-fill');
-  if (fill) fill.style.width = `${percent}%`;
-
-  const avatar = $('identity-avatar');
-  if (avatar) {
-    if (profile.avatar_url) {
-      avatar.style.backgroundImage = `url('${escapeAttr(profile.avatar_url)}')`;
-      avatar.textContent = '';
-      avatar.classList.add('has-image');
-    } else {
-      avatar.style.backgroundImage = '';
-      avatar.textContent = (profile.display_name || profile.username || 'A').charAt(0).toUpperCase();
-      avatar.classList.remove('has-image');
-    }
-  }
-
-  const badgeWrap = $('identity-badges');
-  if (badgeWrap) {
-    const badges = Array.isArray(state.achievementsList) ? state.achievementsList.slice(0,5) : [];
-    badgeWrap.innerHTML = badges.length
-      ? badges.map(b => `<span class="identity-badge">${escapeHtml(b)}</span>`).join('')
-      : '<span class="identity-badge is-muted">Noch keine Achievements</span>';
-  }
-}
-
-async function loadClubIdentity(){
-  if(!supabaseClient||!currentUser||!$('club-identity-card'))return;
-  try{
-    let profile = window.__acyResolvedProfile || null;
-    const profilePromise = profile
-      ? Promise.resolve({ data: profile })
-      : supabaseClient.from('profiles').select('username,display_name,avatar_url,xp,discord_connected,badges').eq('id',currentUser.id).maybeSingle();
-
-    const [{data:resolvedProfile},{data:attendance},{data:achievements},{data:gameLog},{data:friendsData},{data:streakData},{data:gameCatalog}]=await Promise.all([
-      profilePromise,
-      supabaseClient.from('club_event_attendance').select('id').eq('user_id',currentUser.id),
-      supabaseClient.from('club_achievements').select('achievement_key').eq('user_id',currentUser.id).order('created_at',{ascending:false}).limit(30),
-      supabaseClient.from('club_game_presence_log').select('game_id,detected_at').eq('user_id',currentUser.id).gte('detected_at',new Date(Date.now()-7*86400000).toISOString()),
-      supabaseClient.rpc('get_my_social_connections'),
-      supabaseClient.from('club_daily_streaks').select('current_streak').eq('user_id',currentUser.id).maybeSingle(),
-      supabaseClient.from('games').select('id,name').eq('enabled',true)
-    ]);
-    const counts=new Map(); (gameLog||[]).forEach(r=>counts.set(r.game_id,(counts.get(r.game_id)||0)+1));
-    let fav='Noch keine Spieldaten',max=0; for(const g of gameCatalog||[]){const n=counts.get(g.id)||0;if(n>max){max=n;fav=g.name;}}
-    const achievementList=(achievements||[]).map(a=>a.achievement_key).filter(Boolean);
-    const roleBadges=Array.isArray(resolvedProfile?.badges)?profile.badges.filter(Boolean):[];
-    const combinedBadges=Array.from(new Set([...roleBadges,...achievementList])).slice(0,8);
-    renderClubIdentity({profile:resolvedProfile||{},xp:Number(profile?.xp||0),events:(attendance||[]).length,achievementCount:achievementList.length,achievementsList:combinedBadges,uniqueGames:new Set((gameLog||[]).map(r=>r.game_id).filter(Boolean)).size,friendCount:Array.isArray(friendsData?.friends)?friendsData.friends.length:0,streak:Number(streakData?.current_streak||0),favoriteGame:fav});
-  }catch(error){console.warn('Club identity unavailable:',error);}
-}
-
 // V8.3 — Live member refresh + interface effects/sounds
 let memberDirectoryTimer = null;
 let memberDirectoryLoading = false;
@@ -4083,6 +4215,12 @@ $('profile-form')?.addEventListener('submit', async (event) => {
     return;
   }
 
+  window.__acyResolvedProfile = {
+    ...(window.__acyResolvedProfile || {}),
+    display_name: displayName,
+    bio,
+    updated_at: new Date().toISOString()
+  };
   setText('member-name', displayName);
   setText('member-bio', bio || 'Willkommen in deinem persönlichen ACY Club.');
   setStatus('Profil gespeichert.', 'success');
@@ -4122,6 +4260,10 @@ $('avatar-input')?.addEventListener('change', async (event) => {
       .getPublicUrl(path);
 
     const avatarUrl = `${publicData.publicUrl}?v=${Date.now()}`;
+    window.__acyResolvedProfile = {
+      ...(window.__acyResolvedProfile || {}),
+      avatar_url: avatarUrl
+    };
 
     const { error: profileError } = await supabaseClient
       .from('profiles')

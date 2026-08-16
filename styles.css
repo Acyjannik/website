@@ -3289,3 +3289,200 @@ body::before{
     transition:none;
   }
 }
+
+
+/* ============================================================
+   ACY V14.2 — UX refresh, readability & visual anchors
+   ============================================================ */
+.sr-only{
+  position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;
+  overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important;
+}
+.club-auth-page .member-card,
+.club-auth-page .member-hero-card,
+.club-auth-page .member-hub>div{
+  position:relative;
+}
+.acy-header-refresh{
+  gap:7px;
+}
+.acy-header-refresh.is-refreshing,
+.acy-section-refresh.is-refreshing{
+  pointer-events:none;
+}
+.acy-header-refresh.is-refreshing::before,
+.acy-section-refresh.is-refreshing span:first-child{
+  animation:acy-refresh-spin .8s linear infinite;
+  display:inline-block;
+}
+@keyframes acy-refresh-spin{to{transform:rotate(360deg)}}
+.acy-refresh-status{
+  position:fixed;
+  left:50%;
+  top:82px;
+  transform:translateX(-50%);
+  z-index:35;
+  padding:7px 12px;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:999px;
+  background:rgba(10,10,15,.84);
+  backdrop-filter:blur(14px);
+  color:#a1a1aa;
+  font-size:11px;
+  line-height:1;
+  pointer-events:none;
+  opacity:.82;
+  transition:opacity .2s ease,border-color .2s ease,color .2s ease;
+}
+.acy-refresh-status.success{color:#ddd6fe;border-color:rgba(168,85,247,.25)}
+.acy-refresh-status.error{color:#fecaca;border-color:rgba(248,113,113,.28)}
+.acy-section-refresh{
+  position:absolute;
+  top:14px;
+  right:14px;
+  z-index:5;
+  width:34px;
+  height:34px;
+  display:grid;
+  place-items:center;
+  padding:0;
+  border-radius:11px;
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(8,8,13,.62);
+  color:#b8a0d8;
+  cursor:pointer;
+  backdrop-filter:blur(10px);
+  box-shadow:0 6px 18px rgba(0,0,0,.18);
+}
+.acy-section-refresh:hover{
+  color:#fff;
+  border-color:rgba(192,132,252,.34);
+  background:rgba(168,85,247,.12);
+}
+.club-auth-page details.member-card>.acy-section-refresh{top:16px}
+.club-auth-page details.member-card>.member-fold-body{padding-top:24px}
+
+/* Desktop typography had several V10-era 5–10px rules that survived the V13
+   redesign. Raise them without turning the interface into a billboard. */
+.club-auth-page .member-directory-name{font-size:17px}
+.club-auth-page .member-directory-handle{font-size:12px}
+.club-auth-page .member-directory-main p{font-size:13px;max-width:520px}
+.club-auth-page .member-directory-meta strong{font-size:13px}
+.club-auth-page .member-directory-meta small{font-size:12px}
+.club-auth-page .member-directory-meta span{font-size:11px}
+.club-auth-page .member-directory-item{padding:16px;gap:16px}
+.club-auth-page .member-directory-avatar,
+.club-auth-page .member-directory-avatar img,
+.club-auth-page .member-directory-avatar-fallback{width:64px;height:64px}
+.club-auth-page .member-directory-avatar-fallback{font-size:24px}
+.club-auth-page .member-directory-list{gap:14px}
+.club-auth-page .member-section-nav a{font-size:13px;padding:9px 13px}
+.club-auth-page .member-section-nav-label{font-size:10px}
+
+/* Quests */
+.club-auth-page .quest-tabs{gap:8px;margin-bottom:16px}
+.club-auth-page .quest-tab{min-height:38px;padding:0 14px;font-size:12px}
+.club-auth-page .quest-list{gap:10px}
+.club-auth-page .quest-row{grid-template-columns:46px minmax(0,1fr);gap:13px;padding:14px;border-radius:14px}
+.club-auth-page .quest-icon{width:46px;height:46px;font-size:21px}
+.club-auth-page .quest-head strong{font-size:14px}
+.club-auth-page .quest-main small{font-size:12px;line-height:1.5}
+.club-auth-page .quest-meta{font-size:11px}
+.club-auth-page .quest-state{font-size:11px}
+.club-auth-page .quest-state-done{font-size:12px}
+.club-auth-page .quest-progress{height:6px;margin-top:10px}
+
+/* Community games */
+.club-auth-page .hub-games-head strong{font-size:15px}
+.club-auth-page .hub-games-head small{font-size:12px}
+.club-auth-page .hub-game-row-v10{grid-template-columns:28px 72px minmax(0,1fr);gap:12px;padding:12px 0}
+.club-auth-page .hub-game-rank-v10{font-size:11px}
+.club-auth-page .hub-game-thumb-v10{width:72px;height:46px;border-radius:10px}
+.club-auth-page .hub-game-info-v10 strong{font-size:14px}
+.club-auth-page .hub-game-info-v10 small{font-size:11px}
+
+/* Progression: all 30 levels are now generated from the same source as XP logic. */
+.club-auth-page .catalog-levels-scroll{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x proximity;padding:6px 4px 14px;scrollbar-width:thin}
+.club-auth-page .catalog-levels-scroll .catalog-level-v14{flex:0 0 154px;min-width:154px;min-height:132px;padding:17px;border-radius:18px;scroll-snap-align:start;display:grid;align-content:start;transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease,opacity .2s ease}
+.club-auth-page .catalog-levels-scroll .catalog-level-v14>span{width:36px;height:36px;margin-bottom:11px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:900}
+.club-auth-page .catalog-levels-scroll .catalog-level-v14 strong{font-size:14px;line-height:1.2}
+.club-auth-page .catalog-levels-scroll .catalog-level-v14 small{font-size:11px;margin-top:6px;color:#8f8f99}
+.club-auth-page .catalog-levels-scroll .catalog-level-v14:not(.is-complete){opacity:.62}
+.club-auth-page .catalog-levels-scroll .catalog-level-v14.is-current{opacity:1;transform:translateY(-3px);border-color:rgba(233,213,255,.58);box-shadow:0 0 32px rgba(168,85,247,.24),inset 0 0 20px rgba(168,85,247,.06)}
+.club-auth-page .catalog-levels-scroll .catalog-level-v14.is-current>span{background:rgba(168,85,247,.18);border:1px solid rgba(216,180,254,.55);box-shadow:0 0 22px rgba(192,132,252,.38)}
+.club-auth-page .catalog-levels-scroll .catalog-level-v14.is-complete:not(.is-current){border-color:rgba(168,85,247,.18)}
+.club-auth-page .catalog-levels-scroll .catalog-level-v14:nth-child(n+21).is-complete{border-color:rgba(216,180,254,.28);box-shadow:0 0 26px rgba(192,132,252,.14)}
+
+/* Daily streak gets a visual anchor from the generated ACY companion art. */
+.club-auth-page .daily-streak-layout{grid-template-columns:minmax(0,1.3fr) minmax(320px,.7fr);gap:22px;margin-bottom:18px}
+.club-auth-page .daily-streak-main{min-height:150px;padding:22px;gap:18px}
+.club-auth-page .daily-streak-pet-art{width:86px;height:86px;flex:0 0 86px;display:grid;place-items:center;border-radius:24px;background:radial-gradient(circle at 35% 25%,rgba(216,180,254,.22),rgba(168,85,247,.06) 60%,transparent);border:1px solid rgba(192,132,252,.20);box-shadow:0 0 28px rgba(168,85,247,.12);overflow:hidden}
+.club-auth-page .daily-streak-pet-art img{width:76px;height:76px;object-fit:contain;display:block}
+.club-auth-page .streak-number strong{font-size:46px}
+.club-auth-page .streak-number span{font-size:11px}
+.club-auth-page .streak-copy strong{font-size:20px}
+.club-auth-page .streak-copy p{font-size:14px;line-height:1.5}
+.club-auth-page .daily-streak-stats>div{padding:16px}
+.club-auth-page .daily-streak-stats span{font-size:10px}
+.club-auth-page .daily-streak-stats strong{font-size:19px}
+
+/* Current game preview */
+.club-auth-page .current-game-controls{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center}
+.club-auth-page .current-game-preview{display:grid;grid-template-columns:100px minmax(0,1fr);gap:14px;align-items:center;margin-top:16px;padding:12px;border-radius:16px;border:1px solid rgba(168,85,247,.18);background:rgba(168,85,247,.045)}
+.club-auth-page .current-game-preview-art{width:100px;height:62px;border-radius:11px;overflow:hidden;background:#101018;border:1px solid rgba(255,255,255,.07)}
+.club-auth-page .current-game-preview-art img{width:100%;height:100%;object-fit:cover;display:block}
+.club-auth-page .current-game-preview>div:last-child{display:grid;gap:4px;min-width:0}
+.club-auth-page .current-game-preview strong{font-size:17px}
+.club-auth-page .current-game-preview small{font-size:12px;color:#8f8f99}
+
+/* Pet choices become image-led rather than emoji-only. */
+.club-auth-page .pet-choice{min-height:150px;padding:12px}
+.club-auth-page .pet-choice-icon{width:74px;height:74px;margin:auto}
+.club-auth-page .pet-choice-copy strong{font-size:14px}
+.club-auth-page .pet-choice-copy small{font-size:11px}
+.club-auth-page .pet-avatar{width:104px;height:104px;border-radius:28px}
+.club-auth-page .pet-avatar img{width:92px;height:92px}
+.club-auth-page .pet-identity h3{font-size:28px}
+.club-auth-page .pet-identity p{font-size:13px}
+.club-auth-page .pet-stat>div:first-child{font-size:12px}
+.club-auth-page .pet-footer{font-size:11px}
+
+/* Normal cards need room for the refresh icon. */
+.club-auth-page .member-card-head{padding-right:44px}
+.club-auth-page .member-fold-summary{padding-right:64px}
+
+@media(max-width:900px){
+  .acy-refresh-status{top:74px;font-size:10px}
+  .acy-header-refresh span{display:none}
+  .acy-header-refresh{width:44px;padding:0}
+  .club-auth-page .daily-streak-layout{grid-template-columns:1fr}
+  .club-auth-page .current-game-controls{grid-template-columns:1fr}
+  .club-auth-page .member-directory-list{grid-template-columns:1fr}
+}
+@media(max-width:600px){
+  .acy-refresh-status{top:auto;bottom:74px;max-width:calc(100vw - 28px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .acy-section-refresh{width:32px;height:32px;top:12px;right:12px}
+  .club-auth-page .member-card-head{padding-right:38px}
+  .club-auth-page .member-fold-summary{padding-right:54px}
+  .club-auth-page .daily-streak-main{min-height:0;padding:18px;gap:12px}
+  .club-auth-page .daily-streak-pet-art{width:68px;height:68px;flex-basis:68px;border-radius:18px}
+  .club-auth-page .daily-streak-pet-art img{width:60px;height:60px}
+  .club-auth-page .streak-number strong{font-size:38px}
+  .club-auth-page .streak-copy strong{font-size:17px}
+  .club-auth-page .streak-copy p{font-size:13px}
+  .club-auth-page .current-game-preview{grid-template-columns:80px minmax(0,1fr)}
+  .club-auth-page .current-game-preview-art{width:80px;height:52px}
+  .club-auth-page .pet-choice-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .club-auth-page .pet-choice{min-height:128px}
+  .club-auth-page .pet-choice-icon{width:58px;height:58px}
+}
+@media(prefers-reduced-motion:reduce){
+  .acy-header-refresh.is-refreshing::before,
+  .acy-section-refresh.is-refreshing span:first-child{animation:none}
+  .club-auth-page .catalog-levels-scroll .catalog-level-v14{transition:none}
+}
+
+.club-auth-page .catalog-levels-scroll .catalog-level-v14:nth-child(n+13):nth-child(-n+20).is-complete{border-color:rgba(192,132,252,.24);box-shadow:0 0 22px rgba(192,132,252,.11)}
+.club-auth-page .catalog-levels-scroll .catalog-level-v14:nth-child(n+21):nth-child(-n+29).is-complete{border-color:rgba(216,180,254,.32);box-shadow:0 0 30px rgba(192,132,252,.16),inset 0 0 16px rgba(216,180,254,.05)}
+.club-auth-page .catalog-levels-scroll .catalog-level-v14:nth-child(30){border-color:rgba(245,230,255,.58);box-shadow:0 0 18px rgba(216,180,254,.32),0 0 48px rgba(168,85,247,.20),inset 0 0 24px rgba(255,255,255,.07)}
+.club-auth-page .catalog-levels-scroll .catalog-level-v14:nth-child(30)>span{box-shadow:0 0 12px rgba(255,255,255,.28),0 0 30px rgba(216,180,254,.44)}

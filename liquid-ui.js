@@ -20,8 +20,14 @@
     if (!raf) raf = requestAnimationFrame(paint);
   }, {passive:true});
 
-  document.querySelectorAll('button, a, .member-card, .club-content-item, .member-badge, .catalog-level, .hub-roadmap-step').forEach(el => {
-    el.addEventListener('pointerenter', () => el.classList.add('acy-pointer-active'), {passive:true});
-    el.addEventListener('pointerleave', () => el.classList.remove('acy-pointer-active'), {passive:true});
-  });
+  // V14.2 — event delegation avoids attaching dozens/hundreds of pointer listeners
+  // to dynamic Club cards that are re-rendered after every refresh.
+  document.addEventListener('pointerover', event => {
+    const el = event.target.closest?.('button, a, .member-card, .club-content-item, .member-badge, .catalog-level, .hub-roadmap-step');
+    if (el) el.classList.add('acy-pointer-active');
+  }, {passive:true});
+  document.addEventListener('pointerout', event => {
+    const el = event.target.closest?.('button, a, .member-card, .club-content-item, .member-badge, .catalog-level, .hub-roadmap-step');
+    if (el && !el.contains(event.relatedTarget)) el.classList.remove('acy-pointer-active');
+  }, {passive:true});
 })();
