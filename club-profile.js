@@ -2918,11 +2918,16 @@ function renderSocialConnections(data={}) {
 
   const incomingList=$('social-incoming-list');
   if(incomingList){
-    incomingList.innerHTML=incoming.length?incoming.map(r=>renderPerson(r,
+    const incomingMarkup=incoming.map(r=>renderPerson(r,
       `<button class="button button-primary button-small" data-social-accept="${escapeAttr(r.id)}">Annehmen</button>
        <button class="button button-secondary button-small" data-social-decline="${escapeAttr(r.id)}">Ablehnen</button>
        <button class="button button-danger button-small" data-social-block="${escapeAttr(r.user_id)}">Blockieren</button>`
-    )).join(''):'<div class="club-content-empty">Keine offenen Anfragen.</div>';
+    ));
+    const outgoingMarkup=outgoing.map(r=>renderPerson(r,
+      `<span class="quest-state">Anfrage gesendet</span>
+       <button class="button button-secondary button-small" data-social-cancel-outgoing="${escapeAttr(r.id)}">Zurückziehen</button>`));
+    const allRequests=[...incomingMarkup,...outgoingMarkup];
+    incomingList.innerHTML=allRequests.length?allRequests.join(''):'<div class="club-content-empty">Keine offenen Anfragen.</div>';
   }
 
   const friendsList=$('social-friends-list');
@@ -2950,6 +2955,12 @@ function renderSocialConnections(data={}) {
   document.querySelectorAll('[data-social-decline]').forEach(btn=>btn.onclick=async()=>{
     try{await rpcSocial('respond_friend_request',{p_request_id:btn.dataset.socialDecline,p_accept:false});await loadSocialConnections();}catch(e){setStatus(e.message,'error');}
   });
+  document.querySelectorAll('[data-social-cancel-outgoing]').forEach(btn=>btn.onclick=async()=>{
+    try{
+      await rpcSocial('respond_friend_request',{p_request_id:btn.dataset.socialCancelOutgoing,p_accept:false});
+      await loadSocialConnections();
+    }catch(e){setStatus(e.message,'error');}
+  });
   document.querySelectorAll('[data-social-remove]').forEach(btn=>btn.onclick=async()=>{
     if(!confirm('Freundschaft wirklich entfernen?'))return;
     try{await rpcSocial('remove_friend',{p_friend_user_id:btn.dataset.socialRemove});await loadSocialConnections();}catch(e){setStatus(e.message,'error');}
@@ -2971,6 +2982,7 @@ async function loadSocialConnections(){
     await rpcSocial('sync_my_friendships');
     const data=await rpcSocial('get_my_social_connections');
     renderSocialConnections(data||{});
+    void loadQuests();
   }catch(error){
     console.warn('Social connections unavailable:',error);
     setText('social-friend-count','– Freunde');

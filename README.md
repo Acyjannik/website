@@ -1559,3 +1559,12 @@ Run `supabase/v10_quality.sql` once after the previous migrations.
 - Updated Pet action labels reflect real stat changes.
 - Updated care-XP text to the 4-actions/20-XP daily model.
 - No new SQL beyond the existing `supabase/v11.3_quests_pets.sql`.
+
+
+## V11.3.3 — Pet XP + Friends Repair
+- Rebuilt the Pet RPC in a standalone repair migration so the client actually receives care XP and updated energy values.
+- Feed and pet restore energy, play consumes energy, and energy passively regenerates.
+- Pet care XP is +5 per action up to 4 actions/day.
+- Independent feed/play/pet cooldowns prevent one action from blocking another.
+- Friends are rebuilt from both the friendship table and accepted friend requests, so missing mirrored rows no longer hide an accepted friend.
+- Pending outgoing friend requests are now visible in the requests section instead of silently disappearing.
