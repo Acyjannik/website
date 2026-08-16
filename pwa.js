@@ -1,4 +1,21 @@
 
+/* ACY V12.2 deployment guard: remove stale service workers/caches */
+(async () => {
+  try {
+    if ('serviceWorker' in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      for (const reg of regs) {
+        try { await reg.unregister(); } catch (_) {}
+      }
+    }
+    if ('caches' in window) {
+      const keys = await caches.keys();
+      await Promise.all(keys.filter(k => /acy|club|pwa|precache/i.test(k)).map(k => caches.delete(k)));
+    }
+  } catch (_) {}
+})();
+
+
 let deferredPwaInstallPrompt = null;
 let PUSH_PUBLIC_KEY = '';
 
@@ -95,7 +112,7 @@ async function subscribeAcyPush(){
   const permission=await Notification.requestPermission();
   if(permission!=='granted') throw new Error('Benachrichtigungen wurden nicht erlaubt.');
 
-  const registration=await navigator.serviceWorker.register('/service-worker.js',{scope:'/'});
+  const registration=await navigator.serviceWorker.register('/service-worker.js?v=12.2.0',{scope:'/'});
   const ready=await navigator.serviceWorker.ready;
   let subscription=await ready.pushManager.getSubscription();
   if(!subscription){
@@ -198,6 +215,6 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('acy-pwa-install-overlay')?.addEventListener('click',e=>{
     if(e.target.id==='acy-pwa-install-overlay')closePwaInstallHelp();
   });
-  if('serviceWorker' in navigator)navigator.serviceWorker.register('/service-worker.js',{scope:'/'}).catch(()=>{});
+  if('serviceWorker' in navigator)navigator.serviceWorker.register('/service-worker.js?v=12.2.0',{scope:'/'}).catch(()=>{});
   setTimeout(updatePwaUi,250);
 });

@@ -1,0 +1,4 @@
+ACYJANNIK BUILD V12.2
+Deployment test build.
+Expected visible marker: ACY BUILD V12.2
+Purpose: prove the browser is receiving the new frontend bundle.
