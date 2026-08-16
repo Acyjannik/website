@@ -1303,3 +1303,11 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Newly auto-discovered Twitch games can show a subtle `NEU` badge for 24 hours.
 - Public homepage curated Games section remains limited to the first three games.
 - Added `supabase/club_game_presence_live.sql`.
+
+
+## V9.3 — Game Trends
+- Added 7-day play-session counts to the community game activity view.
+- Live cards now show `live now · X× diese Woche`.
+- Club member hub gets a compact top-game trend list.
+- Admin Games status includes a tooltip with the current top live games.
+- Added `supabase/club_game_trends.sql`.

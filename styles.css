@@ -2030,3 +2030,22 @@ img,video,iframe,svg{
 @keyframes community-game-refresh{
   50%{transform:translateY(-2px);box-shadow:0 0 0 3px rgba(168,85,247,.07),0 12px 30px rgba(0,0,0,.18)}
 }
+
+/* V9.3 — Game trend mini cards */
+.hub-community-game-mini{
+  display:grid;
+  grid-template-columns:42px minmax(0,1fr);
+  gap:8px;
+  align-items:center;
+  padding:7px 0;
+  border-bottom:1px solid rgba(255,255,255,.045);
+}
+.hub-community-game-mini:last-child{border-bottom:0}
+.hub-community-game-mini-art{
+  width:42px;height:28px;border-radius:8px;
+  background:#111118 center/cover no-repeat;
+  border:1px solid rgba(255,255,255,.05);
+}
+.hub-community-game-mini div:last-child{display:grid;gap:2px;min-width:0}
+.hub-community-game-mini strong{font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hub-community-game-mini small{font-size:7px;color:#71717a}

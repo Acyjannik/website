@@ -37,7 +37,7 @@ async function loadPublicGames() {
     if (activityGrid) {
       const { data: activity, error: activityError } = await client
         .from('club_game_activity')
-        .select('id,name,tag,image_url,description,member_count,discovered_at,discovered_source')
+        .select('id,name,tag,image_url,description,member_count,sessions_7d,last_seen_at,discovered_at,discovered_source')
         .order('member_count', { ascending: false })
         .order('name', { ascending: true })
         .limit(8);
@@ -54,7 +54,7 @@ async function loadPublicGames() {
           <div class="community-game-body">
             <span class="community-game-rank">#${i + 1}</span>
             <strong>${escapeHtml(game.name)}${discovered ? ' <em class="community-game-new">NEU</em>' : ''}</strong>
-            <small>${Number(game.member_count).toLocaleString('de-DE')} ${Number(game.member_count) === 1 ? 'Mitglied spielt' : 'Mitglieder spielen'} das gerade</small>
+            <small>${Number(game.member_count).toLocaleString('de-DE')} ${Number(game.member_count) === 1 ? 'Mitglied spielt' : 'Mitglieder spielen'} das gerade · ${Number(game.sessions_7d||0).toLocaleString('de-DE')}× diese Woche</small>
           </div>
         </article>`;
       }).join('') : `

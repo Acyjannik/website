@@ -657,6 +657,22 @@ async function loadGamePresenceLog(){
   }
 }
 
+
+async function loadGameTrendSummary(){
+  const target=$('games-db-state');
+  if(!target||!supabaseClient)return;
+  try{
+    const {data,error}=await supabaseClient.from('club_game_activity')
+      .select('name,member_count,sessions_7d')
+      .order('member_count',{ascending:false})
+      .limit(3);
+    if(error)throw error;
+    if(!data?.length)return;
+    const trend=data.map(row=>`${row.name}: ${row.member_count} live`).join(' · ');
+    target.title=`Live: ${trend}`;
+  }catch{}
+}
+
 async function loadGames() {
   const list = $('games-admin-list');
   if (!list) return;

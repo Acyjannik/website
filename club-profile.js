@@ -2024,6 +2024,24 @@ function startCommunityMemberGamePolling(){
 }
 
 async function loadMemberHub() {
+  try{
+    const hubGameBox=$('hub-community-games-grid');
+    if(hubGameBox&&supabaseClient){
+      const {data:games,error}=await supabaseClient.from('club_game_activity')
+        .select('id,name,image_url,member_count,sessions_7d')
+        .order('member_count',{ascending:false})
+        .order('sessions_7d',{ascending:false})
+        .limit(6);
+      if(error)throw error;
+      hubGameBox.innerHTML=(games||[]).length
+        ? games.map((g,i)=>`<article class="hub-community-game-mini">
+            <div class="hub-community-game-mini-art" style="background-image:url('${escapeAttr(g.image_url||'')}')"></div>
+            <div><strong>#${i+1} ${escapeHtml(g.name)}</strong><small>${Number(g.member_count||0)} live · ${Number(g.sessions_7d||0)}× diese Woche</small></div>
+          </article>`).join('')
+        : '<div class="club-content-empty">Noch keine aktiven Community-Games.</div>';
+    }
+  }catch(error){console.warn('Hub community games unavailable:',error);}
+
   const greeting = $('hub-greeting');
   const summary = $('hub-summary');
   const title = $('hub-level-title');
