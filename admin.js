@@ -1391,6 +1391,22 @@ async function loadPollsAdmin() {
 }
 
 
+
+$('check-push-status-btn')?.addEventListener('click', async()=>{
+  const status=$('push-test-message');
+  try{
+    const {data}=await supabaseClient.auth.getSession();
+    const token=data?.session?.access_token;
+    if(!token)throw new Error('Keine aktive Admin-Sitzung.');
+    const response=await fetch('/api/push-status',{headers:{Authorization:`Bearer ${token}`},cache:'no-store'});
+    const payload=await response.json().catch(()=>({}));
+    if(!response.ok)throw new Error(payload.error||`HTTP ${response.status}`);
+    if(status)status.textContent=`Push-Status dieses Admin-Accounts: ${payload.count||0} registriertes Gerät.`;
+  }catch(error){
+    if(status){status.textContent=error.message||'Push-Status konnte nicht gelesen werden.';status.classList.add('error');}
+  }
+});
+
 $('test-push-all-btn')?.addEventListener('click', async () => {
   const button=$('test-push-all-btn');
   const status=$('push-test-message');

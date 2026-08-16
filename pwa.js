@@ -52,10 +52,26 @@ function base64ToUint8Array(base64){
   return Uint8Array.from([...raw].map(c=>c.charCodeAt(0)));
 }
 
+let acyPushSupabaseClient = null;
+
 async function getAcyAccessToken(){
-  if(!window.supabaseClient?.auth)return null;
-  const {data}=await window.supabaseClient.auth.getSession();
-  return data?.session?.access_token || null;
+  try{
+    if(!acyPushSupabaseClient){
+      const cfg = await (await fetch('/api/config',{cache:'no-store'})).json();
+      if(!cfg?.configured || !window.supabase?.createClient) return null;
+      acyPushSupabaseClient = window.supabase.createClient(
+        cfg.supabaseUrl,
+        cfg.supabaseAnonKey,
+        { auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true} }
+      );
+    }
+    const {data,error}=await acyPushSupabaseClient.auth.getSession();
+    if(error) throw error;
+    return data?.session?.access_token || null;
+  }catch(error){
+    console.warn('ACY Push: session unavailable',error);
+    return null;
+  }
 }
 
 async function loadPushConfig(){
@@ -90,7 +106,7 @@ async function subscribeAcyPush(){
   }
 
   const token=await getAcyAccessToken();
-  if(!token)throw new Error('Deine Sitzung ist abgelaufen.');
+  if(!token)throw new Error('Deine ACY-Sitzung konnte für Push nicht gelesen werden. Bitte einmal ausloggen und erneut einloggen.');
   const response=await fetch('/api/push-subscribe',{
     method:'POST',
     headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},

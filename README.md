@@ -1411,3 +1411,9 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - `/mod.html` now redirects unauthenticated users to the normal ACY Club login instead of showing a dead-end error.
 - Added an Admin → Sicherheit → Mobile Push test button.
 - The Push Test sends one notification to every currently registered push device; expired subscriptions are automatically removed.
+
+
+## V9.9.2 — Push Session Fix
+- Fixed Push subscription registration when the main Club page keeps `supabaseClient` in a module/local scope.
+- `pwa.js` now creates its own Supabase client from `/api/config` to reliably read the logged-in session.
+- Added `/api/push-status` and an Admin diagnostic button to verify whether the current account has a stored push subscription.
