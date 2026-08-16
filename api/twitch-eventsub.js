@@ -48,14 +48,20 @@ export default async function handler(req,res){
       const site=process.env.PUBLIC_SITE_URL||"";
       const internalSecret=process.env.CLUB_EVENT_HUB_SECRET||"";
       if(site&&internalSecret){
+        const eventPayload={
+          message:text,
+          broadcasterUserId:event?.broadcaster_user_id||null,
+          startedAt:event?.started_at||null
+        };
         await fetch(`${site}/api/club-event-hub`,{
           method:"POST",
           headers:{"Content-Type":"application/json"},
-          body:JSON.stringify({internalSecret,eventType,title,payload:{
-            message:text,
-            broadcasterUserId:event?.broadcaster_user_id||null,
-            startedAt:event?.started_at||null
-          }})
+          body:JSON.stringify({internalSecret,eventType,title,payload:eventPayload})
+        }).catch(()=>{});
+        await fetch(`${site}/api/club-notification-email`,{
+          method:"POST",
+          headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({internalSecret,type:"live",title,body:text,linkUrl:"/"})
         }).catch(()=>{});
       }
     }

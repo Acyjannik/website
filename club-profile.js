@@ -1236,6 +1236,12 @@ async function performPetAction(action, button) {
     renderPet(data);
     if (data?.daily_xp_awarded) {
       setPetStatus('Heute gab es +5 XP für die Tierpflege. 🐾', 'success');
+      void sendPersonalEmailNotification(
+        'pet',
+        'Dein Pet war aktiv 🐾',
+        'Deine heutige Tierpflege ist erledigt. Dein Pet hat dafür Pflege-XP erhalten.',
+        '/club-profile.html#pet-section'
+      );
     } else {
       setPetStatus('Dein Tier freut sich. 🐾', 'success');
     }
@@ -1470,6 +1476,12 @@ async function loadMyRewards(){
           triggerClubEffect('reward', `🎁 ${result?.name||'Reward'} eingelöst.`);
           if (['twitch','wheel_spin'].includes(result?.reward_type)) {
             void sendDiscordCommunityEvent('reward_rare', {reward: `${result?.icon||'🎁'} ${result?.name||'Reward'}`}, `reward-${btn.dataset.useReward}-${result?.reward_type}-${Date.now()}`);
+            void sendPersonalEmailNotification(
+              'reward',
+              'Neuer Reward 🎁',
+              `Du hast im ACY Club „${result?.name||'einen Reward'}“ erhalten.`,
+              '/club-profile.html#club-rewards-section'
+            );
           }
           const status=$('rewards-message'); if(status)status.className='club-auth-status success';
 
@@ -1556,6 +1568,12 @@ async function claimDailyStreak(){
       if (data.new_achievement) {
         void sendDiscordCommunityEvent('daily_streak_milestone', {days:data.current_streak}, `streak-${currentUser.id}-${data.current_streak}`);
         void sendDiscordCommunityEvent('achievement_unlocked', {achievement:data.new_achievement}, `achievement-${currentUser.id}-${data.new_achievement}`);
+        void sendPersonalEmailNotification(
+          'achievement',
+          'Achievement freigeschaltet 🏆',
+          `Du hast im ACY Club das Achievement „${data.new_achievement}“ freigeschaltet.`,
+          '/club-profile.html#club-quests-section'
+        );
       }
       const status=$('daily-streak-message');if(status)status.className='club-auth-status success';
       if(Number.isFinite(data.total_xp)){renderProgress(data.total_xp);setText('member-xp',`${data.total_xp} XP`);}
@@ -2550,6 +2568,21 @@ async function sendDiscordCommunityEvent(eventType, payload = {}, dedupeKey = ''
   } catch (error) {
     console.warn('Discord community event skipped:', error);
   }
+}
+
+
+async function sendPersonalEmailNotification(type,title,body,linkUrl='/club-profile.html'){
+  if(!supabaseClient||!currentUser)return;
+  try{
+    const {data}=await supabaseClient.auth.getSession();
+    const token=data?.session?.access_token;
+    if(!token)return;
+    await fetch('/api/club-notification-email',{
+      method:'POST',
+      headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},
+      body:JSON.stringify({personal:true,type,title,body,linkUrl})
+    });
+  }catch(error){console.warn('Personal email notification skipped:',error);}
 }
 
 // V8.3 — Live member refresh + interface effects/sounds

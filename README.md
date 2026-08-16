@@ -1237,3 +1237,13 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Exact authenticated mailbox remains the envelope and From address.
 - API version bumped to 7.1.12.
 - No database changes.
+
+
+## V8.6.0 — Notification System Cleanup
+- Normal IONOS SMTP remains on the proven sender/envelope format.
+- Added preference-aware personal email dispatch for achievements, rewards and meaningful pet activity.
+- Twitch EventSub live notifications now also honor `email_live` through the internal event path.
+- Admin-created News and Events now trigger category-aware emails.
+- Personal dispatch can only target the authenticated member; broadcasts remain admin/internal-only.
+- Added a lightweight email dispatch log table for diagnostics.
+- API version bumped to 7.1.13.

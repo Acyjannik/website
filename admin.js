@@ -772,14 +772,14 @@ async function addEventAdmin(){
   if(!title||!date)return message('events-message','Titel und Datum sind erforderlich.');
   if(!isSafeHttpUrl(url))return message('events-message','Bitte einen gültigen Link verwenden.');
   const {error}=await supabaseClient.from('club_events').insert({title,description:desc,event_date:new Date(date).toISOString(),location:'Twitch',twitch_url:url,enabled:true});
-  if(error)message('events-message',error.message);else{$('event-title').value='';$('event-description').value='';$('event-date').value='';message('events-message','Event hinzugefügt.',true);saveStamp();loadEventsAdmin();}
+  if(error)message('events-message',error.message);else{void dispatchAdminEmailNotification('event','Neues ACY Event',`${title}${desc?`\n\n${desc}`:''}`,'/club-profile.html#club-events');$('event-title').value='';$('event-description').value='';$('event-date').value='';message('events-message','Event hinzugefügt.',true);saveStamp();loadEventsAdmin();}
 }
 
 async function addNewsAdmin(){
   const title=$('news-title').value.trim(), body=$('news-body').value.trim();
   if(!title||!body)return message('news-message','Titel und Text sind erforderlich.');
   const {error}=await supabaseClient.from('club_news').insert({title,body,enabled:true});
-  if(error)message('news-message',error.message);else{$('news-title').value='';$('news-body').value='';message('news-message','News veröffentlicht.',true);saveStamp();loadNewsAdmin();}
+  if(error)message('news-message',error.message);else{void dispatchAdminEmailNotification('news',title,body,'/club-profile.html#news');$('news-title').value='';$('news-body').value='';message('news-message','News veröffentlicht.',true);saveStamp();loadNewsAdmin();}
 }
 
 async function loadClipsAdmin(){
@@ -1152,6 +1152,21 @@ $('add-news-btn')?.addEventListener('click', addNewsAdmin);
     await resetPassword();
   });
 
+}
+
+
+async function dispatchAdminEmailNotification(type,title,body,linkUrl){
+  try{
+    const {data}=await supabaseClient.auth.getSession();
+    const token=data?.session?.access_token;
+    if(!token)return;
+    const response=await fetch('/api/club-notification-email',{
+      method:'POST',
+      headers:{'Authorization':`Bearer ${token}`,'Content-Type':'application/json'},
+      body:JSON.stringify({type,title,body,linkUrl})
+    });
+    if(!response.ok)console.warn('Admin email notification skipped:',await response.text());
+  }catch(error){console.warn('Admin email notification skipped:',error);}
 }
 
 // ------------------------------------------------------------

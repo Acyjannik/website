@@ -1,6 +1,6 @@
 const tls = require('node:tls');
 
-const NOTIFICATION_EMAIL_API_VERSION = '7.1.12';
+const NOTIFICATION_EMAIL_API_VERSION = '7.1.13';
 const env = (name, fallback='') => String(process.env[name] || fallback);
 
 function json(res, status, payload) {
@@ -289,9 +289,17 @@ module.exports = async (req, res) => {
     const token = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
     if (!token) return json(res, 401, {error:'Nicht angemeldet.'});
 
+    const body = typeof req.body === 'object' ? (req.body || {}) : JSON.parse(req.body || '{}');
     const user = await getAuthUser(token);
-    if (!user?.id || !(await isAdmin(user.id))) {
-      return json(res, 403, {error:'Admin-Rechte erforderlich.'});
+    if (!user?.id) return json(res, 401, {error:'Ungültige Sitzung.'});
+
+    const admin = await isAdmin(user.id);
+    const internal = Boolean(body.internalSecret && env('CLUB_EVENT_HUB_SECRET') && body.internalSecret === env('CLUB_EVENT_HUB_SECRET'));
+    const personalTypes = new Set(['achievement','reward','pet']);
+    const isPersonal = body.personal === true && personalTypes.has(String(body.type || ''));
+
+    if (!admin && !internal && !isPersonal) {
+      return json(res, 403, {error:'Admin-, interner oder persönlicher Benachrichtigungszugriff erforderlich.'});
     }
 
     if (!smtpConfigured()) {
@@ -302,11 +310,47 @@ module.exports = async (req, res) => {
       });
     }
 
-    const body = typeof req.body === 'object' ? (req.body || {}) : JSON.parse(req.body || '{}');
+
+    if (isPersonal) {
+      const type = String(body.type || '');
+      const pref = prefColumn(type);
+      const title = String(body.title || '').trim().slice(0,180);
+      const text = String(body.body || '').trim().slice(0,1500);
+      const linkUrl = String(body.linkUrl || '/club-profile.html').trim().slice(0,500);
+      if (!title || !text || !pref) return json(res,400,{error:'Ungültige persönliche Benachrichtigung.'});
+
+      const prefsRes = await sbFetch(`/rest/v1/club_notification_preferences?user_id=eq.${encodeURIComponent(user.id)}&select=email_enabled,${pref}&limit=1`);
+      if (!prefsRes.ok) throw new Error(`Preferences: HTTP ${prefsRes.status}`);
+      const prefsRows = await prefsRes.json();
+      const prefsRow = prefsRows?.[0];
+      if (!prefsRow?.email_enabled || prefsRow[pref] !== true) {
+        return json(res,200,{ok:true,skipped:true,reason:'preference_disabled',emailSent:0});
+      }
+
+      const authRes = await sbFetch(`/auth/v1/admin/users/${encodeURIComponent(user.id)}`);
+      if (!authRes.ok) throw new Error(`Auth HTTP ${authRes.status}`);
+      const authUser = await authRes.json();
+      if (!authUser.email) return json(res,200,{ok:true,skipped:true,reason:'no_email',emailSent:0});
+
+      const settingsUrl = `${env('PUBLIC_SITE_URL','https://acyjannik.de')}/club-profile.html#notification-settings`;
+      const targetUrl = `${env('PUBLIC_SITE_URL','https://acyjannik.de')}${linkUrl}`;
+      const personalHtml = `
+        <div style="background:#09090d;padding:32px 16px;font-family:Arial,sans-serif;color:#f4f4f5">
+          <div style="max-width:620px;margin:auto;background:#14131b;border:1px solid #282230;border-radius:18px;padding:28px">
+            <div style="color:#c084fc;font-size:11px;letter-spacing:.15em;font-weight:800">ACYJANNIK · ACY CLUB</div>
+            <h1 style="font-size:26px;line-height:1.15;margin:12px 0 14px">${escapeHtml(title)}</h1>
+            <p style="color:#b8b8c3;line-height:1.6">${escapeHtml(text).replace(/\n/g,'<br>')}</p>
+            <p style="margin-top:24px"><a href="${escapeHtml(targetUrl)}" style="display:inline-block;background:#a855f7;color:#fff;text-decoration:none;padding:12px 18px;border-radius:10px;font-weight:700">Im ACY Club öffnen ↗</a></p>
+            <p style="font-size:11px;color:#6f6f7a;margin-top:30px">Benachrichtigungen: <a href="${escapeHtml(settingsUrl)}" style="color:#c084fc">Einstellungen verwalten</a></p>
+          </div>
+        </div>`;
+      await smtpSend({to:authUser.email,subject:`${title} · ACY Club`,text,html:personalHtml});
+      return json(res,200,{ok:true,personal:true,emailSent:1,sentTo:authUser.email});
+    }
 
     // V7.1.11: isolated IONOS sender test. This intentionally sends the
     // smallest possible plain-text message using the authenticated mailbox.
-    if (body.testSmtpMinimal === true) {
+    if ((admin || internal) && body.testSmtpMinimal === true) {
       const selfRes = await sbFetch(`/auth/v1/admin/users/${encodeURIComponent(user.id)}`);
       if (!selfRes.ok) throw new Error(`Eigene E-Mail konnte nicht geladen werden. Auth HTTP ${selfRes.status}`);
       const self = await selfRes.json();
@@ -333,7 +377,7 @@ module.exports = async (req, res) => {
 
     // V7.1.5: direct SMTP test through the EXISTING deployed API route.
     // This avoids relying on a brand-new Vercel function path.
-    if (body.testSmtp === true) {
+    if ((admin || internal) && body.testSmtp === true) {
       if (!smtpConfigured()) {
         return json(res, 503, {
           apiVersion: NOTIFICATION_EMAIL_API_VERSION,
@@ -414,6 +458,8 @@ module.exports = async (req, res) => {
         smtpUserDomain
       });
     }
+
+    if (!admin && !internal) return json(res,403,{error:'Broadcasts require Admin- oder internen Event-Hub-Zugriff.'});
 
     const type = String(body.type || 'general').slice(0,50);
     const pref = prefColumn(type);
