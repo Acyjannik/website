@@ -1544,3 +1544,9 @@ Run `supabase/v10_quality.sql` once after the previous migrations.
 - Added a global ACY button system so secondary/pet/action buttons no longer fall back to white browser styling.
 - Unified primary, secondary, danger, compact pet actions, focus states and dark form controls.
 - No database changes required.
+
+
+## V11.3.1 — Pet feedback + live stats
+- Pet care feedback now shows the actual care XP earned.
+- Quest state refreshes immediately after pet actions.
+- Pet load applies passive hunger/mood decay and energy regeneration so the dashboard no longer shows stale stats.

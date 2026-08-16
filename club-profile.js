@@ -1345,18 +1345,24 @@ async function performPetAction(action, button) {
     const { data, error } = await supabaseClient.rpc('club_pet_action', { p_action: action });
     if (error) throw error;
     renderPet(data);
-    if (data?.daily_xp_awarded) {
+    const careXp = Number(data?.care_xp_awarded || 0);
+    if (careXp > 0) {
       void progressQuestsForAction('pet_daily');
-      setPetStatus('Heute gab es +5 XP für die Tierpflege. 🐾', 'success');
-      void sendPersonalEmailNotification(
-        'pet',
-        'Dein Pet war aktiv 🐾',
-        'Deine heutige Tierpflege ist erledigt. Dein Pet hat dafür Pflege-XP erhalten.',
-        '/club-profile.html#pet-section'
-      );
+      const actionsToday = Number(data?.care_actions_today || 0);
+      const remaining = Math.max(0, 4 - actionsToday);
+      setPetStatus(`+${careXp} Pflege-XP. ${remaining ? `Noch ${remaining} Pflege-XP-Aktion${remaining===1?'':'en'} heute möglich.` : 'Das heutige Pflege-XP-Limit ist erreicht.'} 🐾`, 'success');
+      if (data?.daily_xp_awarded) {
+        void sendPersonalEmailNotification(
+          'pet',
+          'Dein Pet war aktiv 🐾',
+          'Deine heutige Tierpflege wurde belohnt. Dein Pet hat dafür Pflege-XP erhalten.',
+          '/club-profile.html#pet-section'
+        );
+      }
     } else {
-      setPetStatus('Dein Tier freut sich. 🐾', 'success');
+      setPetStatus('Aktion ausgeführt. Dein Pet freut sich. 🐾', 'success');
     }
+    await loadQuests();
     await loadProfile();
     await loadProgressionCatalog();
     await loadClubIdentity();
