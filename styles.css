@@ -2553,3 +2553,33 @@ textarea:focus{
 .catalog-level-v12.is-current .catalog-level-orb{
   box-shadow:0 0 24px rgba(216,180,254,.70),inset 0 0 18px rgba(255,255,255,.14);
 }
+
+/* V12.3 — ACY Club card spans the complete hub width */
+.member-hub > .hub-main-card{
+  grid-column:1 / -1 !important;
+  width:100% !important;
+  min-width:0 !important;
+  box-sizing:border-box;
+}
+.member-hub > .hub-progression-card{
+  grid-column:1 / -1 !important;
+  width:100% !important;
+}
+@media(max-width:900px){
+  .member-hub{
+    grid-template-columns:1fr !important;
+  }
+  .member-hub > .hub-main-card,
+  .member-hub > .hub-progression-card{
+    grid-column:1 !important;
+  }
+}
+
+.catalog-render-status{
+  grid-column:1 / -1;
+  margin:0 0 10px;
+  font-size:9px;
+  color:#8b5cf6;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}

@@ -988,6 +988,7 @@ function renderProgressionCatalog(state) {
   const xpList = $('xp-catalog-list');
   const achievementList = $('achievement-catalog-list');
   if (!xpList || !achievementList) return;
+  setText('catalog-render-status', 'Progression geladen');
 
   const awarded = new Set(state.achievements || []);
   const xpEvents = new Set(state.xpEvents || []);
@@ -1009,14 +1010,21 @@ function renderProgressionCatalog(state) {
   }).join('');
 
   const unlockedRows = ACHIEVEMENT_CATALOG.map(item => {
-    const progress = item.progress(state) || { value: 0, max: 1 };
-    const value = Math.max(0, Number(progress.value || 0));
-    const max = Math.max(1, Number(progress.max || 1));
-    const unlocked = awarded.has(item.key);
-    const percent = Math.max(0, Math.min(100, Math.round((value/max)*100)));
-    return {item,progress,value,max,unlocked,percent,category:achievementCategoryV10(item.key)};
+    try {
+      const progress = typeof item.progress === 'function'
+        ? (item.progress(state) || { value: 0, max: 1 })
+        : { value: 0, max: 1 };
+      const value = Math.max(0, Number(progress.value || 0));
+      const max = Math.max(1, Number(progress.max || 1));
+      const unlocked = awarded.has(item.key);
+      const percent = Math.max(0, Math.min(100, Math.round((value/max)*100)));
+      return {item,progress,value,max,unlocked,percent,category:achievementCategoryV10(item.key)};
+    } catch (error) {
+      console.warn('Achievement skipped:', item?.key, error);
+      return {item,value:0,max:1,unlocked:awarded.has(item?.key),percent:0,category:achievementCategoryV10(item?.key)};
+    }
   });
-  const cats=[...new Set(unlockedRows.map(x=>x.category))];
+  const cats=[...new Set(unlockedRows.map(x=>x.category || 'COMMUNITY'))];
   achievementList.innerHTML=cats.map(cat=>`<section class="achievement-category-v10"><div class="achievement-category-head-v10"><span>${escapeHtml(cat)}</span><small>${unlockedRows.filter(x=>x.category===cat&&x.unlocked).length}/${unlockedRows.filter(x=>x.category===cat).length}</small></div><div class="achievement-category-grid-v10">${unlockedRows.filter(x=>x.category===cat).map(x=>{const item=x.item;return `<div class="catalog-row achievement-row${x.unlocked?' is-unlocked':''}"><div class="catalog-icon">${escapeHtml(item.icon)}</div><div class="catalog-main"><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.detail)}</small><div class="catalog-progress"><span style="width:${x.percent}%"></span></div></div><div class="catalog-status">${x.unlocked?'✓ freigeschaltet':`${x.value}/${x.max}`}</div></div>`;}).join('')}</div></section>`).join('');
 
   const earnedCount = ACHIEVEMENT_CATALOG.filter(item => awarded.has(item.key)).length;
