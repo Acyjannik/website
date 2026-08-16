@@ -218,7 +218,7 @@ async function ensureDefaultContent() {
     { name: 'GTA V', description: 'Open World · Aktuell · Fun', tag: 'AKTUELL', image_url: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/271590/header.jpg', featured: false, sort_order: 2 },
     { name: 'Thick As Thieves', description: 'Stealth · Heist · Community', tag: 'VARIETY', image_url: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/3341000/header.jpg', featured: false, sort_order: 3 },
     { name: 'Overwatch', description: 'Hero Shooter · Competitive · Community', tag: 'COMPETITIVE', image_url: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/2357570/header.jpg', featured: false, sort_order: 4 },
-    { name: 'MECCHA CHAMELEON', description: 'Hide & Seek · Party · Community', tag: 'VARIETY', image_url: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/4704690/header.jpg', featured: false, sort_order: 5 },
+    { name: 'MECCHA CHAMELEON', description: 'Hide & Seek · Party · Community', tag: 'VARIETY', image_url: '/assets/games/meccha-chameleon.jpg', featured: false, sort_order: 5 },
     { name: 'Dead by Daylight', description: 'Horror · Multiplayer · Community', tag: 'HORROR', image_url: 'https://shared.cloudflare.steamstatic.com/store_item_assets/steam/apps/381210/header.jpg', featured: false, sort_order: 6 },
     { name: 'Roblox', description: 'Variety · Community · Fun', tag: 'VARIETY', image_url: '/assets/games/roblox-acy-cover.svg', featured: false, sort_order: 7 }
   ];

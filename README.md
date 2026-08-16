@@ -1266,3 +1266,21 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Public homepage "Games" section now deliberately shows only the first 3 games by `sort_order`: Fortnite, GTA V and Thick As Thieves.
 - Added `supabase/club_games_v8.8.sql` for existing installations.
 - Fresh setup seed updated too.
+
+
+## V8.8.1 — MECCHA CHAMELEON Cover Fix
+- Replaced the unreliable external MECCHA CHAMELEON header URL with a bundled local image at `/assets/games/meccha-chameleon.jpg`.
+- Updated the game seed/migration and Admin defaults to use the local asset.
+- No changes to the game ordering: the homepage still shows only the first three.
+
+
+## V9.0 — Automatic Game Discovery
+- Added Twitch-backed game discovery. Twitch's `Get Games` endpoint provides game ID, exact name, cover art URL and optional IGDB ID.
+- Added `/api/twitch-game` to resolve a detected game and automatically add/update it in `public.games`.
+- Auto-discovered games use `sort_order=1000` and `featured=false`, so the public homepage remains the curated first three.
+- Added `/api/discord-presence` as the secure bridge for a future/live Discord Presence bot.
+- Added a ready-to-run `discord-bot/` project using Discord.js v14 to forward presence changes.
+- Added `discord_presence_links` schema for linking Discord users to ACY Club members.
+- Added `supabase/club_game_auto_discovery.sql` and `supabase/discord_presence_links.sql`.
+- Requires `TWITCH_CLIENT_ID`, `TWITCH_CLIENT_SECRET`, `PUBLIC_SITE_URL`, `ACY_GAME_DISCOVERY_SECRET`; Discord bridge also requires `DISCORD_BOT_TOKEN`.
+- Discord Presence access requires the appropriate current privileged intent/review setup; Discord changed server data-access requirements in June 2026.
