@@ -4400,12 +4400,16 @@ function initAcyBackToTop() {
     button.classList.toggle('is-visible', window.scrollY > 520);
   };
 
-  button.addEventListener('click', () => {
+  const goTop = () => {
     playUISound('whoosh');
     acyButtonRipple(button);
     const reduced = acyReducedMotion();
     window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' });
-  });
+    // iOS/Safari can occasionally ignore smooth scrolling during a momentum scroll.
+    if (!reduced) setTimeout(() => window.scrollTo({ top: 0, behavior: 'auto' }), 520);
+  };
+
+  button.addEventListener('click', goTop);
 
   window.addEventListener('scroll', updateVisibility, { passive: true });
   updateVisibility();
