@@ -984,11 +984,13 @@ function achievementCategoryV10(key){
   return 'COMMUNITY';
 }
 
+let progressionLoadGeneration = 0;
+
 function renderProgressionCatalog(state) {
   const xpList = $('xp-catalog-list');
   const achievementList = $('achievement-catalog-list');
   if (!xpList || !achievementList) return;
-  setText('catalog-render-status', 'Progression geladen');
+  setText('catalog-render-status', 'V12.4 · Progression geladen');
 
   const awarded = new Set(state.achievements || []);
   const xpEvents = new Set(state.xpEvents || []);
@@ -1027,12 +1029,15 @@ function renderProgressionCatalog(state) {
   const cats=[...new Set(unlockedRows.map(x=>x.category || 'COMMUNITY'))];
   achievementList.innerHTML=cats.map(cat=>`<section class="achievement-category-v10"><div class="achievement-category-head-v10"><span>${escapeHtml(cat)}</span><small>${unlockedRows.filter(x=>x.category===cat&&x.unlocked).length}/${unlockedRows.filter(x=>x.category===cat).length}</small></div><div class="achievement-category-grid-v10">${unlockedRows.filter(x=>x.category===cat).map(x=>{const item=x.item;return `<div class="catalog-row achievement-row${x.unlocked?' is-unlocked':''}"><div class="catalog-icon">${escapeHtml(item.icon)}</div><div class="catalog-main"><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.detail)}</small><div class="catalog-progress"><span style="width:${x.percent}%"></span></div></div><div class="catalog-status">${x.unlocked?'✓ freigeschaltet':`${x.value}/${x.max}`}</div></div>`;}).join('')}</div></section>`).join('');
 
-  const earnedCount = ACHIEVEMENT_CATALOG.filter(item => awarded.has(item.key)).length;
+  const earnedCount = unlockedRows.filter(row => row.unlocked).length;
   setText('catalog-earned-summary', `${earnedCount} / ${ACHIEVEMENT_CATALOG.length} Achievements`);
+  const summaryEl = $('catalog-earned-summary');
+  if (summaryEl) summaryEl.dataset.earnedCount = String(earnedCount);
 }
 
 async function loadProgressionCatalog() {
   if (!currentUser) return;
+  const loadGeneration = ++progressionLoadGeneration;
 
   const xp = Number($('member-xp')?.textContent?.replace(/[^\d]/g,'') || 0);
   const name = ($('member-name')?.textContent || '').trim();
@@ -1052,6 +1057,7 @@ async function loadProgressionCatalog() {
     xpEvents: new Set()
   };
 
+  if (loadGeneration !== progressionLoadGeneration) return;
   renderProgressionCatalog(localState);
   renderClubLevelCatalog(xp);
   applyClubHubGlow(xp);
@@ -1100,14 +1106,13 @@ async function loadProgressionCatalog() {
       xpEvents: new Set((xpEvents || []).filter(e=>Number(e.xp||0)>0).map(e=>e.event_key))
     };
 
+    if (loadGeneration !== progressionLoadGeneration) return;
+
     renderProgressionCatalog(state);
     renderClubLevelCatalog(effectiveXp);
     applyClubHubGlow(effectiveXp);
 
-    const summary = $('catalog-earned-summary');
-    if (summary && summary.textContent === 'Wird geladen…') {
-      setText('catalog-earned-summary', `0 / ${ACHIEVEMENT_CATALOG.length} Achievements`);
-    }
+
   } catch (error) {
     // The UI is already rendered above, so a backend problem cannot leave it stuck loading.
     console.warn('Progression enrichment unavailable:', error);
