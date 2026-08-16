@@ -1777,6 +1777,16 @@ async function init() {
     await loadPet();
     await loadDiscordLink();
     await loadTwitch();
+    await loadTwitchAccountV11();
+    await initTwitchAccountV11();
+    const twitchParams=new URLSearchParams(window.location.search);
+    if(twitchParams.get('twitch_connected')==='1'){
+      setStatus('Twitch wurde erfolgreich verbunden.','success');
+      history.replaceState({},'',window.location.pathname+window.location.hash);
+    }else if(twitchParams.get('twitch_error')){
+      setStatus(decodeURIComponent(twitchParams.get('twitch_error')),'error');
+      history.replaceState({},'',window.location.pathname+window.location.hash);
+    }
     startTwitchStatusPolling();
     await loadClubContent();
     await loadMemberDirectory();

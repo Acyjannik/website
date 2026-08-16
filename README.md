@@ -1511,3 +1511,10 @@ Run `supabase/v10_quality.sql` once after the previous migrations.
 - The Discord message includes the vote question, optional description, all answer options, and the closing time.
 - If Discord fails, the vote remains published and the Mod Center reports the Discord delivery failure separately.
 - No new SQL migration required.
+
+
+## V11.1.1 — Twitch Connect Button Fix
+- Fixed the Twitch account integration not initializing event listeners on the Club Profile page.
+- The Twitch account loader and connect/disconnect handlers are now initialized during page startup.
+- Added a direct `Twitch` anchor to the Club section navigation.
+- OAuth success/error query parameters are shown as a Club status message and then cleaned from the URL.
