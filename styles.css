@@ -1697,3 +1697,127 @@ img,video,iframe,svg{
 
 /* V8.1 — Friends repair status */
 .social-sync-note{margin:0 0 12px;color:#71717a;font-size:9px}
+
+/* V8.1.5 — Compact member directory
+   The member directory is information-dense by design: smaller cards,
+   smaller buttons, tighter spacing, and more useful content per row. */
+.member-directory-list{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+}
+.member-directory-item{
+  display:grid;
+  grid-template-columns:44px minmax(0,1fr);
+  grid-template-rows:auto auto;
+  gap:8px 9px;
+  align-items:start;
+  min-width:0;
+  min-height:0;
+  padding:10px;
+  border-radius:13px;
+}
+.member-directory-avatar,
+.member-directory-avatar img,
+.member-directory-avatar-fallback{
+  width:44px;
+  height:44px;
+}
+.member-directory-avatar-fallback{
+  font-size:17px;
+}
+.member-directory-main{
+  min-width:0;
+}
+.member-directory-name{
+  font-size:12px;
+  line-height:1.15;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.member-directory-handle{
+  margin-top:2px;
+  font-size:8px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.member-directory-main p{
+  margin:3px 0 0;
+  font-size:9px;
+  line-height:1.35;
+  max-width:none;
+}
+.member-directory-pet{
+  margin-top:6px;
+  padding:5px 6px;
+  gap:6px;
+  border-radius:9px;
+}
+.member-directory-pet img{
+  width:24px;
+  height:24px;
+  flex-basis:24px;
+}
+.member-directory-pet strong{
+  font-size:8px;
+}
+.member-directory-pet small{
+  font-size:7px;
+}
+.member-directory-meta{
+  grid-column:1 / -1;
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:5px;
+  max-width:none;
+  text-align:left;
+  min-width:0;
+}
+.member-directory-meta strong{
+  font-size:9px;
+  margin-right:2px;
+}
+.member-directory-meta small{
+  font-size:8px;
+}
+.member-directory-meta span{
+  font-size:7px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  max-width:100%;
+}
+.member-directory-meta .button,
+.member-directory-pet-visit{
+  width:auto;
+  min-height:29px;
+  height:29px;
+  padding:0 9px;
+  margin:0;
+  border-radius:8px;
+  font-size:8px;
+  line-height:1;
+  white-space:nowrap;
+}
+.member-directory-meta .member-directory-message{
+  order:10;
+}
+.member-directory-clickable:hover{
+  transform:translateY(-1px);
+}
+@media(max-width:1150px){
+  .member-directory-list{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+}
+@media(max-width:700px){
+  .member-directory-list{
+    grid-template-columns:1fr;
+  }
+  .member-directory-item{
+    padding:11px;
+  }
+}

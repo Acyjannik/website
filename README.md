@@ -1149,3 +1149,11 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Friends, member directory and public member status read online state from the dedicated table.
 - Game presence remains responsible only for the selected game.
 - Run `supabase/club_online_presence.sql` once in Supabase and re-run `supabase/club_social.sql` afterward.
+
+
+## V8.1.5 — Compact Member Cards
+- Redesigned the member directory into compact 3-column cards on large screens, 2 columns on medium screens and 1 column on small screens.
+- Reduced avatar, typography, padding and button sizes.
+- Actions now sit compactly in one flexible row instead of forming tall full-width button stacks.
+- Pet previews are smaller and tighter.
+- No SQL changes.
