@@ -1596,3 +1596,10 @@ Run `supabase/v10_quality.sql` once after the previous migrations.
 - 30 dynamic club levels with escalating visual glow tiers.
 - Achievement catalog renders even if direct achievement SELECT is restricted.
 - Server-side achievement refresh is reused for the progression UI.
+
+
+## V12.0 — Progression / Achievements / Mobile
+- 30 level cards rendered dynamically from CLUB_LEVELS.
+- Achievement catalog survives individual Supabase/RLS query failures.
+- Mobile one-column achievement layout and responsive level scroller.
+- Club hub glow follows current level tier.
