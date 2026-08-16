@@ -92,7 +92,8 @@ function renderBadges(badges = [], xp = 0, discordConnected = false) {
     'ACY OG': '👑',
     'ACY Legend': '🏆',
     'Discord Member': '💬',
-    'Member of the Month': '👑'
+    'Member of the Month': '👑',
+    'Mod': '🛡️'
   };
   const badgeGrid = $('badge-grid');
   if (!badgeGrid) return;
@@ -2969,7 +2970,7 @@ async function loadClubIdentity() {
       { data: friendsData },
       { data: streakData }
     ] = await Promise.all([
-      supabaseClient.from('profiles').select('username,display_name,avatar_url,xp,discord_connected').eq('id', currentUser.id).maybeSingle(),
+      supabaseClient.from('profiles').select('username,display_name,avatar_url,xp,discord_connected,badges').eq('id', currentUser.id).maybeSingle(),
       supabaseClient.from('club_event_attendance').select('id').eq('user_id', currentUser.id),
       supabaseClient.from('club_achievements').select('achievement_key').eq('user_id', currentUser.id).order('created_at',{ascending:false}).limit(20),
       supabaseClient.from('club_game_presence_log').select('game_id').eq('user_id', currentUser.id).eq('online', true),
@@ -2979,13 +2980,15 @@ async function loadClubIdentity() {
 
     const friends = Array.isArray(friendsData?.friends) ? friendsData.friends.length : 0;
     const achievementList = (achievements || []).map(a => a.achievement_key).filter(Boolean);
+    const roleBadges = Array.isArray(profile?.badges) ? profile.badges.filter(Boolean) : [];
+    const combinedBadges = Array.from(new Set([...roleBadges, ...achievementList])).slice(0, 6);
 
     renderClubIdentity({
       profile: profile || {},
       xp: Number(profile?.xp || 0),
       events: (attendance || []).length,
-      achievementCount: achievementList.length,
-      achievementsList: achievementList,
+      achievementCount: achievementList.length + roleBadges.filter(b => b === 'Mod').length,
+      achievementsList: combinedBadges,
       uniqueGames: new Set((gameLog || []).map(r => r.game_id).filter(Boolean)).size,
       friendCount: friends,
       streak: Number(streakData?.current_streak || 0)

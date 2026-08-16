@@ -1375,3 +1375,11 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Added a new Club Identity summary card with level, XP, achievements, games, events, friends and streak.
 - Identity card uses the current avatar and current ACY level.
 - Added compact responsive styling for the new identity block.
+
+
+## V9.7 — Mod Badge & Identity Visibility
+- Added a privileged `Mod` role badge stored in `profiles.badges`.
+- Only users present in `admin_users` can grant or remove the Mod badge via `/api/admin-mod-badge`.
+- Added Admin → XP & Badges controls to assign/remove the Mod badge.
+- Club Identity now includes the Mod badge and is directly reachable from the section navigation.
+- Added the badge icon `🛡️` and role-specific visual styling.

@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>ACYJANNIK Admin</title>
   <meta name="robots" content="noindex,nofollow">
-  <link rel="stylesheet" href="styles.css?v=9.6.0">
+  <link rel="stylesheet" href="styles.css?v=9.7.0">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="admin.js?v=9.6.0" defer></script>
+  <script src="admin.js?v=9.7.0" defer></script>
   <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
   <link rel="shortcut icon" href="/assets/favicon.svg">
   <link rel="apple-touch-icon" href="/assets/favicon.svg">
@@ -287,6 +287,17 @@
               <span>💜 ACY Rookie · Registrierung</span><span>✨ Profile Complete · Profil vollständig</span><span>💬 Discord Member · Discord verbunden</span>
               <span>🎮 Event Fan · 1 Event</span><span>🔥 Event Hunter · 5 Events</span><span>⚡ Event Regular · 10 Events</span><span>🏆 Event Legend · 25 Events</span>
               <span>🌟 100 XP Club · 100 XP</span><span>👑 500 XP Club · 500 XP</span><span>💎 1000 XP Club · 1000 XP</span><span>⏳ Early Member · 30 Tage</span><span>🛡️ ACY Veteran · 90 Tage</span>
+            </div>
+            <div class="admin-subsection mod-badge-admin">
+              <div class="badge-admin-heading">
+                <div><h3>🛡️ Mod-Badge</h3><p class="admin-muted">Nur Admins können dieses Rollen-Badge vergeben oder entziehen.</p></div>
+              </div>
+              <div class="admin-inline admin-inline-add">
+                <select id="mod-badge-member" class="admin-input" aria-label="Mitglied für Mod-Badge"></select>
+                <button class="button button-secondary" id="grant-mod-badge" type="button">🛡️ Mod vergeben</button>
+                <button class="button button-danger button-small" id="remove-mod-badge" type="button">Entziehen</button>
+              </div>
+              <p class="admin-note" id="mod-badge-message"></p>
             </div>
             <div id="badges-member-list" class="badge-member-list">
                 <div class="admin-note">Mitglieder werden geladen…</div>

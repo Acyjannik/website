@@ -403,11 +403,74 @@ function bindSpotlightAdmin() {
   $('spotlight-refresh')?.setAttribute('data-bound','true');
   $('spotlight-refresh')?.addEventListener('click', loadSpotlightAdmin);
   $('refresh-badges-btn')?.addEventListener('click', refreshAllAchievements);
+  bindModBadgeAdmin();
   $('progression-search')?.addEventListener('input', () => loadBadgeMembers());
   $('spotlight-clear')?.addEventListener('click', clearSpotlight);
   $('spotlight-search')?.addEventListener('input', () => loadSpotlightAdmin());
 }
 
+
+
+async function setMemberModBadge(userId, action){
+  const status=$('mod-badge-message');
+  if(status) status.textContent='Wird gespeichert…';
+  try{
+    const {data}=await supabaseClient.auth.getSession();
+    const token=data?.session?.access_token;
+    if(!token) throw new Error('Sitzung abgelaufen.');
+    const response=await fetch('/api/admin-mod-badge',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
+      body:JSON.stringify({userId,action})
+    });
+    const payload=await response.json().catch(()=>({}));
+    if(!response.ok) throw new Error(payload.error||'Mod-Badge konnte nicht geändert werden.');
+    if(status){
+      status.textContent=payload.changed
+        ? (action==='grant' ? `🛡️ Mod-Badge an ${payload.username||'Mitglied'} vergeben.` : `Mod-Badge von ${payload.username||'Mitglied'} entfernt.`)
+        : 'Keine Änderung nötig.';
+    }
+    await loadBadgeMembers();
+    await loadModBadgeMembers();
+  }catch(error){
+    if(status) status.textContent=error.message||'Mod-Badge konnte nicht geändert werden.';
+  }
+}
+
+async function loadModBadgeMembers(){
+  const select=$('mod-badge-member');
+  if(!select||!supabaseClient)return;
+  try{
+    const {data}=await supabaseClient.auth.getSession();
+    const token=data?.session?.access_token;
+    const response=await fetch('/api/club-members?includeAchievements=true',{
+      headers:{Authorization:`Bearer ${token}`},
+      cache:'no-store'
+    });
+    const payload=await response.json().catch(()=>({}));
+    if(!response.ok) throw new Error(payload.error||'Mitglieder konnten nicht geladen werden.');
+    const members=(payload.members||[]).sort((a,b)=>(a.display_name||a.username||'').localeCompare(b.display_name||b.username||'','de'));
+    select.innerHTML=members.map(m=>{
+      const badges=Array.isArray(m.badges)?m.badges:[];
+      const mod=badges.includes('Mod') ? ' · 🛡️ Mod' : '';
+      return `<option value="${escapeAttr(m.id)}">${escapeHtml(m.display_name||m.username||'Member')} (@${escapeHtml(m.username||'')})${mod}</option>`;
+    }).join('');
+  }catch(error){
+    select.innerHTML='<option value="">Mitglieder konnten nicht geladen werden</option>';
+  }
+}
+
+function bindModBadgeAdmin(){
+  $('grant-mod-badge')?.addEventListener('click',()=>{
+    const id=$('mod-badge-member')?.value;
+    if(id) setMemberModBadge(id,'grant');
+  });
+  $('remove-mod-badge')?.addEventListener('click',()=>{
+    const id=$('mod-badge-member')?.value;
+    if(id) setMemberModBadge(id,'remove');
+  });
+  loadModBadgeMembers();
+}
 
 async function loadBadgeMembers() {
   const list = $('badges-member-list');

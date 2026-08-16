@@ -2114,3 +2114,11 @@ img,video,iframe,svg{
 .identity-badge{padding:5px 7px;border-radius:999px;border:1px solid rgba(168,85,247,.16);background:rgba(168,85,247,.06);color:#d4d4d8;font-size:7px}
 .identity-badge.is-muted{color:#71717a;border-color:rgba(255,255,255,.06);background:transparent}
 @media(max-width:760px){.identity-stats{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
+/* V9.7 — Mod badge */
+.earned-badge.mod-badge,.member-badge.mod-badge,.identity-badge.mod-role{
+  border-color:rgba(59,130,246,.28)!important;
+  background:rgba(59,130,246,.08)!important;
+  color:#bfdbfe!important;
+}
+.mod-badge-admin{margin-top:12px}
