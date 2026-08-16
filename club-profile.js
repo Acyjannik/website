@@ -635,6 +635,7 @@ async function loadDmUnreadCount() {
     const unread = Array.isArray(data) ? data.length : 0;
     badge.textContent = unread === 1 ? '1 neue Nachricht' : `${unread} neue Nachrichten`;
     badge.hidden = unread === 0;
+    updateMobileDockBadge('mobile-chat-badge', unread);
     renderDmConversations();
   } catch (error) {
     console.warn('DM unread count unavailable:', error);
@@ -2961,12 +2962,21 @@ let cachedNotifications = [];
 function notificationIcon(type){
   return type==='live'?'🔴':type==='badge'?'🏆':type==='event'?'📅':type==='direct_message'?'💌':type==='reward'?'🎁':type==='pet'?'🐾':type==='poll'?'🗳️':'💜';
 }
+function updateMobileDockBadge(id, count){
+  const badge=$(id);
+  if(!badge) return;
+  const value=Math.max(0, Number(count)||0);
+  badge.textContent=value>99?'99+':String(value);
+  badge.hidden=value===0;
+}
+
 function renderNotifications(){
   const container=$('notifications-list'); const badge=$('notification-count');
   if(!container)return;
   const filtered=activeNotificationFilter==='unread'?cachedNotifications.filter(n=>!n.read_at):cachedNotifications;
   const unread=cachedNotifications.filter(n=>!n.read_at).length;
   if(badge){badge.textContent=unread?String(unread):'';badge.hidden=!unread;}
+  updateMobileDockBadge('mobile-notification-badge', unread);
   container.innerHTML=filtered.length?filtered.slice(0,12).map(n=>`<div class="notification-row-wrap"><button class="notification-row ${n.read_at?'':'is-unread'}" type="button" data-notification-id="${n.id}" data-link="${escapeAttr(n.link_url||'')}"><span class="notification-icon">${notificationIcon(n.notification_type)}</span><span><strong>${escapeHtml(n.title)}</strong><small>${escapeHtml(n.body)}</small><em>${formatRelativeTime(n.created_at)}</em></span></button><button class="notification-delete-one" type="button" data-notification-delete="${n.id}" aria-label="Benachrichtigung löschen">×</button></div>`).join(''):'<div class="club-content-empty">Keine Benachrichtigungen in dieser Ansicht.</div>';
   container.querySelectorAll('.notification-row').forEach(row=>row.addEventListener('click',async()=>{
     const id=row.dataset.notificationId;
@@ -2991,7 +3001,7 @@ function initNotificationFilters(){
     document.querySelectorAll('[data-notification-filter]').forEach(b=>b.classList.toggle('is-active',b===btn));
     renderNotifications();
   }));
-  $('mobile-dock-notifications')?.addEventListener('click',()=>{$('notification-panel').hidden=false;});
+  $('mobile-dock-notifications')?.addEventListener('click',()=>{const panel=$('notification-panel');if(panel){panel.hidden=false;panel.scrollIntoView({behavior:'smooth',block:'nearest'});}});
   $('notification-clear-all')?.addEventListener('click',async()=>{
     if(!currentUser)return;
     if(!confirm('Wirklich alle Benachrichtigungen löschen?'))return;
@@ -3013,6 +3023,13 @@ function initNotificationFilters(){
     }
   });
 }
+
+document.querySelectorAll('.mobile-club-dock [data-dock-key]').forEach(item=>{
+  item.addEventListener('click',()=>{
+    document.querySelectorAll('.mobile-club-dock [data-dock-key]').forEach(el=>el.classList.remove('is-active'));
+    item.classList.add('is-active');
+  });
+});
 
 async function loadNotifications() {
   if (!supabaseClient || !currentUser) return;
@@ -3568,6 +3585,8 @@ function renderQuestList(){
   if(!items.length){
     list.innerHTML='<div class="club-content-empty">Keine Aufgaben verfügbar.</div>';
     if(chip)chip.textContent='0 offen';
+    const allQuestItems=[...(Array.isArray(questData.daily)?questData.daily:[]),...(Array.isArray(questData.weekly)?questData.weekly:[])];
+    updateMobileDockBadge('mobile-quest-badge', allQuestItems.filter(x=>Number(x.progress||0)>=Math.max(1,Number(x.target||1)) && !x.claimed).length);
     return;
   }
   const periodStart=questPeriodKey(activeQuestTab);
@@ -3594,7 +3613,11 @@ function renderQuestList(){
   }).join('');
   list.innerHTML=rows;
   const open=items.filter(x=>!x.claimed).length;
+  const claimableCurrent=items.filter(x=>Number(x.progress||0)>=Math.max(1,Number(x.target||1)) && !x.claimed).length;
+  const allQuestItems=[...(Array.isArray(questData.daily)?questData.daily:[]),...(Array.isArray(questData.weekly)?questData.weekly:[])];
+  const claimableAll=allQuestItems.filter(x=>Number(x.progress||0)>=Math.max(1,Number(x.target||1)) && !x.claimed).length;
   if(chip)chip.textContent=`${open} offen`;
+  updateMobileDockBadge('mobile-quest-badge', claimableAll);
 
   list.querySelectorAll('.quest-claim').forEach(btn=>btn.onclick=async()=>{
     const key=btn.dataset.quest;

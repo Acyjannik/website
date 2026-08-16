@@ -4080,3 +4080,30 @@ body.acy-cosmic-active .club-auth-shell{filter:saturate(1.12)}
 @media (prefers-reduced-motion:reduce){
   .club-auth-page #acy-back-to-top{scroll-behavior:auto}
 }
+
+/* V15.1 — Mobile dock badges + concise navigation */
+.mobile-club-dock .dock-icon{position:relative;display:grid;place-items:center;line-height:1;font-size:20px;min-height:22px}
+.mobile-club-dock .dock-badge{position:absolute;top:3px;right:calc(50% - 22px);min-width:17px;height:17px;padding:0 4px;display:grid;place-items:center;border-radius:999px;border:2px solid rgba(13,13,18,.96);background:linear-gradient(135deg,#c084fc,#8b5cf6);color:#fff;font:800 8px/1 Inter,system-ui,sans-serif;box-shadow:0 5px 18px rgba(168,85,247,.42);transform:translate(50%,-35%);z-index:3}
+.mobile-club-dock a,.mobile-club-dock button{position:relative}
+@media(max-width:760px){
+  .mobile-club-dock{left:12px;right:12px;bottom:max(10px,env(safe-area-inset-bottom));padding:7px 6px 8px;border-radius:22px;background:rgba(16,15,23,.88);border:1px solid rgba(255,255,255,.12);box-shadow:0 20px 60px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.05);backdrop-filter:blur(24px) saturate(1.2)}
+  .mobile-club-dock a,.mobile-club-dock button{min-height:58px;border-radius:17px;padding:7px 3px;font-size:10px;font-weight:750;gap:4px;color:#b7b4c2;transition:background .18s ease,color .18s ease,transform .18s ease}
+  .mobile-club-dock .dock-icon{font-size:21px}
+  .mobile-club-dock a:active,.mobile-club-dock button:active{transform:scale(.96)}
+  .mobile-club-dock .dock-badge{top:2px;right:calc(50% - 20px)}
+  .member-dashboard{padding-bottom:112px}
+  .member-fold-summary-main strong{font-size:clamp(18px,5vw,23px);line-height:1.08}
+  .member-fold-summary-main small{font-size:13px;line-height:1.42;max-width:32rem}
+  .member-fold-summary{gap:12px;padding:18px 16px}
+  .member-fold-summary-side{flex-shrink:0}
+  .member-fold-summary-side .member-count-chip{font-size:10px;padding:8px 10px}
+  .notification-panel{max-height:min(72vh,620px);overflow:auto}
+}
+@media(max-width:430px){
+  .mobile-club-dock{left:8px;right:8px;border-radius:20px}
+  .mobile-club-dock a,.mobile-club-dock button{min-height:56px;font-size:9px}
+  .mobile-club-dock .dock-icon{font-size:20px}
+  .mobile-club-dock .dock-badge{right:calc(50% - 18px)}
+  .member-fold-summary-main strong{font-size:19px}
+  .member-fold-summary-main small{font-size:12px}
+}
