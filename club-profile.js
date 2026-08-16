@@ -3054,7 +3054,7 @@ async function loadClubContent(){
           <div class="club-content-main"><strong>${escapeHtml(e.title)}</strong><p>${escapeHtml(e.description||'')}</p><small>${escapeHtml(e.location||'Community')} · <span class="event-attendee-count">${count}</span> dabei</small></div>
           <button type="button" class="button button-small ${attending?'button-secondary':'button-primary'} event-attend-btn">${attending?'Dabei ✓':'Teilnehmen'}</button>
         </article>`;
-      }).join(''):'<div class="club-content-empty">Noch keine Events.</div>';
+      }).join(''):'<div class="club-content-empty">Noch keine kommenden Events. Neue Events werden hier automatisch angezeigt.</div>';
 
       eventsList.querySelectorAll('.event-attend-btn').forEach(btn=>{
         btn.onclick=async()=>{

@@ -1,7 +1,7 @@
 export default async function handler(req,res){
   res.setHeader("Cache-Control","no-store,max-age=0");
   const fallback={
-    events:[{id:0,title:"Fortnite Community Night",description:"Gemeinsame Runden mit der ACY Community.",event_date:new Date(Date.now()+86400000).toISOString(),location:"Twitch",twitch_url:"https://www.twitch.tv/acyjannik",enabled:true,attendee_count:0,user_attending:false}],
+    events:[],
     news:[{id:"fallback",title:"Willkommen im ACY Club",body:"Der ACY Club ist jetzt live. Mehr Community-Funktionen folgen nach und nach.",published_at:new Date().toISOString(),enabled:true}]
   };
   const url=process.env.SUPABASE_URL,key=process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -25,13 +25,19 @@ export default async function handler(req,res){
     const news=await rows("club_news?select=*&enabled=eq.true&order=published_at.desc&limit=8");
 
     for(const event of events){
-      const attendees=await rows(`club_event_attendance?event_id=eq.${event.id}&select=user_id`);
-      event.attendee_count = attendees.length;
-      event.user_attending = !!userId && attendees.some(a => String(a.user_id) === String(userId));
+      try{
+        const attendees=await rows(`club_event_attendance?event_id=eq.${event.id}&select=user_id`);
+        event.attendee_count = attendees.length;
+        event.user_attending = !!userId && attendees.some(a => String(a.user_id) === String(userId));
+      }catch(attendanceError){
+        console.warn('Event attendance data unavailable:', attendanceError?.message||attendanceError);
+        event.attendee_count = 0;
+        event.user_attending = false;
+      }
     }
 
     return res.status(200).json({
-      events:events.length?events:fallback.events,
+      events:events||[],
       news:news.length?news:fallback.news,
       source:"supabase"
     });

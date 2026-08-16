@@ -1320,3 +1320,11 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Attendance API validates event status/time before allowing join/leave.
 - Past events can no longer show an active `Teilnehmen` action.
 - Added more robust attendance handling before XP removal.
+
+
+## V9.3.2 — Event Fallback Fix
+- Removed the hard-coded `id:0` Fortnite demo event from the content API fallback.
+- A failed attendance lookup no longer replaces the real event list with a fake demo event.
+- Empty event lists now honestly show “Noch keine kommenden Events”.
+- Event dates without a valid timestamp are not rendered as active.
+- No SQL changes required beyond the existing V9.3.1 cleanup migration.
