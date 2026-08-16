@@ -2510,3 +2510,9 @@ textarea:focus{
 .notification-panel-actions button:hover{color:#fff;border-color:rgba(168,85,247,.3);background:rgba(168,85,247,.07)}
 .wheel-reward-list>div strong{font-size:9px}.wheel-reward-list>div small{font-size:7px}
 @media(max-width:500px){.notification-panel-actions{gap:4px}.notification-panel-actions button{font-size:6px;padding:4px 5px}}
+
+/* V11.6 — Progression cleanup
+   The Club Hub owns the XP progress bar + roadmap.
+   The lower card is intentionally badges-only. */
+.badges-section-v11 .member-card-head{margin-bottom:12px}
+.badges-section-v11 .badge-grid{margin-top:4px}

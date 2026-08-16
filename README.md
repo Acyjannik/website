@@ -1576,3 +1576,11 @@ Run `supabase/v10_quality.sql` once after the previous migrations.
 - Added individual notification deletion and "Alle löschen".
 - Cleared notifications are actually deleted server-side and no longer reappear on reload.
 - No change to the existing main account model.
+
+
+## V11.6 — Progression cleanup
+- Removed the duplicate lower XP progression bar.
+- The Club Hub is now the single visual source of truth for level, XP progress and roadmap.
+- The lower section is now dedicated to badges/achievements.
+- Compact Level/XP stats remain in the profile hero.
+- No database migration is required.

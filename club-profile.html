@@ -4,13 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Mein ACY Club · Acyjannik</title>
-  <link rel="stylesheet" href="styles.css?v=11.5.0">
+  <link rel="stylesheet" href="styles.css?v=11.6.0">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="/pet-companion.js?v=7.2.0" defer></script>
-  <script src="club-profile.js?v=11.5.0" defer></script>
+  <script src="club-profile.js?v=11.6.0" defer></script>
   <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
   <link rel="shortcut icon" href="/assets/favicon.svg">
   <link rel="apple-touch-icon" href="/assets/favicon.svg">
-<link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#0b0b10"><link rel="apple-touch-icon" href="/icons/acy-192.png"><script src="/pwa.js?v=11.5.0"></script></head>
+<link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#0b0b10"><link rel="apple-touch-icon" href="/icons/acy-192.png"><script src="/pwa.js?v=11.6.0"></script></head>
 <body class="club-auth-page">
   <div class="club-auth-shell">
     <header class="club-auth-header">
@@ -412,26 +412,17 @@
           <a class="button button-secondary" href="https://www.twitch.tv/acyjannik" target="_blank" rel="noreferrer">Twitch öffnen ↗</a>
         </section>
 
-        <!-- Level + badges -->
-        <section class="member-card member-span-2">
-          <div class="eyebrow">PROGRESSION</div>
+        <!-- Badges only: XP/Level progress is shown once in the Club Hub above. -->
+        <section class="member-card member-span-2 badges-section-v11" id="member-badges-section">
           <div class="member-card-head">
             <div>
-              <h2 id="level-title">ACY Rookie</h2>
-              <p>Dein Fortschritt im ACY Club.</p>
+              <div class="eyebrow">ACHIEVEMENTS</div>
+              <h2>Deine Badges</h2>
+              <p>Auszeichnungen, die deinen Fortschritt sichtbar machen.</p>
             </div>
             <div class="level-chip">LEVEL <span id="level-number">1</span></div>
           </div>
-
-          <div class="xp-row">
-            <div class="xp-labels"><span id="xp-current">0 XP</span><span id="xp-next">100 XP</span></div>
-            <div class="xp-bar"><div id="xp-bar-fill"></div></div>
-          </div>
-
-          <div>
-            <div class="section-mini-title">DEINE BADGES</div>
-            <div class="badge-grid" id="badge-grid"></div>
-          </div>
+          <div class="badge-grid" id="badge-grid"></div>
         </section>
 
         <details class="member-card member-span-2 progression-catalog-card member-fold" id="progression-catalog">

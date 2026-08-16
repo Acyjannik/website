@@ -116,21 +116,9 @@ function levelIndexForXp(xp) {
 
 function renderProgress(xp) {
   const idx = levelIndexForXp(xp);
-  const base = CLUB_LEVELS[idx].min;
-  const nextLevel = CLUB_LEVELS[idx + 1];
-  const next = nextLevel ? nextLevel.min : null;
-  const progress = next
-    ? Math.max(0, Math.min(100, ((xp-base) / Math.max(1, next-base)) * 100))
-    : 100;
-
   setText('member-level', String(idx + 1));
   setText('level-number', String(idx + 1));
   setText('member-xp', `${xp.toLocaleString('de-DE')} XP`);
-  setText('xp-current', `${xp.toLocaleString('de-DE')} XP`);
-  setText('xp-next', next ? `${next.toLocaleString('de-DE')} XP` : 'MAX');
-  const bar = $('xp-bar-fill');
-  if (bar) bar.style.width = `${progress}%`;
-  setText('level-title', levelForXp(xp).title);
 }
 
 function renderBadges(badges = [], xp = 0, discordConnected = false) {
@@ -1574,6 +1562,9 @@ async function loadWheelState(){
 }
 void loadWheelState();
 
+
+// V11.6: XP/Level progress has one visual source of truth: the Club Hub.
+// Keep member-level/member-xp as compact stats; badges live in the lower section.
 
 // V7.8 Rewards
 let myRewardsState = {catalog:[],inventory:[]};
