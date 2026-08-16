@@ -1111,3 +1111,11 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - This fixes the case where a redeemed Extra-Dreh is visible in Rewards but the old deployed wheel RPC still returns the 24-hour cooldown.
 - `supabase/club_wheel.sql` now includes a one-time `sync_my_extra_spin_tokens()` RPC.
 - Run `supabase/club_wheel.sql` again after deployment.
+
+
+## V8.1.0 — Friends Consistency Repair
+- Added a server-side friendship sync that rebuilds missing bilateral friendship rows from accepted requests.
+- The friends list now syncs before rendering, so older accepted requests cannot disappear from the list.
+- Accepting a request also cancels a duplicate reverse pending request for the same pair.
+- Added a small sync status note in the Friends & Contacts section.
+- Run `supabase/club_social.sql` again after deployment.

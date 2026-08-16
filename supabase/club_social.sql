@@ -135,6 +135,15 @@ begin
     values(r.requester_id,r.addressee_id),(r.addressee_id,r.requester_id)
     on conflict do nothing;
 
+    update public.club_friend_requests
+    set status='cancelled', responded_at=now()
+    where status='pending'
+      and (
+        (requester_id=r.requester_id and addressee_id=r.addressee_id)
+        or (requester_id=r.addressee_id and addressee_id=r.requester_id)
+      )
+      and id <> r.id;
+
     return jsonb_build_object('status','accepted');
   else
     update public.club_friend_requests
@@ -202,6 +211,36 @@ begin
 end;
 $$;
 
+create or replace function public.sync_my_friendships()
+returns integer
+language plpgsql
+security definer
+set search_path=public
+as $$
+declare
+  inserted_count integer := 0;
+  pair record;
+begin
+  if auth.uid() is null then raise exception 'Nicht angemeldet.'; end if;
+
+  -- Repair any older accepted requests that did not create both friendship rows.
+  for pair in
+    select requester_id, addressee_id
+    from public.club_friend_requests
+    where status='accepted'
+      and (requester_id=auth.uid() or addressee_id=auth.uid())
+  loop
+    insert into public.club_friendships(user_id,friend_user_id)
+    values(pair.requester_id,pair.addressee_id),(pair.addressee_id,pair.requester_id)
+    on conflict do nothing;
+
+    get diagnostics inserted_count = inserted_count + row_count;
+  end loop;
+
+  return inserted_count;
+end;
+$$;
+
 create or replace function public.get_my_social_connections()
 returns jsonb
 language plpgsql
@@ -210,6 +249,8 @@ set search_path=public
 as $$
 declare result jsonb;
 begin
+  perform public.sync_my_friendships();
+
   select jsonb_build_object(
     'friends',coalesce((
       select jsonb_agg(jsonb_build_object(
@@ -275,3 +316,6 @@ grant execute on function public.remove_friend(uuid) to authenticated;
 grant execute on function public.block_member(uuid) to authenticated;
 grant execute on function public.unblock_member(uuid) to authenticated;
 grant execute on function public.get_my_social_connections() to authenticated;
+
+revoke all on function public.sync_my_friendships() from public;
+grant execute on function public.sync_my_friendships() to authenticated;

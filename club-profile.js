@@ -2308,7 +2308,8 @@ function renderSocialConnections(data={}) {
   const friends=Array.isArray(data.friends)?data.friends:[];
   const incoming=Array.isArray(data.incoming)?data.incoming:[];
   const blocked=Array.isArray(data.blocked)?data.blocked:[];
-  setText('social-friend-count', `${friends.length} Freunde`);
+  const requestCount=incoming.length;
+  setText('social-friend-count', `${friends.length} Freunde${requestCount?` · ${requestCount} Anfrage${requestCount===1?'':'n'}`:''}`);
 
   const renderPerson=(person, buttons='')=>`
     <div class="social-connection-item" data-social-user="${escapeAttr(person.user_id)}">
@@ -2369,6 +2370,7 @@ function renderSocialConnections(data={}) {
 
 async function loadSocialConnections(){
   try{
+    await rpcSocial('sync_my_friendships');
     const data=await rpcSocial('get_my_social_connections');
     renderSocialConnections(data||{});
   }catch(error){
