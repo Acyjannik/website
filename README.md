@@ -1584,3 +1584,15 @@ Run `supabase/v10_quality.sql` once after the previous migrations.
 - The lower section is now dedicated to badges/achievements.
 - Compact Level/XP stats remain in the profile hero.
 - No database migration is required.
+
+
+## V11.8 — Pet Pflege-XP Fix
+- Every successful pet care action awards +5 Pflege-XP.
+- Club XP remains once per calendar day.
+- Pet action buttons now show their complete effects.
+
+
+## V11.9 — Progression & Achievements
+- 30 dynamic club levels with escalating visual glow tiers.
+- Achievement catalog renders even if direct achievement SELECT is restricted.
+- Server-side achievement refresh is reused for the progression UI.

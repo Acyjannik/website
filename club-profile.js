@@ -1159,7 +1159,7 @@ function renderPet(pet) {
 
   const next = level.next;
   setText('pet-xp-note', next
-    ? `Noch ${Math.max(0, next - Number(pet.pet_xp || 0))} XP bis ${level.nextTitle}`
+    ? `Noch ${Math.max(0, next - Number(pet.pet_xp || 0))} Pflege-XP bis ${level.nextTitle}`
     : 'Maximales Tier-Level erreicht.');
 
   setText('pet-progression-title', level.title);
@@ -1360,11 +1360,11 @@ async function performPetAction(action, button) {
     renderPet(data);
     if (data?.daily_xp_awarded) {
       void progressQuestsForAction('pet_daily');
-      setPetStatus('Heute gab es +5 XP für die Tierpflege. 🐾', 'success');
+      setPetStatus('Pflegeaktion erledigt: +5 Pflege-XP. 🐾', 'success');
       void sendPersonalEmailNotification(
         'pet',
         'Dein Pet war aktiv 🐾',
-        'Deine heutige Tierpflege ist erledigt. Dein Pet hat dafür Pflege-XP erhalten.',
+        'Deine Tierpflege ist erledigt. Dein Pet hat dafür +5 Pflege-XP erhalten.',
         '/club-profile.html#pet-section'
       );
     } else {
@@ -1472,14 +1472,38 @@ async function getWheelTokenBalance(){
   }
 }
 
+function setWheelLoadingState(){
+  const button=$('club-wheel-spin');
+  const chip=$('wheel-status-chip');
+  if(button){
+    button.disabled=true;
+    button.textContent='⏳ Status wird geladen…';
+  }
+  if(chip)chip.textContent='Status wird geladen…';
+}
+
+function setWheelUnavailableState(){
+  const button=$('club-wheel-spin');
+  const chip=$('wheel-status-chip');
+  if(button){
+    button.disabled=true;
+    button.textContent='⚠️ Status nicht verfügbar';
+  }
+  if(chip)chip.textContent='Status nicht verfügbar';
+}
+
 function setWheelCooldown(nextFreeAt, spinTokens = 0){
   const button=$('club-wheel-spin');
   const chip=$('wheel-status-chip');
+  const tokens=Math.max(0,Number(spinTokens||0));
 
-  const tokens = Math.max(0, Number(spinTokens || 0));
-  if (tokens > 0) {
-    if (button){button.disabled=false;button.textContent=`🎡 Drehen · Extra-Dreh (${tokens})`;}
-    if (chip)chip.textContent=`${tokens} Extra-Dreh${tokens===1?'':'e'} verfügbar`;
+  // Extra spins intentionally bypass the daily cooldown.
+  if(tokens>0){
+    if(button){
+      button.disabled=false;
+      button.textContent=`🎡 Drehen · Extra-Dreh (${tokens})`;
+    }
+    if(chip)chip.textContent=`${tokens} Extra-Dreh${tokens===1?'':'e'} verfügbar`;
     return;
   }
 
@@ -1490,20 +1514,27 @@ function setWheelCooldown(nextFreeAt, spinTokens = 0){
   }
 
   const next=new Date(nextFreeAt).getTime();
+  if(!Number.isFinite(next)){
+    setWheelUnavailableState();
+    return;
+  }
+
+  let timer=null;
   const tick=()=>{
     const left=Math.max(0,next-Date.now());
     if(!left){
       if(button){button.disabled=false;button.textContent='🎡 Drehen';}
       if(chip)chip.textContent='1 Dreh verfügbar';
-      clearInterval(timer);
+      if(timer)clearInterval(timer);
       return;
     }
-    const h=Math.floor(left/3600000),m=Math.floor(left%3600000/60000);
+    const h=Math.floor(left/3600000);
+    const m=Math.floor((left%3600000)/60000);
     if(button){button.disabled=true;button.textContent='⏳ Später wieder';}
     if(chip)chip.textContent=`Nächster Dreh in ${h}h ${m}m`;
   };
   tick();
-  const timer=setInterval(tick,30000);
+  timer=setInterval(tick,30000);
 }
 
 async function spinWheel(){
@@ -1535,6 +1566,7 @@ async function spinWheel(){
       await loadWheelHistory();
     await loadMyRewards();
     setWheelCooldown(data.next_free_at, data.spin_tokens);
+    await loadWheelState();
   }catch(error){
     console.error('Wheel spin error:',error);message.textContent=error?.message||'Das Glücksrad konnte nicht gedreht werden.';
     message.className='club-auth-status error';button.disabled=false;
@@ -1542,29 +1574,44 @@ async function spinWheel(){
 }
 document.getElementById('club-wheel-spin')?.addEventListener('click',spinWheel);
 async function loadWheelState(){
-  if(!supabaseClient||!currentUser)return;
+  if(!supabaseClient||!currentUser)return false;
+  setWheelLoadingState();
+
   try{
     const [{data:profile,error:profileError},{data:latestSpin,error:spinError}]=await Promise.all([
-      supabaseClient.from('profiles').select('wheel_spin_tokens').eq('id',currentUser.id).maybeSingle(),
-      supabaseClient.from('club_wheel_spins').select('created_at').eq('user_id',currentUser.id).order('created_at',{ascending:false}).limit(1).maybeSingle()
+      supabaseClient.from('profiles')
+        .select('wheel_spin_tokens')
+        .eq('id',currentUser.id)
+        .maybeSingle(),
+      supabaseClient.from('club_wheel_spins')
+        .select('created_at')
+        .eq('user_id',currentUser.id)
+        .order('created_at',{ascending:false})
+        .limit(1)
+        .maybeSingle()
     ]);
+
     if(profileError)throw profileError;
     if(spinError)throw spinError;
+
     const tokens=Math.max(0,Number(profile?.wheel_spin_tokens||0));
     setText('reward-spin-token-count',String(tokens));
+
     const last=latestSpin?.created_at?new Date(latestSpin.created_at).getTime():0;
-    const nextFreeAt=(last && (Date.now()-last)<86400000) ? new Date(last+86400000).toISOString() : null;
+    const validLast=Number.isFinite(last)&&last>0;
+    const nextFreeAt=validLast
+      ? new Date(last+86400000).toISOString()
+      : null;
+
     setWheelCooldown(nextFreeAt,tokens);
+    return true;
   }catch(error){
     console.warn('Wheel state unavailable:',error);
-    setWheelCooldown(null,0);
+    setWheelUnavailableState();
+    return false;
   }
 }
-void loadWheelState();
 
-
-// V11.6: XP/Level progress has one visual source of truth: the Club Hub.
-// Keep member-level/member-xp as compact stats; badges live in the lower section.
 
 // V7.8 Rewards
 let myRewardsState = {catalog:[],inventory:[]};
@@ -1792,6 +1839,7 @@ async function init() {
     await loadDailyStreak();
     await loadMyRewards();
     await loadWheelHistory();
+    await loadWheelState();
 
     const dmTarget = new URLSearchParams(window.location.search).get('dm');
 

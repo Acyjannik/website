@@ -251,8 +251,6 @@ begin
     extract(epoch from (now_ts - p.last_interaction_at)) / 3600.0
   );
 
-  -- Balanced decay:
-  -- hunger -1/hour, happiness -0.5/hour, energy -0.5/hour.
   hours_to_zero := least(
     p.hunger / 1.0,
     p.happiness / 0.5,
@@ -268,7 +266,7 @@ begin
   new_happiness := greatest(0, p.happiness - floor(elapsed_hours * 0.5)::integer);
   new_energy := greatest(0, p.energy - floor(elapsed_hours * 0.5)::integer);
 
-  -- Action cooldowns keep actions meaningful.
+  -- Action cooldowns keep the care loop meaningful.
   if p_action = 'feed' and p.last_interaction_at > now_ts - interval '30 minutes' then
     raise exception 'Dein Tier hat gerade gefressen. Warte ein wenig, bevor du wieder fütterst.';
   elsif p_action = 'play' and p.last_interaction_at > now_ts - interval '45 minutes' then
@@ -291,14 +289,15 @@ begin
     new_happiness := least(100, new_happiness + 10);
   end if;
 
-  new_pet_xp := p.pet_xp;
+  -- Pflege-XP is awarded for EVERY successful care action.
+  -- The separate club XP reward remains once per calendar day.
+  new_pet_xp := coalesce(p.pet_xp, 0) + 5;
 
   insert into public.club_pet_daily_actions(user_id, action_date)
   values (auth.uid(), current_date)
   on conflict (user_id, action_date) do nothing;
 
   if found then
-    new_pet_xp := new_pet_xp + 5;
     daily_awarded := true;
     perform public.award_club_xp(
       auth.uid(),
