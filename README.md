@@ -1518,3 +1518,13 @@ Run `supabase/v10_quality.sql` once after the previous migrations.
 - The Twitch account loader and connect/disconnect handlers are now initialized during page startup.
 - Added a direct `Twitch` anchor to the Club section navigation.
 - OAuth success/error query parameters are shown as a Club status message and then cleaned from the URL.
+
+
+## V11.2 — Twitch Live Auto Tracking
+- Twitch connection button is now dynamic: connected accounts show `🟣 Twitch verbunden ✓` with a purple glow.
+- Twitch navigation now exposes the connected state immediately.
+- Stream tracking starts automatically when ACYJANNIK is live for a connected user; no manual Start click is required.
+- Client heartbeat is limited to one watch heartbeat every 2 minutes and the existing live status polling is reduced to 60 seconds.
+- Added live stream title, category, viewer count and stream uptime to the Twitch card.
+- Watchtime remains an ACY Club activity metric, not an official Twitch watchtime value.
+- No new SQL migration required.

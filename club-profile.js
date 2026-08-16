@@ -1779,6 +1779,7 @@ async function init() {
     await loadTwitch();
     await loadTwitchAccountV11();
     await initTwitchAccountV11();
+    startTwitchAutoWatchV11();
     const twitchParams=new URLSearchParams(window.location.search);
     if(twitchParams.get('twitch_connected')==='1'){
       setStatus('Twitch wurde erfolgreich verbunden.','success');
@@ -1878,6 +1879,8 @@ let twitchStatusTimer = null;
 
 let twitchWatchTimerV11=null;
 let twitchWatchActiveV11=false;
+let twitchConnectedV11=false;
+let twitchAutoWatchV11=true;
 
 async function loadTwitchAccountV11(){
   const status=$('twitch-account-status'), connect=$('twitch-connect-btn'), disconnect=$('twitch-disconnect-btn'), stats=$('twitch-club-stats');
@@ -1890,8 +1893,14 @@ async function loadTwitchAccountV11(){
     const payload=await response.json();
     if(!response.ok)throw new Error(payload.error||'Twitch-Profil konnte nicht geladen werden.');
     if(payload.connected){
+      twitchConnectedV11=true;
       status.innerHTML=`🟣 Verbunden als <strong>${escapeHtml(payload.account.display_name||payload.account.login||'Twitch')}</strong>`;
-      if(connect)connect.hidden=true;
+      if(connect){
+        connect.hidden=false;
+        connect.disabled=true;
+        connect.textContent='🟣 Twitch verbunden ✓';
+        connect.classList.add('twitch-connected-button');
+      }
       if(disconnect)disconnect.hidden=false;
       if(stats)stats.hidden=false;
       const p=payload.points||{};
@@ -1901,8 +1910,14 @@ async function loadTwitchAccountV11(){
       setText('twitch-stream-streak',String(Number(p.current_stream_streak||0)));
       setText('twitch-best-streak',String(Number(p.best_stream_streak||0)));
     }else{
+      twitchConnectedV11=false;
       status.textContent='Noch nicht mit ACY verbunden.';
-      if(connect)connect.hidden=false;
+      if(connect){
+        connect.hidden=false;
+        connect.disabled=false;
+        connect.textContent='🟣 Twitch verbinden';
+        connect.classList.remove('twitch-connected-button');
+      }
       if(disconnect)disconnect.hidden=true;
       if(stats)stats.hidden=true;
     }
@@ -1917,6 +1932,38 @@ function formatWatchMinutesV11(minutes){
   const h=Math.floor(value/60),m=value%60;
   return h?`${h}h ${m}m`:`${m}m`;
 }
+function formatTwitchUptimeV11(startedAt){
+  const ts=Date.parse(startedAt||'');
+  if(!Number.isFinite(ts))return 'Live';
+  const sec=Math.max(0,Math.floor((Date.now()-ts)/1000));
+  const h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60);
+  return h?`seit ${h}h ${String(m).padStart(2,'0')}m`:`seit ${m}m`;
+}
+async function autoTwitchWatchTickV11(){
+  if(!twitchConnectedV11 || !twitchAutoWatchV11)return;
+  try{
+    const live=await heartbeatTwitchWatchV11();
+    if(live && !twitchWatchActiveV11){
+      // Heartbeat already registered a session. Switch the UI into auto mode.
+      twitchWatchActiveV11=true;
+      $('twitch-watch-start')?.setAttribute('hidden','hidden');
+      $('twitch-watch-stop')?.setAttribute('hidden','hidden');
+      setText('twitch-watch-mode','🤖 Automatisches Stream-Tracking aktiv');
+      setText('twitch-watch-mode-note','ACY erfasst deine aktive Stream-Zeit automatisch, sobald ACYJANNIK live ist.');
+    }else if(!live && twitchWatchActiveV11){
+      twitchWatchActiveV11=false;
+      setText('twitch-watch-mode','⏹ Automatisches Tracking pausiert');
+    }
+  }catch(error){
+    console.warn('Twitch auto watch tick:',error);
+  }
+}
+function startTwitchAutoWatchV11(){
+  if(twitchWatchTimerV11)clearInterval(twitchWatchTimerV11);
+  twitchWatchTimerV11=setInterval(()=>autoTwitchWatchTickV11(),120000);
+  void autoTwitchWatchTickV11();
+}
+
 async function stopTwitchWatchV11(){
   if(twitchWatchTimerV11){clearInterval(twitchWatchTimerV11);twitchWatchTimerV11=null;}
   if(twitchWatchActiveV11){
@@ -1938,15 +1985,22 @@ async function heartbeatTwitchWatchV11(){
   const payload=await response.json().catch(()=>({}));
   if(!response.ok)throw new Error(payload.error||'Streamzeit konnte nicht aktualisiert werden.');
   if(!payload.live){
-    setText('twitch-account-status','Twitch ist aktuell offline.');
-    return;
+    setText('twitch-account-status',twitchConnectedV11?'🟣 Verbunden · Twitch ist aktuell offline.':'Twitch ist aktuell offline.');
+    setText('twitch-live-activity','⏹ Stream offline');
+    return false;
   }
+  const liveText=`🟢 LIVE · ${payload.stream?.game||'Twitch'}`;
+  setText('twitch-account-status',liveText);
+  setText('twitch-live-activity',`${formatTwitchUptimeV11(payload.stream?.startedAt)} · ${Number(payload.stream?.viewerCount||0).toLocaleString('de-DE')} Zuschauer`);
+  setText('twitch-current-title',payload.stream?.title||'Live');
+  setText('twitch-current-game',payload.stream?.game||'–');
   const p=payload.points||{};
   setText('twitch-watch-minutes',formatWatchMinutesV11(p.watchMinutes??p.watch_minutes??0));
   setText('twitch-watch-points',String(p.watchPoints??p.watch_points??0));
   setText('twitch-stream-days',String(p.streamDays??p.stream_days??0));
   setText('twitch-stream-streak',String(p.currentStreak??p.current_stream_streak??0));
   setText('twitch-best-streak',String(p.bestStreak??p.best_streak??0));
+  return true;
 }
 function startTwitchWatchV11(){
   if(twitchWatchActiveV11)return;
@@ -1989,7 +2043,7 @@ function startTwitchStatusPolling() {
   if (twitchStatusTimer) clearInterval(twitchStatusTimer);
   twitchStatusTimer = setInterval(() => {
     loadTwitch().catch(error => console.warn('Club Twitch refresh failed:', error));
-  }, 30000);
+  }, 60000);
 }
 
 async function loadTwitch() {
@@ -2006,6 +2060,9 @@ async function loadTwitch() {
     if (!res.ok) throw new Error(`Twitch API HTTP ${res.status}`);
     const data = await res.json();
     const live = !!data.live;
+    setText('twitch-current-title',live?(data.title||'Live Stream'):'–');
+    setText('twitch-current-game',live?(data.game||'–'):'–');
+    setText('twitch-live-activity',live?`${formatTwitchUptimeV11(data.startedAt)} · ${Number(data.viewerCount||0).toLocaleString('de-DE')} Zuschauer`:'⏹ Stream offline');
 
     if (text) text.textContent = live ? 'LIVE' : 'OFFLINE';
     if (pill) pill.classList.toggle('is-live', live);
