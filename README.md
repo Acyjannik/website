@@ -1019,3 +1019,10 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Public About/Community text now also accepts an intentionally empty saved value.
 - Admin content save now re-reads the database row after writing it and reports verification errors.
 - No SQL changes.
+
+
+## V7.4.9 — About Content Hard Fix
+- Replaced the old static About placeholder directly in `index.html`.
+- Updated the public content API fallback with the same About text.
+- Bumped the public `script.js` cache version to 7.4.9 so browsers fetch the current script.
+- No SQL changes.
