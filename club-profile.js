@@ -35,11 +35,21 @@ function acyRefreshTime() {
   return new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
 }
 
+let acyRefreshStatusTimer = null;
 function setAcyRefreshStatus(text, type = '') {
   const el = $('club-refresh-status');
   if (!el) return;
+  if (acyRefreshStatusTimer) clearTimeout(acyRefreshStatusTimer);
   el.textContent = text;
   el.className = `acy-refresh-status ${type}`.trim();
+  el.hidden = !text;
+  if (type === 'success') {
+    acyRefreshStatusTimer = setTimeout(() => {
+      el.textContent = '';
+      el.className = 'acy-refresh-status';
+      el.hidden = true;
+    }, 3600);
+  }
 }
 
 async function runAcyRefresh(key, { silent = false } = {}) {
@@ -696,6 +706,11 @@ function renderDmConversations() {
   });
 }
 
+function setDmMobileThreadMode(open) {
+  const shell = $('dm-shell');
+  if (shell) shell.classList.toggle('is-thread-open', Boolean(open));
+}
+
 function renderDmThread() {
   const messagesEl = $('dm-messages');
   const head = $('dm-thread-head');
@@ -703,15 +718,22 @@ function renderDmThread() {
   if (!messagesEl || !head || !form) return;
 
   if (!dmActiveUserId) {
+    setDmMobileThreadMode(false);
     form.hidden = true;
-    head.innerHTML = `<div class="dm-thread-placeholder"><strong>Private Nachricht</strong><span>Wähle links ein Mitglied aus.</span></div>`;
+    head.innerHTML = `<div class="dm-thread-placeholder"><strong>Private Nachricht</strong><span>Wähle einen Chat aus.</span></div>`;
     messagesEl.innerHTML = '<div class="club-content-empty">Noch keine Unterhaltung ausgewählt.</div>';
     return;
   }
 
+  setDmMobileThreadMode(true);
   const conversation = dmConversations.get(dmActiveUserId);
   const profile = conversation?.profile || {};
-  head.innerHTML = `<div class="dm-thread-person">${dmAvatar(profile)}<div><strong>${escapeHtml(dmDisplayName(profile))}</strong><span>@${escapeHtml(profile.username || '')}</span></div></div>`;
+  head.innerHTML = `<button class="dm-mobile-back" type="button" id="dm-mobile-back" aria-label="Zurück zu Nachrichten">‹</button><div class="dm-thread-person">${dmAvatar(profile)}<div><strong>${escapeHtml(dmDisplayName(profile))}</strong><span>@${escapeHtml(profile.username || '')}</span></div></div><span class="dm-thread-spacer" aria-hidden="true"></span>`;
+  head.querySelector('#dm-mobile-back')?.addEventListener('click', () => {
+    dmActiveUserId = null;
+    renderDmConversations();
+    renderDmThread();
+  });
   form.hidden = false;
 
   const messages = dmMessages
@@ -2272,7 +2294,7 @@ async function init() {
       }
     };
     void Promise.all(Array.from({length: 4}, worker)).then(() => {
-      setAcyRefreshStatus(`Club bereit · ${acyRefreshTime()}`, 'success');
+      setAcyRefreshStatus(`✓ Club aktualisiert · ${acyRefreshTime()}`, 'success');
     });
   } catch (error) {
     const msg = error?.message || 'Profil konnte nicht geladen werden.';

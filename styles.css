@@ -4107,3 +4107,234 @@ body.acy-cosmic-active .club-auth-shell{filter:saturate(1.12)}
   .member-fold-summary-main strong{font-size:19px}
   .member-fold-summary-main small{font-size:12px}
 }
+
+/* ============================================================
+   ACY V15.2 — Mobile UX overhaul / DM single-thread mode
+   Final mobile overrides intentionally live at the end so older
+   V10/V11 rules cannot win the cascade on small screens.
+   ============================================================ */
+.club-auth-page #club-refresh-status[hidden]{display:none!important}
+
+.dm-mobile-back{
+  display:none;
+  appearance:none;
+  border:1px solid rgba(192,132,252,.18);
+  background:rgba(168,85,247,.07);
+  color:#e9d5ff;
+  width:36px;height:36px;border-radius:12px;
+  font-size:25px;line-height:1;
+  place-items:center;
+  cursor:pointer;
+  flex:0 0 36px;
+}
+.dm-thread-spacer{width:36px;flex:0 0 36px;display:block}
+
+@media (max-width:760px){
+  /* Header action row: no implicit grid rows, no orphaned logout button. */
+  .club-auth-page .member-header-actions{
+    display:grid!important;
+    grid-template-columns:40px 40px minmax(0,1fr) minmax(0,1fr)!important;
+    grid-template-rows:42px 42px!important;
+    gap:7px!important;
+  }
+  .club-auth-page .member-header-actions .sound-toggle{grid-column:1;grid-row:1}
+  .club-auth-page .member-header-actions .notification-bell{grid-column:2;grid-row:1}
+  .club-auth-page .member-header-actions a[href="/club-account.html"]{grid-column:3;grid-row:1}
+  .club-auth-page .member-header-actions a[href="/"]{grid-column:4;grid-row:1}
+  .club-auth-page .member-header-actions .acy-header-refresh{grid-column:3;grid-row:2}
+  .club-auth-page .member-header-actions #logout{grid-column:4;grid-row:2}
+
+  /* The section rail is intentionally compact and swipeable. */
+  .club-auth-page .member-section-nav{
+    display:flex!important;
+    align-items:center;
+    gap:6px;
+    width:100%;
+    overflow-x:auto;
+    overflow-y:hidden;
+    white-space:nowrap;
+    scrollbar-width:none;
+    -webkit-overflow-scrolling:touch;
+    padding:7px;
+    border-radius:16px;
+  }
+  .club-auth-page .member-section-nav::-webkit-scrollbar{display:none}
+  .club-auth-page .member-section-nav-label{display:none!important}
+  .club-auth-page .member-section-nav a{
+    flex:0 0 auto;
+    min-height:36px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:0 11px;
+    border-radius:11px;
+    font-size:11px!important;
+    font-weight:800;
+  }
+
+  /* Refresh toast is feedback, not permanent content. */
+  .club-auth-page .acy-refresh-status{
+    left:50%!important;
+    right:auto!important;
+    top:auto!important;
+    bottom:calc(86px + env(safe-area-inset-bottom))!important;
+    transform:translateX(-50%);
+    max-width:calc(100vw - 150px)!important;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    font-size:9px!important;
+    padding:6px 9px!important;
+    z-index:9998!important;
+  }
+
+  /* Pet management: two normal buttons + one full-width destructive action. */
+  .club-auth-page .pet-manage-actions{
+    display:grid!important;
+    grid-template-columns:1fr 1fr!important;
+    gap:8px!important;
+  }
+  .club-auth-page .pet-manage-actions .button{
+    width:100%!important;
+    min-width:0!important;
+    min-height:46px!important;
+    padding:8px 7px!important;
+    font-size:11px!important;
+    white-space:normal!important;
+  }
+  .club-auth-page .pet-manage-actions .button-danger{
+    grid-column:1/-1;
+  }
+
+  /* DM: mobile becomes a real chat screen instead of a squeezed desktop split. */
+  .club-auth-page .member-dm-card .member-fold-body{padding-left:10px;padding-right:10px}
+  .club-auth-page .dm-shell{
+    display:block!important;
+    min-height:0!important;
+    border-radius:18px;
+    overflow:hidden;
+    background:rgba(5,5,9,.42);
+  }
+  .club-auth-page .dm-conversations{
+    display:block;
+    max-height:none!important;
+    height:auto;
+    border:0!important;
+    padding:7px;
+  }
+  .club-auth-page .dm-conversation{
+    min-height:66px;
+    padding:10px 9px;
+    border-radius:14px;
+    gap:10px;
+  }
+  .club-auth-page .dm-avatar{width:44px;height:44px;min-width:44px}
+  .club-auth-page .dm-conversation-main strong{font-size:15px}
+  .club-auth-page .dm-conversation-main small{font-size:12px}
+  .club-auth-page .dm-conversation time{font-size:10px}
+  .club-auth-page .dm-unread-dot{font-size:8px;padding:4px 6px}
+
+  .club-auth-page .dm-thread{display:none;min-width:0}
+  .club-auth-page .dm-shell.is-thread-open .dm-conversations{display:none}
+  .club-auth-page .dm-shell.is-thread-open .dm-thread{display:grid;grid-template-rows:auto minmax(0,1fr) auto auto;min-height:68vh}
+  .club-auth-page .dm-shell.is-thread-open .dm-mobile-back{display:grid}
+  .club-auth-page .dm-thread-head{
+    display:grid;
+    grid-template-columns:36px minmax(0,1fr) 36px;
+    align-items:center;
+    gap:8px;
+    min-height:62px;
+    padding:8px 10px;
+    background:rgba(168,85,247,.045);
+    position:sticky;
+    top:0;
+    z-index:3;
+  }
+  .club-auth-page .dm-thread-person{min-width:0;gap:9px}
+  .club-auth-page .dm-thread-person .dm-avatar{width:40px;height:40px;min-width:40px}
+  .club-auth-page .dm-thread-person strong{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .club-auth-page .dm-thread-person span{font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .club-auth-page .dm-messages{
+    min-height:52vh;
+    height:auto;
+    max-height:none;
+    padding:14px 10px 18px;
+    gap:10px;
+    overscroll-behavior:contain;
+  }
+  .club-auth-page .dm-message{max-width:88%;gap:5px}
+  .club-auth-page .dm-bubble{padding:11px 13px;font-size:14px;line-height:1.45}
+  .club-auth-page .dm-message time{font-size:9px}
+  .club-auth-page .dm-delete{font-size:17px;padding:3px}
+  .club-auth-page .dm-composer{padding:10px;border-top:1px solid rgba(255,255,255,.09);background:rgba(8,8,12,.72)}
+  .club-auth-page .dm-composer textarea{min-height:54px;max-height:130px;padding:12px;font-size:14px;border-radius:14px}
+  .club-auth-page .dm-composer-foot{margin-top:8px;align-items:center}
+  .club-auth-page .dm-composer-foot span{font-size:10px}
+  .club-auth-page #dm-send{min-height:46px;padding:0 18px;min-width:108px}
+  .club-auth-page .dm-status{padding:0 10px 8px;font-size:11px}
+
+  /* The private-message card should read like a dedicated messaging surface. */
+  .club-auth-page #club-messages .member-fold-body{padding-top:8px}
+  .club-auth-page #club-messages .member-fold-summary-main strong{font-size:21px}
+  .club-auth-page #club-messages .member-fold-summary-main small{font-size:12px}
+
+  /* Global mobile card rhythm. */
+  .club-auth-page .member-card,
+  .club-auth-page .member-hero-card,
+  .club-auth-page .hub-main-card,
+  .club-auth-page .hub-progression-card{
+    padding:18px 14px!important;
+    border-radius:19px!important;
+  }
+  .club-auth-page .member-card h2{font-size:23px!important;line-height:1.12}
+  .club-auth-page .member-card p{font-size:13px;line-height:1.5}
+  .club-auth-page .member-card-head{gap:8px;padding-right:36px}
+  .club-auth-page .member-card-head h2{font-size:23px!important}
+  .club-auth-page .member-card-head p{font-size:13px;max-width:34ch}
+
+  /* Common grids collapse before they start squeezing text. */
+  .club-auth-page .stats-grid,
+  .club-auth-page .member-stats-grid,
+  .club-auth-page .rewards-summary-grid,
+  .club-auth-page .daily-streak-stats,
+  .club-auth-page .twitch-club-stats-v11,
+  .club-auth-page .notification-category-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:8px!important;
+  }
+  .club-auth-page .daily-streak-stats>*,
+  .club-auth-page .stats-grid>*{min-width:0}
+
+  /* Inputs and action groups never overflow the card. */
+  .club-auth-page input,
+  .club-auth-page textarea,
+  .club-auth-page select{max-width:100%;box-sizing:border-box}
+  .club-auth-page .button{max-width:100%;box-sizing:border-box}
+
+  /* Bottom dock gets breathing room and never covers the last card content. */
+  .club-auth-page .mobile-club-dock{
+    left:8px!important;right:8px!important;
+    bottom:max(8px,env(safe-area-inset-bottom))!important;
+    padding:7px 5px!important;
+  }
+  .club-auth-page .member-dashboard{padding-bottom:116px!important}
+
+  /* Back-to-top is always a separate, reachable control. */
+  .club-auth-page #acy-back-to-top{
+    right:12px!important;
+    left:auto!important;
+    bottom:calc(88px + env(safe-area-inset-bottom))!important;
+    width:50px!important;height:50px!important;min-width:50px!important;
+    z-index:10002!important;
+  }
+}
+
+@media(max-width:430px){
+  .club-auth-page .member-header-actions{grid-template-columns:38px 38px minmax(0,1fr) minmax(0,1fr)!important;gap:6px!important}
+  .club-auth-page .member-header-actions .sound-toggle,.club-auth-page .member-header-actions .notification-bell{width:38px;height:40px}
+  .club-auth-page .member-header-actions .button{font-size:10px;padding:0 6px}
+  .club-auth-page .member-section-nav a{font-size:10px!important;padding:0 10px}
+  .club-auth-page .dm-shell.is-thread-open .dm-thread{min-height:72vh}
+  .club-auth-page .dm-messages{min-height:56vh}
+  .club-auth-page #dm-send{min-width:100px;padding:0 13px}
+}
