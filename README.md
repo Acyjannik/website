@@ -1047,3 +1047,12 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Reworked homepage member detection with four fallbacks: `getSession()`, `getUser()`, persisted Supabase localStorage restoration, and the public Club header's detected member ID.
 - Guest/member UI now updates deterministically instead of silently remaining in the guest state.
 - No SQL changes.
+
+
+## V7.6.0 — Cookie & Consent
+- Added a German cookie/privacy consent banner with `Alle akzeptieren`, `Nur notwendige` and `Einstellungen`.
+- Added a preference modal with an always-active necessary category and an optional `Externe Inhalte` category.
+- Twitch player and Twitch chat are blocked until external-content consent exists.
+- Added persistent `Cookie-Einstellungen` link in the footer.
+- The login/session is intentionally **not** stored as a password or hand-built cookie. Supabase keeps the authenticated session in its browser auth storage, which remains available for the expressly requested login function.
+- No SQL changes.

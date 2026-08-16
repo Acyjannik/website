@@ -100,6 +100,147 @@ if (menuButton && nav) {
 }
 
 
+
+// ------------------------------------------------------------
+// V7.6 Cookie / Consent Manager
+// - Necessary auth/session storage is always available.
+// - Optional third-party Twitch embeds are blocked until consent.
+// - Consent is stored in a first-party preference cookie.
+// ------------------------------------------------------------
+const CONSENT_COOKIE = 'acy_consent_v1';
+const CONSENT_MAX_AGE = 31536000;
+
+function getCookie(name) {
+  const parts = document.cookie.split(';').map(part => part.trim());
+  const prefix = `${name}=`;
+  const entry = parts.find(part => part.startsWith(prefix));
+  if (!entry) return null;
+  try { return decodeURIComponent(entry.slice(prefix.length)); } catch { return entry.slice(prefix.length); }
+}
+
+function getConsent() {
+  const raw = getCookie(CONSENT_COOKIE);
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object') return null;
+    return {
+      necessary: true,
+      externalContent: parsed.externalContent === true,
+      updatedAt: parsed.updatedAt || null
+    };
+  } catch {
+    return null;
+  }
+}
+
+function saveConsent(externalContent) {
+  const payload = {
+    necessary: true,
+    externalContent: Boolean(externalContent),
+    updatedAt: new Date().toISOString()
+  };
+  document.cookie = `${CONSENT_COOKIE}=${encodeURIComponent(JSON.stringify(payload))}; Max-Age=${CONSENT_MAX_AGE}; Path=/; SameSite=Lax${location.protocol === 'https:' ? '; Secure' : ''}`;
+  applyConsent(payload);
+}
+
+function openCookieSettings() {
+  const modal = document.getElementById('cookie-modal');
+  const checkbox = document.getElementById('consent-external-content');
+  const consent = getConsent();
+  if (checkbox) checkbox.checked = consent?.externalContent === true;
+  if (modal) modal.hidden = false;
+}
+
+function closeCookieSettings() {
+  const modal = document.getElementById('cookie-modal');
+  if (modal) modal.hidden = true;
+}
+
+function loadExternalTwitchContent() {
+  const host = window.location.hostname;
+  const parent = host && host !== 'localhost' && host !== '127.0.0.1' ? host : 'acyjannik.de';
+  const player = document.getElementById('twitch-player');
+  const chat = document.getElementById('twitch-chat');
+  const playerPlaceholder = document.getElementById('twitch-player-placeholder');
+  const chatPlaceholder = document.getElementById('twitch-chat-placeholder');
+
+  if (player) {
+    player.src = `https://player.twitch.tv/?channel=acyjannik&parent=${encodeURIComponent(parent)}&autoplay=false&muted=true`;
+    player.hidden = false;
+  }
+  if (chat) {
+    chat.src = `https://www.twitch.tv/embed/acyjannik/chat?parent=${encodeURIComponent(parent)}&darkpopout`;
+    chat.hidden = false;
+  }
+  if (playerPlaceholder) playerPlaceholder.hidden = true;
+  if (chatPlaceholder) chatPlaceholder.hidden = true;
+}
+
+function unloadExternalTwitchContent() {
+  const player = document.getElementById('twitch-player');
+  const chat = document.getElementById('twitch-chat');
+  const playerPlaceholder = document.getElementById('twitch-player-placeholder');
+  const chatPlaceholder = document.getElementById('twitch-chat-placeholder');
+
+  if (player) {
+    player.src = '';
+    player.hidden = true;
+  }
+  if (chat) {
+    chat.src = '';
+    chat.hidden = true;
+  }
+  if (playerPlaceholder) playerPlaceholder.hidden = false;
+  if (chatPlaceholder) chatPlaceholder.hidden = false;
+}
+
+function applyConsent(consent) {
+  const banner = document.getElementById('cookie-banner');
+  if (consent?.externalContent) {
+    loadExternalTwitchContent();
+  } else {
+    unloadExternalTwitchContent();
+  }
+  if (banner) banner.hidden = Boolean(consent);
+}
+
+function initCookieManager() {
+  const consent = getConsent();
+  if (consent) {
+    applyConsent(consent);
+  } else {
+    unloadExternalTwitchContent();
+    const banner = document.getElementById('cookie-banner');
+    if (banner) banner.hidden = false;
+  }
+
+  document.getElementById('cookie-accept-all-btn')?.addEventListener('click', () => saveConsent(true));
+  document.getElementById('cookie-essential-btn')?.addEventListener('click', () => saveConsent(false));
+  document.getElementById('cookie-settings-btn')?.addEventListener('click', openCookieSettings);
+  document.getElementById('cookie-modal-essential')?.addEventListener('click', () => {
+    saveConsent(false);
+    closeCookieSettings();
+  });
+  document.getElementById('cookie-modal-save')?.addEventListener('click', () => {
+    saveConsent(Boolean(document.getElementById('consent-external-content')?.checked));
+    closeCookieSettings();
+  });
+  document.querySelectorAll('[data-open-cookie-settings]').forEach((el) => {
+    el.addEventListener('click', (event) => {
+      event.preventDefault();
+      openCookieSettings();
+    });
+  });
+  document.querySelectorAll('[data-close-cookie-modal]').forEach((el) => {
+    el.addEventListener('click', closeCookieSettings);
+  });
+  document.querySelector('.cookie-modal-close')?.addEventListener('click', closeCookieSettings);
+}
+
+window.addEventListener('DOMContentLoaded', initCookieManager);
+
+
 // Keep Twitch's required parent domain correct after deployment.
 // Twitch requires the embedding domain to be declared in the player URL.
 (function setupTwitchParents(){
@@ -107,8 +248,11 @@ if (menuButton && nav) {
   const parent = host && host !== 'localhost' && host !== '127.0.0.1' ? host : 'acyjannik.de';
   const player = document.getElementById('twitch-player');
   const chat = document.getElementById('twitch-chat');
-  if (player) player.src = `https://player.twitch.tv/?channel=acyjannik&parent=${encodeURIComponent(parent)}&autoplay=false&muted=true`;
-  if (chat) chat.src = `https://www.twitch.tv/embed/acyjannik/chat?parent=${encodeURIComponent(parent)}&darkpopout`;
+  const consent = getConsent();
+  if (consent?.externalContent) {
+    if (player) player.src = `https://player.twitch.tv/?channel=acyjannik&parent=${encodeURIComponent(parent)}&autoplay=false&muted=true`;
+    if (chat) chat.src = `https://www.twitch.tv/embed/acyjannik/chat?parent=${encodeURIComponent(parent)}&darkpopout`;
+  }
 })();
 
 

@@ -99,13 +99,18 @@
             <span class="status-badge"><span class="live-dot" id="stream-live-dot"></span><span id="stream-status">CHECKING TWITCH…</span></span>
             <a href="https://www.twitch.tv/acyjannik" target="_blank" rel="noreferrer">Twitch öffnen ↗</a>
           </div>
-          <div class="twitch-frame">
+          <div class="twitch-frame" id="twitch-player-shell">
+            <div class="external-content-placeholder" id="twitch-player-placeholder">
+              <strong>Twitch-Inhalt</strong>
+              <span>Der Twitch-Player wird erst nach deiner Zustimmung zu externen Inhalten geladen.</span>
+              <button class="button button-primary button-small" type="button" data-open-cookie-settings>Externe Inhalte erlauben</button>
+            </div>
             <iframe
               id="twitch-player"
               title="Acyjannik Twitch Stream"
-              src="https://player.twitch.tv/?channel=acyjannik&parent=acyjannik.de&autoplay=false&muted=true"
               allowfullscreen
-              scrolling="no">
+              scrolling="no"
+              hidden>
             </iframe>
           </div>
         </div>
@@ -114,11 +119,16 @@
             <span class="eyebrow">LIVE CHAT</span>
             <span class="chat-dot"></span>
           </div>
+          <div class="external-content-placeholder external-content-placeholder-chat" id="twitch-chat-placeholder">
+            <strong>Twitch-Chat</strong>
+            <span>Externe Inhalte sind derzeit nicht aktiviert.</span>
+            <button class="button button-secondary button-small" type="button" data-open-cookie-settings>Aktivieren</button>
+          </div>
           <iframe
             id="twitch-chat"
             title="Acyjannik Twitch Chat"
-            src="https://www.twitch.tv/embed/acyjannik/chat?parent=acyjannik.de&darkpopout"
-            scrolling="no">
+            scrolling="no"
+            hidden>
           </iframe>
         </aside>
       </div>
@@ -277,6 +287,48 @@ Schön, dass du hier bist. Willkommen bei ACY. 💜</p>
   <div class="footer-admin-link"><a href="/admin.html">Admin</a></div></footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="/pet-companion.js?v=7.2.0" defer></script>
-  <script src="script.js?v=7.5.2"></script>
-<footer class="legal-footer"><a href="/impressum.html">Impressum</a><span>·</span><a href="/datenschutz.html">Datenschutz</a></footer></body>
+  <script src="script.js?v=7.6.0"></script>
+<footer class="legal-footer"><a href="/impressum.html">Impressum</a><span>·</span><a href="/datenschutz.html">Datenschutz</a></footer>
+  <div class="cookie-banner" id="cookie-banner" hidden>
+    <div class="cookie-banner-copy">
+      <span class="eyebrow">PRIVATSPHÄRE</span>
+      <strong>Cookies & externe Inhalte</strong>
+      <p>Wir verwenden technisch notwendige Speicherfunktionen für Login und Website-Funktionen. Externe Inhalte wie Twitch werden erst nach deiner Zustimmung geladen.</p>
+    </div>
+    <div class="cookie-banner-actions">
+      <button class="button button-secondary" type="button" id="cookie-settings-btn">Einstellungen</button>
+      <button class="button button-secondary" type="button" id="cookie-essential-btn">Nur notwendige</button>
+      <button class="button button-primary" type="button" id="cookie-accept-all-btn">Alle akzeptieren</button>
+    </div>
+  </div>
+
+  <div class="cookie-modal" id="cookie-modal" hidden>
+    <div class="cookie-modal-backdrop" data-close-cookie-modal></div>
+    <section class="cookie-modal-card" role="dialog" aria-modal="true" aria-labelledby="cookie-modal-title">
+      <div class="cookie-modal-head">
+        <div>
+          <span class="eyebrow">PRIVATSPHÄRE</span>
+          <h2 id="cookie-modal-title">Deine Einstellungen</h2>
+          <p>Du entscheidest, welche optionalen Inhalte geladen werden.</p>
+        </div>
+        <button class="cookie-modal-close" type="button" data-close-cookie-modal aria-label="Schließen">×</button>
+      </div>
+
+      <div class="cookie-option cookie-option-locked">
+        <div><strong>Technisch notwendig</strong><small>Login, Session, Sicherheit und deine gewählten Einstellungen.</small></div>
+        <span class="cookie-lock">Immer aktiv</span>
+      </div>
+
+      <label class="cookie-option">
+        <div><strong>Externe Inhalte</strong><small>Twitch-Player und Twitch-Chat. Dabei können Daten an Twitch übertragen und dort Speichertechnologien eingesetzt werden.</small></div>
+        <input type="checkbox" id="consent-external-content">
+      </label>
+
+      <div class="cookie-modal-actions">
+        <button class="button button-secondary" type="button" id="cookie-modal-essential">Nur notwendige</button>
+        <button class="button button-primary" type="button" id="cookie-modal-save">Auswahl speichern</button>
+      </div>
+    </section>
+  </div>
+</body>
 </html>
