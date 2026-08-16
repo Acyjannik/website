@@ -1247,3 +1247,13 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Personal dispatch can only target the authenticated member; broadcasts remain admin/internal-only.
 - Added a lightweight email dispatch log table for diagnostics.
 - API version bumped to 7.1.13.
+
+
+## V8.7.0 — Unified Notification Center
+- Broadcast notifications now feed both In-App and Email channels according to each member's preferences.
+- Personal notifications do the same.
+- Added Supabase Realtime subscription for `club_notifications`: new notifications appear without page reload.
+- Notification badge/panel auto-refreshes every 60 seconds as a fallback.
+- New notifications trigger the existing subtle UI sound/toast.
+- Added `supabase/club_notifications_realtime.sql` once in Supabase.
+- API version bumped to 7.1.14.

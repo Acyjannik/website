@@ -1,6 +1,6 @@
 const tls = require('node:tls');
 
-const NOTIFICATION_EMAIL_API_VERSION = '7.1.13';
+const NOTIFICATION_EMAIL_API_VERSION = '7.1.14';
 const env = (name, fallback='') => String(process.env[name] || fallback);
 
 function json(res, status, payload) {
@@ -323,8 +323,12 @@ module.exports = async (req, res) => {
       if (!prefsRes.ok) throw new Error(`Preferences: HTTP ${prefsRes.status}`);
       const prefsRows = await prefsRes.json();
       const prefsRow = prefsRows?.[0];
-      if (!prefsRow?.email_enabled || prefsRow[pref] !== true) {
-        return json(res,200,{ok:true,skipped:true,reason:'preference_disabled',emailSent:0});
+      if (!prefsRow) return json(res,200,{ok:true,skipped:true,reason:'no_preferences',emailSent:0});
+
+      const inAppEnabled = prefsRow.in_app_enabled !== false;
+      const emailEnabled = prefsRow.email_enabled === true && prefsRow[pref] === true;
+      if (!inAppEnabled && !emailEnabled) {
+        return json(res,200,{ok:true,skipped:true,reason:'preference_disabled',emailSent:0,inAppSent:0});
       }
 
       const authRes = await sbFetch(`/auth/v1/admin/users/${encodeURIComponent(user.id)}`);
@@ -344,8 +348,29 @@ module.exports = async (req, res) => {
             <p style="font-size:11px;color:#6f6f7a;margin-top:30px">Benachrichtigungen: <a href="${escapeHtml(settingsUrl)}" style="color:#c084fc">Einstellungen verwalten</a></p>
           </div>
         </div>`;
-      await smtpSend({to:authUser.email,subject:`${title} · ACY Club`,text,html:personalHtml});
-      return json(res,200,{ok:true,personal:true,emailSent:1,sentTo:authUser.email});
+      let inAppSent = 0;
+      if (inAppEnabled) {
+        const notificationRes = await sbFetch('/rest/v1/club_notifications',{
+          method:'POST',
+          headers:{Prefer:'return=minimal'},
+          body:JSON.stringify({
+            user_id:user.id,
+            title,
+            body:text,
+            notification_type:type,
+            link_url:linkUrl
+          })
+        });
+        if (notificationRes.ok) inAppSent = 1;
+      }
+
+      let emailSent = 0;
+      if (emailEnabled && authUser.email) {
+        await smtpSend({to:authUser.email,subject:`${title} · ACY Club`,text,html:personalHtml});
+        emailSent = 1;
+      }
+
+      return json(res,200,{ok:true,personal:true,emailSent,inAppSent,sentTo:authUser.email});
     }
 
     // V7.1.11: isolated IONOS sender test. This intentionally sends the
@@ -487,13 +512,18 @@ module.exports = async (req, res) => {
     const categoryEnabledCount = pref
       ? (prefs || []).filter(row => row.email_enabled === true && row[pref] === true).length
       : 0;
+    const inAppEnabledCount = (prefs || []).filter(row => row.in_app_enabled !== false).length;
 
     const eligible = [];
     const missingAuthEmails = [];
 
     for (const profile of profiles || []) {
       const prefRow = prefsByUser.get(profile.id);
-      if (!prefRow?.email_enabled || !pref || prefRow[pref] !== true) continue;
+      if (!prefRow) continue;
+
+      const inAppEnabled = prefRow.in_app_enabled !== false;
+      const emailEnabled = prefRow.email_enabled === true && pref && prefRow[pref] === true;
+      if (!inAppEnabled && !emailEnabled) continue;
 
       const authRes = await sbFetch(`/auth/v1/admin/users/${encodeURIComponent(profile.id)}`);
       if (!authRes.ok) {
@@ -503,7 +533,7 @@ module.exports = async (req, res) => {
 
       const authUser = await authRes.json();
       if (authUser.email) {
-        eligible.push({profile, email: authUser.email});
+        eligible.push({profile, email: authUser.email, inAppEnabled, emailEnabled});
       } else {
         missingAuthEmails.push({userId: profile.id, reason: 'Keine E-Mail in Auth'});
       }
@@ -532,13 +562,32 @@ module.exports = async (req, res) => {
             </div>
           </div>`;
 
-        await smtpSend({
-          to: recipient.email,
-          subject: `${title} · ACY Club`,
-          text,
-          html
-        });
-        sent++;
+        if (recipient.inAppEnabled) {
+          const notificationRes = await sbFetch('/rest/v1/club_notifications',{
+            method:'POST',
+            headers:{Prefer:'return=minimal'},
+            body:JSON.stringify({
+              user_id:recipient.profile.id,
+              title,
+              body:text,
+              notification_type:type,
+              link_url:linkUrl
+            })
+          });
+          if (!notificationRes.ok) {
+            console.warn('In-app notification insert failed:', await notificationRes.text().catch(()=>'')); 
+          }
+        }
+
+        if (recipient.emailEnabled && recipient.email) {
+          await smtpSend({
+            to: recipient.email,
+            subject: `${title} · ACY Club`,
+            text,
+            html
+          });
+          sent++;
+        }
       } catch {
         failed++;
       }
@@ -551,7 +600,10 @@ module.exports = async (req, res) => {
       preferenceRows,
       emailEnabledCount,
       categoryEnabledCount,
-      emailEligible:eligible.length,
+      eligibleRecipients:eligible.length,
+      inAppEnabledCount,
+      emailEligible:eligible.filter(r=>r.emailEnabled).length,
+      inAppRecipients:eligible.filter(r=>r.inAppEnabled).length,
       emailSent:sent,
       emailFailed:failed,
       missingAuthEmailsCount: missingAuthEmails.length

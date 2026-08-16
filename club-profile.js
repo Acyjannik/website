@@ -1641,6 +1641,7 @@ async function init() {
     startMemberDirectoryPolling();
      await loadSocialConnections();
      await startSocialPresence();
+    startNotificationRealtime();
     await loadDirectMessages(dmTarget || '');
     await loadCommunityPoll();
     await loadClubChat();
@@ -2039,6 +2040,41 @@ async function refreshNotificationBadge() {
   } catch (error) {
     console.warn('Notification badge refresh skipped:', error);
   }
+}
+
+
+let notificationRealtimeChannel = null;
+let notificationRefreshTimer = null;
+
+function startNotificationRealtime() {
+  if (!supabaseClient || !currentUser) return;
+  if (notificationRealtimeChannel) {
+    try { supabaseClient.removeChannel(notificationRealtimeChannel); } catch {}
+  }
+
+  notificationRealtimeChannel = supabaseClient
+    .channel(`acy-notifications-${currentUser.id}`)
+    .on('postgres_changes',{
+      event:'*',
+      schema:'public',
+      table:'club_notifications',
+      filter:`user_id=eq.${currentUser.id}`
+    }, async payload => {
+      playUISound('success');
+      showClubToast(
+        payload.eventType === 'DELETE'
+          ? 'Benachrichtigung entfernt.'
+          : (payload.new?.title || 'Neue Benachrichtigung'),
+        'success'
+      );
+      await loadNotifications();
+    })
+    .subscribe();
+
+  if (notificationRefreshTimer) clearInterval(notificationRefreshTimer);
+  notificationRefreshTimer = setInterval(() => {
+    if (!document.hidden) loadNotifications().catch(()=>{});
+  }, 60000);
 }
 
 async function loadNotifications() {
@@ -3105,6 +3141,8 @@ $('avatar-input')?.addEventListener('change', async (event) => {
 $('discord-connect-btn')?.addEventListener('click', connectDiscord);
 
 $('logout')?.addEventListener('click', async () => {
+  try { if (notificationRealtimeChannel) supabaseClient.removeChannel(notificationRealtimeChannel); } catch {}
+  if (notificationRefreshTimer) clearInterval(notificationRefreshTimer);
   if (supabaseClient) await supabaseClient.auth.signOut();
   window.location.href = '/club.html';
 });
