@@ -1345,3 +1345,9 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 ## V9.4.1 — Achievement Catalog Polish
 - Added the missing frontend entries for 2k / 5k / 10k / 25k XP achievements.
 - Added a small visual glow/progress polish to unlocked achievement cards.
+
+
+## V9.4.2 — Full Level Catalog
+- Fixed the progression catalog still showing only the original 5 levels.
+- Added all 12 current levels up to 25,000 XP to the visible level strip.
+- Made the level strip horizontally scrollable so it stays compact.

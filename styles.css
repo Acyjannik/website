@@ -2073,3 +2073,16 @@ img,video,iframe,svg{
 .achievement-row.is-unlocked .catalog-icon{filter:drop-shadow(0 0 6px rgba(192,132,252,.35))}
 .catalog-progress{display:block;height:3px;margin-top:5px;border-radius:99px;background:#17171e;overflow:hidden}
 .catalog-progress>span{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#8b5cf6,#c084fc)}
+
+/* V9.4.2 — expanded level catalog */
+.catalog-levels-scroll{
+  display:flex;
+  gap:8px;
+  overflow-x:auto;
+  overflow-y:hidden;
+  padding:2px 2px 7px;
+  scrollbar-width:thin;
+}
+.catalog-levels-scroll .catalog-level{
+  flex:0 0 138px;
+}
