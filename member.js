@@ -139,13 +139,32 @@ function renderMemberPet(pet,targetId,ownId){
   });
 }
 
+
+function publicGlowTierForXp(xp=0){
+  const value=Math.max(0,Number(xp)||0);
+  if(value>=25000)return 8;
+  if(value>=17000)return 7;
+  if(value>=12000)return 6;
+  if(value>=8000)return 5;
+  if(value>=5500)return 4;
+  if(value>=3500)return 3;
+  if(value>=2000)return 2;
+  if(value>=1000)return 1;
+  if(value>=500)return 0;
+  return -1;
+}
+
 function renderBadges(badges=[],xp=0,discord=false){
   const icons={'ACY Rookie':'💜','ACY Member':'🎮','Discord Member':'💬','ACY OG':'👑','ACY Legend':'🏆','Early Member':'⏳'};
   const auto=[...(xp>=100?['ACY Member']:[]),...(xp>=500?['ACY OG']:[]),...(xp>=1000?['ACY Legend']:[]),...(discord?['Discord Member']:[])];
   const all=[...new Set([...(badges||[]),'ACY Rookie',...auto])].slice(0,8);
   const grid=$('public-badges');
   if(!grid)return;
-  grid.innerHTML=all.map(b=>`<div class="member-badge"><span>${icons[b]||'✦'}</span><strong>${escapeHtml(b)}</strong><small>ACY Club</small></div>`).join('');
+  const tier=Math.max(0,publicGlowTierForXp(xp));
+  grid.innerHTML=all.map((b,i)=>{
+    const badgeTier=Math.min(8,tier+Math.min(2,Math.floor(i/3)));
+    return `<div class="member-badge glow-tier-${badgeTier}"><span>${icons[b]||'✦'}</span><strong>${escapeHtml(b)}</strong><small>ACY Club</small></div>`;
+  }).join('');
 }
 
 async function init(){
@@ -167,6 +186,12 @@ async function init(){
     if(!response.ok)throw new Error(payload.error||'Mitglied konnte nicht geladen werden.');
 
     const m=payload.member;
+    const publicCard=document.querySelector('.public-member-card');
+    const publicGlow=publicGlowTierForXp(Number(m.xp||0));
+    if(publicCard){
+      publicCard.classList.remove(...Array.from({length:9},(_,i)=>`glow-tier-${i}`),'glow-tier-none');
+      publicCard.classList.add(publicGlow>=0?`glow-tier-${publicGlow}`:'glow-tier-none');
+    }
     setMemberText('public-name',m.display_name);
     setMemberText('public-handle',`@${m.username}`);
     setMemberText('public-bio',m.bio||'ACY Club Member');

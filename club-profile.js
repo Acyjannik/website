@@ -25,6 +25,46 @@ function setPetStatus(text, type = '') {
   el.className = `club-auth-status ${type}`.trim();
 }
 
+
+// V10.4 — XP / Rank visual glow system
+function glowTierForXp(xp=0){
+  const value=Math.max(0,Number(xp)||0);
+  if(value>=25000)return 8;
+  if(value>=17000)return 7;
+  if(value>=12000)return 6;
+  if(value>=8000)return 5;
+  if(value>=5500)return 4;
+  if(value>=3500)return 3;
+  if(value>=2000)return 2;
+  if(value>=1000)return 1;
+  if(value>=500)return 0;
+  return -1;
+}
+
+function applyGlowTier(element, xp=0){
+  if(!element)return;
+  const tier=glowTierForXp(xp);
+  element.classList.remove(...Array.from({length:9},(_,i)=>`glow-tier-${i}`),'glow-tier-none');
+  element.classList.add(tier>=0?`glow-tier-${tier}`:'glow-tier-none');
+  element.dataset.glowTier=String(Math.max(-1,tier));
+}
+
+function applyProfileGlow(xp=0){
+  applyGlowTier($('.member-hero-card'),xp);
+  applyGlowTier($('.member-avatar-wrap'),xp);
+  applyGlowTier($('.member-quick'),xp);
+
+  const badgeGrid=$('badge-grid');
+  applyGlowTier(badgeGrid,xp);
+  if(badgeGrid){
+    badgeGrid.querySelectorAll('.member-badge').forEach((badge,index)=>{
+      badge.classList.remove(...Array.from({length:9},(_,i)=>`glow-tier-${i}`),'glow-tier-none');
+      const tier=Math.max(-1,glowTierForXp(xp)+Math.min(2,Math.floor(index/3)));
+      badge.classList.add(tier>=0?`glow-tier-${tier}`:'glow-tier-none');
+    });
+  }
+}
+
 function levelForXp(xp) {
   const levels = [
     { min: 0, title: 'ACY Rookie' },
@@ -98,7 +138,7 @@ function renderBadges(badges = [], xp = 0, discordConnected = false) {
   const badgeGrid = $('badge-grid');
   if (!badgeGrid) return;
   badgeGrid.innerHTML = list.map((badge) => `
-    <div class="member-badge">
+    <div class="member-badge glow-tier-${Math.max(0,Math.min(8,Math.max(0,glowTierForXp(xp)) + Math.min(2,Math.floor(list.indexOf(badge)/3))))}">
       <span>${icons[badge] || '✦'}</span>
       <strong>${escapeHtml(badge)}</strong>
       <small>AC­Y Club</small>
@@ -1807,6 +1847,7 @@ async function loadProfile() {
   renderProgress(Number(profile.xp || 0));
   window.__memberBadges = profile.badges || [];
   renderBadges(window.__memberBadges, Number(profile.xp || 0), !!profile.discord_connected);
+  applyProfileGlow(Number(profile.xp || 0));
   if ((profile.display_name || '').trim() && (profile.bio || '').trim()) {
     await awardProgression('profile_complete');
   }
@@ -1940,6 +1981,7 @@ async function loadDiscordLink() {
       if (result?.totalXp !== undefined) {
         renderBadges((window.__memberBadges || []), Number(result.totalXp), true);
         setText('member-xp', `${result.totalXp} XP`);
+        applyProfileGlow(Number(result.totalXp));
       }
     } else {
       // The Discord badge is derived from the live connection state.
@@ -3247,7 +3289,9 @@ async function loadMemberDirectory(search = '', options = {}) {
         : `<div class="member-directory-pet is-empty"><span>🐾</span><span><strong>Kein Pet</strong><small>Noch kein Begleiter</small></span></div>`;
 
       const isFriend = window.__socialFriendIds?.has(String(member.id)) === true;
-      return `<article class="member-directory-item member-directory-clickable"
+      const glowTier = Math.max(-1, glowTierForXp(Number(member.xp||0)));
+      const glowClass = glowTier >= 0 ? ` glow-tier-${glowTier}` : ' glow-tier-none';
+      return `<article class="member-directory-item member-directory-clickable${glowClass}"
         data-member-id="${escapeAttr(member.id)}"
         data-online="${member.online ? 'true' : 'false'}"
         data-has-pet="${member.pet ? 'true' : 'false'}"
@@ -3404,7 +3448,9 @@ async function loadLeaderboard() {
         : `<div class="leaderboard-avatar-fallback">${escapeHtml((member.display_name || member.username || 'A').charAt(0).toUpperCase())}</div>`;
       const level = levelForXp(member.xp).title;
       const rank = icons[member.rank] || `#${member.rank}`;
-      return `<button class="leaderboard-row" type="button" data-member-id="${escapeAttr(member.id)}">
+      const glowTier = Math.max(-1, glowTierForXp(Number(member.xp||0)));
+      const glowClass = glowTier >= 0 ? ` glow-tier-${glowTier}` : ' glow-tier-none';
+      return `<button class="leaderboard-row${glowClass}" type="button" data-member-id="${escapeAttr(member.id)}">
         <span class="leaderboard-rank">${rank}</span>
         <span class="leaderboard-avatar">${avatar}</span>
         <span class="leaderboard-main"><strong>${escapeHtml(member.display_name)}</strong><small>@${escapeHtml(member.username)}</small></span>

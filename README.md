@@ -1477,3 +1477,12 @@ Run `supabase/v10_quality.sql` once after the previous migrations.
 - Logout is now always visible on iPhone-sized screens instead of being pushed off the right edge.
 - Account, Website and Logout receive equal flexible widths; Sound and Notifications stay compact.
 - Added a tighter layout for very small screens.
+
+
+## V10.4 — Rank Glow / Shiny Profiles
+- Added tiered visual glow based on XP/rank.
+- Glow applies to the personal hero, avatar, badges, member directory cards, leaderboard rows and public member profiles.
+- Higher tiers become progressively brighter and eventually transition into warm gold/Hall-of-Fame shine.
+- Added a small live ACY Glow label next to the profile handle.
+- High tiers use subtle animated sheen/pulse; reduced-motion users get static visuals.
+- No database changes required.
