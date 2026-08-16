@@ -436,6 +436,55 @@ function renderDmThread() {
   messagesEl.scrollTop = messagesEl.scrollHeight;
 }
 
+
+// V8.1.2 — remember which Club cards were open.
+// We use sessionStorage so the state survives navigation/back-forward
+// and page reloads during the same browser session.
+const MEMBER_FOLD_STATE_KEY = 'acy-club-open-folds-v1';
+
+function getRememberedMemberFolds() {
+  try {
+    const raw = sessionStorage.getItem(MEMBER_FOLD_STATE_KEY);
+    const ids = raw ? JSON.parse(raw) : [];
+    return Array.isArray(ids) ? ids.filter(Boolean) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveRememberedMemberFolds() {
+  const ids = [...document.querySelectorAll('.member-fold, .member-card details')]
+    .filter(el => el.open && el.id)
+    .map(el => el.id);
+
+  try {
+    sessionStorage.setItem(MEMBER_FOLD_STATE_KEY, JSON.stringify(ids));
+  } catch {
+    // Storage can be unavailable in privacy modes. The UI still works normally.
+  }
+}
+
+function restoreRememberedMemberFolds() {
+  const ids = getRememberedMemberFolds();
+  ids.forEach(id => {
+    const target = document.getElementById(id);
+    if (target?.tagName === 'DETAILS') target.open = true;
+  });
+}
+
+function initRememberedMemberFolds() {
+  document.querySelectorAll('.member-fold, .member-card details').forEach(details => {
+    details.addEventListener('toggle', saveRememberedMemberFolds);
+  });
+
+  restoreRememberedMemberFolds();
+
+  // Browser back/forward can restore the page from bfcache.
+  window.addEventListener('pageshow', () => {
+    restoreRememberedMemberFolds();
+  });
+}
+
 function initMemberSectionNavigation() {
   const nav = document.querySelector('.member-section-nav');
   if (!nav) return;
@@ -1488,6 +1537,7 @@ async function init() {
 
     currentUser = data.session.user;
     initMemberSectionNavigation();
+    initRememberedMemberFolds();
     await loadNotificationPreferences();
     await loadDailyStreak();
     await loadMyRewards();

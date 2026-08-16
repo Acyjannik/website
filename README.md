@@ -1126,3 +1126,10 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - The sync now reads `ROW_COUNT` into a variable after each insert and sums the inserted rows correctly.
 - No frontend changes.
 - Run `supabase/club_social.sql` again after deployment.
+
+
+## V8.1.2 — Remember Open Club Cards
+- The Club now remembers which collapsible sections (`details` cards) were open.
+- Returning with browser Back/Forward or reloading the Club page restores those open cards.
+- State is stored in `sessionStorage` for the current browser session.
+- No SQL changes.
