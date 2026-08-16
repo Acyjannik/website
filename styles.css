@@ -4109,7 +4109,7 @@ body.acy-cosmic-active .club-auth-shell{filter:saturate(1.12)}
 }
 
 /* ============================================================
-   ACY V15.2 — Mobile UX overhaul / DM single-thread mode
+   ACY V15.3 — Mobile UX overhaul / Pet + Dock refinement
    Final mobile overrides intentionally live at the end so older
    V10/V11 rules cannot win the cascade on small screens.
    ============================================================ */
@@ -4337,4 +4337,82 @@ body.acy-cosmic-active .club-auth-shell{filter:saturate(1.12)}
   .club-auth-page .dm-shell.is-thread-open .dm-thread{min-height:72vh}
   .club-auth-page .dm-messages{min-height:56vh}
   .club-auth-page #dm-send{min-width:100px;padding:0 13px}
+}
+
+
+/* ============================================================
+   ACY V15.3 — Mobile refinement / pet + quick actions
+   ============================================================ */
+@media (max-width:760px){
+  /* The pet intro is a feature statement, not a paragraph wall. */
+  .club-auth-page .pet-section .member-card-head p{
+    max-width:30ch!important;
+    margin-top:8px!important;
+    font-size:13px!important;
+    line-height:1.45!important;
+    color:#a9a6b2;
+  }
+
+  /* Pet actions: two compact controls + one clear destructive action. */
+  .club-auth-page .pet-manage-actions{
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+    gap:8px!important;
+    width:100%!important;
+  }
+  .club-auth-page .pet-manage-actions .button{
+    min-width:0!important;
+    width:100%!important;
+    min-height:44px!important;
+    padding:7px 8px!important;
+    font-size:10.5px!important;
+    line-height:1.15!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+  }
+  .club-auth-page .pet-manage-actions .button-danger{
+    grid-column:1/-1!important;
+    min-height:42px!important;
+  }
+
+  /* Five quick actions: Pet, Quests, Chat, Notices, Wheel. */
+  .club-auth-page .mobile-club-dock{
+    grid-template-columns:repeat(5,minmax(0,1fr))!important;
+  }
+  .club-auth-page .mobile-club-dock a,
+  .club-auth-page .mobile-club-dock button{
+    min-width:0!important;
+    overflow:visible!important;
+  }
+  .club-auth-page .mobile-club-dock .dock-icon{font-size:20px!important;min-height:22px}
+  .club-auth-page .mobile-club-dock span:last-child{
+    font-size:9px!important;
+    line-height:1!important;
+    white-space:nowrap!important;
+  }
+  .club-auth-page .mobile-club-dock a.is-active,
+  .club-auth-page .mobile-club-dock button.is-active{
+    color:#fff!important;
+    background:linear-gradient(180deg,rgba(168,85,247,.22),rgba(168,85,247,.08))!important;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 0 24px rgba(168,85,247,.10)!important;
+  }
+  .club-auth-page .mobile-club-dock a.is-active::after,
+  .club-auth-page .mobile-club-dock button.is-active::after{
+    content:"";
+    position:absolute;
+    left:50%;
+    bottom:4px;
+    width:22px;
+    height:3px;
+    border-radius:999px;
+    transform:translateX(-50%);
+    background:#c084fc;
+    box-shadow:0 0 12px rgba(192,132,252,.55);
+  }
+  .club-auth-page .mobile-club-dock .dock-badge{top:1px!important}
+}
+
+@media (max-width:390px){
+  .club-auth-page .mobile-club-dock span:last-child{font-size:8.5px!important}
+  .club-auth-page .pet-manage-actions .button{font-size:10px!important;padding-inline:6px!important}
 }

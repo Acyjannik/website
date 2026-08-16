@@ -3053,6 +3053,22 @@ document.querySelectorAll('.mobile-club-dock [data-dock-key]').forEach(item=>{
   });
 });
 
+// V15.3 — keep the quick-action dock aligned with the current hash on load/navigation.
+function syncMobileDockFromHash(){
+  const hash=window.location.hash;
+  const map={
+    '#pet-section':'pet',
+    '#club-quests-section':'quests',
+    '#club-chat':'chat',
+    '#club-wheel-section':'wheel'
+  };
+  const key=map[hash];
+  if(!key)return;
+  document.querySelectorAll('.mobile-club-dock [data-dock-key]').forEach(el=>el.classList.toggle('is-active',el.dataset.dockKey===key));
+}
+window.addEventListener('hashchange',syncMobileDockFromHash);
+syncMobileDockFromHash();
+
 async function loadNotifications() {
   if (!supabaseClient || !currentUser) return;
   try {

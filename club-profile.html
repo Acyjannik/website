@@ -4,13 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Mein ACY Club · Acyjannik</title>
-  <link rel="stylesheet" href="styles.css?v=15.2.0">
+  <link rel="stylesheet" href="styles.css?v=15.3.0">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="/pet-companion.js?v=8.0.0" defer></script>
-  <script src="club-profile.js?v=15.2.0" defer></script>
+  <script src="club-profile.js?v=15.3.0" defer></script>
   <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
   <link rel="shortcut icon" href="/assets/favicon.svg">
   <link rel="apple-touch-icon" href="/assets/favicon.svg">
-<link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#0b0b10"><link rel="apple-touch-icon" href="/icons/acy-192.png"><script src="/pwa.js?v=15.2.0"></script></head>
+<link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#0b0b10"><link rel="apple-touch-icon" href="/icons/acy-192.png"><script src="/pwa.js?v=15.3.0"></script></head>
 <body class="club-auth-page">
   <div class="club-auth-shell">
     <header class="club-auth-header">
@@ -257,7 +257,7 @@
       <nav class="member-section-nav" aria-label="Club Bereiche">
         <span class="member-section-nav-label">BEREICHE</span>
         <a href="#profile-section">Profil</a><a href="#member-hub">Übersicht</a><a href="#club-settings-section">Einstellungen</a><a href="/mod.html" id="moderator-access-btn" class="moderator-nav-link" hidden>🛡️ Mod</a>
-        <a href="#profile-section">Profil</a><a href="#twitch-section">Twitch</a>
+        <a href="#twitch-section">Twitch</a>
         <a href="#progression-catalog">Fortschritt</a>
         <a href="#member-events-section">Events</a>
         <a href="#member-news-section">News</a>
@@ -275,7 +275,7 @@
             <div>
               <div class="eyebrow">DEIN ACY BEGLEITER</div>
               <h2>Dein Tier</h2>
-              <p>Wähle einen kleinen Begleiter, gib ihm einen Namen und kümmere dich um ihn. Ganz Tamagotchi, nur ohne Plastik-Ei von 1999.</p>
+              <p>Wähle deinen Begleiter, gib ihm einen Namen und lass ihn mit dir im ACY Club wachsen.</p>
             </div>
             <span class="member-count-chip" id="pet-level-chip">Noch kein Tier</span>
           </div>
@@ -302,8 +302,8 @@
               </div>
               <div class="pet-manage-actions">
                 <button class="button button-secondary pet-rename-toggle" type="button" id="pet-rename-toggle">Umbenennen</button>
-                <button class="button button-secondary pet-switch-toggle" type="button" id="pet-switch-toggle">Tier wechseln</button>
-                <button class="button button-danger pet-release-toggle" type="button" id="pet-release-toggle">Tier abgeben</button>
+                <button class="button button-secondary pet-switch-toggle" type="button" id="pet-switch-toggle">Wechseln</button>
+                <button class="button button-danger pet-release-toggle" type="button" id="pet-release-toggle">Abgeben</button>
               </div>
             </div>
 
@@ -667,11 +667,11 @@
     </main>
   </div>
 <nav class="mobile-club-dock" aria-label="Schnellnavigation">
-  <a href="#member-hub" data-dock-key="overview"><span class="dock-icon">⌂</span><span>Übersicht</span></a>
   <a href="#pet-section" data-dock-key="pet"><span class="dock-icon">🐾</span><span>Pet</span></a>
   <a href="#club-quests-section" data-dock-key="quests"><span class="dock-icon">🎯</span><span>Quests</span><span class="dock-badge" id="mobile-quest-badge" hidden>0</span></a>
   <a href="#club-chat" data-dock-key="chat"><span class="dock-icon">💬</span><span>Chat</span><span class="dock-badge" id="mobile-chat-badge" hidden>0</span></a>
   <button id="mobile-dock-notifications" data-dock-key="notifications" type="button" aria-label="Benachrichtigungen"><span class="dock-icon">🔔</span><span>Hinweise</span><span class="dock-badge" id="mobile-notification-badge" hidden>0</span></button>
+  <a href="#club-wheel-section" data-dock-key="wheel"><span class="dock-icon">🎡</span><span>Glücksrad</span></a>
 </nav>
 
 
@@ -683,9 +683,9 @@
             border-radius:999px;background:rgba(12,9,18,.92);
             color:#c084fc;font:700 10px/1 system-ui,sans-serif;
             letter-spacing:.08em;pointer-events:none;opacity:.75">
-  ACY BUILD V15.2
+  ACY BUILD V15.3
 </div>
 
-  <script src="liquid-ui.js?v=15.2.0" defer></script>
+  <script src="liquid-ui.js?v=15.3.0" defer></script>
 </body>
 </html>
