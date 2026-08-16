@@ -1987,3 +1987,10 @@ img,video,iframe,svg{
   .sound-toggle span{display:none}
   .club-effect-toast{bottom:18px}
 }
+
+/* V8.4 — Discord feed status accent */
+.discord-feed-note{
+  margin-top:8px;
+  font-size:9px;
+  color:#71717a;
+}

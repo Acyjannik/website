@@ -1184,3 +1184,12 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Added subtle success feedback for profile, avatar, friend and other successful actions.
 - Respects `prefers-reduced-motion` for confetti.
 - No SQL changes.
+
+
+## V8.4.0 — Discord Community Feed
+- Added a quiet Discord Community Feed for selected high-signal events.
+- Posts are embeds, not plain spammy messages, and only fire for friendships, streak milestones/achievements, rare rewards and special wheel wins.
+- Twitch live/offline continues through the existing Event Hub/EventSub path.
+- Added a per-user rate limit and dedupe protection.
+- Uses the existing `DISCORD_EVENT_WEBHOOK_URL` environment variable.
+- Run `supabase/club_discord_feed.sql` once in Supabase.

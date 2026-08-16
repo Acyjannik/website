@@ -1377,6 +1377,9 @@ async function spinWheel(){
     await new Promise(resolve=>setTimeout(resolve,3400));
     message.textContent=`🎉 ${data.reward_label}${data.reward_class==='spin'?' · Du kannst sofort noch einmal drehen.':data.total_xp!=null?` · Jetzt ${Number(data.total_xp).toLocaleString('de-DE')} XP.`:''}`;
     triggerClubEffect(data.reward_class==='xp' ? 'reward' : 'level', `🎉 ${data.reward_label}`);
+    if (['extra_spin','twitch_reward'].includes(data.reward_key) || Number(data.reward_value||0) >= 250) {
+      void sendDiscordCommunityEvent('wheel_rare_reward', {reward:`${data.reward_label}`}, `wheel-${currentUser.id}-${Date.now()}`);
+    }
     message.className='club-auth-status success';
     if(Number.isFinite(data.total_xp)){renderProgress(data.total_xp);setText('member-xp',`${data.total_xp} XP`);}
     if(data.reward_class==='pet')await loadPet();
@@ -1433,6 +1436,9 @@ async function loadMyRewards(){
           if(Number.isFinite(result?.total_xp)){renderProgress(result.total_xp);setText('member-xp',`${result.total_xp} XP`);}
           setText('rewards-message',`🎁 ${result?.name||'Reward'} eingelöst.`,);
           triggerClubEffect('reward', `🎁 ${result?.name||'Reward'} eingelöst.`);
+          if (['twitch','wheel_spin'].includes(result?.reward_type)) {
+            void sendDiscordCommunityEvent('reward_rare', {reward: `${result?.icon||'🎁'} ${result?.name||'Reward'}`}, `reward-${btn.dataset.useReward}-${result?.reward_type}`);
+          }
           const status=$('rewards-message'); if(status)status.className='club-auth-status success';
           await loadMyRewards();
           if(result?.reward_type==='wheel_spin'){
@@ -1504,6 +1510,10 @@ async function claimDailyStreak(){
       const achievementText = data.new_achievement ? ` · 🏆 ${data.new_achievement}` : '';
       setText('daily-streak-message',`🔥 +${data.reward_xp} XP · Serie: ${data.current_streak} Tage!${achievementText}`);
       triggerClubEffect(data.new_achievement ? 'level' : 'reward', data.new_achievement ? `🏆 ${data.new_achievement} freigeschaltet!` : `🔥 Tagesbonus +${data.reward_xp} XP`);
+      if (data.new_achievement) {
+        void sendDiscordCommunityEvent('daily_streak_milestone', {days:data.current_streak}, `streak-${currentUser.id}-${data.current_streak}`);
+        void sendDiscordCommunityEvent('achievement_unlocked', {achievement:data.new_achievement}, `achievement-${currentUser.id}-${data.new_achievement}`);
+      }
       const status=$('daily-streak-message');if(status)status.className='club-auth-status success';
       if(Number.isFinite(data.total_xp)){renderProgress(data.total_xp);setText('member-xp',`${data.total_xp} XP`);}
     }else{
@@ -2409,7 +2419,9 @@ function renderSocialConnections(data={}) {
   }
 
   document.querySelectorAll('[data-social-accept]').forEach(btn=>btn.onclick=async()=>{
-    try{await rpcSocial('respond_friend_request',{p_request_id:btn.dataset.socialAccept,p_accept:true});triggerClubEffect('success','Freundschaft angenommen. 👥');await loadSocialConnections();}catch(e){setStatus(e.message,'error');}
+    try{await rpcSocial('respond_friend_request',{p_request_id:btn.dataset.socialAccept,p_accept:true});triggerClubEffect('success','Freundschaft angenommen. 👥');
+      void sendDiscordCommunityEvent('friend_accepted', {}, `friend-${btn.dataset.socialAccept}`);
+      await loadSocialConnections();}catch(e){setStatus(e.message,'error');}
   });
   document.querySelectorAll('[data-social-decline]').forEach(btn=>btn.onclick=async()=>{
     try{await rpcSocial('respond_friend_request',{p_request_id:btn.dataset.socialDecline,p_accept:false});await loadSocialConnections();}catch(e){setStatus(e.message,'error');}
@@ -2476,6 +2488,26 @@ function initMemberDirectoryFilters(){
   });
 }
 
+
+
+async function sendDiscordCommunityEvent(eventType, payload = {}, dedupeKey = '') {
+  if (!supabaseClient || !currentUser) return;
+  try {
+    const { data } = await supabaseClient.auth.getSession();
+    const token = data?.session?.access_token;
+    if (!token) return;
+    await fetch('/api/discord-feed', {
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'Authorization':`Bearer ${token}`
+      },
+      body:JSON.stringify({eventType,payload,dedupeKey})
+    });
+  } catch (error) {
+    console.warn('Discord community event skipped:', error);
+  }
+}
 
 // V8.3 — Live member refresh + interface effects/sounds
 let memberDirectoryTimer = null;
