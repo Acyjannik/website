@@ -3046,25 +3046,58 @@ function initNotificationFilters(){
   });
 }
 
+// V15.4 — mobile dock opens the destination panel as well as navigating to it.
+const MOBILE_DOCK_TARGETS = {
+  pet: '#pet-section',
+  quests: '#club-quests-section',
+  messages: '#club-messages',
+  wheel: '#club-wheel-section'
+};
+
+function openMobileDockTarget(key){
+  const selector=MOBILE_DOCK_TARGETS[key];
+  if(!selector)return null;
+  const target=document.querySelector(selector);
+  if(!target)return null;
+
+  // Accordion destinations should actually open. This is especially important
+  // for Private Messages, where landing on the collapsed summary is useless.
+  if(target.tagName==='DETAILS') target.open=true;
+
+  requestAnimationFrame(()=>{
+    target.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});
+  });
+  return target;
+}
+
 document.querySelectorAll('.mobile-club-dock [data-dock-key]').forEach(item=>{
-  item.addEventListener('click',()=>{
+  item.addEventListener('click',(event)=>{
+    const key=item.dataset.dockKey;
     document.querySelectorAll('.mobile-club-dock [data-dock-key]').forEach(el=>el.classList.remove('is-active'));
     item.classList.add('is-active');
+
+    if(key==='notifications') return;
+    const target=openMobileDockTarget(key);
+    if(target){
+      event.preventDefault();
+      history.replaceState(null,'',MOBILE_DOCK_TARGETS[key]);
+    }
   });
 });
 
-// V15.3 — keep the quick-action dock aligned with the current hash on load/navigation.
 function syncMobileDockFromHash(){
   const hash=window.location.hash;
   const map={
     '#pet-section':'pet',
     '#club-quests-section':'quests',
-    '#club-chat':'chat',
+    '#club-messages':'messages',
     '#club-wheel-section':'wheel'
   };
   const key=map[hash];
   if(!key)return;
   document.querySelectorAll('.mobile-club-dock [data-dock-key]').forEach(el=>el.classList.toggle('is-active',el.dataset.dockKey===key));
+  const target=document.querySelector(hash);
+  if(target?.tagName==='DETAILS') target.open=true;
 }
 window.addEventListener('hashchange',syncMobileDockFromHash);
 syncMobileDockFromHash();

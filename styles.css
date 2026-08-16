@@ -4416,3 +4416,55 @@ body.acy-cosmic-active .club-auth-shell{filter:saturate(1.12)}
   .club-auth-page .mobile-club-dock span:last-child{font-size:8.5px!important}
   .club-auth-page .pet-manage-actions .button{font-size:10px!important;padding-inline:6px!important}
 }
+
+
+/* ============================================================
+   ACY V15.4 — Mobile pet controls + dock destination behavior
+   ============================================================ */
+@media (max-width:760px){
+  /* Pet management gets two genuinely separate buttons. No flex overlap,
+     no inherited desktop widths, no mystery third column. */
+  .club-auth-page .pet-manage-actions{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+    gap:8px!important;
+    width:100%!important;
+    margin:0!important;
+  }
+  .club-auth-page .pet-manage-actions .button{
+    position:relative!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    width:100%!important;
+    min-width:0!important;
+    max-width:none!important;
+    min-height:46px!important;
+    margin:0!important;
+    padding:8px 10px!important;
+    box-sizing:border-box!important;
+    border-radius:15px!important;
+    font-size:11px!important;
+    font-weight:800!important;
+    line-height:1.1!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+  }
+  .club-auth-page .pet-manage-actions .pet-release-toggle{
+    grid-column:1 / -1!important;
+    min-height:44px!important;
+  }
+
+  /* Keep the dock labels explicit enough to distinguish private messages
+     from the public ACY Club Chat. */
+  .club-auth-page .mobile-club-dock [data-dock-key="messages"] span:last-child{
+    font-size:8.5px!important;
+    letter-spacing:-.01em;
+  }
+}
+
+@media (max-width:390px){
+  .club-auth-page .pet-manage-actions{gap:6px!important}
+  .club-auth-page .pet-manage-actions .button{font-size:10px!important;padding-inline:7px!important}
+}
