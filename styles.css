@@ -2718,3 +2718,454 @@ textarea:focus{
     animation:none !important;
   }
 }
+
+
+/* ============================================================
+   ACY V13 — Visual Readability & Layout Redesign
+   Goal: larger, calmer, more legible UI with better use of desktop space.
+   ============================================================ */
+
+:root{
+  --acy-content-max:1280px;
+  --acy-content-wide:1360px;
+  --acy-text:16px;
+  --acy-small:13px;
+  --acy-radius:24px;
+}
+
+/* Main account/community canvas */
+.club-auth-page{
+  font-size:var(--acy-text);
+  line-height:1.55;
+}
+.club-auth-page .club-auth-shell{
+  max-width:var(--acy-content-wide);
+  padding:32px 34px 90px;
+}
+.club-auth-page .club-auth-header{
+  min-height:64px;
+  margin-bottom:42px;
+}
+.club-auth-page .brand{
+  font-size:18px;
+}
+.club-auth-page .brand-mark{
+  width:38px;
+  height:38px;
+  border-radius:12px;
+}
+.club-auth-page .member-header-actions{
+  gap:10px;
+}
+.club-auth-page .member-header-actions .button,
+.club-auth-page .member-header-actions .sound-toggle,
+.club-auth-page .member-header-actions .notification-bell{
+  min-height:44px;
+}
+.club-auth-page .member-header-actions .button{
+  padding:11px 17px;
+  font-size:14px;
+}
+
+/* Give the actual content more breathing room */
+.club-auth-page .member-dashboard{
+  max-width:var(--acy-content-max);
+  margin:28px auto 0;
+}
+.club-auth-page .member-grid{
+  gap:22px;
+  margin-top:22px;
+}
+.club-auth-page .member-card{
+  padding:30px;
+  border-radius:var(--acy-radius);
+}
+.club-auth-page .member-card h2{
+  font-size:30px;
+  line-height:1.15;
+  margin:6px 0 14px;
+}
+.club-auth-page .member-card p{
+  font-size:16px;
+  line-height:1.65;
+}
+
+/* Hero/profile area */
+.club-auth-page .member-hero-card{
+  min-height:190px;
+  padding:34px;
+  gap:32px;
+  border-radius:28px;
+}
+.club-auth-page .member-identity{
+  gap:22px;
+}
+.club-auth-page .member-avatar-img,
+.club-auth-page .member-avatar{
+  width:112px;
+  height:112px;
+}
+.club-auth-page .member-identity h1{
+  font-size:clamp(38px,4vw,56px);
+  line-height:1.02;
+  letter-spacing:-.035em;
+  margin:4px 0 8px;
+}
+.club-auth-page .member-identity p{
+  max-width:680px;
+  font-size:16px;
+  line-height:1.55;
+}
+.club-auth-page .member-identity small{
+  font-size:12px;
+}
+.club-auth-page .member-quick{
+  min-width:360px;
+  gap:12px;
+}
+.club-auth-page .member-quick>div{
+  padding:16px;
+  border-radius:14px;
+}
+.club-auth-page .member-quick span{
+  font-size:11px;
+}
+.club-auth-page .member-quick strong{
+  font-size:18px;
+}
+
+/* The "Dein ACY Club" hub gets the visual priority it deserves. */
+.club-auth-page .member-hub{
+  gap:22px;
+  margin:26px 0;
+}
+.club-auth-page .hub-main-card,
+.club-auth-page .hub-progression-card{
+  padding:36px 40px;
+  border-radius:28px;
+}
+.club-auth-page .hub-main-card .eyebrow,
+.club-auth-page .hub-progression-card .eyebrow{
+  font-size:12px;
+  letter-spacing:.16em;
+}
+.club-auth-page .hub-main-card h2{
+  font-size:clamp(34px,4vw,52px);
+  line-height:1.05;
+  letter-spacing:-.04em;
+  margin:8px 0 10px;
+}
+.club-auth-page .hub-main-card p{
+  font-size:17px;
+  line-height:1.6;
+}
+.club-auth-page .hub-progress-head{
+  font-size:16px;
+  margin-bottom:10px;
+}
+.club-auth-page .hub-progress-head strong{
+  font-size:17px;
+}
+.club-auth-page .hub-main-card small{
+  font-size:12px;
+}
+.club-auth-page .hub-main-card .xp-bar{
+  height:13px;
+}
+.club-auth-page .hub-progression-head{
+  align-items:center;
+}
+.club-auth-page .hub-progression-head h3{
+  font-size:28px;
+  line-height:1.15;
+}
+.club-auth-page .hub-progression-head p{
+  font-size:13px;
+  margin-top:6px;
+}
+.club-auth-page .hub-level-roadmap{
+  gap:12px;
+  margin-top:20px;
+}
+.club-auth-page .hub-roadmap-step{
+  min-height:86px;
+  padding:13px;
+  border-radius:15px;
+}
+.club-auth-page .hub-roadmap-step span{
+  width:28px;
+  height:28px;
+  font-size:11px;
+}
+.club-auth-page .hub-roadmap-step strong{
+  font-size:12px;
+  margin-top:8px;
+}
+.club-auth-page .hub-roadmap-step small{
+  font-size:10px;
+  margin-top:4px;
+}
+.club-auth-page .hub-xp-sources{
+  gap:10px;
+  margin-top:14px;
+}
+.club-auth-page .hub-xp-source{
+  min-height:64px;
+  padding:11px 12px;
+  border-radius:13px;
+}
+.club-auth-page .hub-xp-source>span{
+  font-size:18px;
+}
+.club-auth-page .hub-xp-source strong{
+  font-size:11px;
+}
+.club-auth-page .hub-xp-source small{
+  font-size:9px;
+}
+
+/* Progression / achievements: stop making the most important information tiny. */
+.club-auth-page .catalog-levels-scroll{
+  gap:12px;
+  padding:4px 2px 12px;
+}
+.club-auth-page .catalog-levels-scroll .catalog-level{
+  min-width:150px;
+  min-height:132px;
+  padding:18px 16px;
+  border-radius:18px;
+}
+.club-auth-page .catalog-levels-scroll .catalog-level>span{
+  width:34px;
+  height:34px;
+  display:grid;
+  place-items:center;
+  margin-bottom:10px;
+  font-size:14px;
+}
+.club-auth-page .catalog-levels-scroll .catalog-level strong{
+  font-size:14px;
+  line-height:1.2;
+}
+.club-auth-page .catalog-levels-scroll .catalog-level small{
+  font-size:11px;
+  margin-top:6px;
+}
+.club-auth-page .member-fold-summary{
+  min-height:74px;
+  padding:18px 20px;
+}
+.club-auth-page .member-fold-summary .eyebrow{
+  font-size:11px;
+}
+.club-auth-page .member-fold-summary strong{
+  font-size:24px;
+  line-height:1.15;
+}
+.club-auth-page .member-fold-summary small{
+  font-size:12px;
+  margin-top:4px;
+}
+.club-auth-page .member-count-chip{
+  font-size:12px;
+  padding:9px 12px;
+}
+
+/* Lists, forms and data cards */
+.club-auth-page .club-content-item{
+  padding:17px;
+  border-radius:15px;
+}
+.club-auth-page .club-content-date{
+  font-size:12px;
+}
+.club-auth-page .club-content-main strong{
+  font-size:16px;
+}
+.club-auth-page .club-content-main p{
+  font-size:14px;
+}
+.club-auth-page .club-content-main small{
+  font-size:12px;
+}
+.club-auth-page .member-form label{
+  font-size:14px;
+}
+.club-auth-page .member-form input,
+.club-auth-page .member-form textarea,
+.club-auth-page select,
+.club-auth-page input[type="text"],
+.club-auth-page input[type="email"],
+.club-auth-page input[type="password"],
+.club-auth-page input[type="search"],
+.club-auth-page textarea{
+  min-height:48px;
+  padding:12px 14px;
+  border-radius:12px;
+  font-size:15px;
+}
+.club-auth-page .button{
+  min-height:46px;
+  padding:11px 18px;
+  font-size:14px;
+  border-radius:13px;
+}
+
+/* Twitch and Pet modules */
+.club-auth-page .twitch-account-connect-v11,
+.club-auth-page .public-twitch-v11{
+  padding:17px;
+  border-radius:16px;
+}
+.club-auth-page .twitch-connect-copy strong{
+  font-size:14px;
+}
+.club-auth-page .twitch-connect-copy small{
+  font-size:11px;
+}
+.club-auth-page .twitch-club-stats-v11>div{
+  padding:12px;
+  border-radius:12px;
+}
+.club-auth-page .twitch-club-stats-v11 span{
+  font-size:9px;
+}
+.club-auth-page .twitch-club-stats-v11 strong{
+  font-size:15px;
+}
+.club-auth-page .pet-action-btn.button-secondary{
+  min-height:58px;
+  font-size:16px;
+}
+.club-auth-page .notification-row strong{
+  font-size:14px;
+}
+.club-auth-page .notification-row small{
+  font-size:12px;
+}
+
+/* Give section headings a real hierarchy */
+.club-auth-page .section-mini-title{
+  font-size:12px;
+}
+.club-auth-page .member-badge{
+  padding:16px;
+  border-radius:14px;
+}
+.club-auth-page .member-badge span{
+  font-size:24px;
+}
+.club-auth-page .member-badge strong{
+  font-size:14px;
+}
+.club-auth-page .member-badge small{
+  font-size:11px;
+}
+
+/* Wider desktop gets larger typography, not just empty black space. */
+@media(min-width:1300px){
+  .club-auth-page .club-auth-shell{
+    max-width:1440px;
+    padding-left:42px;
+    padding-right:42px;
+  }
+  .club-auth-page .member-dashboard{
+    max-width:1360px;
+  }
+  .club-auth-page .member-card{
+    padding:34px;
+  }
+  .club-auth-page .hub-main-card,
+  .club-auth-page .hub-progression-card{
+    padding:40px 46px;
+  }
+}
+
+/* Tablet */
+@media(max-width:900px){
+  .club-auth-page .club-auth-shell{
+    padding:24px 22px 70px;
+  }
+  .club-auth-page .member-card{
+    padding:24px;
+  }
+  .club-auth-page .hub-main-card,
+  .club-auth-page .hub-progression-card{
+    padding:28px 26px;
+  }
+  .club-auth-page .member-quick{
+    min-width:0;
+  }
+}
+
+/* Phone: readable, but not comically huge. */
+@media(max-width:600px){
+  .club-auth-page{
+    font-size:15px;
+  }
+  .club-auth-page .club-auth-shell{
+    padding:18px 14px 56px;
+  }
+  .club-auth-page .club-auth-header{
+    margin-bottom:26px;
+  }
+  .club-auth-page .member-header-actions .button{
+    padding:9px 11px;
+    font-size:12px;
+  }
+  .club-auth-page .member-hero-card{
+    padding:24px;
+    border-radius:22px;
+  }
+  .club-auth-page .member-avatar-img,
+  .club-auth-page .member-avatar{
+    width:92px;
+    height:92px;
+  }
+  .club-auth-page .member-identity h1{
+    font-size:34px;
+  }
+  .club-auth-page .member-identity p{
+    font-size:15px;
+  }
+  .club-auth-page .member-quick strong{
+    font-size:15px;
+  }
+  .club-auth-page .member-hub{
+    gap:14px;
+  }
+  .club-auth-page .hub-main-card,
+  .club-auth-page .hub-progression-card{
+    padding:24px 20px;
+    border-radius:22px;
+  }
+  .club-auth-page .hub-main-card h2{
+    font-size:34px;
+  }
+  .club-auth-page .hub-main-card p{
+    font-size:15px;
+  }
+  .club-auth-page .hub-progression-head h3{
+    font-size:23px;
+  }
+  .club-auth-page .hub-level-roadmap{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  .club-auth-page .hub-xp-sources{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  .club-auth-page .member-fold-summary strong{
+    font-size:20px;
+  }
+  .club-auth-page .catalog-levels-scroll .catalog-level{
+    min-width:136px;
+    min-height:118px;
+  }
+}
+
+/* Accessibility: respect reduced-motion preference. */
+@media(prefers-reduced-motion:reduce){
+  .club-auth-page *{
+    scroll-behavior:auto!important;
+  }
+}
