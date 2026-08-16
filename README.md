@@ -1193,3 +1193,11 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Added a per-user rate limit and dedupe protection.
 - Uses the existing `DISCORD_EVENT_WEBHOOK_URL` environment variable.
 - Run `supabase/club_discord_feed.sql` once in Supabase.
+
+
+## V8.4.1 — Extra-Dreh Counter Fix
+- Fixed the Rewards overview showing `Extra-Drehs: 0` even after an Extra-Dreh had been redeemed.
+- Extra-Dreh count is now read from `profiles.wheel_spin_tokens`, which is the actual usable token balance.
+- Redeeming an Extra-Dreh refreshes the counter immediately.
+- Opening the page also initializes the wheel state from the real token balance.
+- No SQL changes.

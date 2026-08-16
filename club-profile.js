@@ -1325,6 +1325,19 @@ async function loadWheelHistory(){
   if(error){console.warn('Wheel history unavailable:',error);return;}
   list.innerHTML=data?.length?data.map(row=>`<div class="wheel-history-row"><strong>${escapeHtml(row.reward_label||'Reward')}</strong><small>${formatWheelDate(row.created_at)}</small></div>`).join(''):'<div class="club-content-empty">Noch keine Drehungen.</div>';
 }
+
+async function getWheelTokenBalance(){
+  if(!supabaseClient||!currentUser)return 0;
+  try{
+    const {data,error}=await supabaseClient.from('profiles').select('wheel_spin_tokens').eq('id',currentUser.id).maybeSingle();
+    if(error)throw error;
+    return Math.max(0,Number(data?.wheel_spin_tokens||0));
+  }catch(error){
+    console.warn('Wheel token balance unavailable:',error);
+    return 0;
+  }
+}
+
 function setWheelCooldown(nextFreeAt, spinTokens = 0){
   const button=$('club-wheel-spin');
   const chip=$('wheel-status-chip');
@@ -1383,13 +1396,22 @@ async function spinWheel(){
     message.className='club-auth-status success';
     if(Number.isFinite(data.total_xp)){renderProgress(data.total_xp);setText('member-xp',`${data.total_xp} XP`);}
     if(data.reward_class==='pet')await loadPet();
-    await loadWheelHistory();setWheelCooldown(data.next_free_at, data.spin_tokens);
+    await loadWheelHistory();
+    await loadMyRewards();
+    setWheelCooldown(data.next_free_at, data.spin_tokens);
   }catch(error){
     console.error('Wheel spin error:',error);message.textContent=error?.message||'Das Glücksrad konnte nicht gedreht werden.';
     message.className='club-auth-status error';button.disabled=false;
   }
 }
 document.getElementById('club-wheel-spin')?.addEventListener('click',spinWheel);
+(async()=>{
+  const tokens=await getWheelTokenBalance();
+  if(tokens>0){
+    setText('reward-spin-token-count',String(tokens));
+    setWheelCooldown(null,tokens);
+  }
+})();
 
 
 // V7.8 Rewards
@@ -1399,13 +1421,23 @@ async function loadMyRewards(){
   const list=$('my-rewards-list'), catalog=$('reward-catalog-list');
   if(!list||!catalog||!supabaseClient)return;
   try{
-    const {data,error}=await supabaseClient.rpc('get_my_rewards');
+    // Rewards inventory tells us which items are still available to redeem.
+    // Extra-Dreh is different: once redeemed, the inventory item becomes
+    // "used" and the actual spin token lives on profiles.wheel_spin_tokens.
+    const [{data,error},{data:profile,error:profileError}] = await Promise.all([
+      supabaseClient.rpc('get_my_rewards'),
+      supabaseClient.from('profiles').select('wheel_spin_tokens').eq('id',currentUser.id).maybeSingle()
+    ]);
     if(error)throw error;
+    if(profileError)throw profileError;
+
     myRewardsState=data||{catalog:[],inventory:[]};
     const inv=Array.isArray(myRewardsState.inventory)?myRewardsState.inventory:[];
     const available=inv.filter(x=>x.status==='available');
     const used=inv.filter(x=>x.status==='used');
-    const spinTokens=available.filter(x=>x.reward_type==='wheel_spin').reduce((sum,x)=>sum+Number(x.reward_value||1),0);
+
+    const spinTokens=Math.max(0,Number(profile?.wheel_spin_tokens||0));
+
     setText('my-rewards-count',`${available.length} verfügbar`);
     setText('reward-available-count',String(available.length));
     setText('reward-used-count',String(used.length));
@@ -1434,20 +1466,31 @@ async function loadMyRewards(){
           const {data:result,error}=await supabaseClient.rpc('use_reward',{p_inventory_id:btn.dataset.useReward});
           if(error)throw error;
           if(Number.isFinite(result?.total_xp)){renderProgress(result.total_xp);setText('member-xp',`${result.total_xp} XP`);}
-          setText('rewards-message',`🎁 ${result?.name||'Reward'} eingelöst.`,);
+          setText('rewards-message',`🎁 ${result?.name||'Reward'} eingelöst.`);
           triggerClubEffect('reward', `🎁 ${result?.name||'Reward'} eingelöst.`);
           if (['twitch','wheel_spin'].includes(result?.reward_type)) {
-            void sendDiscordCommunityEvent('reward_rare', {reward: `${result?.icon||'🎁'} ${result?.name||'Reward'}`}, `reward-${btn.dataset.useReward}-${result?.reward_type}`);
+            void sendDiscordCommunityEvent('reward_rare', {reward: `${result?.icon||'🎁'} ${result?.name||'Reward'}`}, `reward-${btn.dataset.useReward}-${result?.reward_type}-${Date.now()}`);
           }
           const status=$('rewards-message'); if(status)status.className='club-auth-status success';
+
+          // Immediately refresh both Rewards and wheel-token display.
           await loadMyRewards();
+
           if(result?.reward_type==='wheel_spin'){
-            setText('wheel-status-chip','Extra-Dreh verfügbar');
+            const currentTokens=Number(result?.spin_tokens||0);
+            setText('wheel-status-chip',`${currentTokens>1?currentTokens+' Extra-Drehs':'Extra-Dreh'} verfügbar`);
             setText('wheel-message','Du hast einen Extra-Dreh erhalten.');
           }
         }catch(error){
           btn.disabled=false;btn.textContent='Einlösen';
-          const status=$('rewards-message');if(status){status.textContent=error?.message||'Reward konnte nicht eingelöst werden.';status.className='club-auth-status error';}
+          const status=$('rewards-message');
+          if(status){
+            const raw=String(error?.message||'');
+            status.textContent=/wheel_spin_tokens/i.test(raw)
+              ? 'Reward-System: Die Extra-Dreh-Spalte fehlt noch in Supabase. Bitte supabase/club_rewards.sql einmal ausführen.'
+              : (raw||'Reward konnte nicht eingelöst werden.');
+            status.className='club-auth-status error';
+          }
         }
       });
     });
