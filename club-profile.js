@@ -1232,7 +1232,7 @@ function renderProgressionCatalog(state) {
   const achievementList = $('achievement-catalog-list');
   if (!xpList || !achievementList) return;
   renderProgress(Number(state.xp || 0));
-  setText('catalog-render-status', 'V14.4 · Progression geladen');
+  setText('catalog-render-status', 'V14.5 · Progression geladen');
 
   const awarded = new Set(state.achievements || []);
   const xpEvents = new Set(state.xpEvents || []);
@@ -4337,7 +4337,7 @@ function escapeAttr(value = '') {
 }
 
 
-/* V14.4 — Liquid Glass interaction layer, richer UI sounds & secret ACY protocol. */
+/* V14.5 — Liquid Glass interaction layer, richer UI sounds & secret ACY protocol. */
 function acyReducedMotion() {
   return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 }
@@ -4393,6 +4393,7 @@ function acyUnlockCosmicProtocol() {
 }
 
 function initAcyEnhancedEffects() {
+  // Keep the interaction layer delegated so dynamically rendered Club controls also react.
   document.addEventListener('click', event => {
     const button = event.target.closest?.('button, a.button');
     if (!button) return;
@@ -4408,28 +4409,83 @@ function initAcyEnhancedEffects() {
     playUISound('hover');
   }, { passive: true });
 
+  // SECRET: type A-C-Y anywhere on the Club page. We deliberately use a
+  // short rolling buffer so it also works when the user types in quick bursts.
   let secretBuffer = '';
   let secretTimer = null;
-  document.addEventListener('keydown', event => {
-    if (event.ctrlKey || event.metaKey || event.altKey) return;
-    const key = String(event.key || '').toLowerCase();
-    if (!/^[acy]$/.test(key)) return;
+  const pushSecretKey = rawKey => {
+    const key = String(rawKey || '').toLowerCase();
+    if (!['a','c','y'].includes(key)) return;
     secretBuffer = (secretBuffer + key).slice(-3);
     clearTimeout(secretTimer);
-    secretTimer = setTimeout(() => { secretBuffer = ''; }, 2500);
+    secretTimer = setTimeout(() => { secretBuffer = ''; }, 1800);
     if (secretBuffer === 'acy') {
       secretBuffer = '';
+      clearTimeout(secretTimer);
       acyUnlockCosmicProtocol();
     }
-  });
+  };
 
+  document.addEventListener('keydown', event => {
+    // Do not interfere with browser shortcuts or password fields, but normal
+    // text inputs are allowed because the sequence is harmless and hidden.
+    if (event.ctrlKey || event.metaKey || event.altKey) return;
+    if (event.key === 'Escape') {
+      const overlay = document.querySelector('.acy-cosmic-easter-egg');
+      if (overlay) {
+        overlay.classList.remove('is-visible');
+        document.body.classList.remove('acy-cosmic-active');
+        setTimeout(() => overlay.remove(), 450);
+      }
+      return;
+    }
+    pushSecretKey(event.key);
+  }, { passive: true });
+
+  // Secondary discovery: double-click OR three quick taps/clicks on the ACY mark.
   document.querySelectorAll('.brand-mark').forEach(mark => {
     mark.setAttribute('title', 'ACY');
-    mark.addEventListener('dblclick', event => {
+    mark.setAttribute('role', 'button');
+    mark.setAttribute('tabindex', '0');
+    mark.setAttribute('aria-label', 'ACY');
+
+    let tapCount = 0;
+    let tapTimer = null;
+    const activateFromMark = event => {
       event.preventDefault();
       acyUnlockCosmicProtocol();
+    };
+
+    // Because the mark sits inside an <a>, a normal click would navigate away
+    // before a browser 'dblclick' event can arrive. Hold navigation briefly so
+    // the hidden gesture is actually discoverable.
+    mark.addEventListener('dblclick', activateFromMark);
+    mark.addEventListener('click', event => {
+      event.preventDefault();
+      tapCount += 1;
+      clearTimeout(tapTimer);
+      if (tapCount >= 2) {
+        tapCount = 0;
+        activateFromMark(event);
+        return;
+      }
+      tapTimer = setTimeout(() => {
+        tapCount = 0;
+        window.location.href = mark.closest('a')?.href || '/';
+      }, 520);
+    });
+    mark.addEventListener('keydown', event => {
+      if (event.key === 'Enter' || event.key === ' ') activateFromMark(event);
     });
   });
+
+  // Useful for internal QA without exposing a visible button.
+  window.__openAcyCosmicProtocol = acyUnlockCosmicProtocol;
+
+  // A deliberate hidden URL trigger is useful for QA and future deep-linking.
+  if (window.location.hash.toLowerCase() === '#cosmic') {
+    setTimeout(() => acyUnlockCosmicProtocol(), 350);
+  }
 }
 
 initAcyEnhancedEffects();
