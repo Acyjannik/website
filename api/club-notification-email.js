@@ -1,6 +1,6 @@
 const tls = require('node:tls');
 
-const NOTIFICATION_EMAIL_API_VERSION = '7.1.9';
+const NOTIFICATION_EMAIL_API_VERSION = '7.1.10';
 const env = (name, fallback='') => String(process.env[name] || fallback);
 
 function json(res, status, payload) {
@@ -107,75 +107,111 @@ function upgradeToTls(socket, host) {
   });
 }
 
+function cleanEmail(value='') {
+  return String(value || '').trim();
+}
+
+function assertAllowedSender() {
+  const smtpUser = cleanEmail(env('SMTP_USER'));
+  const emailFrom = cleanEmail(env('EMAIL_FROM')) || smtpUser;
+
+  if (!smtpUser || !smtpUser.includes('@')) {
+    throw new Error('SMTP_USER ist keine gültige E-Mail-Adresse.');
+  }
+  if (!emailFrom || !emailFrom.includes('@')) {
+    throw new Error('EMAIL_FROM ist keine gültige E-Mail-Adresse.');
+  }
+
+  // IONOS only permits a sender from the same domain as the authenticated mailbox.
+  const smtpDomain = smtpUser.slice(smtpUser.lastIndexOf('@') + 1).toLowerCase();
+  const fromDomain = emailFrom.slice(emailFrom.lastIndexOf('@') + 1).toLowerCase();
+  if (smtpDomain !== fromDomain) {
+    throw new Error(`IONOS-Senderdomain stimmt nicht überein: SMTP_USER=${smtpDomain}, EMAIL_FROM=${fromDomain}.`);
+  }
+
+  return { smtpUser, emailFrom };
+}
+
 async function smtpSend({to, subject, text, html}) {
-  const host = env('SMTP_HOST');
+  const host = cleanEmail(env('SMTP_HOST'));
   const port = Number(env('SMTP_PORT', '587'));
+  const {smtpUser} = assertAllowedSender();
   let socket;
 
   try {
-    // IONOS documents SMTP submission on 587 with STARTTLS.
     socket = await openTcpSocket(host, port);
     await smtpResponse(socket, [220]);
 
-    socket.write(`EHLO ${env('SMTP_HELO', 'acyjannik.de')}\r\n`);
-    const ehlo = await smtpResponse(socket, [250]);
-
-    // Request STARTTLS when using port 587.
-    socket.write('STARTTLS\r\n');
-    await smtpResponse(socket, [220]);
-
-    const secureSocket = await upgradeToTls(socket, host);
-    socket = secureSocket;
-
-    socket.write(`EHLO ${env('SMTP_HELO', 'acyjannik.de')}\r\n`);
+    socket.write(`EHLO ${cleanEmail(env('SMTP_HELO', 'acyjannik.de'))}\r\n`);
     await smtpResponse(socket, [250]);
+
+    if (port === 587) {
+      socket.write('STARTTLS\r\n');
+      await smtpResponse(socket, [220]);
+      socket = await upgradeToTls(socket, host);
+      socket.write(`EHLO ${cleanEmail(env('SMTP_HELO', 'acyjannik.de'))}\r\n`);
+      await smtpResponse(socket, [250]);
+    }
 
     socket.write('AUTH LOGIN\r\n');
     await smtpResponse(socket, [334]);
-    socket.write(`${Buffer.from(env('SMTP_USER')).toString('base64')}\r\n`);
+    socket.write(`${Buffer.from(smtpUser).toString('base64')}\r\n`);
     await smtpResponse(socket, [334]);
-    socket.write(`${Buffer.from(env('SMTP_PASS')).toString('base64')}\r\n`);
+    socket.write(`${Buffer.from(cleanEmail(env('SMTP_PASS'))).toString('base64')}\r\n`);
     await smtpResponse(socket, [235]);
 
-    const envelopeFrom = env('SMTP_USER');
-    socket.write(`MAIL FROM:<${envelopeFrom}>\r\n`);
+    // Crucial: envelope sender and From header are exactly the authenticated mailbox.
+    socket.write(`MAIL FROM:<${smtpUser}>\r\n`);
     await smtpResponse(socket, [250]);
 
-    socket.write(`RCPT TO:<${to}>\r\n`);
+    socket.write(`RCPT TO:<${cleanEmail(to)}>\r\n`);
     await smtpResponse(socket, [250, 251]);
 
     socket.write('DATA\r\n');
     await smtpResponse(socket, [354]);
 
     const boundary = `=_ACY_${Date.now()}_${Math.random().toString(16).slice(2)}`;
-    const encodedSubject = `=?UTF-8?B?${Buffer.from(subject, 'utf8').toString('base64')}?=`;
-    const fromName = env('EMAIL_FROM_NAME', 'ACYJANNIK · ACY Club');
+    const encodedSubject = `=?UTF-8?B?${Buffer.from(String(subject || ''), 'utf8').toString('base64')}?=`;
+    const fromName = String(env('EMAIL_FROM_NAME', 'ACYJANNIK · ACY Club')).replace(/[\r\n]/g, ' ');
+    const date = new Date().toUTCString();
+    const messageId = `<${Date.now()}.${Math.random().toString(16).slice(2)}@${smtpUser.slice(smtpUser.lastIndexOf('@') + 1)}>`;
 
     const message = [
-      `From: ${fromName} <${env('SMTP_USER')}>`,
-      `To: <${to}>`,
+      `Date: ${date}`,
+      `Message-ID: ${messageId}`,
+      `From: ${fromName} <${smtpUser}>`,
+      `Reply-To: <${smtpUser}>`,
+      `To: <${cleanEmail(to)}>`,
       `Subject: ${encodedSubject}`,
       'MIME-Version: 1.0',
+      'X-Mailer: ACYJANNIK ACY Club',
       `Content-Type: multipart/alternative; boundary="${boundary}"`,
       '',
       `--${boundary}`,
       'Content-Type: text/plain; charset=UTF-8',
       'Content-Transfer-Encoding: 8bit',
       '',
-      text,
+      String(text || ''),
       '',
       `--${boundary}`,
       'Content-Type: text/html; charset=UTF-8',
       'Content-Transfer-Encoding: 8bit',
       '',
-      html,
+      String(html || ''),
       '',
       `--${boundary}--`,
       ''
     ].join('\r\n').replace(/^\./gm, '..');
 
     socket.write(message + '\r\n.\r\n');
-    await smtpResponse(socket, [250]);
+
+    try {
+      await smtpResponse(socket, [250]);
+    } catch (error) {
+      // Surface the exact post-DATA response. This is the point where IONOS
+      // rejected the previous implementation.
+      throw new Error(`SMTP DATA abgewiesen: ${error?.message || error}`);
+    }
 
     socket.write('QUIT\r\n');
     await smtpResponse(socket, [221, 250]);
@@ -183,6 +219,7 @@ async function smtpSend({to, subject, text, html}) {
     socket?.end?.();
   }
 }
+
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') return json(res, 405, {error:'POST only'});
@@ -261,6 +298,9 @@ module.exports = async (req, res) => {
           ok: false,
           error: smtpError?.message || 'SMTP-Test fehlgeschlagen.',
           smtpHost: env('SMTP_HOST'),
+          senderMode: 'SMTP_USER as envelope + From',
+          ionosSenderRule: 'SMTP_USER und From verwenden exakt dasselbe Postfach',
+
           smtpPort: Number(env('SMTP_PORT', '587')),
           smtpUserMasked,
           smtpUserDomain,

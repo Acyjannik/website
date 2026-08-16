@@ -1209,3 +1209,13 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Weekly: 3 wheel spins, 2 new friendships.
 - XP rewards can be claimed once per period.
 - Run `supabase/club_quests.sql` once in Supabase.
+
+
+## V8.5.1 — IONOS SMTP 554 Fix
+- Updated notification email API to 7.1.10.
+- Added required `Date` and `Message-ID` headers.
+- Added `Reply-To` and `X-Mailer`.
+- Normalized SMTP address values with trim.
+- Enforced the IONOS sender rule in code: SMTP_USER is used exactly for both SMTP envelope and From header, and EMAIL_FROM must be on the same domain.
+- Post-DATA SMTP rejection is now reported explicitly as `SMTP DATA abgewiesen`.
+- No database changes.
