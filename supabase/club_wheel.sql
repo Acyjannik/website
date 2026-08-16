@@ -144,3 +144,46 @@ $$;
 
 revoke all on function public.spin_club_wheel() from public;
 grant execute on function public.spin_club_wheel() to authenticated;
+
+
+-- V8.0.2 one-time sync:
+-- Any available Extra-Dreh in the reward inventory is mirrored to the wheel token balance.
+create or replace function public.sync_my_extra_spin_tokens()
+returns integer
+language plpgsql
+security definer
+set search_path=public
+as $$
+declare
+  granted integer;
+  existing_tokens integer;
+  new_tokens integer;
+begin
+  if auth.uid() is null then raise exception 'Nicht angemeldet.'; end if;
+
+  select coalesce(sum(greatest(1,r.reward_value)),0)
+  into granted
+  from public.club_reward_inventory i
+  join public.club_rewards r on r.id=i.reward_id
+  where i.user_id=auth.uid()
+    and i.status='available'
+    and r.reward_type='wheel_spin';
+
+  select coalesce(wheel_spin_tokens,0)
+  into existing_tokens
+  from public.profiles
+  where id=auth.uid();
+
+  new_tokens := greatest(existing_tokens, granted);
+
+  update public.profiles
+  set wheel_spin_tokens=new_tokens,
+      updated_at=now()
+  where id=auth.uid();
+
+  return new_tokens;
+end;
+$$;
+
+revoke all on function public.sync_my_extra_spin_tokens() from public;
+grant execute on function public.sync_my_extra_spin_tokens() to authenticated;

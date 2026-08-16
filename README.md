@@ -1104,3 +1104,10 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - This fixes `column "wheel_spin_tokens" does not exist` when redeeming an Extra-Dreh reward.
 - Reward UI now shows a clear migration message if the schema is still old.
 - Run `supabase/club_rewards.sql` again after deployment.
+
+
+## V8.0.2 — Extra-Dreh Synchronisation
+- The wheel always syncs available Extra-Dreh rewards from the Reward inventory into `profiles.wheel_spin_tokens` before spinning.
+- This fixes the case where a redeemed Extra-Dreh is visible in Rewards but the old deployed wheel RPC still returns the 24-hour cooldown.
+- `supabase/club_wheel.sql` now includes a one-time `sync_my_extra_spin_tokens()` RPC.
+- Run `supabase/club_wheel.sql` again after deployment.
