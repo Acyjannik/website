@@ -32,6 +32,13 @@ function levelForXp(xp) {
     { min: 250, title: 'ACY Regular' },
     { min: 500, title: 'ACY OG' },
     { min: 1000, title: 'ACY Legend' },
+    { min: 2000, title: 'ACY Champion' },
+    { min: 3500, title: 'ACY Elite' },
+    { min: 5500, title: 'ACY Master' },
+    { min: 8000, title: 'ACY Icon' },
+    { min: 12000, title: 'ACY Mythic' },
+    { min: 17000, title: 'ACY Immortal' },
+    { min: 25000, title: 'ACY Hall of Fame' }
   ];
   let current = levels[0];
   for (const level of levels) {
@@ -41,7 +48,7 @@ function levelForXp(xp) {
 }
 
 function renderProgress(xp) {
-  const thresholds = [0, 100, 250, 500, 1000, 2000];
+  const thresholds = [0, 100, 250, 500, 1000, 2000, 3500, 5500, 8000, 12000, 17000, 25000];
   let idx = 0;
   for (let i = 0; i < thresholds.length; i++) {
     if (xp >= thresholds[i]) idx = i;
@@ -668,6 +675,7 @@ $('dm-form')?.addEventListener('submit', async event => {
     if (error) throw error;
 
     input.value = '';
+          void incrementQuest('daily_social','daily',1);
     updateDmCounter();
   } catch (error) {
     console.warn('Direct message send failed:', error);
@@ -860,10 +868,18 @@ const ACHIEVEMENT_CATALOG = [
   { key: 'xp_100', icon: '🌟', title: '100 XP Club', detail: '100 XP erreichen.', progress: s => ({ value: s.xp, max: 100 }) },
   { key: 'xp_500', icon: '👑', title: '500 XP Club', detail: '500 XP erreichen.', progress: s => ({ value: s.xp, max: 500 }) },
   { key: 'xp_1000', icon: '💎', title: '1000 XP Club', detail: '1.000 XP erreichen.', progress: s => ({ value: s.xp, max: 1000 }) },
+  { key: 'xp_2000', icon: '🏅', title: '2000 XP Club', detail: '2.000 XP erreichen.', progress: s => ({ value: s.xp, max: 2000 }) },
+  { key: 'xp_5000', icon: '🔥', title: '5000 XP Club', detail: '5.000 XP erreichen.', progress: s => ({ value: s.xp, max: 5000 }) },
+  { key: 'xp_10000', icon: '⚡', title: '10000 XP Club', detail: '10.000 XP erreichen.', progress: s => ({ value: s.xp, max: 10000 }) },
+  { key: 'xp_25000', icon: '💠', title: '25000 XP Club', detail: '25.000 XP erreichen.', progress: s => ({ value: s.xp, max: 25000 }) },
   { key: 'acy_og', icon: '👑', title: 'ACY OG', detail: '500 XP erreichen.', progress: s => ({ value: s.xp, max: 500 }) },
   { key: 'acy_legend', icon: '🏆', title: 'ACY Legend', detail: '1.000 XP erreichen.', progress: s => ({ value: s.xp, max: 1000 }) },
   { key: 'early_member', icon: '⏳', title: 'Early Member', detail: '30 Tage Mitglied sein.', progress: s => ({ value: s.days, max: 30 }) },
   { key: 'veteran_member', icon: '🛡️', title: 'ACY Veteran', detail: '90 Tage Mitglied sein.', progress: s => ({ value: s.days, max: 90 }) },
+  { key: 'member_180_days', icon: '🗓️', title: 'Half-Year Club', detail: '180 Tage Mitglied sein.', progress: s => ({ value: s.days, max: 180 }) },
+  { key: 'member_365_days', icon: '🎂', title: '1 Jahr ACY', detail: '365 Tage Mitglied sein.', progress: s => ({ value: s.days, max: 365 }) },
+  { key: 'game_explorer', icon: '🧭', title: 'Game Explorer', detail: 'Mindestens 5 verschiedene Games über Discord entdecken.', progress: s => ({ value: s.uniqueGames, max: 5 }) },
+  { key: 'game_hunter', icon: '🎮', title: 'Game Hunter', detail: 'Mindestens 15 verschiedene Games über Discord entdecken.', progress: s => ({ value: s.uniqueGames, max: 15 }) },
   { key: 'member_of_month', icon: '👑', title: 'Member of the Month', detail: 'Von der Community als Spotlight-Mitglied ausgewählt werden.', special: true }
 ];
 
@@ -912,11 +928,12 @@ function renderProgressionCatalog(state) {
 
 async function loadProgressionCatalog() {
   try {
-    const [{ data: profile }, { data: attendance }, { data: achievements }, { data: xpEvents }] = await Promise.all([
+    const [{ data: profile }, { data: attendance }, { data: achievements }, { data: xpEvents }, { data: gameLog }] = await Promise.all([
       supabaseClient.from('profiles').select('xp,created_at,display_name,bio,discord_connected').eq('id', currentUser.id).maybeSingle(),
       supabaseClient.from('club_event_attendance').select('id'),
       supabaseClient.from('club_achievements').select('achievement_key'),
-      supabaseClient.from('club_xp_events').select('event_key,xp')
+      supabaseClient.from('club_xp_events').select('event_key,xp'),
+      supabaseClient.from('club_game_presence_log').select('game_id').eq('user_id', currentUser.id).eq('online', true)
     ]);
 
     const created = profile?.created_at || currentUser.created_at;
@@ -927,6 +944,7 @@ async function loadProgressionCatalog() {
       events: (attendance || []).length,
       discord: !!profile?.discord_connected,
       profileComplete: !!(profile?.display_name || '').trim() && !!(profile?.bio || '').trim(),
+      uniqueGames: new Set((gameLog || []).map(row => row.game_id).filter(Boolean)).size,
       achievements: (achievements || []).map(a => a.achievement_key),
       xpEvents: (xpEvents || []).filter(e => Number(e.xp || 0) > 0).map(e => e.event_key)
     };
@@ -1235,6 +1253,7 @@ async function performPetAction(action, button) {
     if (error) throw error;
     renderPet(data);
     if (data?.daily_xp_awarded) {
+      void incrementQuest('daily_pet','daily',1);
       setPetStatus('Heute gab es +5 XP für die Tierpflege. 🐾', 'success');
       void sendPersonalEmailNotification(
         'pet',
@@ -1402,7 +1421,8 @@ async function spinWheel(){
     message.className='club-auth-status success';
     if(Number.isFinite(data.total_xp)){renderProgress(data.total_xp);setText('member-xp',`${data.total_xp} XP`);}
     if(data.reward_class==='pet')await loadPet();
-    await loadWheelHistory();
+    void incrementQuest('weekly_wheel','weekly',1);
+      await loadWheelHistory();
     await loadMyRewards();
     setWheelCooldown(data.next_free_at, data.spin_tokens);
   }catch(error){
@@ -1650,6 +1670,9 @@ async function init() {
     await loadMemberStats();
     await loadProgressionCatalog();
     await loadCurrentGamePresence();
+    initQuestTabs();
+    await incrementQuest('daily_login','daily',1);
+    await loadQuests();
     // Optional dashboard extras are intentionally independent.
     await Promise.allSettled([
       checkAchievements(),
@@ -2582,6 +2605,7 @@ function renderSocialConnections(data={}) {
   document.querySelectorAll('[data-social-accept]').forEach(btn=>btn.onclick=async()=>{
     try{await rpcSocial('respond_friend_request',{p_request_id:btn.dataset.socialAccept,p_accept:true});triggerClubEffect('success','Freundschaft angenommen. 👥');
       void sendDiscordCommunityEvent('friend_accepted', {}, `friend-${btn.dataset.socialAccept}`);
+      void incrementQuest('weekly_social','weekly',1);
       await loadSocialConnections();}catch(e){setStatus(e.message,'error');}
   });
   document.querySelectorAll('[data-social-decline]').forEach(btn=>btn.onclick=async()=>{
@@ -2683,6 +2707,136 @@ async function sendPersonalEmailNotification(type,title,body,linkUrl='/club-prof
       body:JSON.stringify({personal:true,type,title,body,linkUrl})
     });
   }catch(error){console.warn('Personal email notification skipped:',error);}
+}
+
+
+// ------------------------------------------------------------
+// V9.4 — Daily / Weekly Quests
+// ------------------------------------------------------------
+let questData = { daily: [], weekly: [], periods: {} };
+let activeQuestTab = 'daily';
+
+function questPeriodKey(type){
+  return type === 'weekly' ? questData.periods?.weekly : questData.periods?.daily;
+}
+
+function renderQuestList(){
+  const list=$('quest-list');
+  const chip=$('quest-count-chip');
+  if(!list) return;
+  const items=Array.isArray(questData[activeQuestTab])?questData[activeQuestTab]:[];
+  if(!items.length){
+    list.innerHTML='<div class="club-content-empty">Keine Aufgaben verfügbar.</div>';
+    if(chip)chip.textContent='0 offen';
+    return;
+  }
+  const periodStart=questPeriodKey(activeQuestTab);
+  const rows=items.map(item=>{
+    const p=Math.min(Number(item.progress||0),Number(item.target||1));
+    const target=Math.max(1,Number(item.target||1));
+    const done=p>=target;
+    const claimed=!!item.claimed;
+    const percent=Math.round((p/target)*100);
+    const button=done&&!claimed
+      ? `<button class="button button-small button-primary quest-claim" data-quest="${escapeAttr(item.key)}" data-reward="${Number(item.reward_xp||0)}">+${Number(item.reward_xp||0)} XP abholen</button>`
+      : claimed
+        ? '<span class="quest-state quest-state-done">✓ Abgeholt</span>'
+        : `<span class="quest-state">${p}/${target}</span>`;
+    return `<article class="quest-row ${done?'is-complete':''}">
+      <div class="quest-icon">${escapeHtml(item.icon||'🎯')}</div>
+      <div class="quest-main">
+        <div class="quest-head"><strong>${escapeHtml(item.title||'Aufgabe')}</strong>${button}</div>
+        <small>${escapeHtml(item.description||'')}</small>
+        <div class="quest-progress"><span style="width:${percent}%"></span></div>
+        <div class="quest-meta"><span>${p}/${target}</span><span>+${Number(item.reward_xp||0)} XP</span></div>
+      </div>
+    </article>`;
+  }).join('');
+  list.innerHTML=rows;
+  const open=items.filter(x=>!x.claimed).length;
+  if(chip)chip.textContent=`${open} offen`;
+
+  list.querySelectorAll('.quest-claim').forEach(btn=>btn.onclick=async()=>{
+    const key=btn.dataset.quest;
+    const reward=Number(btn.dataset.reward||0);
+    btn.disabled=true;
+    btn.textContent='Wird abgeholt…';
+    try{
+      const {data,error}=await supabaseClient.rpc('claim_quest',{
+        p_quest_key:key,
+        p_period_start:periodStart,
+        p_reward_xp:reward
+      });
+      if(error)throw error;
+      const total=Number(data?.total_xp);
+      if(Number.isFinite(total)) renderProgress(total);
+      playUISound('reward');
+      triggerClubEffect('reward',`Quest abgeschlossen! +${reward} XP 🎯`);
+      await loadQuests();
+      await checkAchievements();
+      await loadProgressionCatalog();
+    }catch(error){
+      console.warn('Quest claim failed:',error);
+      setText('quest-message',error?.message||'Quest konnte nicht abgeholt werden.');
+      setStatus(error?.message||'Quest konnte nicht abgeholt werden.','error');
+      btn.disabled=false;
+      btn.textContent=`+${reward} XP abholen`;
+    }
+  });
+}
+
+async function loadQuests(){
+  const list=$('quest-list');
+  if(!list||!supabaseClient||!currentUser)return;
+  try{
+    const {data,error}=await supabaseClient.rpc('get_my_quests');
+    if(error)throw error;
+    questData=data||{daily:[],weekly:[],periods:{}};
+
+    for(const type of ['daily','weekly']){
+      const items=Array.isArray(questData[type])?questData[type]:[];
+      const period=questPeriodKey(type);
+      for(const item of items){
+        const {data:row}=await supabaseClient.from('club_quest_progress')
+          .select('progress,claimed')
+          .eq('user_id',currentUser.id)
+          .eq('quest_key',item.key)
+          .eq('period_start',period)
+          .maybeSingle();
+        item.progress=Number(row?.progress||0);
+        item.claimed=!!row?.claimed;
+      }
+    }
+    renderQuestList();
+  }catch(error){
+    console.warn('Quests unavailable:',error);
+    list.innerHTML=`<div class="club-content-empty">Aufgaben konnten nicht geladen werden: ${escapeHtml(error?.message||'Unbekannter Fehler')}</div>`;
+    setText('quest-count-chip','Fehler');
+  }
+}
+
+async function incrementQuest(key,periodType='daily',amount=1){
+  if(!supabaseClient||!currentUser)return;
+  try{
+    const period=questPeriodKey(periodType);
+    if(!period)return;
+    await supabaseClient.rpc('increment_quest',{
+      p_quest_key:key,
+      p_period_start:period,
+      p_increment:amount
+    });
+    loadQuests().catch(()=>{});
+  }catch(error){
+    console.warn('Quest increment skipped:',error);
+  }
+}
+
+function initQuestTabs(){
+  document.querySelectorAll('[data-quest-tab]').forEach(btn=>btn.onclick=()=>{
+    activeQuestTab=btn.dataset.questTab==='weekly'?'weekly':'daily';
+    document.querySelectorAll('[data-quest-tab]').forEach(b=>b.classList.toggle('is-active',b===btn));
+    renderQuestList();
+  });
 }
 
 // V8.3 — Live member refresh + interface effects/sounds

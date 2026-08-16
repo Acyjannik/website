@@ -1328,3 +1328,20 @@ Community Poll admin code is now initialized only after the base DOM/Supabase he
 - Empty event lists now honestly show “Noch keine kommenden Events”.
 - Event dates without a valid timestamp are not rendered as active.
 - No SQL changes required beyond the existing V9.3.1 cleanup migration.
+
+
+## V9.4 — Quests, Levels & Expanded Achievements
+- Implemented the existing Daily/Weekly quest system in the Club UI instead of leaving the placeholder “Aufgaben werden geladen…” forever.
+- Added quest tabs, progress bars, claim buttons and XP rewards.
+- Daily Login, Daily Social, Daily Pet, Weekly Wheel and Weekly Social now increment their respective quests when the underlying action happens.
+- Expanded the level ladder from 5 levels to 12 levels up to 25,000 XP.
+- Added XP achievements for 2k / 5k / 10k / 25k XP.
+- Added 180-day and 365-day membership achievements.
+- Added Game Explorer / Game Hunter achievements based on automatically detected Discord games.
+- Achievement API now awards the new milestones.
+- No new SQL migration required for the current quest schema.
+
+
+## V9.4.1 — Achievement Catalog Polish
+- Added the missing frontend entries for 2k / 5k / 10k / 25k XP achievements.
+- Added a small visual glow/progress polish to unlocked achievement cards.

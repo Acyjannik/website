@@ -2049,3 +2049,27 @@ img,video,iframe,svg{
 .hub-community-game-mini div:last-child{display:grid;gap:2px;min-width:0}
 .hub-community-game-mini strong{font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hub-community-game-mini small{font-size:7px;color:#71717a}
+
+/* V9.4 — Quest center */
+.quest-tabs{display:flex;gap:6px;margin-bottom:10px}
+.quest-tab{border:1px solid rgba(255,255,255,.07);background:#101016;color:#a1a1aa;border-radius:9px;padding:6px 10px;font-size:8px;font-weight:700;cursor:pointer}
+.quest-tab.is-active{color:#fff;background:rgba(168,85,247,.16);border-color:rgba(192,132,252,.35)}
+.quest-list{display:grid;gap:8px}
+.quest-row{display:grid;grid-template-columns:32px minmax(0,1fr);gap:9px;padding:10px;border:1px solid rgba(255,255,255,.05);border-radius:11px;background:rgba(255,255,255,.015)}
+.quest-row.is-complete{border-color:rgba(34,197,94,.2);background:rgba(34,197,94,.025)}
+.quest-icon{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;background:rgba(168,85,247,.12);font-size:16px}
+.quest-main{min-width:0}
+.quest-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.quest-head strong{font-size:10px}
+.quest-head .button{white-space:nowrap}
+.quest-main small{display:block;color:#8b8b95;font-size:8px;margin-top:2px}
+.quest-progress{height:4px;border-radius:999px;background:#18181f;overflow:hidden;margin-top:8px}
+.quest-progress span{display:block;height:100%;background:linear-gradient(90deg,#8b5cf6,#c084fc);border-radius:999px}
+.quest-meta{display:flex;justify-content:space-between;margin-top:4px;color:#666670;font-size:7px}
+.quest-state{font-size:7px;color:#8b8b95}
+.quest-state-done{font-size:8px;color:#22c55e;font-weight:700}
+
+/* V9.4.1 — progression polish */
+.achievement-row.is-unlocked .catalog-icon{filter:drop-shadow(0 0 6px rgba(192,132,252,.35))}
+.catalog-progress{display:block;height:3px;margin-top:5px;border-radius:99px;background:#17171e;overflow:hidden}
+.catalog-progress>span{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#8b5cf6,#c084fc)}

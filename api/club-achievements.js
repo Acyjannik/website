@@ -100,15 +100,19 @@ export default async function handler(req, res) {
     const profile = profileRows[0];
     if (!profile) return res.status(404).json({ error: "Profile not found." });
 
-    const [attendanceRes, xpRes] = await Promise.all([
+    const [attendanceRes, xpRes, gameLogRes] = await Promise.all([
       fetch(`${url}/rest/v1/club_event_attendance?user_id=eq.${userId}&select=id`, { headers }),
-      fetch(`${url}/rest/v1/club_xp_events?user_id=eq.${userId}&select=event_key,xp`, { headers })
+      fetch(`${url}/rest/v1/club_xp_events?user_id=eq.${userId}&select=event_key,xp`, { headers }),
+      fetch(`${url}/rest/v1/club_game_presence_log?user_id=eq.${userId}&online=eq.true&select=game_id`, { headers })
     ]);
 
     const attendanceText = await attendanceRes.text();
     const xpText = await xpRes.text();
+    const gameLogText = await gameLogRes.text();
     const attendance = attendanceText ? JSON.parse(attendanceText) : [];
     const xpEvents = xpText ? JSON.parse(xpText) : [];
+    const gameLog = gameLogText ? JSON.parse(gameLogText) : [];
+    const uniqueGames = new Set((gameLog || []).map(row => row.game_id).filter(Boolean)).size;
 
     const days = Math.floor((Date.now() - new Date(profile.created_at).getTime()) / 86400000);
     const eventCount = attendance.length;
@@ -124,10 +128,18 @@ export default async function handler(req, res) {
       ["xp_100", totalXp >= 100],
       ["xp_500", totalXp >= 500],
       ["xp_1000", totalXp >= 1000],
+      ["xp_2000", totalXp >= 2000],
+      ["xp_5000", totalXp >= 5000],
+      ["xp_10000", totalXp >= 10000],
+      ["xp_25000", totalXp >= 25000],
       ["acy_og", totalXp >= 500],
       ["acy_legend", totalXp >= 1000],
       ["early_member", days >= 30],
-      ["veteran_member", days >= 90]
+      ["veteran_member", days >= 90],
+      ["member_180_days", days >= 180],
+      ["member_365_days", days >= 365],
+      ["game_explorer", uniqueGames >= 5],
+      ["game_hunter", uniqueGames >= 15]
     ];
 
     const newlyAwarded = [];
@@ -161,10 +173,18 @@ export default async function handler(req, res) {
       xp_100: "100 XP Club",
       xp_500: "500 XP Club",
       xp_1000: "1000 XP Club",
+      xp_2000: "2000 XP Club",
+      xp_5000: "5000 XP Club",
+      xp_10000: "10000 XP Club",
+      xp_25000: "25000 XP Club",
       acy_og: "ACY OG",
       acy_legend: "ACY Legend",
       early_member: "Early Member",
-      veteran_member: "ACY Veteran"
+      veteran_member: "ACY Veteran",
+      member_180_days: "Half-Year Club",
+      member_365_days: "1 Jahr ACY",
+      game_explorer: "Game Explorer",
+      game_hunter: "Game Hunter"
     };
 
     for (const keyName of newlyAwarded) {
