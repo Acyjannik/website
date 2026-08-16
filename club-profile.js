@@ -1007,7 +1007,7 @@ function renderProgressionCatalog(state) {
   const xpList = $('xp-catalog-list');
   const achievementList = $('achievement-catalog-list');
   if (!xpList || !achievementList) return;
-  setText('catalog-render-status', 'V12.8 · Progression geladen');
+  setText('catalog-render-status', 'V12.9 · Progression geladen');
 
   const awarded = new Set(state.achievements || []);
   const xpEvents = new Set(state.xpEvents || []);
@@ -2029,6 +2029,12 @@ async function loadProfile() {
     badges: ['ACY Rookie']
   };
 
+  // V12.9: share the resolved identity with all dashboard sections.
+  // Several sections load in parallel; relying on the DOM here caused
+  // "Hey, Member" to win a race against the real profile.
+  window.__acyResolvedProfile = profile;
+  console.info('[V12.9] Profile resolved:', profile.display_name || profile.username, currentUser.id);
+
   setText('member-name', profile.display_name || profile.username);
   setText('member-handle', `@${profile.username}`);
   setText('member-bio', profile.bio || 'Willkommen in deinem persönlichen ACY Club.');
@@ -2547,8 +2553,25 @@ async function loadMemberHub() {
   const fill = $('hub-xp-fill');
   const next = $('hub-next-level');
 
-  const name = $('member-name')?.textContent || 'Member';
-  const currentXp = Number($('member-xp')?.textContent?.replace(/[^\d]/g, '') || 0);
+  // V12.9: never derive the club identity from placeholder DOM text.
+  // The hub can load in parallel with loadProfile(), so "ACY Member" used
+  // to win the race and overwrite the real account name.
+  let hubProfile = window.__acyResolvedProfile || null;
+  if (!hubProfile && supabaseClient && currentUser) {
+    try {
+      const { data: profile } = await supabaseClient
+        .from('profiles')
+        .select('username,display_name,xp')
+        .eq('id', currentUser.id)
+        .maybeSingle();
+      hubProfile = profile || null;
+    } catch (error) {
+      console.warn('[V12.9] Hub profile lookup failed:', error);
+    }
+  }
+
+  const name = hubProfile?.display_name || hubProfile?.username || 'Member';
+  const currentXp = Number(hubProfile?.xp ?? $('member-xp')?.textContent?.replace(/[^\d]/g, '') ?? 0);
   const level = levelForXp(currentXp);
 
   if (greeting) greeting.textContent = `Hey, ${name}.`;
@@ -3511,8 +3534,13 @@ function renderClubIdentity(state = {}) {
 async function loadClubIdentity(){
   if(!supabaseClient||!currentUser||!$('club-identity-card'))return;
   try{
-    const [{data:profile},{data:attendance},{data:achievements},{data:gameLog},{data:friendsData},{data:streakData},{data:gameCatalog}]=await Promise.all([
-      supabaseClient.from('profiles').select('username,display_name,avatar_url,xp,discord_connected,badges').eq('id',currentUser.id).maybeSingle(),
+    let profile = window.__acyResolvedProfile || null;
+    const profilePromise = profile
+      ? Promise.resolve({ data: profile })
+      : supabaseClient.from('profiles').select('username,display_name,avatar_url,xp,discord_connected,badges').eq('id',currentUser.id).maybeSingle();
+
+    const [{data:resolvedProfile},{data:attendance},{data:achievements},{data:gameLog},{data:friendsData},{data:streakData},{data:gameCatalog}]=await Promise.all([
+      profilePromise,
       supabaseClient.from('club_event_attendance').select('id').eq('user_id',currentUser.id),
       supabaseClient.from('club_achievements').select('achievement_key').eq('user_id',currentUser.id).order('created_at',{ascending:false}).limit(30),
       supabaseClient.from('club_game_presence_log').select('game_id,detected_at').eq('user_id',currentUser.id).gte('detected_at',new Date(Date.now()-7*86400000).toISOString()),
@@ -3523,9 +3551,9 @@ async function loadClubIdentity(){
     const counts=new Map(); (gameLog||[]).forEach(r=>counts.set(r.game_id,(counts.get(r.game_id)||0)+1));
     let fav='Noch keine Spieldaten',max=0; for(const g of gameCatalog||[]){const n=counts.get(g.id)||0;if(n>max){max=n;fav=g.name;}}
     const achievementList=(achievements||[]).map(a=>a.achievement_key).filter(Boolean);
-    const roleBadges=Array.isArray(profile?.badges)?profile.badges.filter(Boolean):[];
+    const roleBadges=Array.isArray(resolvedProfile?.badges)?profile.badges.filter(Boolean):[];
     const combinedBadges=Array.from(new Set([...roleBadges,...achievementList])).slice(0,8);
-    renderClubIdentity({profile:profile||{},xp:Number(profile?.xp||0),events:(attendance||[]).length,achievementCount:achievementList.length,achievementsList:combinedBadges,uniqueGames:new Set((gameLog||[]).map(r=>r.game_id).filter(Boolean)).size,friendCount:Array.isArray(friendsData?.friends)?friendsData.friends.length:0,streak:Number(streakData?.current_streak||0),favoriteGame:fav});
+    renderClubIdentity({profile:resolvedProfile||{},xp:Number(profile?.xp||0),events:(attendance||[]).length,achievementCount:achievementList.length,achievementsList:combinedBadges,uniqueGames:new Set((gameLog||[]).map(r=>r.game_id).filter(Boolean)).size,friendCount:Array.isArray(friendsData?.friends)?friendsData.friends.length:0,streak:Number(streakData?.current_streak||0),favoriteGame:fav});
   }catch(error){console.warn('Club identity unavailable:',error);}
 }
 
