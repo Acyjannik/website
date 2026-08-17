@@ -1291,7 +1291,7 @@ function renderProgressionCatalog(state) {
   const achievementList = $('achievement-catalog-list');
   if (!xpList || !achievementList) return;
   renderProgress(Number(state.xp || 0));
-  setText('catalog-render-status', 'V17.4 · Progression geladen');
+  setText('catalog-render-status', 'V17.5 · Progression geladen');
 
   const awarded = new Set(state.achievements || []);
   const xpEvents = new Set(state.xpEvents || []);
@@ -1444,12 +1444,20 @@ function handleDiscordOAuthCallback() {
 }
 
 function petLevelForXp(xp = 0) {
+  // V17.5 — expanded Pet progression: 10 meaningful milestones.
+  // Thresholds are intentionally kept in the UI layer because pet_xp remains
+  // the single source of truth in Supabase.
   const levels = [
-    { min: 0, level: 1, title: 'Kleiner Begleiter', effect: 'basic' },
-    { min: 100, level: 2, title: 'Vertrauter Freund', effect: 'glow' },
-    { min: 250, level: 3, title: 'Treuer Gefährte', effect: 'sparkle' },
-    { min: 500, level: 4, title: 'ACY Sidekick', effect: 'crown' },
-    { min: 1000, level: 5, title: 'ACY Legende', effect: 'legendary' }
+    { min: 0,    level: 1,  title: 'Kleiner Begleiter', short: 'Begleiter', effect: 'basic',      icon: '🐾', tier: 'starter' },
+    { min: 100,  level: 2,  title: 'Vertrauter Freund', short: 'Freund',    effect: 'glow',       icon: '💜', tier: 'warm' },
+    { min: 250,  level: 3,  title: 'Treuer Gefährte',  short: 'Gefährte',  effect: 'sparkle',    icon: '✨', tier: 'bright' },
+    { min: 500,  level: 4,  title: 'ACY Sidekick',      short: 'Sidekick',  effect: 'crown',      icon: '👑', tier: 'elite' },
+    { min: 1000, level: 5,  title: 'ACY Legende',       short: 'Legende',   effect: 'legendary',  icon: '🏆', tier: 'legend' },
+    { min: 1750, level: 6,  title: 'ACY Champion',      short: 'Champion',  effect: 'aurora',     icon: '⚡', tier: 'champion' },
+    { min: 2750, level: 7,  title: 'ACY Guardian',      short: 'Guardian',  effect: 'celestial',  icon: '🛡️', tier: 'guardian' },
+    { min: 4250, level: 8,  title: 'ACY Mythic',        short: 'Mythic',    effect: 'mythic',      icon: '🔮', tier: 'mythic' },
+    { min: 6500, level: 9,  title: 'ACY Cosmic',        short: 'Cosmic',    effect: 'cosmic',      icon: '🌌', tier: 'cosmic' },
+    { min: 10000,level: 10, title: 'ACY Overlord',      short: 'Overlord',  effect: 'overlord',    icon: '☄️', tier: 'overlord' }
   ];
   let current = levels[0];
   for (const entry of levels) if (xp >= entry.min) current = entry;
@@ -1457,7 +1465,8 @@ function petLevelForXp(xp = 0) {
   return {
     ...current,
     next: nextEntry ? nextEntry.min : null,
-    nextTitle: nextEntry?.title || null
+    nextTitle: nextEntry?.title || null,
+    levels
   };
 }
 
@@ -1508,7 +1517,7 @@ function renderPet(pet) {
   setText('pet-species-label', species.label.toUpperCase());
   setText('pet-display-name', pet.name);
   setText('pet-level-text', `Level ${level.level} · ${Number(pet.pet_xp || 0)} Pflege-XP · ${level.title}`);
-  chip.textContent = `Level ${level.level} · ${level.title}`;
+  chip.textContent = `${level.icon} Level ${level.level} · ${level.title}`;
 
   const stats = [
     ['hunger', 'pet-hunger-value', 'pet-hunger-bar'],
@@ -1527,10 +1536,12 @@ function renderPet(pet) {
     ? `Noch ${Math.max(0, next - Number(pet.pet_xp || 0))} Pflege-XP bis ${level.nextTitle}`
     : 'Maximales Tier-Level erreicht.');
 
-  setText('pet-progression-title', level.title);
+  setText('pet-progression-title', `${level.icon} ${level.title}`);
+  const progression = document.querySelector('.pet-progression');
+  if (progression) progression.className = `pet-progression pet-progression-level-${level.level} pet-progression-tier-${level.tier}`;
   const fill = $('pet-progression-fill');
   if (fill) {
-    const thresholds = [0,100,250,500,1000];
+    const thresholds = level.levels.map(entry => entry.min);
     const base = thresholds[level.level - 1];
     const nextThreshold = level.next ?? base + 1;
     const progress = level.next
@@ -1542,7 +1553,7 @@ function renderPet(pet) {
     step.classList.toggle('is-current', Number(step.dataset.petLevel) === level.level);
     step.classList.toggle('is-complete', Number(step.dataset.petLevel) < level.level);
   });
-  setText('pet-care-note', 'Hunger −1/h · Laune −0,5/h · Energie −0,5/h · 72h bei 0 = Tod.');
+  setText('pet-care-note', 'Dein Tier wächst über Pflege-XP durch die 10 Pet-Level. Werte sinken langsam und dein Begleiter bleibt erhalten.');
   if ($('pet-rename-input')) $('pet-rename-input').value = pet.name;
   if (window.loadPetLife) void window.loadPetLife();
 }
@@ -1719,7 +1730,7 @@ $('pet-release-toggle')?.addEventListener('click', async () => {
 });
 
 
-// V17.4 — ACY Pet Life expansion
+// V17.5 — ACY Pet Life expansion
 let petLifeState = null;
 function renderPetLife(state){
   petLifeState=state||null;
@@ -1760,7 +1771,7 @@ document.querySelector('#pet-inventory')?.addEventListener('click',event=>{const
 async function loadPetLife(){
   if(!supabaseClient||!currentUser)return;
   try{ const {data,error}=await supabaseClient.rpc('get_pet_life_hub'); if(error)throw error; renderPetLife(data||{}); }
-  catch(error){ console.warn('Pet Life unavailable:',error); const st=$('pet-life-status'); if(st){st.textContent='Pet Life ist noch nicht vollständig eingerichtet. Bitte die V17.4-SQL-Migration ausführen.';st.className='club-auth-status error';} }
+  catch(error){ console.warn('Pet Life unavailable:',error); const st=$('pet-life-status'); if(st){st.textContent='Pet Life ist noch nicht vollständig eingerichtet. Bitte die V17.5-SQL-Migration ausführen.';st.className='club-auth-status error';} }
 }
 window.loadPetLife=loadPetLife;
 

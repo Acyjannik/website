@@ -1322,33 +1322,70 @@ button:disabled{opacity:.55;cursor:not-allowed}
   .pet-manage-actions .button{flex:1;min-width:0}
 }
 
-/* V6.6 — Pet progression visuals */
-.pet-progression{padding:14px 15px 12px;border:1px solid rgba(168,85,247,.16);border-radius:15px;background:rgba(168,85,247,.035)}
-.pet-progression-head{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:11px}
-.pet-progression-head strong{font-size:12px;color:#d8b4fe}
-.pet-progression-steps{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}
-.pet-prog-step{display:grid;justify-items:center;gap:5px;color:#71717a;text-align:center}
-.pet-prog-step span{width:27px;height:27px;display:grid;place-items:center;border-radius:50%;border:1px solid rgba(255,255,255,.08);background:#0d0d12;font-size:10px;font-weight:800}
-.pet-prog-step small{font-size:8px;white-space:nowrap}
-.pet-prog-step.is-current{color:#fff}
-.pet-prog-step.is-current span{border-color:rgba(168,85,247,.65);background:rgba(168,85,247,.15);color:#e9d5ff;box-shadow:0 0 18px rgba(168,85,247,.18)}
-.pet-progression-bar{height:4px;border-radius:999px;background:#07070a;margin-top:11px;overflow:hidden}
-.pet-progression-bar span{display:block;width:0;height:100%;border-radius:999px;background:linear-gradient(90deg,#7c3aed,#c084fc);transition:width .35s ease}
-.pet-avatar{transition:box-shadow .25s ease,transform .25s ease}
+/* V17.5 — Pet progression refresh: 10 levels, richer tier surfaces, readable on mobile */
+.pet-progression{position:relative;padding:17px 18px 15px;border:1px solid rgba(168,85,247,.22);border-radius:18px;background:linear-gradient(145deg,rgba(168,85,247,.065),rgba(8,8,13,.42));overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.035),0 18px 45px rgba(0,0,0,.12);transition:border-color .35s ease,box-shadow .35s ease,background .35s ease}
+.pet-progression::before{content:'';position:absolute;inset:-30% 35% auto -10%;height:120px;background:radial-gradient(circle,rgba(168,85,247,.18),transparent 68%);pointer-events:none;filter:blur(12px)}
+.pet-progression-head{position:relative;display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:13px}
+.pet-progression-head strong{font-size:13px;color:#eadcff;letter-spacing:.01em}
+.pet-progression-steps{position:relative;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px 8px}
+.pet-prog-step{position:relative;display:grid;justify-items:center;gap:6px;color:#71717a;text-align:center;min-width:0;padding:3px 2px 2px;border-radius:12px;transition:color .25s ease,transform .25s ease,background .25s ease}
+.pet-prog-step span{width:31px;height:31px;display:grid;place-items:center;border-radius:50%;border:1px solid rgba(255,255,255,.08);background:linear-gradient(145deg,#111118,#09090d);font-size:10px;font-weight:900;box-shadow:inset 0 1px 0 rgba(255,255,255,.035);transition:all .3s ease}
+.pet-prog-step small{font-size:8px;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;font-weight:700;letter-spacing:.01em}
+.pet-prog-step.is-current{color:#fff;background:rgba(168,85,247,.07);transform:translateY(-1px)}
+.pet-prog-step.is-current span{border-color:rgba(216,180,254,.78);background:linear-gradient(145deg,rgba(168,85,247,.34),rgba(76,29,149,.18));color:#fff;box-shadow:0 0 22px rgba(168,85,247,.28),inset 0 1px 0 rgba(255,255,255,.16)}
+.pet-prog-step.is-complete span{border-color:rgba(168,85,247,.35);background:rgba(168,85,247,.10);color:#d8b4fe}
+.pet-progression-bar{height:6px;border-radius:999px;background:rgba(0,0,0,.5);margin-top:14px;overflow:hidden;border:1px solid rgba(255,255,255,.035);box-shadow:inset 0 2px 5px rgba(0,0,0,.35)}
+.pet-progression-bar span{display:block;width:0;height:100%;border-radius:999px;background:linear-gradient(90deg,#7c3aed 0%,#a855f7 48%,#d8b4fe 100%);box-shadow:0 0 16px rgba(168,85,247,.42);transition:width .45s cubic-bezier(.2,.8,.2,1)}
+.pet-progression-level-1{--pet-tier-glow:rgba(168,85,247,.14)}
+.pet-progression-level-2{--pet-tier-glow:rgba(129,140,248,.18)}
+.pet-progression-level-3{--pet-tier-glow:rgba(192,132,252,.22)}
+.pet-progression-level-4{--pet-tier-glow:rgba(250,204,21,.18)}
+.pet-progression-level-5{--pet-tier-glow:rgba(251,191,36,.22)}
+.pet-progression-level-6{--pet-tier-glow:rgba(56,189,248,.22)}
+.pet-progression-level-7{--pet-tier-glow:rgba(45,212,191,.22)}
+.pet-progression-level-8{--pet-tier-glow:rgba(167,139,250,.28)}
+.pet-progression-level-9{--pet-tier-glow:rgba(96,165,250,.30)}
+.pet-progression-level-10{--pet-tier-glow:rgba(244,114,182,.34)}
+.pet-progression[class*="pet-progression-level-"]{box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 18px 45px rgba(0,0,0,.14),0 0 45px var(--pet-tier-glow)}
+.pet-avatar{transition:box-shadow .3s ease,transform .3s ease,filter .3s ease}
 .pet-avatar.pet-level-2{box-shadow:0 0 28px rgba(96,165,250,.18)}
 .pet-avatar.pet-level-3{box-shadow:0 0 32px rgba(192,132,252,.28)}
 .pet-avatar.pet-level-4{box-shadow:0 0 36px rgba(250,204,21,.24);transform:translateY(-1px)}
 .pet-avatar.pet-level-5{box-shadow:0 0 42px rgba(251,191,36,.34),0 0 70px rgba(168,85,247,.18);transform:translateY(-2px)}
-.pet-effect-sparkle::after,.pet-effect-crown::after,.pet-effect-legendary::after{position:absolute;right:-3px;top:-3px;font-size:15px;line-height:1}
+.pet-avatar.pet-level-6{box-shadow:0 0 46px rgba(56,189,248,.32),0 0 76px rgba(168,85,247,.16);transform:translateY(-2px);filter:saturate(1.08)}
+.pet-avatar.pet-level-7{box-shadow:0 0 52px rgba(45,212,191,.34),0 0 82px rgba(96,165,250,.18);transform:translateY(-2px);filter:saturate(1.12)}
+.pet-avatar.pet-level-8{box-shadow:0 0 58px rgba(167,139,250,.42),0 0 92px rgba(192,132,252,.20);transform:translateY(-3px);filter:saturate(1.15)}
+.pet-avatar.pet-level-9{box-shadow:0 0 64px rgba(96,165,250,.46),0 0 105px rgba(124,58,237,.24);transform:translateY(-3px);filter:saturate(1.18)}
+.pet-avatar.pet-level-10{box-shadow:0 0 72px rgba(244,114,182,.52),0 0 120px rgba(168,85,247,.30);transform:translateY(-4px);filter:saturate(1.22) brightness(1.04)}
+.pet-effect-sparkle::after,.pet-effect-crown::after,.pet-effect-legendary::after,.pet-effect-aurora::after,.pet-effect-celestial::after,.pet-effect-mythic::after,.pet-effect-cosmic::after,.pet-effect-overlord::after{position:absolute;right:-3px;top:-3px;font-size:15px;line-height:1}
 .pet-effect-sparkle::after{content:'✦';color:#d8b4fe;filter:drop-shadow(0 0 5px rgba(192,132,252,.8))}
 .pet-effect-crown::after{content:'♛';color:#fde68a;filter:drop-shadow(0 0 5px rgba(250,204,21,.7))}
-.pet-effect-legendary::after{content:'✦';color:#fef3c7;filter:drop-shadow(0 0 7px rgba(250,204,21,.9));animation:petLegendPulse 1.6s ease-in-out infinite}
+.pet-effect-legendary::after{content:'🏆';font-size:13px;filter:drop-shadow(0 0 6px rgba(250,204,21,.8))}
+.pet-effect-aurora::after{content:'⚡';color:#bae6fd;filter:drop-shadow(0 0 7px rgba(56,189,248,.9));animation:petTierPulse 1.8s ease-in-out infinite}
+.pet-effect-celestial::after{content:'🛡️';font-size:13px;filter:drop-shadow(0 0 7px rgba(45,212,191,.8))}
+.pet-effect-mythic::after{content:'🔮';font-size:13px;filter:drop-shadow(0 0 8px rgba(167,139,250,.95));animation:petTierPulse 1.65s ease-in-out infinite}
+.pet-effect-cosmic::after{content:'🌌';font-size:13px;filter:drop-shadow(0 0 9px rgba(96,165,250,.95));animation:petTierPulse 1.5s ease-in-out infinite}
+.pet-effect-overlord::after{content:'☄️';font-size:14px;filter:drop-shadow(0 0 10px rgba(244,114,182,.95));animation:petOverlordPulse 1.25s ease-in-out infinite}
 .acy-pet-float-art{position:relative}
 .acy-pet-float-art.pet-effect-sparkle::after{position:absolute;right:0;top:0}
 .acy-pet-float-art.pet-effect-crown::after{position:absolute;right:0;top:-2px}
-.acy-pet-float-art.pet-effect-legendary::after{position:absolute;right:0;top:-2px}
-@keyframes petLegendPulse{50%{transform:scale(1.15);opacity:.65}}
-@media(max-width:600px){.pet-progression-steps{gap:4px}.pet-prog-step small{font-size:7px}}
+.acy-pet-float-art.pet-effect-legendary::after,.acy-pet-float-art.pet-effect-aurora::after,.acy-pet-float-art.pet-effect-celestial::after,.acy-pet-float-art.pet-effect-mythic::after,.acy-pet-float-art.pet-effect-cosmic::after,.acy-pet-float-art.pet-effect-overlord::after{position:absolute;right:0;top:-2px}
+@keyframes petTierPulse{50%{transform:scale(1.12);opacity:.72}}
+@keyframes petOverlordPulse{50%{transform:scale(1.18) rotate(4deg);opacity:.7}}
+@media(max-width:700px){
+  .pet-progression{padding:14px 12px 13px;border-radius:16px}
+  .pet-progression-head strong{font-size:11px}
+  .pet-progression-steps{gap:7px 4px}
+  .pet-prog-step{padding-inline:1px}
+  .pet-prog-step span{width:28px;height:28px;font-size:9px}
+  .pet-prog-step small{font-size:7px}
+  .pet-progression-bar{margin-top:11px;height:5px}
+}
+@media(max-width:420px){
+  .pet-progression-steps{grid-template-columns:repeat(5,minmax(0,1fr));gap:6px 2px}
+  .pet-prog-step span{width:26px;height:26px}
+  .pet-prog-step small{font-size:6.5px}
+}
 
 /* V6.6.1 — Pet balance UI */
 .pet-action-btn{display:flex;align-items:center;justify-content:center;gap:7px;flex-wrap:wrap}
@@ -4546,14 +4583,14 @@ body.acy-cosmic-active .club-auth-shell{filter:saturate(1.12)}
 @media(max-width:700px){.pet-actions-v17{grid-template-columns:1fr 1fr}.pet-inventory-v17{grid-template-columns:repeat(2,minmax(0,1fr))}.pet-life-head-v17{align-items:flex-start;flex-direction:column}.pet-minigames-v17{grid-template-columns:1fr}.pet-shop-v17{grid-template-columns:1fr 1fr}}
 @media(max-width:450px){.pet-actions-v17{grid-template-columns:1fr}.pet-life-actions-v17{display:grid;grid-template-columns:1fr}.pet-life-actions-v17 .button{width:100%}.pet-shop-v17{grid-template-columns:1fr}}
 
-/* V17.4 Pet Life reliability + mini-games */
+/* V17.5 Pet Life reliability + mini-games */
 .pet-game-overlay-v17{position:fixed;inset:0;z-index:10050;display:grid;place-items:center;padding:20px;background:rgba(0,0,0,.72);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
 .pet-game-modal-v17{position:relative;width:min(520px,100%);padding:22px;border:1px solid rgba(168,85,247,.28);border-radius:24px;background:linear-gradient(180deg,rgba(24,20,34,.98),rgba(10,10,15,.98));box-shadow:0 24px 80px rgba(0,0,0,.5),inset 0 1px rgba(255,255,255,.06)}
 .pet-game-modal-v17 h3{margin:6px 0 4px;font-size:24px}.pet-game-modal-v17 p{margin:0 0 14px;color:#aaa}.pet-game-close-v17{position:absolute;right:12px;top:10px;border:0;background:transparent;color:#aaa;font-size:28px;cursor:pointer}.pet-game-arena-v17{position:relative;height:280px;border-radius:18px;border:1px solid rgba(168,85,247,.18);background:radial-gradient(circle at 50% 40%,rgba(168,85,247,.12),transparent 55%),#09090d;overflow:hidden}.pet-snack-target-v17{position:absolute;width:58px;height:58px;border-radius:18px;border:1px solid rgba(255,255,255,.12);background:rgba(168,85,247,.18);font-size:28px;cursor:pointer;transition:transform .12s}.pet-snack-target-v17:active{transform:scale(.9)}.pet-game-timer-v17{text-align:center;font-weight:800;font-size:18px;margin-top:10px;color:#d8b4fe}.pet-paw-grid-v17{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:20px}.pet-paw-grid-v17 button{min-height:130px;border-radius:20px;border:1px solid rgba(168,85,247,.22);background:rgba(168,85,247,.08);font-size:42px;cursor:pointer}.pet-paw-grid-v17 button:hover,.pet-paw-grid-v17 button.picked{background:rgba(168,85,247,.22);transform:translateY(-2px)}.pet-game-result-v17{text-align:center;min-height:26px;margin-top:14px;color:#d8b4fe;font-weight:700}
 @media(max-width:520px){.pet-game-modal-v17{padding:18px;border-radius:20px}.pet-game-arena-v17{height:240px}.pet-paw-grid-v17 button{min-height:105px}.pet-life-head-v17 small{max-width:32ch}}
 
 
-/* V17.4 — Pet guide, food chooser and usable inventory */
+/* V17.5 — Pet guide, food chooser and usable inventory */
 .pet-life-title-row-v17{display:flex;align-items:center;gap:9px}
 .pet-info-btn-v17{position:relative;width:28px;height:28px;border-radius:50%;border:1px solid rgba(168,85,247,.35);background:rgba(168,85,247,.09);color:#e9d5ff;font-weight:800;cursor:pointer;display:grid;place-items:center;padding:0}
 .pet-info-btn-v17:hover{background:rgba(168,85,247,.2);box-shadow:0 0 20px rgba(168,85,247,.16)}
