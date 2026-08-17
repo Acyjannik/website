@@ -1,0 +1,14 @@
+ACYJANNIK V16.1
+Mobile + Notification Reliability Refresh
+
+Highlights:
+- Reference artwork from supplied ACY screenshot; no new AI generation.
+- Removed destructive PWA service-worker unregister/cache purge.
+- Daily-Streak-ready notifications: in-app + push + optional email.
+- New email preferences: Daily-Serie and Quests.
+- Quest progress now hydrated in one RPC, removing client N+1 queries.
+- Visibility/focus refresh for Daily-Serie, Quests and notifications.
+- Push helper honors explicit push opt-out.
+- Security headers added at Vercel edge.
+- Privacy policy updated for Push, email, PWA, Daily-Serie, quests and pet data.
+- Build marker: ACY BUILD V16.1
