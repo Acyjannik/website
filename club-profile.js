@@ -1291,7 +1291,7 @@ function renderProgressionCatalog(state) {
   const achievementList = $('achievement-catalog-list');
   if (!xpList || !achievementList) return;
   renderProgress(Number(state.xp || 0));
-  setText('catalog-render-status', 'V17.7 · Progression geladen');
+  setText('catalog-render-status', 'V17.8 · Progression geladen');
 
   const awarded = new Set(state.achievements || []);
   const xpEvents = new Set(state.xpEvents || []);
@@ -1444,7 +1444,7 @@ function handleDiscordOAuthCallback() {
 }
 
 function petLevelForXp(xp = 0) {
-  // V17.7 — expanded Pet progression: 10 meaningful milestones.
+  // V17.8 — expanded Pet progression: 10 meaningful milestones.
   // Thresholds are intentionally kept in the UI layer because pet_xp remains
   // the single source of truth in Supabase.
   const levels = [
@@ -1732,7 +1732,7 @@ $('pet-release-toggle')?.addEventListener('click', async () => {
 });
 
 
-// V17.7 — ACY Pet Life + Perks + Shop
+// V17.8 — ACY Pet Life + Perks + Shop + Admin Test Mode
 let petLifeState = null;
 function renderPetLife(state){
   petLifeState=state||null;
@@ -1747,6 +1747,8 @@ function renderPetLife(state){
   if(perkCount) perkCount.textContent=String(perks.length);
   if(perkList){ perkList.innerHTML=perks.length?perks.map(p=>`<div class="pet-perk-card-v177"><span class="pet-perk-icon-v177">${escapeHtml(p.icon||'✨')}</span><div><strong>${escapeHtml(p.name||'Pet-Perk')}</strong><small>${escapeHtml(p.detail||'Passiver Vorteil')}</small></div><b>${Number(p.charges||0)}×</b></div>`).join(''):'<div class="club-content-empty">Noch keine Perks. Gewinne einen beim Glücksrad oder in einer Mystery Box.</div>'; }
   const limits=state?.limits||{};
+  const testMode=Boolean(state?.test_mode);
+  const testBadge=$('pet-test-mode-badge'); if(testBadge){testBadge.hidden=!testMode;testBadge.textContent='🧪 TESTMODUS · Limits & Verbrauch aus';}
   const feedRemaining=Math.max(0,Number(limits.feed?.remaining||0));
   const feedMeta=$('pet-feed-meta'); if(feedMeta) feedMeta.textContent=feedRemaining>0?`Noch ${feedRemaining} von 3 heute · Futter auswählen`:'Heute ausgeschöpft · Futterlimit erreicht';
   document.querySelectorAll('.pet-action-btn').forEach(btn=>{
@@ -1754,7 +1756,7 @@ function renderPetLife(state){
     const remaining=Math.max(0,Number(lim.remaining||0)); const exhausted=remaining<=0;
     btn.disabled=exhausted; btn.classList.toggle('is-exhausted',exhausted); btn.setAttribute('aria-disabled',String(exhausted));
     const small=btn.querySelector('small'); if(small){
-      const labels={feed:`${remaining} von 3 heute · Futter auswählen`,play:`${remaining} von 2 heute · +25 Laune · −15 Energie`,pet:`${remaining} von 3 heute · +10 Laune`,groom:`${remaining} von 1 heute · +15 Laune · +10 Energie`,sleep:`${remaining} von 1 heute · +30 Energie`}; small.textContent=exhausted?'Heute ausgeschöpft':labels[key]||small.textContent;
+      const labels={feed:`${remaining} von 3 heute · Futter auswählen`,play:`${remaining} von 2 heute · +25 Laune · −15 Energie`,pet:`${remaining} von 3 heute · +10 Laune`,groom:`${remaining} von 1 heute · +15 Laune · +10 Energie`,sleep:`${remaining} von 1 heute · +30 Energie`,train:`${remaining} von 2 heute · +12 Pflege-XP · −20 Energie`,explore:`${remaining} von 2 heute · Snacks + Coins · −15 Energie`}; small.textContent=exhausted?'Heute ausgeschöpft':labels[key]||small.textContent;
     }
     btn.title=exhausted?'Heute ausgeschöpft.':(lim.cooldown_until?`Wieder verfügbar um ${new Date(lim.cooldown_until).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})}`:'');
   });
@@ -1778,7 +1780,7 @@ document.querySelector('#pet-archive-list')?.addEventListener('click',async(even
 async function loadPetLife(){
   if(!supabaseClient||!currentUser)return;
   try{ const {data,error}=await supabaseClient.rpc('get_pet_life_hub'); if(error)throw error; renderPetLife(data||{}); }
-  catch(error){ console.warn('Pet Life unavailable:',error); const st=$('pet-life-status'); if(st){st.textContent='Pet Life ist noch nicht vollständig eingerichtet. Bitte die V17.7-SQL-Migration ausführen.';st.className='club-auth-status error';} }
+  catch(error){ console.warn('Pet Life unavailable:',error); const st=$('pet-life-status'); if(st){st.textContent='Pet Life ist noch nicht vollständig eingerichtet. Bitte die V17.8-SQL-Migration ausführen.';st.className='club-auth-status error';} }
 }
 window.loadPetLife=loadPetLife;
 
@@ -1886,12 +1888,12 @@ async function performPetAction(action, button) {
   button.classList.remove('is-exhausted');
   const labelEl=button.firstChild;
   const originalLabel=labelEl?.textContent||'';
-  if(labelEl) labelEl.textContent = ({feed:'🍖 Füttere… ',play:'🎾 Spiele… ',pet:'💜 Streicheln… ',groom:'🛁 Pflege… ',sleep:'😴 Schläft… '})[action] || 'Lädt… ';
+  if(labelEl) labelEl.textContent = ({feed:'🍖 Füttere… ',play:'🎾 Spiele… ',pet:'💜 Streicheln… ',groom:'🛁 Pflege… ',sleep:'😴 Schläft… ',train:'💪 Trainiert… ',explore:'🗺️ Erkundet… '})[action] || 'Lädt… ';
 
   try {
     const { data, error } = await supabaseClient.rpc('club_pet_action', { p_action: action });
     if (error) throw error;
-    renderPet(data);
+    renderPet(data?.pet||data);
     if (data?.daily_xp_awarded) {
       void progressQuestsForAction('pet_daily');
       setPetStatus('Pflegeaktion erledigt: +5 Pflege-XP. 🐾', 'success');
@@ -1902,7 +1904,7 @@ async function performPetAction(action, button) {
         '/club-profile.html#pet-section'
       );
     } else {
-      setPetStatus('Dein Tier freut sich. 🐾', 'success');
+      setPetStatus(data?.message || 'Dein Tier freut sich. 🐾', 'success');
     }
     await loadProfile();
     await loadProgressionCatalog();
@@ -2094,14 +2096,14 @@ async function spinWheel(){
     if(data?.cooldown){
       message.textContent=`Dein nächster Dreh ist um ${formatWheelDate(data.next_free_at)} verfügbar.`;
       message.className='club-auth-status error';
-      setWheelCooldown(data.next_free_at, data.spin_tokens);
+      setWheelCooldown(data.test_mode?null:data.next_free_at, data.spin_tokens);
     await loadWheelState();return;
     }
     const seg=WHEEL_SEGMENTS.find(s=>s.key===data.reward_key)||WHEEL_SEGMENTS[0];
     wheel.style.setProperty('--wheel-stop',`${1800+(360-seg.angle)}deg`);
     wheel.classList.remove('is-spinning');void wheel.offsetWidth;wheel.classList.add('is-spinning');
     await new Promise(resolve=>setTimeout(resolve,3400));
-    message.textContent=`🎉 ${data.reward_label}${data.reward_class==='spin'?' · Du kannst sofort noch einmal drehen.':data.total_xp!=null?` · Jetzt ${Number(data.total_xp).toLocaleString('de-DE')} XP.`:''}`;
+    message.textContent=`🎉 ${data.reward_label}${data.test_mode?' · 🧪 Testmodus':''}${data.reward_class==='spin'?' · Du kannst sofort noch einmal drehen.':data.total_xp!=null?` · Jetzt ${Number(data.total_xp).toLocaleString('de-DE')} XP.`:''}`;
     triggerClubEffect(data.reward_class==='xp' ? 'reward' : 'level', `🎉 ${data.reward_label}`);
     if (['extra_spin','twitch_reward'].includes(data.reward_key) || Number(data.reward_value||0) >= 250) {
       void sendDiscordCommunityEvent('wheel_rare_reward', {reward:`${data.reward_label}`}, `wheel-${currentUser.id}-${Date.now()}`);
@@ -2112,7 +2114,7 @@ async function spinWheel(){
     await progressQuestsForAction('wheel_spin');
     await loadWheelHistory();
     await loadMyRewards();
-    setWheelCooldown(data.next_free_at, data.spin_tokens);
+    setWheelCooldown(data.test_mode?null:data.next_free_at, data.spin_tokens);
     await loadWheelState();
   }catch(error){
     console.error('Wheel spin error:',error);message.textContent=error?.message||'Das Glücksrad konnte nicht gedreht werden.';
@@ -2127,7 +2129,7 @@ async function loadWheelState(){
   try{
     const [{data:profile,error:profileError},{data:latestSpin,error:spinError}]=await Promise.all([
       supabaseClient.from('profiles')
-        .select('wheel_spin_tokens,wheel_reset_at')
+        .select('wheel_spin_tokens,wheel_reset_at,pet_test_mode')
         .eq('id',currentUser.id)
         .maybeSingle(),
       (async()=>{
@@ -2143,7 +2145,9 @@ async function loadWheelState(){
     if(spinError)throw spinError;
 
     const tokens=Math.max(0,Number(profile?.wheel_spin_tokens||0));
+    const testMode=Boolean(profile?.pet_test_mode);
     setText('reward-spin-token-count',String(tokens));
+    if(testMode){ setText('wheel-test-mode-label','🧪 Testmodus aktiv · freie Drehs'); }
 
     const last=latestSpin?.created_at?new Date(latestSpin.created_at).getTime():0;
     const validLast=Number.isFinite(last)&&last>0;
@@ -2151,7 +2155,7 @@ async function loadWheelState(){
       ? new Date(last+86400000).toISOString()
       : null;
 
-    setWheelCooldown(nextFreeAt,tokens);
+    setWheelCooldown(testMode?null:nextFreeAt,tokens);
     return true;
   }catch(error){
     console.warn('Wheel state unavailable:',error);

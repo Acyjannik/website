@@ -140,6 +140,54 @@ async function resetWheelAdmin(){
   }catch(error){message('wheel-reset-admin-message',error?.message||'Glücksrad konnte nicht zurückgesetzt werden.');}
   finally{if(button){button.disabled=false;button.textContent='🎡 Glücksrad zurücksetzen';}}
 }
+
+async function grantWheelTokensAdmin(){
+  const userId=$('pet-coin-member-select')?.value;
+  const amount=Math.floor(Number($('wheel-token-amount')?.value||0));
+  if(!userId)return message('wheel-token-admin-message','Bitte zuerst ein Mitglied auswählen.');
+  if(!Number.isFinite(amount)||amount<1||amount>100)return message('wheel-token-admin-message','Bitte 1 bis 100 Extra-Drehs eingeben.');
+  const button=$('grant-wheel-tokens-btn'); if(button){button.disabled=true;button.textContent='Wird gutgeschrieben…';}
+  try{
+    const {data,error}=await supabaseClient.rpc('admin_grant_wheel_spins',{p_user_id:userId,p_amount:amount});
+    if(error)throw error;
+    message('wheel-token-admin-message',`🎡 +${Number(data?.amount||amount)} Extra-Dreh${amount===1?'':'s'} vergeben. Neues Guthaben: ${Number(data?.new_tokens||0)}.`,true);
+  }catch(error){message('wheel-token-admin-message',error?.message||'Extra-Drehs konnten nicht vergeben werden.');}
+  finally{if(button){button.disabled=false;button.textContent='🎡 Extra-Drehs gutschreiben';}}
+}
+
+async function loadPetTestModeAdmin(){
+  const userId=$('pet-coin-member-select')?.value;
+  if(!userId)return message('pet-test-mode-admin-message','Bitte zuerst ein Mitglied auswählen.');
+  try{
+    const {data,error}=await supabaseClient.from('profiles').select('pet_test_mode').eq('id',userId).maybeSingle();
+    if(error)throw error;
+    const enabled=Boolean(data?.pet_test_mode);
+    const button=$('toggle-pet-test-mode-btn'); if(button){button.dataset.enabled=String(enabled);button.textContent=enabled?'🧪 Testmodus ausschalten':'🧪 Testmodus einschalten';}
+    message('pet-test-mode-admin-message',enabled?'Testmodus ist aktuell AKTIV.':'Testmodus ist aktuell aus.',true);
+  }catch(error){message('pet-test-mode-admin-message',error?.message||'Testmodus konnte nicht geladen werden.');}
+}
+
+async function togglePetTestModeAdmin(){
+  const userId=$('pet-coin-member-select')?.value;
+  if(!userId)return message('pet-test-mode-admin-message','Bitte zuerst ein Mitglied auswählen.');
+  const button=$('toggle-pet-test-mode-btn');
+  const enabled=button?.dataset.enabled==='true';
+  const next=!enabled;
+  if(!window.confirm(next?'Testmodus aktivieren? Pet-Verbrauch und Cooldowns werden für dieses Mitglied nicht abgezogen.':'Testmodus ausschalten?'))return;
+  if(button){button.disabled=true;button.textContent='Wird geändert…';}
+  try{
+    const {data,error}=await supabaseClient.rpc('admin_set_pet_test_mode',{p_user_id:userId,p_enabled:next});
+    if(error)throw error;
+    if(button){button.dataset.enabled=String(next);button.textContent=next?'🧪 Testmodus ausschalten':'🧪 Testmodus einschalten';}
+    message('pet-test-mode-admin-message',next?'🧪 Testmodus aktiviert.':'Testmodus deaktiviert.',true);
+  }catch(error){message('pet-test-mode-admin-message',error?.message||'Testmodus konnte nicht geändert werden.');}
+  finally{if(button)button.disabled=false;}
+}
+
+document.getElementById('grant-wheel-tokens-btn')?.addEventListener('click',grantWheelTokensAdmin);
+document.getElementById('toggle-pet-test-mode-btn')?.addEventListener('click',async()=>{await loadPetTestModeAdmin(); await togglePetTestModeAdmin();});
+document.getElementById('pet-coin-member-select')?.addEventListener('change',loadPetTestModeAdmin);
+
 document.getElementById('reset-pet-daily-btn')?.addEventListener('click',resetPetDailyAdmin);
 document.getElementById('reset-wheel-btn')?.addEventListener('click',resetWheelAdmin);
 

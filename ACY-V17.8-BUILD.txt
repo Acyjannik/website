@@ -1,0 +1,7 @@
+ACYJANNIK V17.8
+Pet Admin Test Tools + Interactions
+- Extra-Drehs für Admin-Tests
+- sicherer Pet-Testmodus
+- Trainieren + Erkunden
+- 3 Stats bleiben erhalten: Hunger, Laune, Energie
+- Pet-Perks bleiben ladungsbasiert

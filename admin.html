@@ -7,7 +7,7 @@
   <meta name="robots" content="noindex,nofollow">
   <link rel="stylesheet" href="styles.css?v=14.4.0">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="admin.js?v=17.6.0" defer></script>
+  <script src="admin.js?v=17.8.0" defer></script>
   <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
   <link rel="shortcut icon" href="/assets/favicon.svg">
   <link rel="apple-touch-icon" href="/assets/favicon.svg">
@@ -18,7 +18,7 @@
       <div class="admin-brand">
         <div class="eyebrow">ACYJANNIK</div>
         <h1>Admin</h1>
-        <p class="admin-muted">Website, Community und Content verwalten.</p><div class="admin-version">Admin v17.3 · Control Center</div>
+        <p class="admin-muted">Website, Community und Content verwalten.</p><div class="admin-version">Admin v17.8 · Control Center</div>
       </div>
       <div class="admin-actions">
         <a class="button button-secondary" href="/">Website ↗</a>
@@ -165,6 +165,14 @@
                 <p class="admin-muted">Hebt für das ausgewählte Mitglied den 24-Stunden-Cooldown auf, ohne die bisherige Dreh-Historie oder die Wochenquest zu löschen.</p>
                 <button class="button button-secondary" id="reset-wheel-btn" type="button">🎡 Glücksrad zurücksetzen</button>
                 <p class="admin-note" id="wheel-reset-admin-message"></p>
+                <label class="admin-field"><span>Extra-Drehs</span><input id="wheel-token-amount" type="number" min="1" max="100" step="1" value="1" inputmode="numeric"></label>
+                <button class="button button-secondary" id="grant-wheel-tokens-btn" type="button">🎡 Extra-Drehs gutschreiben</button>
+                <p class="admin-note" id="wheel-token-admin-message"></p>
+                <hr class="admin-divider">
+                <div class="eyebrow">TESTMODUS</div>
+                <p class="admin-muted">Für das ausgewählte Mitglied werden Pet-Tageslimits, Pet-Item-Verbrauch und der Glücksrad-Cooldown nicht abgezogen. Belohnungen werden weiterhin vergeben. Nur für Tests verwenden.</p>
+                <button class="button button-secondary" id="toggle-pet-test-mode-btn" type="button">🧪 Testmodus laden</button>
+                <p class="admin-note" id="pet-test-mode-admin-message"></p>
               </div>
             </div>
           </div>
