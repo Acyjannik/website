@@ -1,0 +1,9 @@
+ACYJANNIK V17.9
+- Pet-Info komplett erweitert
+- Tierarten und Talente erklärt
+- Pet-Archiv erklärt
+- Perks verständlich als Nutzungen dargestellt
+- Boosts erklärt
+- neue Pet-Quests
+- Erkunden mit Sound + Animation
+- mobile Pet-Guide-Optimierung
