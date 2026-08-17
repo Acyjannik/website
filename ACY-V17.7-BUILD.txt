@@ -1,0 +1,10 @@
+ACYJANNIK V17.7
+Pet Perks + Expanded Pet Shop
+
+- Gewinnbare, serverseitige Pet-Perks mit Ladungen
+- Pet-Perks im Glücksrad und in Mystery Boxes
+- Perk-Effekte für Pflege, Füttern, Minigames und Glücksrad
+- Mehr Shop-Artikel mit kompakteren Karten
+- Pet-Shop bleibt ein- und ausklappbar
+- Pet-System-Guide um Perks erweitert
+- ACY BUILD V17.7

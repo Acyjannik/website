@@ -1291,7 +1291,7 @@ function renderProgressionCatalog(state) {
   const achievementList = $('achievement-catalog-list');
   if (!xpList || !achievementList) return;
   renderProgress(Number(state.xp || 0));
-  setText('catalog-render-status', 'V17.6 · Progression geladen');
+  setText('catalog-render-status', 'V17.7 · Progression geladen');
 
   const awarded = new Set(state.achievements || []);
   const xpEvents = new Set(state.xpEvents || []);
@@ -1444,7 +1444,7 @@ function handleDiscordOAuthCallback() {
 }
 
 function petLevelForXp(xp = 0) {
-  // V17.6 — expanded Pet progression: 10 meaningful milestones.
+  // V17.7 — expanded Pet progression: 10 meaningful milestones.
   // Thresholds are intentionally kept in the UI layer because pet_xp remains
   // the single source of truth in Supabase.
   const levels = [
@@ -1732,7 +1732,7 @@ $('pet-release-toggle')?.addEventListener('click', async () => {
 });
 
 
-// V17.6 — ACY Pet Life expansion
+// V17.7 — ACY Pet Life + Perks + Shop
 let petLifeState = null;
 function renderPetLife(state){
   petLifeState=state||null;
@@ -1740,8 +1740,12 @@ function renderPetLife(state){
   const inv=$('pet-inventory');
   if(inv){
     const items=state?.inventory||[];
-    inv.innerHTML=items.length?items.map(i=>{const usable=i.item_type!=='food'; return `<div class="pet-item-v17 ${usable?'pet-item-usable-v17':''}">${usable?`<button type="button" class="pet-item-use-v17" data-use-pet-item="${escapeAttr(i.key)}" aria-label="${escapeAttr(i.name)} verwenden">`:''}<strong>${escapeHtml(i.icon||'📦')} ${escapeHtml(i.name||'Item')}</strong><small><b>${Number(i.quantity||0)}× vorhanden</b> · ${escapeHtml(i.detail||'')}</small>${usable?'<span>Verwenden ›</span></button>':''}</div>`}).join(''):'<div class="club-content-empty">Dein Vorrat ist leer. Hol dir Snacks im Tagesvorrat, im Shop oder bei einem Minigame.</div>';
+    inv.innerHTML=items.length?items.map(i=>{const usable=['boost','toy'].includes(i.item_type); return `<div class="pet-item-v17 ${usable?'pet-item-usable-v17':''}">${usable?`<button type="button" class="pet-item-use-v17" data-use-pet-item="${escapeAttr(i.key)}" aria-label="${escapeAttr(i.name)} verwenden">`:''}<strong>${escapeHtml(i.icon||'📦')} ${escapeHtml(i.name||'Item')}</strong><small><b>${Number(i.quantity||0)}× vorhanden</b> · ${escapeHtml(i.detail||'')}</small>${usable?'<span>Verwenden ›</span></button>':''}</div>`}).join(''):'<div class="club-content-empty">Dein Vorrat ist leer. Hol dir Snacks im Tagesvorrat, im Shop oder bei einem Minigame.</div>';
   }
+  const perks=state?.perks||[];
+  const perkList=$('pet-perks-list'), perkCount=$('pet-perks-count');
+  if(perkCount) perkCount.textContent=String(perks.length);
+  if(perkList){ perkList.innerHTML=perks.length?perks.map(p=>`<div class="pet-perk-card-v177"><span class="pet-perk-icon-v177">${escapeHtml(p.icon||'✨')}</span><div><strong>${escapeHtml(p.name||'Pet-Perk')}</strong><small>${escapeHtml(p.detail||'Passiver Vorteil')}</small></div><b>${Number(p.charges||0)}×</b></div>`).join(''):'<div class="club-content-empty">Noch keine Perks. Gewinne einen beim Glücksrad oder in einer Mystery Box.</div>'; }
   const limits=state?.limits||{};
   const feedRemaining=Math.max(0,Number(limits.feed?.remaining||0));
   const feedMeta=$('pet-feed-meta'); if(feedMeta) feedMeta.textContent=feedRemaining>0?`Noch ${feedRemaining} von 3 heute · Futter auswählen`:'Heute ausgeschöpft · Futterlimit erreicht';
@@ -1774,7 +1778,7 @@ document.querySelector('#pet-archive-list')?.addEventListener('click',async(even
 async function loadPetLife(){
   if(!supabaseClient||!currentUser)return;
   try{ const {data,error}=await supabaseClient.rpc('get_pet_life_hub'); if(error)throw error; renderPetLife(data||{}); }
-  catch(error){ console.warn('Pet Life unavailable:',error); const st=$('pet-life-status'); if(st){st.textContent='Pet Life ist noch nicht vollständig eingerichtet. Bitte die V17.6-SQL-Migration ausführen.';st.className='club-auth-status error';} }
+  catch(error){ console.warn('Pet Life unavailable:',error); const st=$('pet-life-status'); if(st){st.textContent='Pet Life ist noch nicht vollständig eingerichtet. Bitte die V17.7-SQL-Migration ausführen.';st.className='club-auth-status error';} }
 }
 window.loadPetLife=loadPetLife;
 
@@ -1819,9 +1823,11 @@ $('pet-game-snack')?.addEventListener('click',()=>openPetGameOverlay('snack_hunt
 $('pet-game-paw')?.addEventListener('click',()=>openPetGameOverlay('lucky_paw'));
 function renderPetShop(){
   const box=$('pet-shop'); if(!box)return;
-  box.innerHTML=(petLifeState?.shop||[]).map(i=>`<div class="pet-shop-item-v17"><strong>${escapeHtml(i.icon)} ${escapeHtml(i.name)}</strong><small>${escapeHtml(i.detail)} · ${i.cost} AC Coins</small><button class="button button-small button-secondary" type="button" data-buy-pet="${escapeAttr(i.key)}">Kaufen</button></div>`).join('')||'<div class="club-content-empty">Shop wird vorbereitet.</div>';
+  const shop=petLifeState?.shop||[];
+  box.innerHTML=shop.length?shop.map(i=>`<div class="pet-shop-item-v177"><span class="pet-shop-icon-v177">${escapeHtml(i.icon)}</span><div><strong>${escapeHtml(i.name)}</strong><small>${escapeHtml(i.detail)}</small><em>${i.cost} AC Coins</em></div><button class="button button-small button-secondary" type="button" data-buy-pet="${escapeAttr(i.key)}">Kaufen</button></div>`).join(''):'<div class="club-content-empty">Shop wird vorbereitet.</div>';
+  const toggle=$('pet-shop-open'); if(toggle){toggle.setAttribute('aria-expanded',String(!box.hidden));toggle.textContent=box.hidden?`🛍️ Pet-Shop · ${shop.length} Artikel`:'⌃ Pet-Shop schließen';}
 }
-$('pet-shop-open')?.addEventListener('click',async()=>{const box=$('pet-shop'); if(!box)return; if(!petLifeState?.shop?.length) await loadPetLife(); box.hidden=!box.hidden; if(!box.hidden) renderPetShop();});
+$('pet-shop-open')?.addEventListener('click',async()=>{const box=$('pet-shop'); if(!box)return; if(!petLifeState?.shop?.length) await loadPetLife(); box.hidden=!box.hidden; renderPetShop(); if(!box.hidden) box.scrollIntoView({behavior:'smooth',block:'nearest'});});
 $('pet-shop')?.addEventListener('click',async(event)=>{const btn=event.target.closest('[data-buy-pet]'); if(!btn)return; btn.disabled=true; try{await petLifeRpc('buy_pet_item',{p_item_key:btn.dataset.buyPet},'Gekauft. 🛍️'); await loadPetLife(); renderPetShop();}catch{}finally{btn.disabled=false;}});
 
 function closePetInfoModal(){ document.querySelector('.pet-info-overlay-v17')?.remove(); }
@@ -1840,7 +1846,8 @@ function openPetInfoModal(){
       <div><strong>🎯 Snack Hunt</strong><p>Fange den Snack im Spielfeld. Du bekommst Snacks und AC Coins.</p></div>
       <div><strong>🐾 Lucky Paw</strong><p>Wähle eine Pfote und versuche dein Glück. Die Belohnung wird serverseitig bestimmt.</p></div>
       <div><strong>🪙 AC Coins</strong><p>Eine kostenlose Club-Währung. Du verdienst sie durch Aktivitäten und gibst sie im Pet-Shop aus.</p></div>
-      <div><strong>🎁 Mystery Box</strong><p>Öffne eine Box und erhalte zufällige Pet-Items oder Coins.</p></div>
+      <div><strong>🎁 Mystery Box</strong><p>Öffne eine Box und erhalte zufällige Pet-Items, Coins oder mit etwas Glück einen Perk.</p></div>
+      <div><strong>✨ Pet-Perks</strong><p>Perks sind kleine passive Vorteile mit Ladungen. Sie aktivieren sich automatisch, wenn ihr passender Effekt ausgelöst wird.</p></div>
       <div><strong>📈 Pet-XP</strong><p>Pflege und Items bringen Pflege-XP. Damit steigt dein Pet durch Begleiter, Freund, Gefährte, Sidekick und Legende.</p></div>
     </div>
   </div>`;
@@ -1982,7 +1989,7 @@ $('pet-rename-form')?.addEventListener('submit', async (event) => {
 const WHEEL_SEGMENTS = [
   {key:'xp_25',angle:0},{key:'xp_50',angle:30},{key:'xp_100',angle:60},
   {key:'xp_250',angle:90},{key:'xp_500',angle:120},{key:'xp_1000',angle:150},
-  {key:'pet_care',angle:180},{key:'pet_boost_big',angle:210},
+  {key:'pet_care',angle:180},{key:'pet_perk',angle:210},
   {key:'extra_spin',angle:240},{key:'extra_spin_2',angle:270},
   {key:'twitch_reward',angle:300},{key:'xp_jackpot',angle:330}
 ];

@@ -4,13 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Mein ACY Club · Acyjannik</title>
-  <link rel="stylesheet" href="styles.css?v=17.6.0">
+  <link rel="stylesheet" href="styles.css?v=17.7.0">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="/pet-companion.js?v=8.0.0" defer></script>
-  <script src="club-profile.js?v=17.6.0" defer></script>
+  <script src="club-profile.js?v=17.7.0" defer></script>
   <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
   <link rel="shortcut icon" href="/assets/favicon.svg">
   <link rel="apple-touch-icon" href="/assets/favicon.svg">
-<link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#0b0b10"><link rel="apple-touch-icon" href="/icons/acy-192.png"><script src="/pwa.js?v=17.6.0"></script></head>
+<link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#0b0b10"><link rel="apple-touch-icon" href="/icons/acy-192.png"><script src="/pwa.js?v=17.7.0"></script></head>
 <body class="club-auth-page">
   <div class="club-auth-shell">
     <header class="club-auth-header">
@@ -364,10 +364,14 @@
                 <div class="pet-coins-v17">🪙 <span id="pet-coins">0</span> AC Coins</div>
               </div>
               <div class="pet-inventory-v17" id="pet-inventory"></div>
+              <div class="pet-perks-v177" id="pet-perks">
+                <div class="pet-perks-head-v177"><div><span class="eyebrow">PET PERKS</span><strong>Aktive Vorteile</strong><small>Gewonnene Perks laufen automatisch und verbrauchen Ladungen, wenn ihr Effekt genutzt wird.</small></div><span class="pet-perks-count-v177" id="pet-perks-count">0</span></div>
+                <div class="pet-perks-list-v177" id="pet-perks-list"><div class="club-content-empty">Noch keine Perks. Vielleicht hat das Glücksrad heute Mitleid.</div></div>
+              </div>
               <div class="pet-life-actions-v17">
                 <button class="button button-secondary" id="pet-daily-supply" type="button">🎁 Tagesvorrat</button>
                 <button class="button button-secondary" id="pet-mystery-box" type="button">🎁 Mystery Box</button>
-                <button class="button button-secondary" id="pet-shop-open" type="button">🛍️ Pet-Shop</button>
+                <button class="button button-secondary" id="pet-shop-open" type="button" aria-expanded="false">🛍️ Pet-Shop</button>
               </div>
               <div class="pet-minigames-v17">
                 <div class="pet-mini-card-v17"><span>🎯</span><div><strong>Snack Hunt</strong><small>Finde einen Snack und gewinne Futter.</small></div><button class="button button-small button-primary" id="pet-game-snack" type="button">Spielen</button></div>
@@ -477,7 +481,7 @@
           </summary>
           <div class="member-fold-body">
             <div class="catalog-levels catalog-levels-scroll" id="catalog-levels-render" aria-label="Alle 30 Club-Level"></div>
-            <div id="catalog-render-status" class="catalog-render-status" aria-live="polite">V17.6 · Progression wird geladen…</div>
+            <div id="catalog-render-status" class="catalog-render-status" aria-live="polite">V17.7 · Progression wird geladen…</div>
             <div class="catalog-columns">
               <div><div class="section-mini-title">XP VERDIENEN</div><div class="catalog-list" id="xp-catalog-list"></div></div>
               <div><div class="section-mini-title">ACHIEVEMENTS</div><div class="catalog-list" id="achievement-catalog-list"></div></div>
@@ -519,6 +523,7 @@
                   <div><span>👑</span><strong>+1.000 XP</strong><small>Sehr selten</small></div>
                   <div><span>🐾</span><strong>Pet-Bonus</strong><small>+Pflege & Energie</small></div>
                   <div><span>💖</span><strong>Pet-Mega-Boost</strong><small>Großer Pflege-Boost</small></div>
+                  <div><span>✨</span><strong>Pet-Perk</strong><small>Passiver Vorteil mit Ladungen</small></div>
                   <div><span>🎡</span><strong>Extra-Dreh</strong><small>Selten</small></div>
                   <div><span>🎡</span><strong>2 Extra-Drehs</strong><small>Extrem selten</small></div>
                   <div><span>💜</span><strong>Twitch-Reward</strong><small>Für Twitch vorbereitet</small></div>
@@ -711,9 +716,9 @@
             border-radius:999px;background:rgba(12,9,18,.92);
             color:#c084fc;font:700 10px/1 system-ui,sans-serif;
             letter-spacing:.08em;pointer-events:none;opacity:.75">
-  ACY BUILD V17.6
+  ACY BUILD V17.7
 </div>
 
-  <script src="liquid-ui.js?v=17.6.0" defer></script>
+  <script src="liquid-ui.js?v=17.7.0" defer></script>
 </body>
 </html>
