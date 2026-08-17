@@ -234,6 +234,24 @@ function applyGlowTier(element, xp=0){
   element.dataset.glowTier=String(Math.max(-1,tier));
 }
 
+function applyClubHubGlow(xp=0){
+  const selectors = [
+    '.member-hub .hub-main-card',
+    '.member-hub .hub-progression-card',
+    '.member-hub .hub-poll-card',
+    '.member-hub .hub-events-card',
+    '.member-hub .hub-achievements-card',
+    '.member-hub .hub-games-card'
+  ];
+  const tier = glowTierForXp(xp);
+  selectors.forEach(selector => {
+    document.querySelectorAll(selector).forEach(element => {
+      applyGlowTier(element, xp);
+      element.classList.toggle('hub-glow-active', tier >= 0);
+    });
+  });
+}
+
 function applyProfileGlow(xp=0){
   applyGlowTier(document.querySelector('.member-hero-card'),xp);
   applyGlowTier(document.querySelector('.member-avatar-wrap'),xp);
@@ -1273,7 +1291,7 @@ function renderProgressionCatalog(state) {
   const achievementList = $('achievement-catalog-list');
   if (!xpList || !achievementList) return;
   renderProgress(Number(state.xp || 0));
-  setText('catalog-render-status', 'V16.2 · Progression geladen');
+  setText('catalog-render-status', 'V16.4 · Progression geladen');
 
   const awarded = new Set(state.achievements || []);
   const xpEvents = new Set(state.xpEvents || []);

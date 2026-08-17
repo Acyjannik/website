@@ -4505,3 +4505,18 @@ body.acy-cosmic-active .club-auth-shell{filter:saturate(1.12)}
   .notification-setting-card{min-height:58px}
 }
 @media(max-width:430px){.club-auth-page .member-fold-art-wrap{width:56px;height:56px;flex-basis:56px}.club-auth-page .member-fold-summary-main strong{font-size:19px}.club-auth-page .member-fold-summary-main small{font-size:11px}}
+
+
+/* V16.4 — safe club hub glow hook */
+.member-hub .hub-main-card[class*="glow-tier-"],
+.member-hub .hub-progression-card[class*="glow-tier-"],
+.member-hub .hub-poll-card[class*="glow-tier-"],
+.member-hub .hub-events-card[class*="glow-tier-"],
+.member-hub .hub-achievements-card[class*="glow-tier-"],
+.member-hub .hub-games-card[class*="glow-tier-"]{
+  border-color:var(--glow-main);
+  box-shadow:0 0 18px var(--glow-main);
+  transition:border-color .35s ease,box-shadow .35s ease;
+}
+.member-hub .hub-glow-active{position:relative;overflow:hidden}
+.member-hub .hub-glow-active::after{content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;background:radial-gradient(circle at 20% 0%,var(--glow-strong),transparent 48%);opacity:.16}
