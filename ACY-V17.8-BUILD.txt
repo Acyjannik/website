@@ -4,4 +4,4 @@ Pet Admin Test Tools + Interactions
 - sicherer Pet-Testmodus
 - Trainieren + Erkunden
 - 3 Stats bleiben erhalten: Hunger, Laune, Energie
-- Pet-Perks bleiben ladungsbasiert
+- Pet-Perks bleiben nutzungsbasiert

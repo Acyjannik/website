@@ -1209,21 +1209,21 @@ async function voteInPoll(optionId) {
 // V5.6 XP & Achievement Catalog
 // ------------------------------------------------------------
 const PET_SPECIES = {
-  cat:      { icon: '🐱', label: 'Katze', detail: 'Neugierig, gemütlich, leicht beleidigt.' },
-  dog:      { icon: '🐶', label: 'Hund', detail: 'Treuer Begleiter mit Energieüberschuss.' },
-  fox:      { icon: '🦊', label: 'Fuchs', detail: 'Clever, frech und ziemlich charmant.' },
-  axolotl:  { icon: '🦎', label: 'Axolotl', detail: 'Entspannt. Immer. Irgendwie.' },
-  dragon:   { icon: '🐲', label: 'Drache', detail: 'Klein angefangen. Große Pläne.' },
-  unicorn:  { icon: '🦄', label: 'Einhorn', detail: 'Magisch, selten und völlig übertrieben.' },
-  penguin:  { icon: '🐧', label: 'Pinguin', detail: 'Klein, cool und immer schick unterwegs.' },
-  panda:    { icon: '🐼', label: 'Panda', detail: 'Gemütlich, knuffig und snackorientiert.' },
-  bunny:    { icon: '🐰', label: 'Hase', detail: 'Fluffig, schnell und leicht chaotisch.' },
-  koala:    { icon: '🐨', label: 'Koala', detail: 'Professioneller Schlaf- und Kuschelexperte.' },
-  hamster:  { icon: '🐹', label: 'Hamster', detail: 'Winzig, wuselig und erstaunlich fleißig.' },
-  turtle:   { icon: '🐢', label: 'Schildkröte', detail: 'Langsam, entspannt und unbeeindruckt.' },
-  owl:      { icon: '🦉', label: 'Eule', detail: 'Weise, nachtaktiv und leicht mysteriös.' },
-  frog:     { icon: '🐸', label: 'Frosch', detail: 'Fröhlich, grün und immer für Quatsch zu haben.' },
-  bee:      { icon: '🐝', label: 'Biene', detail: 'Fleißig, klein und ständig beschäftigt.' }
+  cat:      { icon: '🐱', label: 'Katze', detail: 'Neugierig, gemütlich, leicht beleidigt.', trait: 'Kuschelbonus · Streicheln gibt mehr Laune.' },
+  dog:      { icon: '🐶', label: 'Hund', detail: 'Treuer Begleiter mit Energieüberschuss.', trait: 'Spieltrieb · Spielen gibt mehr Laune und kostet weniger Energie.' },
+  fox:      { icon: '🦊', label: 'Fuchs', detail: 'Clever, frech und ziemlich charmant.', trait: 'Schlaukopf · Minigames bringen mehr AC Coins.' },
+  axolotl:  { icon: '🦎', label: 'Axolotl', detail: 'Entspannt. Immer. Irgendwie.', trait: 'Regeneration · Deine Werte sinken langsamer.' },
+  dragon:   { icon: '🐲', label: 'Drache', detail: 'Klein angefangen. Große Pläne.', trait: 'Feuerhunger · Futter sättigt stärker.' },
+  unicorn:  { icon: '🦄', label: 'Einhorn', detail: 'Magisch, selten und völlig übertrieben.', trait: 'Glückskind · Bessere Chancen auf seltene Pet-Rewards.' },
+  penguin:  { icon: '🐧', label: 'Pinguin', detail: 'Klein, cool und immer schick unterwegs.', trait: 'Eiskalt · Energie sinkt besonders langsam.' },
+  panda:    { icon: '🐼', label: 'Panda', detail: 'Gemütlich, knuffig und snackorientiert.', trait: 'Snackfreund · Futter verbessert zusätzlich die Laune.' },
+  bunny:    { icon: '🐰', label: 'Hase', detail: 'Fluffig, schnell und leicht chaotisch.', trait: 'Flink · Snack Hunt kann zusätzliche Snacks finden.' },
+  koala:    { icon: '🐨', label: 'Koala', detail: 'Professioneller Schlaf- und Kuschelexperte.', trait: 'Schlafprofi · Schlafen gibt mehr Energie.' },
+  hamster:  { icon: '🐹', label: 'Hamster', detail: 'Winzig, wuselig und erstaunlich fleißig.', trait: 'Sammler · Der Tagesvorrat kann einen Extra-Snack bringen.' },
+  turtle:   { icon: '🐢', label: 'Schildkröte', detail: 'Langsam, entspannt und unbeeindruckt.', trait: 'Schildkrötenpanzer · Alle drei Werte sinken langsamer.' },
+  owl:      { icon: '🦉', label: 'Eule', detail: 'Weise, nachtaktiv und leicht mysteriös.', trait: 'Wachsam · Lucky Paw hat bessere Belohnungschancen.' },
+  frog:     { icon: '🐸', label: 'Frosch', detail: 'Fröhlich, grün und immer für Quatsch zu haben.', trait: 'Quirlige Laune · Streicheln gibt mehr Laune und XP.' },
+  bee:      { icon: '🐝', label: 'Biene', detail: 'Fleißig, klein und ständig beschäftigt.', trait: 'Fleißig · Pflegeaktionen geben etwas mehr Pflege-XP.' }
 };
 
 let currentPet = null;
@@ -1291,7 +1291,7 @@ function renderProgressionCatalog(state) {
   const achievementList = $('achievement-catalog-list');
   if (!xpList || !achievementList) return;
   renderProgress(Number(state.xp || 0));
-  setText('catalog-render-status', 'V17.8 · Progression geladen');
+  setText('catalog-render-status', 'V17.9 · Progression geladen');
 
   const awarded = new Set(state.achievements || []);
   const xpEvents = new Set(state.xpEvents || []);
@@ -1444,7 +1444,7 @@ function handleDiscordOAuthCallback() {
 }
 
 function petLevelForXp(xp = 0) {
-  // V17.8 — expanded Pet progression: 10 meaningful milestones.
+  // V17.9 — expanded Pet progression: 10 meaningful milestones.
   // Thresholds are intentionally kept in the UI layer because pet_xp remains
   // the single source of truth in Supabase.
   const levels = [
@@ -1732,7 +1732,7 @@ $('pet-release-toggle')?.addEventListener('click', async () => {
 });
 
 
-// V17.8 — ACY Pet Life + Perks + Shop + Admin Test Mode
+// V17.9 — ACY Pet Life + Perks + Shop + Admin Test Mode
 let petLifeState = null;
 function renderPetLife(state){
   petLifeState=state||null;
@@ -1780,7 +1780,7 @@ document.querySelector('#pet-archive-list')?.addEventListener('click',async(even
 async function loadPetLife(){
   if(!supabaseClient||!currentUser)return;
   try{ const {data,error}=await supabaseClient.rpc('get_pet_life_hub'); if(error)throw error; renderPetLife(data||{}); }
-  catch(error){ console.warn('Pet Life unavailable:',error); const st=$('pet-life-status'); if(st){st.textContent='Pet Life ist noch nicht vollständig eingerichtet. Bitte die V17.8-SQL-Migration ausführen.';st.className='club-auth-status error';} }
+  catch(error){ console.warn('Pet Life unavailable:',error); const st=$('pet-life-status'); if(st){st.textContent='Pet Life ist noch nicht vollständig eingerichtet. Bitte die V17.9-SQL-Migration ausführen.';st.className='club-auth-status error';} }
 }
 window.loadPetLife=loadPetLife;
 
@@ -1795,6 +1795,7 @@ $('pet-mystery-box')?.addEventListener('click',async()=>{try{const d=await petLi
 async function finishPetMiniGame(game){
   try {
     const d=await petLifeRpc('play_pet_minigame',{p_game:game},game==='snack_hunt'?'Snack Hunt geschafft! 🍪':'Lucky Paw gewonnen! 🐾');
+    void progressQuestsForAction('pet_minigame');
     if(d?.reward_label) triggerClubEffect('reward',`🎁 ${d.reward_label}`);
   } catch(e) {}
 }
@@ -1836,22 +1837,34 @@ function closePetInfoModal(){ document.querySelector('.pet-info-overlay-v17')?.r
 function openPetInfoModal(){
   closePetInfoModal();
   const overlay=document.createElement('div'); overlay.className='pet-info-overlay-v17';
-  overlay.innerHTML=`<div class="pet-info-modal-v17" role="dialog" aria-modal="true" aria-labelledby="pet-info-title">
+  const speciesCards=Object.entries(PET_SPECIES).map(([key,pet])=>`
+    <article class="pet-species-info-v179">
+      <img src="assets/pet-${escapeAttr(key)}.webp" alt="${escapeAttr(pet.label)}" loading="lazy">
+      <div><strong>${escapeHtml(pet.icon)} ${escapeHtml(pet.label)}</strong><small>${escapeHtml(pet.trait||pet.detail)}</small></div>
+    </article>`).join('');
+  overlay.innerHTML=`<div class="pet-info-modal-v17 pet-info-modal-v179" role="dialog" aria-modal="true" aria-labelledby="pet-info-title">
     <button class="pet-game-close-v17" type="button" aria-label="Schließen">×</button>
     <span class="eyebrow">PET LIFE GUIDE</span><h3 id="pet-info-title">So funktioniert dein Pet 🐾</h3>
+    <p class="pet-info-intro-v179">Dein Begleiter hat drei Werte: <strong>Hunger, Laune und Energie</strong>. Mit Aktionen, Futter und Spielen hältst du ihn fit und sammelst Pflege-XP.</p>
     <div class="pet-info-grid-v17">
-      <div><strong>🍖 Füttern</strong><p>Bis zu 3 Fütterungen pro Tag. Jede Portion verbraucht ein Futter-Item. Je besser das Futter, desto stärker der Effekt.</p></div>
-      <div><strong>💜 Streicheln</strong><p>Bis zu 3× täglich. Erhöht die Laune und gibt Pflege-XP.</p></div>
-      <div><strong>🎾 Spielen</strong><p>Bis zu 2× täglich. Viel Laune, kostet aber Energie.</p></div>
-      <div><strong>🛁 Pflegen</strong><p>1× täglich. Gibt Laune und etwas Energie.</p></div>
-      <div><strong>😴 Schlafen</strong><p>1× täglich. Gibt Energie zurück, kostet dafür etwas Hunger.</p></div>
-      <div><strong>🎯 Snack Hunt</strong><p>Fange den Snack im Spielfeld. Du bekommst Snacks und AC Coins.</p></div>
-      <div><strong>🐾 Lucky Paw</strong><p>Wähle eine Pfote und versuche dein Glück. Die Belohnung wird serverseitig bestimmt.</p></div>
-      <div><strong>🪙 AC Coins</strong><p>Eine kostenlose Club-Währung. Du verdienst sie durch Aktivitäten und gibst sie im Pet-Shop aus.</p></div>
-      <div><strong>🎁 Mystery Box</strong><p>Öffne eine Box und erhalte zufällige Pet-Items, Coins oder mit etwas Glück einen Perk.</p></div>
-      <div><strong>✨ Pet-Perks</strong><p>Perks sind kleine passive Vorteile mit Ladungen. Sie aktivieren sich automatisch, wenn ihr passender Effekt ausgelöst wird.</p></div>
-      <div><strong>📈 Pet-XP</strong><p>Pflege und Items bringen Pflege-XP. Damit steigt dein Pet durch Begleiter, Freund, Gefährte, Sidekick und Legende.</p></div>
+      <div><strong>🍖 Füttern</strong><p>Bis zu 3× täglich. Du wählst selbst, welches Futter du verwendest. Besseres Futter kann mehrere Werte gleichzeitig verbessern.</p></div>
+      <div><strong>💜 Streicheln</strong><p>Erhöht die Laune und bringt Pflege-XP. Die Anzahl pro Tag ist begrenzt.</p></div>
+      <div><strong>🎾 Spielen</strong><p>Bringt viel Laune, kostet aber Energie. Manche Tierarten sind besonders gut darin.</p></div>
+      <div><strong>🛁 Pflegen</strong><p>Eine tägliche Pflegeaktion für Laune, Energie und Pflege-XP.</p></div>
+      <div><strong>😴 Schlafen</strong><p>Stellt Energie wieder her. Koalas sind darin besonders gut.</p></div>
+      <div><strong>💪 Trainieren</strong><p>Eine aktive Pflegeaktion für zusätzliche Pflege-XP. Kostet Energie, bringt dein Tier aber langfristig weiter.</p></div>
+      <div><strong>🗺️ Erkunden</strong><p>Dein Tier geht auf Entdeckungstour. Dabei kannst du Snacks, AC Coins und kleine Überraschungen finden.</p></div>
+      <div><strong>🎯 Mini-Games</strong><p>Snack Hunt und Lucky Paw liefern zusätzliche Vorräte und AC Coins. Manche Tiere und Perks verbessern deine Chancen.</p></div>
+      <div><strong>🎡 Glücksrad</strong><p>Das Glücksrad kann XP, Futter, AC Coins, Extra-Drehs, Pet-Boni und seltene Perks bringen.</p></div>
+      <div><strong>🪙 AC Coins</strong><p>Die Club-Währung für den Pet-Shop. Du verdienst sie durch Aktivitäten und kannst sie für Futter, Spielzeug und Boost-Items ausgeben.</p></div>
+      <div><strong>✨ Perks</strong><p>Perks sind besondere Vorteile mit <strong>Nutzungen</strong>. Sie werden automatisch eingesetzt, sobald ihr passender Effekt ausgelöst wird. Du siehst immer, wie viele Nutzungen noch übrig sind.</p></div>
+      <div><strong>⚡ Boosts</strong><p>Boosts sind zeitlich begrenzte Verstärkungen, die wir für besondere Events und seltene Belohnungen nutzen können. Sie funktionieren anders als Perks und laufen nach ihrer Dauer ab.</p></div>
+      <div><strong>📦 Vorrat & Shop</strong><p>Snacks und andere Items landen in deinem Vorrat. Der Shop verkauft zusätzliche Items für AC Coins. Der Tagesvorrat und Mini-Games helfen dir, ohne Coins weiterzukommen.</p></div>
+      <div><strong>🎁 Mystery Box</strong><p>Eine Überraschungsbox kann Items, Coins oder mit etwas Glück einen seltenen Perk enthalten.</p></div>
+      <div><strong>🗄️ Pet-Archiv</strong><p>Wenn du dein Tier wechselst, wird dein bisheriger Begleiter <strong>archiviert</strong>. Name, Pflege-XP und Werte bleiben erhalten. Du kannst später jederzeit wieder zu ihm wechseln.</p></div>
+      <div><strong>📈 Pet-Level</strong><p>Pflege-XP bringen dich durch 10 Stufen vom Kleinen Begleiter bis zum ACY Overlord. Höhere Stufen sollen später weitere Vorteile freischalten.</p></div>
     </div>
+    <div class="pet-species-guide-v179"><div class="eyebrow">TIERARTEN & TALENTE</div><h4>Jedes Tier spielt sich ein bisschen anders.</h4><p>Die Tierart ist nicht nur ein anderes Bild. Jede hat ein eigenes Talent.</p><div class="pet-species-grid-v179">${speciesCards}</div></div>
   </div>`;
   document.body.appendChild(overlay);
   overlay.querySelector('.pet-game-close-v17')?.addEventListener('click',closePetInfoModal);
@@ -1882,6 +1895,25 @@ async function usePetInventoryItem(key){
   catch(e){}
 }
 
+function triggerPetExploreEffect(){
+  const avatar=$('pet-avatar');
+  if(avatar){
+    avatar.classList.remove('is-exploring-v179');
+    void avatar.offsetWidth;
+    avatar.classList.add('is-exploring-v179');
+    setTimeout(()=>avatar.classList.remove('is-exploring-v179'),1500);
+  }
+  if(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches){ playUISound('explore'); return; }
+  const layer=document.createElement('div'); layer.className='pet-explore-burst-v179';
+  ['🌿','✨','🐾','🍪','🪙','💜'].forEach((symbol,i)=>{
+    const el=document.createElement('span'); el.textContent=symbol; el.style.setProperty('--i',i); el.style.setProperty('--x',`${(i-2.5)*34}px`); layer.appendChild(el);
+  });
+  avatar?.appendChild(layer);
+  setTimeout(()=>layer.remove(),1500);
+  playUISound('explore');
+  showClubToast('🐾 Dein Tier ist auf Entdeckungstour!', 'success');
+}
+
 async function performPetAction(action, button) {
   if (!currentPet || !button) return;
   button.disabled = true;
@@ -1894,6 +1926,11 @@ async function performPetAction(action, button) {
     const { data, error } = await supabaseClient.rpc('club_pet_action', { p_action: action });
     if (error) throw error;
     renderPet(data?.pet||data);
+    if (action === 'train') void progressQuestsForAction('pet_train');
+    if (action === 'explore') {
+      void progressQuestsForAction('pet_explore');
+      triggerPetExploreEffect();
+    }
     if (data?.daily_xp_awarded) {
       void progressQuestsForAction('pet_daily');
       setPetStatus('Pflegeaktion erledigt: +5 Pflege-XP. 🐾', 'success');
@@ -4052,6 +4089,9 @@ const QUEST_ACTIONS = Object.freeze({
   daily_profile: ['daily_profile'],
   daily_game: ['daily_game'],
   pet_daily: ['daily_pet'],
+  pet_train: ['daily_pet_training'],
+  pet_explore: ['weekly_pet_adventure'],
+  pet_minigame: ['weekly_pet_games'],
   social_message: ['daily_social', 'weekly_chat'],
   poll_vote: ['daily_poll', 'weekly_vote'],
   wheel_spin: ['weekly_wheel'],
@@ -4073,6 +4113,7 @@ async function progressQuestsForAction(actionKey, amount = 1) {
     daily_game: 'daily',
     daily_profile: 'daily',
     daily_pet: 'daily',
+    daily_pet_training: 'daily',
     daily_social: 'daily',
     daily_poll: 'daily',
     weekly_wheel: 'weekly',
@@ -4081,6 +4122,8 @@ async function progressQuestsForAction(actionKey, amount = 1) {
     weekly_event: 'weekly',
     weekly_chat: 'weekly',
     weekly_pet: 'weekly',
+    weekly_pet_adventure: 'weekly',
+    weekly_pet_games: 'weekly',
     weekly_vote: 'weekly'
   };
 
@@ -4168,6 +4211,7 @@ function playUISound(kind = 'click') {
     toggle: { f: 460, g: 0.028, d: 0.07, type: 'sine' },
     pet:    { f: 540, g: 0.032, d: 0.11, type: 'sine' },
     whoosh: { f: 210, g: 0.028, d: 0.18, type: 'triangle' },
+    explore:{ f: 330, g: 0.028, d: 0.16, type: 'sine' },
     spin:   { f: 420, g: 0.024, d: 0.07, type: 'triangle' },
     unlock: { f: 523, g: 0.042, d: 0.22, type: 'triangle' }
   };
@@ -4199,6 +4243,12 @@ function playUISound(kind = 'click') {
   if (kind === 'unlock') {
     [523, 659, 784, 1047, 1319].forEach((freq, i) => tone(freq, p.g * (1 - i * .08), .20, 'triangle', i * .075));
     tone(1568, p.g * .55, .32, 'sine', .38);
+    return;
+  }
+  if (kind === 'explore') {
+    tone(330, p.g, .12, 'sine', 0, 560);
+    tone(520, p.g * .7, .16, 'triangle', .08, 760);
+    tone(740, p.g * .45, .18, 'sine', .16, 980);
     return;
   }
   tone(p.f, p.g, p.d, p.type);
