@@ -2137,6 +2137,7 @@ async function claimDailyStreak(){
     const {data,error}=await supabaseClient.rpc('claim_daily_streak');
     if(error)throw error;
     if(data?.claimed){
+      await progressQuestsForAction('daily_streak');
       const achievementText = data.new_achievement ? ` · 🏆 ${data.new_achievement}` : '';
       setText('daily-streak-message',`🔥 +${data.reward_xp} XP · Serie: ${data.current_streak} Tage!${achievementText}`);
       triggerClubEffect(data.new_achievement ? 'level' : 'reward', data.new_achievement ? `🏆 ${data.new_achievement} freigeschaltet!` : `🔥 Tagesbonus +${data.reward_xp} XP`);
@@ -2190,6 +2191,21 @@ async function loadModeratorAccessShortcut(){
   }
 }
 
+let questRealtimeChannel = null;
+function initQuestRealtime(){
+  if(!supabaseClient || !currentUser || questRealtimeChannel) return;
+  try{
+    questRealtimeChannel = supabaseClient
+      .channel(`acy-quest-progress-${currentUser.id}`)
+      .on('postgres_changes',{event:'*',schema:'public',table:'club_quest_progress',filter:`user_id=eq.${currentUser.id}`},()=>{
+        loadQuests().catch(()=>{});
+      })
+      .subscribe((status,error)=>{
+        if(status==='CHANNEL_ERROR'||status==='TIMED_OUT') console.warn('Quest realtime unavailable:',status,error);
+      });
+  }catch(error){ console.warn('Quest realtime setup skipped:',error); }
+}
+
 async function init() {
   try {
     const cfg = await (await fetch('/api/config', { cache: 'no-store' })).json();
@@ -2214,6 +2230,7 @@ async function init() {
     }
 
     currentUser = data.session.user;
+    initQuestRealtime();
 
     // Priority UI: identity, games and pet must not wait behind optional widgets.
     initMemberSectionNavigation();
@@ -2277,7 +2294,6 @@ async function init() {
       ['Rewards', loadMyRewards],
       ['Wheel History', loadWheelHistory],
       ['Wheel State', loadWheelState],
-      ['Daily Login Quest', () => progressQuestsForAction('daily_login')],
       ['Quests', loadQuests],
       ['Leaderboard', loadLeaderboard],
       ['Member Hub', loadMemberHub],
@@ -3745,15 +3761,18 @@ async function loadQuests(){
   const list=$('quest-list');
   if(!list||!supabaseClient||!currentUser)return;
   try{
+    // Sync data-derived quests BEFORE reading the catalog/progress so the UI
+    // never renders one refresh behind (especially weekly game progress).
+    for (const syncFn of ['sync_weekly_game_quest','sync_weekly_pet_quest']) {
+      try {
+        await supabaseClient.rpc(syncFn);
+      } catch (questSyncError) {
+        console.warn(`${syncFn} skipped:`, questSyncError);
+      }
+    }
     const {data,error}=await supabaseClient.rpc('get_my_quests');
     if(error)throw error;
     questData=data||{daily:[],weekly:[],periods:{}};
-
-    try {
-      await supabaseClient.rpc('sync_weekly_game_quest');
-    } catch (questSyncError) {
-      console.warn('Weekly game quest sync skipped:', questSyncError);
-    }
     for(const type of ['daily','weekly']){
       const items=Array.isArray(questData[type])?questData[type]:[];
       const period=questPeriodKey(type);
@@ -3805,16 +3824,22 @@ function initQuestTabs(){
 // V9.6 — Quest Engine: action -> quest progress
 // ------------------------------------------------------------
 const QUEST_ACTIONS = Object.freeze({
-  profile_complete: ['daily_login'],
+  registration: ['daily_login'],
   daily_login: ['daily_login'],
-  daily_game: ['daily_game'],
+  daily_streak: ['daily_login', 'daily_streak'],
   profile_complete: ['daily_profile'],
+  daily_profile: ['daily_profile'],
+  daily_game: ['daily_game'],
   pet_daily: ['daily_pet'],
-  social_message: ['daily_social'],
-  poll_vote: ['daily_poll'],
+  social_message: ['daily_social', 'weekly_chat'],
+  poll_vote: ['daily_poll', 'weekly_vote'],
   wheel_spin: ['weekly_wheel'],
   friend_accepted: ['weekly_social'],
-  event_attended: ['weekly_event']
+  event_attended: ['weekly_event'],
+  weekly_chat: ['weekly_chat'],
+  weekly_pet: ['weekly_pet'],
+  friend_profile_opened: ['daily_friend'],
+  game_explored: ['weekly_games']
 });
 
 async function progressQuestsForAction(actionKey, amount = 1) {
@@ -3831,25 +3856,33 @@ async function progressQuestsForAction(actionKey, amount = 1) {
     daily_poll: 'daily',
     weekly_wheel: 'weekly',
     weekly_social: 'weekly',
-    weekly_event: 'weekly'
+    weekly_games: 'weekly',
+    weekly_event: 'weekly',
+    weekly_chat: 'weekly',
+    weekly_pet: 'weekly',
+    weekly_vote: 'weekly'
   };
 
+  const results = [];
   for (const questKey of quests) {
     const periodType = periodMap[questKey] || 'daily';
     const period = questPeriodKey(periodType);
     if (!period) continue;
 
     try {
-      await supabaseClient.rpc('increment_quest', {
+      const { data, error } = await supabaseClient.rpc('increment_quest', {
         p_quest_key: questKey,
         p_period_start: period,
         p_increment: Math.max(1, Number(amount) || 1)
       });
+      if (error) throw error;
+      results.push({ questKey, ...(data || {}) });
     } catch (error) {
       console.warn(`Quest progress skipped for ${questKey}:`, error);
     }
   }
-  loadQuests().catch(() => {});
+  await loadQuests().catch(() => {});
+  return results;
 }
 
 
