@@ -28,6 +28,7 @@ const VIEW_META = {
   news: ['CONTENT', 'News'],
   progression: ['MEMBERS', 'XP & Badges'],
   rewards: ['COMMUNITY', 'Rewards'],
+  'pet-admin': ['PET LIFE', 'Pet & AC Coins'],
   spotlight: ['COMMUNITY', 'Spotlight'],
   polls: ['COMMUNITY', 'Community Votes'],
   clips: ['ACY CLIPS', 'Clips'],
@@ -113,6 +114,34 @@ async function grantPetCoinsAdmin(){
   finally{if(button){button.disabled=false;button.textContent='🪙 AC Coins gutschreiben';}}
 }
 document.getElementById('grant-pet-coins-btn')?.addEventListener('click',grantPetCoinsAdmin);
+
+async function resetPetDailyAdmin(){
+  const userId=$('pet-coin-member-select')?.value;
+  if(!userId)return message('pet-reset-admin-message','Bitte zuerst ein Mitglied auswählen.');
+  if(!window.confirm('Heutige Pet-Aktionen, Tagesvorrat und Pet-Minispiele für dieses Mitglied zurücksetzen?'))return;
+  const button=$('reset-pet-daily-btn'); if(button){button.disabled=true;button.textContent='Wird zurückgesetzt…';}
+  try{
+    const {data,error}=await supabaseClient.rpc('admin_reset_pet_daily_limits',{p_user_id:userId});
+    if(error)throw error;
+    message('pet-reset-admin-message',`↻ Pet-Tageslimits zurückgesetzt. ${Number(data?.deleted_activity_rows||0)} Aktivitäts-Einträge für heute wurden zurückgesetzt.`,true);
+  }catch(error){message('pet-reset-admin-message',error?.message||'Pet-Tageslimits konnten nicht zurückgesetzt werden.');}
+  finally{if(button){button.disabled=false;button.textContent='↻ Pet-Tageslimits zurücksetzen';}}
+}
+
+async function resetWheelAdmin(){
+  const userId=$('pet-coin-member-select')?.value;
+  if(!userId)return message('wheel-reset-admin-message','Bitte zuerst ein Mitglied auswählen.');
+  if(!window.confirm('Den 24-Stunden-Cooldown des Glücksrads für dieses Mitglied aufheben? Die Dreh-Historie bleibt erhalten.'))return;
+  const button=$('reset-wheel-btn'); if(button){button.disabled=true;button.textContent='Wird zurückgesetzt…';}
+  try{
+    const {data,error}=await supabaseClient.rpc('admin_reset_wheel_cooldown',{p_user_id:userId});
+    if(error)throw error;
+    message('wheel-reset-admin-message',`🎡 Glücksrad zurückgesetzt. ${data?.message||'Der nächste Dreh ist wieder verfügbar.'}`,true);
+  }catch(error){message('wheel-reset-admin-message',error?.message||'Glücksrad konnte nicht zurückgesetzt werden.');}
+  finally{if(button){button.disabled=false;button.textContent='🎡 Glücksrad zurücksetzen';}}
+}
+document.getElementById('reset-pet-daily-btn')?.addEventListener('click',resetPetDailyAdmin);
+document.getElementById('reset-wheel-btn')?.addEventListener('click',resetWheelAdmin);
 
 async function loadConfig() {
   const response = await fetch('/api/config', {

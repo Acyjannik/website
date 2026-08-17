@@ -1291,7 +1291,7 @@ function renderProgressionCatalog(state) {
   const achievementList = $('achievement-catalog-list');
   if (!xpList || !achievementList) return;
   renderProgress(Number(state.xp || 0));
-  setText('catalog-render-status', 'V17.2 · Progression geladen');
+  setText('catalog-render-status', 'V17.3 · Progression geladen');
 
   const awarded = new Set(state.achievements || []);
   const xpEvents = new Set(state.xpEvents || []);
@@ -1719,7 +1719,7 @@ $('pet-release-toggle')?.addEventListener('click', async () => {
 });
 
 
-// V17.2 — ACY Pet Life
+// V17.3 — ACY Pet Life
 let petLifeState = null;
 function renderPetLife(state){
   petLifeState=state||null;
@@ -1730,12 +1730,22 @@ function renderPetLife(state){
     inv.innerHTML=items.length?items.map(i=>`<div class="pet-item-v17"><strong>${escapeHtml(i.icon||'📦')} ${escapeHtml(i.name||'Item')}</strong><small><b>${Number(i.quantity||0)}× vorhanden</b> · ${escapeHtml(i.detail||'')}</small></div>`).join(''):'<div class="club-content-empty">Dein Vorrat ist leer. Hol dir Snacks im Tagesvorrat oder in einem Minigame.</div>';
   }
   const limits=state?.limits||{};
-  const map={feed:'pet-feed-meta',play:null,pet:null,groom:null,sleep:null};
-  const feedMeta=$(map.feed); if(feedMeta) feedMeta.textContent=`${Number(limits.feed?.remaining||0)} von 3 heute · 1 ACY Snack pro Fütterung`;
-  const buttons={feed:'Füttern',play:'Spielen',pet:'Streicheln',groom:'Pflegen',sleep:'Schlafen'};
+  const feedRemaining=Math.max(0,Number(limits.feed?.remaining||0));
+  const feedMeta=$('pet-feed-meta'); if(feedMeta) feedMeta.textContent=feedRemaining>0?`Noch ${feedRemaining} von 3 heute · 1 Snack`:'Heute ausgeschöpft · 1 Snack';
   document.querySelectorAll('.pet-action-btn').forEach(btn=>{
     const key=btn.dataset.petAction; const lim=limits[key];
-    if(lim){ btn.disabled=Number(lim.remaining||0)<=0; btn.title=lim.cooldown_until?`Wieder verfügbar um ${new Date(lim.cooldown_until).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})}`:''; }
+    if(!lim)return;
+    const remaining=Math.max(0,Number(lim.remaining||0));
+    const exhausted=remaining<=0;
+    btn.disabled=exhausted;
+    btn.classList.toggle('is-exhausted',exhausted);
+    btn.setAttribute('aria-disabled',String(exhausted));
+    const small=btn.querySelector('small');
+    if(small){
+      const labels={feed:`${remaining} von 3 heute · 1 Snack`,play:`${remaining} von 2 heute · +25 Laune · −15 Energie`,pet:`${remaining} von 3 heute · +10 Laune`,groom:`${remaining} von 1 heute · +15 Laune · +10 Energie`,sleep:`${remaining} von 1 heute · +30 Energie`};
+      small.textContent=exhausted?'Heute ausgeschöpft':labels[key]||small.textContent;
+    }
+    btn.title=exhausted?'Heute ausgeschöpft.':(lim.cooldown_until?`Wieder verfügbar um ${new Date(lim.cooldown_until).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})}`:'');
   });
   const daily=$('pet-daily-supply'); if(daily) daily.disabled=Boolean(state?.daily_supply_claimed);
   if(daily) daily.textContent=state?.daily_supply_claimed?'✓ Tagesvorrat abgeholt':'🎁 Tagesvorrat';
@@ -1748,7 +1758,7 @@ function renderPetLife(state){
 async function loadPetLife(){
   if(!supabaseClient||!currentUser)return;
   try{ const {data,error}=await supabaseClient.rpc('get_pet_life_hub'); if(error)throw error; renderPetLife(data||{}); }
-  catch(error){ console.warn('Pet Life unavailable:',error); const st=$('pet-life-status'); if(st){st.textContent='Pet Life ist noch nicht vollständig eingerichtet. Bitte die V17.2-SQL-Migration ausführen.';st.className='club-auth-status error';} }
+  catch(error){ console.warn('Pet Life unavailable:',error); const st=$('pet-life-status'); if(st){st.textContent='Pet Life ist noch nicht vollständig eingerichtet. Bitte die V17.3-SQL-Migration ausführen.';st.className='club-auth-status error';} }
 }
 window.loadPetLife=loadPetLife;
 
@@ -1801,8 +1811,10 @@ $('pet-shop')?.addEventListener('click',async(event)=>{const btn=event.target.cl
 async function performPetAction(action, button) {
   if (!currentPet || !button) return;
   button.disabled = true;
-  const original = button.textContent;
-  button.textContent = ({feed:'Füttere…',play:'Spiele…',pet:'Streicheln…',groom:'Pflege…',sleep:'Schläft…'})[action] || 'Lädt…';
+  button.classList.remove('is-exhausted');
+  const labelEl=button.firstChild;
+  const originalLabel=labelEl?.textContent||'';
+  if(labelEl) labelEl.textContent = ({feed:'🍖 Füttere… ',play:'🎾 Spiele… ',pet:'💜 Streicheln… ',groom:'🛁 Pflege… ',sleep:'😴 Schläft… '})[action] || 'Lädt… ';
 
   try {
     const { data, error } = await supabaseClient.rpc('club_pet_action', { p_action: action });
@@ -1827,9 +1839,16 @@ async function performPetAction(action, button) {
     await checkAchievements();
   } catch (error) {
     setPetStatus(error?.message || 'Aktion konnte nicht ausgeführt werden.', 'error');
+    try { await loadPetLife(); } catch {}
   } finally {
-    button.disabled = false;
-    button.textContent = original;
+    if(labelEl) labelEl.textContent = originalLabel;
+    // Do not force-enable the button here. renderPetLife() owns the real disabled state.
+    if(button.disabled && !button.classList.contains('is-exhausted')) {
+      // A loading/error state should not trap the user if no server-side limit disabled it.
+      const small=button.querySelector('small');
+      const exhaustedText=small?.textContent==='Heute ausgeschöpft';
+      if(!exhaustedText) button.disabled=false;
+    }
   }
 }
 
@@ -2033,15 +2052,16 @@ async function loadWheelState(){
   try{
     const [{data:profile,error:profileError},{data:latestSpin,error:spinError}]=await Promise.all([
       supabaseClient.from('profiles')
-        .select('wheel_spin_tokens')
+        .select('wheel_spin_tokens,wheel_reset_at')
         .eq('id',currentUser.id)
         .maybeSingle(),
-      supabaseClient.from('club_wheel_spins')
-        .select('created_at')
-        .eq('user_id',currentUser.id)
-        .order('created_at',{ascending:false})
-        .limit(1)
-        .maybeSingle()
+      (async()=>{
+        const {data:prof,error:profError}=await supabaseClient.from('profiles').select('wheel_reset_at').eq('id',currentUser.id).maybeSingle();
+        if(profError)throw profError;
+        let q=supabaseClient.from('club_wheel_spins').select('created_at').eq('user_id',currentUser.id).order('created_at',{ascending:false}).limit(1).maybeSingle();
+        if(prof?.wheel_reset_at) q=q.gt('created_at',prof.wheel_reset_at);
+        return await q;
+      })()
     ]);
 
     if(profileError)throw profileError;

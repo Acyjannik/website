@@ -7,7 +7,7 @@
   <meta name="robots" content="noindex,nofollow">
   <link rel="stylesheet" href="styles.css?v=14.4.0">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="admin.js?v=17.2.0" defer></script>
+  <script src="admin.js?v=17.3.0" defer></script>
   <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
   <link rel="shortcut icon" href="/assets/favicon.svg">
   <link rel="apple-touch-icon" href="/assets/favicon.svg">
@@ -18,7 +18,7 @@
       <div class="admin-brand">
         <div class="eyebrow">ACYJANNIK</div>
         <h1>Admin</h1>
-        <p class="admin-muted">Website, Community und Content verwalten.</p><div class="admin-version">Admin v17.1 · Control Center</div>
+        <p class="admin-muted">Website, Community und Content verwalten.</p><div class="admin-version">Admin v17.3 · Control Center</div>
       </div>
       <div class="admin-actions">
         <a class="button button-secondary" href="/">Website ↗</a>
@@ -155,9 +155,16 @@
                 <p class="admin-note" id="pet-coins-admin-message"></p>
               </div>
               <div class="admin-card">
-                <div class="eyebrow">HINWEIS</div>
-                <h3>Testen ohne Chaos</h3>
-                <p class="admin-muted">Die Gutschrift wird serverseitig geprüft, protokolliert und direkt dem ausgewählten Profil gutgeschrieben. Der Wert kann nicht negativ sein.</p>
+                <div class="eyebrow">TESTWERKZEUGE</div>
+                <h3>Tageslimits zurücksetzen</h3>
+                <p class="admin-muted">Setzt für das ausgewählte Mitglied die heutigen Pet-Aktionen, den Tagesvorrat und beide Pet-Minispiele zurück. Die normale Nutzung bleibt unverändert.</p>
+                <button class="button button-secondary" id="reset-pet-daily-btn" type="button">↻ Pet-Tageslimits zurücksetzen</button>
+                <p class="admin-note" id="pet-reset-admin-message"></p>
+                <hr class="admin-divider">
+                <div class="eyebrow">GLÜCKSRAD</div>
+                <p class="admin-muted">Hebt für das ausgewählte Mitglied den 24-Stunden-Cooldown auf, ohne die bisherige Dreh-Historie oder die Wochenquest zu löschen.</p>
+                <button class="button button-secondary" id="reset-wheel-btn" type="button">🎡 Glücksrad zurücksetzen</button>
+                <p class="admin-note" id="wheel-reset-admin-message"></p>
               </div>
             </div>
           </div>

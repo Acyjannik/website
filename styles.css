@@ -2434,6 +2434,20 @@ body.pwa-modal-open{overflow:hidden}
     linear-gradient(135deg,rgba(168,85,247,.18),rgba(124,58,237,.09)) !important;
   box-shadow:0 10px 28px rgba(0,0,0,.20),0 0 20px rgba(168,85,247,.10);
 }
+.pet-action-btn.button-secondary:disabled,.pet-action-btn.button-secondary.is-exhausted{
+  opacity:.42 !important;
+  cursor:not-allowed !important;
+  color:#8b8793 !important;
+  border-color:rgba(255,255,255,.07) !important;
+  background:linear-gradient(180deg,rgba(255,255,255,.025),rgba(255,255,255,.012)) !important;
+  box-shadow:none !important;
+  filter:saturate(.55);
+}
+.pet-action-btn.button-secondary:disabled:hover,.pet-action-btn.button-secondary.is-exhausted:hover{
+  transform:none !important;
+  box-shadow:none !important;
+}
+.pet-action-btn small{line-height:1.25;}
 /* Native-looking controls are also themed to avoid white browser chrome in dark mode. */
 select,
 input[type="text"],
@@ -4532,7 +4546,7 @@ body.acy-cosmic-active .club-auth-shell{filter:saturate(1.12)}
 @media(max-width:700px){.pet-actions-v17{grid-template-columns:1fr 1fr}.pet-inventory-v17{grid-template-columns:repeat(2,minmax(0,1fr))}.pet-life-head-v17{align-items:flex-start;flex-direction:column}.pet-minigames-v17{grid-template-columns:1fr}.pet-shop-v17{grid-template-columns:1fr 1fr}}
 @media(max-width:450px){.pet-actions-v17{grid-template-columns:1fr}.pet-life-actions-v17{display:grid;grid-template-columns:1fr}.pet-life-actions-v17 .button{width:100%}.pet-shop-v17{grid-template-columns:1fr}}
 
-/* V17.2 Pet Life reliability + mini-games */
+/* V17.3 Pet Life reliability + mini-games */
 .pet-game-overlay-v17{position:fixed;inset:0;z-index:10050;display:grid;place-items:center;padding:20px;background:rgba(0,0,0,.72);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
 .pet-game-modal-v17{position:relative;width:min(520px,100%);padding:22px;border:1px solid rgba(168,85,247,.28);border-radius:24px;background:linear-gradient(180deg,rgba(24,20,34,.98),rgba(10,10,15,.98));box-shadow:0 24px 80px rgba(0,0,0,.5),inset 0 1px rgba(255,255,255,.06)}
 .pet-game-modal-v17 h3{margin:6px 0 4px;font-size:24px}.pet-game-modal-v17 p{margin:0 0 14px;color:#aaa}.pet-game-close-v17{position:absolute;right:12px;top:10px;border:0;background:transparent;color:#aaa;font-size:28px;cursor:pointer}.pet-game-arena-v17{position:relative;height:280px;border-radius:18px;border:1px solid rgba(168,85,247,.18);background:radial-gradient(circle at 50% 40%,rgba(168,85,247,.12),transparent 55%),#09090d;overflow:hidden}.pet-snack-target-v17{position:absolute;width:58px;height:58px;border-radius:18px;border:1px solid rgba(255,255,255,.12);background:rgba(168,85,247,.18);font-size:28px;cursor:pointer;transition:transform .12s}.pet-snack-target-v17:active{transform:scale(.9)}.pet-game-timer-v17{text-align:center;font-weight:800;font-size:18px;margin-top:10px;color:#d8b4fe}.pet-paw-grid-v17{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:20px}.pet-paw-grid-v17 button{min-height:130px;border-radius:20px;border:1px solid rgba(168,85,247,.22);background:rgba(168,85,247,.08);font-size:42px;cursor:pointer}.pet-paw-grid-v17 button:hover,.pet-paw-grid-v17 button.picked{background:rgba(168,85,247,.22);transform:translateY(-2px)}.pet-game-result-v17{text-align:center;min-height:26px;margin-top:14px;color:#d8b4fe;font-weight:700}
