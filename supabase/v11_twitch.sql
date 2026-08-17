@@ -94,7 +94,7 @@ declare
   added_minutes integer := greatest(0,least(coalesce(p_minutes,0),5));
 begin
   insert into public.club_twitch_points(user_id,watch_minutes,watch_points,stream_days,current_stream_streak,best_stream_streak,last_stream_date,first_stream_date)
-  values(p_user_id,added_minutes,added_minutes,p_minutes,1,1,p_stream_date,p_stream_date)
+  values(p_user_id,0,0,1,1,1,p_stream_date,p_stream_date)
   on conflict(user_id) do nothing;
 
   select * into current_row

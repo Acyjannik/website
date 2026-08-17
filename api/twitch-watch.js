@@ -38,10 +38,16 @@ export default async function handler(req,res){
     let addedMinutes=0;
     if(row){
       const last=new Date(row.last_heartbeat).getTime();
-      const delta=Math.max(0,Math.min(90_000,now.getTime()-last));
-      addedMinutes=Math.floor(delta/60000);
+      // Heartbeats are expected about once per minute. Allow a short delay,
+      // but never count long periods where the browser was suspended/backgrounded.
+      const deltaMs=Math.max(0,Math.min(150_000,now.getTime()-last));
+      const previousSeconds=Math.max(0,Number(row.duration_seconds||0));
+      const newSeconds=previousSeconds+Math.floor(deltaMs/1000);
+      // Convert the accumulated session seconds into whole watch minutes.
+      // This preserves leftover seconds instead of throwing them away on every heartbeat.
+      addedMinutes=Math.max(0,Math.floor(newSeconds/60)-Math.floor(previousSeconds/60));
       await fetch(`${url}/rest/v1/club_twitch_stream_sessions?id=eq.${encodeURIComponent(row.id)}`,{
-        method:"PATCH",headers,body:JSON.stringify({last_heartbeat:now.toISOString(),duration_seconds:Number(row.duration_seconds||0)+Math.floor(delta/1000)})
+        method:"PATCH",headers,body:JSON.stringify({last_heartbeat:now.toISOString(),duration_seconds:newSeconds})
       });
     }else{
       await fetch(`${url}/rest/v1/club_twitch_stream_sessions`,{

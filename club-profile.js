@@ -2465,16 +2465,34 @@ async function autoTwitchWatchTickV11(){
 }
 function startTwitchAutoWatchV11(){
   if(twitchWatchTimerV11)clearInterval(twitchWatchTimerV11);
-  twitchWatchTimerV11=setInterval(()=>autoTwitchWatchTickV11(),120000);
-  void autoTwitchWatchTickV11();
+  // Track active viewing in one-minute heartbeats. The server preserves
+  // leftover seconds, so the displayed watch time no longer loses time.
+  twitchWatchTimerV11=setInterval(()=>{
+    if(document.hidden)return;
+    void autoTwitchWatchTickV11();
+  },60000);
+  if(!document.hidden)void autoTwitchWatchTickV11();
+
+  if(!window.__acyTwitchVisibilityBound){
+    window.__acyTwitchVisibilityBound=true;
+    document.addEventListener('visibilitychange',()=>{
+      if(document.hidden){
+        // Stop the active session while the page is backgrounded/locked.
+        void stopTwitchWatchV11({clearTimer:false});
+      }else if(twitchConnectedV11 && twitchAutoWatchV11){
+        // Re-check immediately when the member returns.
+        void autoTwitchWatchTickV11();
+      }
+    });
+  }
 }
 
-async function stopTwitchWatchV11(){
-  if(twitchWatchTimerV11){clearInterval(twitchWatchTimerV11);twitchWatchTimerV11=null;}
+async function stopTwitchWatchV11(options={}){
+  if(options.clearTimer!==false && twitchWatchTimerV11){clearInterval(twitchWatchTimerV11);twitchWatchTimerV11=null;}
   try{
     const {data}=await supabaseClient.auth.getSession();
     const token=data?.session?.access_token;
-    if(token) await fetch('/api/twitch-watch',{method:'DELETE',headers:{Authorization:`Bearer ${token}`}});
+    if(token) await fetch('/api/twitch-watch',{method:'DELETE',headers:{Authorization:`Bearer ${token}`, 'Content-Type':'application/json', 'Cache-Control':'no-store'}});
   }catch{}
   twitchWatchActiveV11=false;
 }

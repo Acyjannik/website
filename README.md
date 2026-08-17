@@ -1634,5 +1634,5 @@ Run `supabase/v10_quality.sql` once after the previous migrations.
 - The UI shows the remaining cooldown and updates it automatically.
 - Run `supabase/V14.1-DAILY-STREAK-24H.sql` once after deployment.
 
-## V15.5 · Push-Grüße
+## V15.6 · Push-Grüße
 Admin kann jetzt einen Morgengruß oder Abendgruß sofort an alle Push-Abonnenten senden. Zusätzlich läuft `/api/push-daily` stündlich über Vercel und verschickt automatisch um 08:00 und 18:00 Uhr deutscher Zeit passende ACY-Club-Grüße. Sommer-/Winterzeit wird über `Europe/Berlin` berücksichtigt.
