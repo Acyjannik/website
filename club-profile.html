@@ -1,633 +1,685 @@
-<!DOCTYPE html>
-
+<!doctype html>
 <html lang="de">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width,initial-scale=1" name="viewport"/>
-<title>Mein ACY Club · Acyjannik</title>
-<link href="styles.css?v=15.9.0" rel="stylesheet"/>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script defer="" src="/pet-companion.js?v=8.0.0"></script>
-<script defer="" src="club-profile.js?v=15.9.0"></script>
-<link href="/assets/favicon.svg" rel="icon" type="image/svg+xml"/>
-<link href="/assets/favicon.svg" rel="shortcut icon"/>
-<link href="/assets/favicon.svg" rel="apple-touch-icon"/>
-<link href="/manifest.webmanifest" rel="manifest"/><meta content="#0b0b10" name="theme-color"/><link href="/icons/acy-192.png" rel="apple-touch-icon"/><script src="/pwa.js?v=15.9.0"></script></head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Mein ACY Club · Acyjannik</title>
+  <link rel="stylesheet" href="styles.css?v=16.0.0">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="/pet-companion.js?v=8.0.0" defer></script>
+  <script src="club-profile.js?v=16.0.0" defer></script>
+  <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
+  <link rel="shortcut icon" href="/assets/favicon.svg">
+  <link rel="apple-touch-icon" href="/assets/favicon.svg">
+<link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#0b0b10"><link rel="apple-touch-icon" href="/icons/acy-192.png"><script src="/pwa.js?v=16.0.0"></script></head>
 <body class="club-auth-page">
-<div class="club-auth-shell">
-<header class="club-auth-header">
-<a class="brand" href="/"><span class="brand-mark">A</span><strong>ACY<span>JANNIK</span></strong></a>
-<div class="member-header-actions">
-<button aria-label="Interface-Sounds aktivieren oder deaktivieren" aria-pressed="true" class="sound-toggle" id="sound-toggle" type="button">
+  <div class="club-auth-shell">
+    <header class="club-auth-header">
+      <a class="brand" href="/"><span class="brand-mark">A</span><strong>ACY<span>JANNIK</span></strong></a>
+      <div class="member-header-actions">
+        <button class="sound-toggle" id="sound-toggle" type="button" aria-pressed="true" aria-label="Interface-Sounds aktivieren oder deaktivieren">
           🔊 <span id="sound-toggle-label">Sounds an</span>
-</button>
-<button aria-label="Benachrichtigungen" class="notification-bell" id="notification-bell" type="button">
-          🔔<span class="notification-count" hidden="" id="notification-count"></span>
-</button>
-<a class="button button-secondary" href="/club-account.html">Account</a>
-<a class="button button-secondary" href="/">Website</a>
-<button class="button button-secondary acy-header-refresh" id="club-refresh-all" title="Alle Club-Daten aktualisieren" type="button">↻ <span>Aktualisieren</span></button>
-<button class="button button-secondary" id="logout">Abmelden</button>
-</div>
-<div aria-live="polite" class="acy-refresh-status" hidden="" id="club-refresh-status"></div>
-<div class="notification-panel" hidden="" id="notification-panel">
-<div class="notification-panel-head"><strong>Benachrichtigungen</strong><div class="notification-panel-actions"><button id="notification-read-all" type="button">Alle gelesen</button><button id="notification-clear-all" type="button">Alle löschen</button><button id="notification-close" type="button">×</button></div></div>
-<div aria-label="Benachrichtigungsfilter" class="notification-filter-row" role="tablist"><button class="notification-filter is-active" data-notification-filter="all" type="button">Alle</button><button class="notification-filter" data-notification-filter="unread" type="button">Ungelesen</button></div>
-<div id="notifications-list"><div class="club-content-empty">Keine neuen Benachrichtigungen.</div></div>
-</div>
-</header>
-<details class="member-card member-span-2 notification-settings-card notification-settings-collapsible" id="notification-settings">
-<summary class="notification-settings-summary">
-<span>
-<span class="eyebrow">BENACHRICHTIGUNGEN</span>
-<strong>Was willst du mitbekommen?</strong>
-<small>Website-Hinweise und E-Mails getrennt einstellen.</small>
-</span>
-<span class="notification-settings-summary-right">
-<span class="member-count-chip" id="notification-settings-status">Wird geladen…</span>
-<span class="notification-settings-chevron">⌄</span>
-</span>
-</summary>
-<div class="notification-settings-body">
-<div class="notification-settings-grid">
-<label class="notification-setting-card">
-<span><strong>🔔 In-App-Benachrichtigungen</strong><small>Glocke und Club-Hinweise</small></span>
-<input id="pref-in-app" type="checkbox"/>
-</label>
-<label class="notification-setting-card">
-<span><strong>📧 E-Mail-Benachrichtigungen</strong><small>Hauptschalter für E-Mail</small></span>
-<input id="pref-email-enabled" type="checkbox"/>
-</label>
-</div>
-<div class="notification-category-grid">
-<label class="notification-setting-card"><span>🗳️ Community Votes</span><input data-pref="email-votes" type="checkbox"/></label>
-<label class="notification-setting-card"><span>🎮 Events</span><input data-pref="email-events" type="checkbox"/></label>
-<label class="notification-setting-card"><span>📰 News</span><input data-pref="email-news" type="checkbox"/></label>
-<label class="notification-setting-card"><span>🔴 Live</span><input data-pref="email-live" type="checkbox"/></label>
-<label class="notification-setting-card"><span>🏆 Achievements</span><input data-pref="email-achievements" type="checkbox"/></label>
-<label class="notification-setting-card"><span>💌 Direktnachrichten</span><input data-pref="email-direct-messages" type="checkbox"/></label>
-<label class="notification-setting-card"><span>👑 Spotlight</span><input data-pref="email-spotlight" type="checkbox"/></label>
-<label class="notification-setting-card"><span>🎁 Rewards</span><input data-pref="email-rewards" type="checkbox"/></label>
-<label class="notification-setting-card"><span>🐾 Pet</span><input data-pref="email-pet" type="checkbox"/></label>
-</div>
-<div class="push-pwa-card" id="acy-mobile-app-card">
-<div class="push-pwa-icon">📱</div>
-<div class="push-pwa-copy">
-<div class="eyebrow">ACY MOBILE</div>
-<h3>ACY als App nutzen</h3>
-<p>Installiere den ACY Club auf deinem Startbildschirm und erhalte wichtige Club-Benachrichtigungen direkt aufs Handy.</p>
-<div class="push-pwa-actions">
-<button class="button button-secondary button-small" id="acy-install-pwa" type="button">📱 ACY installieren</button>
-<button class="button button-primary button-small" id="acy-enable-push" type="button">🔔 Push-Benachrichtigungen aktivieren</button>
-</div>
-<small id="acy-pwa-status">Noch nicht aktiviert.</small>
-<span id="acy-pwa-hint"></span>
-</div>
-</div>
-<div class="pwa-install-modal" hidden="" id="acy-pwa-install-modal">
-<div class="pwa-install-overlay" id="acy-pwa-install-overlay">
-<div class="pwa-install-dialog">
-<button aria-label="Schließen" class="pwa-install-close" id="acy-pwa-install-close" type="button">×</button>
-<div class="eyebrow">ACY MOBILE</div>
-<h2>ACY auf dem Home-Bildschirm</h2>
-<p class="pwa-platform-ios">Auf dem iPhone:</p>
-<ol class="pwa-steps pwa-platform-ios">
-<li><strong>Teilen</strong> antippen</li>
-<li><strong>Zum Home-Bildschirm</strong> auswählen</li>
-<li><strong>Hinzufügen</strong> tippen</li>
-</ol>
-<p class="pwa-platform-android">Auf Android:</p>
-<ol class="pwa-steps pwa-platform-android">
-<li>Im Browser-Menü <strong>Installieren</strong> oder <strong>Zum Startbildschirm</strong> wählen</li>
-<li>Installation bestätigen</li>
-</ol>
-<p>Danach kannst du Push-Benachrichtigungen für ACY aktivieren.</p>
-</div>
-</div>
-</div>
+        </button>
+        <button class="notification-bell" id="notification-bell" type="button" aria-label="Benachrichtigungen">
+          🔔<span class="notification-count" id="notification-count" hidden></span>
+        </button>
+        <a class="button button-secondary" href="/club-account.html">Account</a>
+        <a class="button button-secondary" href="/">Website</a>
+        <button class="button button-secondary acy-header-refresh" id="club-refresh-all" type="button" title="Alle Club-Daten aktualisieren">↻ <span>Aktualisieren</span></button>
+        <button class="button button-secondary" id="logout">Abmelden</button>
+      </div>
+
+      <div class="acy-refresh-status" id="club-refresh-status" aria-live="polite" hidden></div>
+
+      <div class="notification-panel" id="notification-panel" hidden>
+        <div class="notification-panel-head"><strong>Benachrichtigungen</strong><div class="notification-panel-actions"><button id="notification-read-all" type="button">Alle gelesen</button><button id="notification-clear-all" type="button">Alle löschen</button><button id="notification-close" type="button">×</button></div></div>
+        <div class="notification-filter-row" role="tablist" aria-label="Benachrichtigungsfilter"><button type="button" class="notification-filter is-active" data-notification-filter="all">Alle</button><button type="button" class="notification-filter" data-notification-filter="unread">Ungelesen</button></div>
+        <div id="notifications-list"><div class="club-content-empty">Keine neuen Benachrichtigungen.</div></div>
+      </div>
+    </header>
+
+    
+            <details class="member-card member-span-2 notification-settings-card notification-settings-collapsible" id="notification-settings">
+        <summary class="notification-settings-summary">
+          <span>
+            <span class="eyebrow">BENACHRICHTIGUNGEN</span>
+            <strong>Was willst du mitbekommen?</strong>
+            <small>Website-Hinweise und E-Mails getrennt einstellen.</small>
+          </span>
+          <span class="notification-settings-summary-right">
+            <span class="member-count-chip" id="notification-settings-status">Wird geladen…</span>
+            <span class="notification-settings-chevron">⌄</span>
+          </span>
+        </summary>
+
+        <div class="notification-settings-body">
+          <div class="notification-settings-grid">
+            <label class="notification-setting-card">
+              <span><strong>🔔 In-App-Benachrichtigungen</strong><small>Glocke und Club-Hinweise</small></span>
+              <input type="checkbox" id="pref-in-app">
+            </label>
+            <label class="notification-setting-card">
+              <span><strong>📧 E-Mail-Benachrichtigungen</strong><small>Hauptschalter für E-Mail</small></span>
+              <input type="checkbox" id="pref-email-enabled">
+            </label>
+          </div>
+
+          <div class="notification-category-grid">
+            <label class="notification-setting-card"><span>🗳️ Community Votes</span><input type="checkbox" data-pref="email-votes"></label>
+            <label class="notification-setting-card"><span>🎮 Events</span><input type="checkbox" data-pref="email-events"></label>
+            <label class="notification-setting-card"><span>📰 News</span><input type="checkbox" data-pref="email-news"></label>
+            <label class="notification-setting-card"><span>🔴 Live</span><input type="checkbox" data-pref="email-live"></label>
+            <label class="notification-setting-card"><span>🏆 Achievements</span><input type="checkbox" data-pref="email-achievements"></label>
+            <label class="notification-setting-card"><span>💌 Direktnachrichten</span><input type="checkbox" data-pref="email-direct-messages"></label>
+            <label class="notification-setting-card"><span>👑 Spotlight</span><input type="checkbox" data-pref="email-spotlight"></label>
+            <label class="notification-setting-card"><span>🎁 Rewards</span><input type="checkbox" data-pref="email-rewards"></label>
+            <label class="notification-setting-card"><span>🐾 Pet</span><input type="checkbox" data-pref="email-pet"></label>
+          </div>
+
+          
+      <div class="push-pwa-card" id="acy-mobile-app-card">
+        <div class="push-pwa-icon">📱</div>
+        <div class="push-pwa-copy">
+          <div class="eyebrow">ACY MOBILE</div>
+          <h3>ACY als App nutzen</h3>
+          <p>Installiere den ACY Club auf deinem Startbildschirm und erhalte wichtige Club-Benachrichtigungen direkt aufs Handy.</p>
+          <div class="push-pwa-actions">
+            <button class="button button-secondary button-small" id="acy-install-pwa" type="button">📱 ACY installieren</button>
+            <button class="button button-primary button-small" id="acy-enable-push" type="button">🔔 Push-Benachrichtigungen aktivieren</button>
+          </div>
+          <small id="acy-pwa-status">Noch nicht aktiviert.</small>
+          <span id="acy-pwa-hint"></span>
+        </div>
+      </div>
+
+      <div class="pwa-install-modal" id="acy-pwa-install-modal" hidden>
+        <div class="pwa-install-overlay" id="acy-pwa-install-overlay">
+          <div class="pwa-install-dialog">
+            <button type="button" class="pwa-install-close" id="acy-pwa-install-close" aria-label="Schließen">×</button>
+            <div class="eyebrow">ACY MOBILE</div>
+            <h2>ACY auf dem Home-Bildschirm</h2>
+            <p class="pwa-platform-ios">Auf dem iPhone:</p>
+            <ol class="pwa-steps pwa-platform-ios">
+              <li><strong>Teilen</strong> antippen</li>
+              <li><strong>Zum Home-Bildschirm</strong> auswählen</li>
+              <li><strong>Hinzufügen</strong> tippen</li>
+            </ol>
+            <p class="pwa-platform-android">Auf Android:</p>
+            <ol class="pwa-steps pwa-platform-android">
+              <li>Im Browser-Menü <strong>Installieren</strong> oder <strong>Zum Startbildschirm</strong> wählen</li>
+              <li>Installation bestätigen</li>
+            </ol>
+            <p>Danach kannst du Push-Benachrichtigungen für ACY aktivieren.</p>
+          </div>
+        </div>
+      </div>
 <div class="notification-settings-foot">
-<div><strong>Account-E-Mail</strong><span id="notification-settings-email">–</span></div>
-<button class="button button-primary" id="save-notification-settings" type="button">Einstellungen speichern</button>
-</div>
-<p class="club-auth-status" id="notification-settings-message"></p>
-</div>
-</details>
-<details class="member-card member-span-2 member-fold central-settings-card" id="club-settings-section">
-<summary class="member-fold-summary"><span class="member-fold-art-wrap"><img alt="" class="member-fold-art" decoding="async" loading="lazy" src="assets/section-art/private.webp"/></span>
-<span class="member-fold-summary-main"><span class="eyebrow">SETTINGS</span><strong>⚙️ Einstellungen</strong><small>Benachrichtigungen, Mobile, Sounds und wichtige Account-Links.</small></span>
-<span class="member-fold-summary-side"><span class="member-fold-chevron">⌄</span></span>
-</summary>
-<div class="member-fold-body">
-<div class="settings-grid-v10">
-<div class="settings-tile-v10"><span class="settings-tile-icon">🔔</span><div><strong>Push &amp; Mobile</strong><small>Push für Handy und installierte ACY-App.</small></div><button class="button button-secondary button-small" id="settings-open-notifications" type="button">Öffnen</button></div>
-<div class="settings-tile-v10"><span class="settings-tile-icon">🔊</span><div><strong>Interface-Sounds</strong><small>Kleine Töne bei Aktionen und Erfolgen.</small></div><button class="button button-secondary button-small" id="settings-toggle-sounds" type="button">Sounds an/aus</button></div>
-<div class="settings-tile-v10"><span class="settings-tile-icon">🔐</span><div><strong>Sicherheit</strong><small>Passwort, Account und Sicherheitsoptionen.</small></div><a class="button button-secondary button-small" href="/club-account.html">Account</a></div>
-<div class="settings-tile-v10"><span class="settings-tile-icon">🛡️</span><div><strong>Datenschutz</strong><small>Infos zur Datenverarbeitung und Club-Nutzung.</small></div><a class="button button-secondary button-small" href="/datenschutz.html">Öffnen</a></div>
-</div>
-<p class="club-auth-status" id="settings-v10-message"></p>
-</div>
-</details>
+            <div><strong>Account-E-Mail</strong><span id="notification-settings-email">–</span></div>
+            <button class="button button-primary" type="button" id="save-notification-settings">Einstellungen speichern</button>
+          </div>
+          <p class="club-auth-status" id="notification-settings-message"></p>
+        </div>
+      </details>
+
+      <details class="member-card member-span-2 member-fold central-settings-card" id="club-settings-section">
+        <summary class="member-fold-summary"><span class="member-fold-art-wrap"><img class="member-fold-art" src="assets/section-art/private.webp" alt="" loading="lazy" decoding="async"></span>
+          <span class="member-fold-summary-main"><span class="eyebrow">SETTINGS</span><strong>⚙️ Einstellungen</strong><small>Benachrichtigungen, Mobile, Sounds und wichtige Account-Links.</small></span>
+          <span class="member-fold-summary-side"><span class="member-fold-chevron">⌄</span></span>
+        </summary>
+        <div class="member-fold-body">
+          <div class="settings-grid-v10">
+            <div class="settings-tile-v10"><span class="settings-tile-icon">🔔</span><div><strong>Push & Mobile</strong><small>Push für Handy und installierte ACY-App.</small></div><button class="button button-secondary button-small" type="button" id="settings-open-notifications">Öffnen</button></div>
+            <div class="settings-tile-v10"><span class="settings-tile-icon">🔊</span><div><strong>Interface-Sounds</strong><small>Kleine Töne bei Aktionen und Erfolgen.</small></div><button class="button button-secondary button-small" type="button" id="settings-toggle-sounds">Sounds an/aus</button></div>
+            <div class="settings-tile-v10"><span class="settings-tile-icon">🔐</span><div><strong>Sicherheit</strong><small>Passwort, Account und Sicherheitsoptionen.</small></div><a class="button button-secondary button-small" href="/club-account.html">Account</a></div>
+            <div class="settings-tile-v10"><span class="settings-tile-icon">🛡️</span><div><strong>Datenschutz</strong><small>Infos zur Datenverarbeitung und Club-Nutzung.</small></div><a class="button button-secondary button-small" href="/datenschutz.html">Öffnen</a></div>
+          </div>
+          <p class="club-auth-status" id="settings-v10-message"></p>
+        </div>
+      </details>
+
 <main class="member-dashboard">
-<section class="member-hero-card">
-<div class="member-identity">
-<div class="member-avatar-wrap">
-<img alt="Profilbild" class="member-avatar-img" hidden="" id="member-avatar-img"/>
-<div class="member-avatar" id="member-avatar">A</div>
-<label class="avatar-edit" title="Profilbild ändern">
-<input accept="image/jpeg,image/png,image/webp" id="avatar-input" type="file"/>
+      <section class="member-hero-card">
+        <div class="member-identity">
+          <div class="member-avatar-wrap">
+            <img id="member-avatar-img" class="member-avatar-img" alt="Profilbild" hidden>
+            <div class="member-avatar" id="member-avatar">A</div>
+            <label class="avatar-edit" title="Profilbild ändern">
+              <input id="avatar-input" type="file" accept="image/jpeg,image/png,image/webp">
               ✎
             </label>
-</div>
-<div>
-<span class="eyebrow">ACY CLUB MEMBER</span>
-<h1>Hey, <span id="member-name">ACY Member</span>.</h1>
-<p id="member-bio">Willkommen in deinem persönlichen ACY Club.</p>
-<small id="member-handle">@member</small><span class="member-glow-title" id="member-glow-title">ACY Glow · Rookie</span>
-</div>
-</div>
-<div class="member-quick">
-<div><span>Mitglied seit</span><strong id="member-since">–</strong></div>
-<div><span>Level</span><strong id="member-level">1</strong></div>
-<div><span>XP</span><strong id="member-xp">0</strong></div>
-</div>
-</section>
-<section class="member-card member-span-2 spotlight-card" id="member-spotlight">
-<div class="member-card-head">
-<div>
-<div class="eyebrow">COMMUNITY SPOTLIGHT</div>
-<h2>Member of the Month</h2>
-<p>Ein Mitglied, das diesen Monat besonders aktiv ist.</p>
-</div>
-</div>
-<div id="spotlight-content"><div class="club-content-empty">Noch kein Spotlight gesetzt.</div></div>
-</section>
-<section class="member-hub member-hub-visible" id="member-hub">
-<div class="hub-main-card">
-<div class="eyebrow">DEIN ACY CLUB</div>
-<h2 id="hub-greeting">Hey, Member.</h2>
-<p id="hub-summary">Dein persönlicher Überblick.</p>
-<div class="hub-progress">
-<div class="hub-progress-head"><span id="hub-level-title">ACY Rookie</span><strong id="hub-level-xp">0 XP</strong></div>
-<div class="xp-bar"><div id="hub-xp-fill"></div></div>
-<small id="hub-next-level">Noch 100 XP bis zum nächsten Level.</small>
-</div>
-</div>
-<div class="hub-progression-card" id="hub-progression-card">
-<div class="eyebrow">PROGRESSION ROADMAP</div>
-<div class="hub-progression-head">
-<div>
-<h3 id="hub-progression-title">Dein nächster Meilenstein</h3>
-<p>30 Club-Level, damit der Grind nicht nach einem Wochenende vorbei ist.</p>
-</div>
-<span class="member-count-chip" id="hub-level-count">30 LEVEL</span>
-</div>
-<div class="hub-level-roadmap" id="hub-level-roadmap"></div>
-<div class="hub-xp-sources" id="hub-xp-sources"></div>
-</div>
-<div class="hub-poll-card" id="community-poll">
-<div class="eyebrow">COMMUNITY VOTE</div>
-<div class="poll-head">
-<div>
-<h3 id="poll-question">Community Vote</h3>
-<p id="poll-description">Wird geladen…</p>
-</div>
-<span class="member-count-chip" id="poll-xp-label">+5 XP</span>
-</div>
-<div class="poll-options" id="poll-options">
-<div class="club-content-empty">Umfrage wird geladen…</div>
-</div>
-<div class="poll-meta" id="poll-meta"></div>
-</div>
-<div class="hub-events-card">
-<div class="eyebrow">DEINE NÄCHSTEN EVENTS</div>
-<div id="hub-events-list"><div class="club-content-empty">Wird geladen…</div></div>
-</div>
-<div class="hub-achievements-card">
-<div class="eyebrow">LETZTE ERFOLGE</div>
-<div id="hub-achievements-list"><div class="club-content-empty">Wird geladen…</div></div>
-</div>
-<div class="hub-games-card" id="hub-community-games">
-<div class="eyebrow">COMMUNITY GAMES</div>
-<div class="hub-games-head"><div><strong>Was wird gerade gespielt?</strong><small>Live jetzt und Trend der letzten 7 Tage.</small></div><a class="button button-secondary button-small" href="#current-game-card">Eigenes Game setzen</a></div>
-<div id="hub-games-list"><div class="club-content-empty">Wird geladen…</div></div>
-</div>
-</section>
-<section class="member-card member-span-2 current-game-card" id="current-game-card">
-<div class="member-card-head">
-<div>
-<div class="eyebrow">COMMUNITY</div>
-<h2>Was spielst du gerade?</h2>
-<p>Wähle dein aktuelles Game. Es erscheint anonymisiert in der Community-Übersicht.</p>
-</div>
-<span class="member-count-chip" id="current-game-status">Noch nicht gesetzt</span>
-</div>
-<div class="current-game-controls">
-<select aria-label="Aktuelles Game" id="current-game-select">
-<option value="">Ich spiele gerade nichts / ausblenden</option>
-</select>
-<button class="button button-primary" id="current-game-save" type="button">Speichern</button>
-</div>
-<div class="current-game-preview" hidden="" id="current-game-preview">
-<div class="current-game-preview-art"><img alt="" id="current-game-preview-img"/></div>
-<div><span class="eyebrow">AKTUELL GEWÄHLT</span><strong id="current-game-preview-name">–</strong><small id="current-game-preview-tag">–</small></div>
-</div>
-<div class="current-game-note" id="current-game-note"></div>
-</section>
-<nav aria-label="Club Bereiche" class="member-section-nav">
-<span class="member-section-nav-label">BEREICHE</span>
-<a href="#profile-section">Profil</a><a href="#member-hub">Übersicht</a><a href="#club-settings-section">Einstellungen</a><a class="moderator-nav-link" hidden="" href="/mod.html" id="moderator-access-btn">🛡️ Mod</a>
-<a href="#twitch-section">Twitch</a>
-<a href="#progression-catalog">Fortschritt</a>
-<a href="#member-events-section">Events</a>
-<a href="#member-news-section">News</a>
-<a href="#club-messages">Nachrichten</a>
-<a href="#club-chat">Chat</a>
-<a href="#member-directory-section">Mitglieder</a>
-<a href="#member-leaderboard-section">Ranking</a>
-<a href="#pet-section">Tier</a>
-</nav>
-<!-- ACY Pet Companion -->
-<section class="member-card member-span-2 pet-section" id="pet-section">
-<div class="member-card-head">
-<div>
-<div class="eyebrow">DEIN ACY BEGLEITER</div>
-<h2>Dein Tier</h2>
-<p>Wähle deinen Begleiter, gib ihm einen Namen und lass ihn mit dir im ACY Club wachsen.</p>
-</div>
-<span class="member-count-chip" id="pet-level-chip">Noch kein Tier</span>
-</div>
-<div class="pet-empty-state" id="pet-empty-state">
-<div class="pet-choice-grid" id="pet-choice-grid"></div>
-<form class="pet-create-form" id="pet-create-form">
-<label>
+          </div>
+          <div>
+            <span class="eyebrow">ACY CLUB MEMBER</span>
+            <h1>Hey, <span id="member-name">ACY Member</span>.</h1>
+            <p id="member-bio">Willkommen in deinem persönlichen ACY Club.</p>
+            <small id="member-handle">@member</small><span class="member-glow-title" id="member-glow-title">ACY Glow · Rookie</span>
+          </div>
+        </div>
+
+        <div class="member-quick">
+          <div><span>Mitglied seit</span><strong id="member-since">–</strong></div>
+          <div><span>Level</span><strong id="member-level">1</strong></div>
+          <div><span>XP</span><strong id="member-xp">0</strong></div>
+        </div>
+      </section>
+
+            <section class="member-card member-span-2 spotlight-card" id="member-spotlight">
+        <div class="member-card-head">
+          <div>
+            <div class="eyebrow">COMMUNITY SPOTLIGHT</div>
+            <h2>Member of the Month</h2>
+            <p>Ein Mitglied, das diesen Monat besonders aktiv ist.</p>
+          </div>
+        </div>
+        <div id="spotlight-content"><div class="club-content-empty">Noch kein Spotlight gesetzt.</div></div>
+      </section>
+
+
+      <section class="member-hub member-hub-visible" id="member-hub">
+        <div class="hub-main-card">
+          <div class="eyebrow">DEIN ACY CLUB</div>
+          <h2 id="hub-greeting">Hey, Member.</h2>
+          <p id="hub-summary">Dein persönlicher Überblick.</p>
+          <div class="hub-progress">
+            <div class="hub-progress-head"><span id="hub-level-title">ACY Rookie</span><strong id="hub-level-xp">0 XP</strong></div>
+            <div class="xp-bar"><div id="hub-xp-fill"></div></div>
+            <small id="hub-next-level">Noch 100 XP bis zum nächsten Level.</small>
+          </div>
+        </div>
+
+        <div class="hub-progression-card" id="hub-progression-card">
+          <div class="eyebrow">PROGRESSION ROADMAP</div>
+          <div class="hub-progression-head">
+            <div>
+              <h3 id="hub-progression-title">Dein nächster Meilenstein</h3>
+              <p>30 Club-Level, damit der Grind nicht nach einem Wochenende vorbei ist.</p>
+            </div>
+            <span class="member-count-chip" id="hub-level-count">30 LEVEL</span>
+          </div>
+          <div class="hub-level-roadmap" id="hub-level-roadmap"></div>
+          <div class="hub-xp-sources" id="hub-xp-sources"></div>
+        </div>
+
+        <div class="hub-poll-card" id="community-poll">
+          <div class="eyebrow">COMMUNITY VOTE</div>
+          <div class="poll-head">
+            <div>
+              <h3 id="poll-question">Community Vote</h3>
+              <p id="poll-description">Wird geladen…</p>
+            </div>
+            <span class="member-count-chip" id="poll-xp-label">+5 XP</span>
+          </div>
+          <div id="poll-options" class="poll-options">
+            <div class="club-content-empty">Umfrage wird geladen…</div>
+          </div>
+          <div class="poll-meta" id="poll-meta"></div>
+        </div>
+
+        <div class="hub-events-card">
+          <div class="eyebrow">DEINE NÄCHSTEN EVENTS</div>
+          <div id="hub-events-list"><div class="club-content-empty">Wird geladen…</div></div>
+        </div>
+
+        <div class="hub-achievements-card">
+          <div class="eyebrow">LETZTE ERFOLGE</div>
+          <div id="hub-achievements-list"><div class="club-content-empty">Wird geladen…</div></div>
+        </div>
+
+        <div class="hub-games-card" id="hub-community-games">
+          <div class="eyebrow">COMMUNITY GAMES</div>
+          <div class="hub-games-head"><div><strong>Was wird gerade gespielt?</strong><small>Live jetzt und Trend der letzten 7 Tage.</small></div><a class="button button-secondary button-small" href="#current-game-card">Eigenes Game setzen</a></div>
+          <div id="hub-games-list"><div class="club-content-empty">Wird geladen…</div></div>
+        </div>
+      </section>
+        <section class="member-card member-span-2 current-game-card" id="current-game-card">
+          <div class="member-card-head">
+            <div>
+              <div class="eyebrow">COMMUNITY</div>
+              <h2>Was spielst du gerade?</h2>
+              <p>Wähle dein aktuelles Game. Es erscheint anonymisiert in der Community-Übersicht.</p>
+            </div>
+            <span class="member-count-chip" id="current-game-status">Noch nicht gesetzt</span>
+          </div>
+          <div class="current-game-controls">
+            <select id="current-game-select" aria-label="Aktuelles Game">
+              <option value="">Ich spiele gerade nichts / ausblenden</option>
+            </select>
+            <button class="button button-primary" type="button" id="current-game-save">Speichern</button>
+          </div>
+          <div class="current-game-preview" id="current-game-preview" hidden>
+            <div class="current-game-preview-art"><img id="current-game-preview-img" alt=""></div>
+            <div><span class="eyebrow">AKTUELL GEWÄHLT</span><strong id="current-game-preview-name">–</strong><small id="current-game-preview-tag">–</small></div>
+          </div>
+          <div class="current-game-note" id="current-game-note"></div>
+        </section>
+
+
+
+      <nav class="member-section-nav" aria-label="Club Bereiche">
+        <span class="member-section-nav-label">BEREICHE</span>
+        <a href="#profile-section">Profil</a><a href="#member-hub">Übersicht</a><a href="#club-settings-section">Einstellungen</a><a href="/mod.html" id="moderator-access-btn" class="moderator-nav-link" hidden>🛡️ Mod</a>
+        <a href="#twitch-section">Twitch</a>
+        <a href="#progression-catalog">Fortschritt</a>
+        <a href="#member-events-section">Events</a>
+        <a href="#member-news-section">News</a>
+        <a href="#club-messages">Nachrichten</a>
+        <a href="#club-chat">Chat</a>
+        <a href="#member-directory-section">Mitglieder</a>
+        <a href="#member-leaderboard-section">Ranking</a>
+        <a href="#pet-section">Tier</a>
+      </nav>
+
+
+        <!-- ACY Pet Companion -->
+        <section class="member-card member-span-2 pet-section" id="pet-section">
+          <div class="member-card-head">
+            <div>
+              <div class="eyebrow">DEIN ACY BEGLEITER</div>
+              <h2>Dein Tier</h2>
+              <p>Wähle deinen Begleiter, gib ihm einen Namen und lass ihn mit dir im ACY Club wachsen.</p>
+            </div>
+            <span class="member-count-chip" id="pet-level-chip">Noch kein Tier</span>
+          </div>
+
+          <div id="pet-empty-state" class="pet-empty-state">
+            <div class="pet-choice-grid" id="pet-choice-grid"></div>
+            <form id="pet-create-form" class="pet-create-form">
+              <label>
                 Name deines Tiers
-                <input autocomplete="off" id="pet-name-input" maxlength="18" minlength="2" placeholder="z. B. Nala" required=""/>
-</label>
-<button class="button button-primary" type="submit">Tier adoptieren</button>
-</form>
-<p class="club-auth-status" id="pet-status"></p>
-</div>
-<div class="pet-active-state" hidden="" id="pet-active-state">
-<div class="pet-main">
-<div class="pet-avatar" id="pet-avatar"><img alt="Katze" src="assets/pet-cat.webp"/></div>
-<div class="pet-identity">
-<div class="eyebrow" id="pet-species-label">BEGLEITER</div>
-<h3 id="pet-display-name">Dein Tier</h3>
-<p id="pet-level-text">Level 1 · 0 Pflege-XP</p>
-</div>
-<div class="pet-manage-actions">
-<button class="button button-secondary pet-rename-toggle" id="pet-rename-toggle" type="button">Umbenennen</button>
-<button class="button button-secondary pet-switch-toggle" id="pet-switch-toggle" type="button">Wechseln</button>
-<button class="button button-danger pet-release-toggle" id="pet-release-toggle" type="button">Abgeben</button>
-</div>
-</div>
-<form class="pet-rename-form" hidden="" id="pet-rename-form">
-<input id="pet-rename-input" maxlength="18" minlength="2" placeholder="Neuer Name" required=""/>
-<button class="button button-secondary" type="submit">Speichern</button>
-</form>
-<div class="pet-progression">
-<div class="pet-progression-head">
-<span class="eyebrow">PET PROGRESSION</span>
-<strong id="pet-progression-title">Kleiner Begleiter</strong>
-</div>
-<div class="pet-progression-steps">
-<div class="pet-prog-step is-current" data-pet-level="1"><span>1</span><small>Begleiter</small></div>
-<div class="pet-prog-step" data-pet-level="2"><span>2</span><small>Freund</small></div>
-<div class="pet-prog-step" data-pet-level="3"><span>3</span><small>Gefährte</small></div>
-<div class="pet-prog-step" data-pet-level="4"><span>4</span><small>Sidekick</small></div>
-<div class="pet-prog-step" data-pet-level="5"><span>5</span><small>Legende</small></div>
-</div>
-<div class="pet-progression-bar"><span id="pet-progression-fill"></span></div>
-</div>
-<div class="pet-stats">
-<div class="pet-stat">
-<div><span>Hunger</span><strong id="pet-hunger-value">100%</strong></div>
-<div class="pet-stat-bar"><span id="pet-hunger-bar"></span></div>
-</div>
-<div class="pet-stat">
-<div><span>Laune</span><strong id="pet-happiness-value">100%</strong></div>
-<div class="pet-stat-bar"><span id="pet-happiness-bar"></span></div>
-</div>
-<div class="pet-stat">
-<div><span>Energie</span><strong id="pet-energy-value">100%</strong></div>
-<div class="pet-stat-bar"><span id="pet-energy-bar"></span></div>
-</div>
-</div>
-<div class="pet-actions">
-<button class="button button-secondary pet-action-btn" data-pet-action="feed" type="button">🍖 Füttern <small>+35 Hunger · +5 Pflege-XP</small></button>
-<button class="button button-secondary pet-action-btn" data-pet-action="play" type="button">🎾 Spielen <small>+25 Laune · −15 Energie · +5 Pflege-XP</small></button>
-<button class="button button-secondary pet-action-btn" data-pet-action="pet" type="button">💜 Streicheln <small>+10 Laune · +5 Pflege-XP</small></button>
-</div>
-<div class="pet-footer">
-<span id="pet-care-note">Pflege deinen Begleiter regelmäßig.</span>
-<span id="pet-xp-note">+5 Pflege-XP pro Pflegeaktion</span>
-</div>
-</div>
-</section>
-<div class="member-grid">
-<!-- Profile -->
-<section class="member-card" id="profile-section">
-<div class="eyebrow">PROFIL</div>
-<h2>Dein Profil</h2>
-<form class="member-form" id="profile-form">
-<label>Anzeigename
-              <input id="edit-display-name" maxlength="40" required=""/>
-</label>
-<label>Bio
-              <textarea id="edit-bio" maxlength="180" placeholder="Erzähl etwas über dich…" rows="3"></textarea>
-</label>
-<button class="button button-primary" type="submit">Profil speichern</button>
-<p class="club-auth-status" id="profile-save-status"></p>
-</form>
-</section>
-<!-- Twitch -->
-<section class="member-card member-twitch-card" id="twitch-section">
-<div class="eyebrow">TWITCH · ACY CONNECT</div>
-<div class="member-card-head">
-<div>
-<h2 id="twitch-member-title">ACYJANNIK</h2>
-<p id="twitch-member-sub">Live-Status wird geladen…</p>
-</div>
-<span class="member-live-pill" id="member-live-pill"><span class="live-dot" id="member-live-dot"></span><span id="member-live-text">CHECKING</span></span>
-</div>
-<div class="member-twitch-stats">
-<div><span>Game</span><strong id="member-twitch-game">–</strong></div>
-<div><span>Zuschauer</span><strong id="member-twitch-viewers">–</strong></div>
-</div>
-<div class="twitch-live-detail-v11">
-<div><span>STREAM</span><strong id="twitch-current-title">–</strong></div>
-<div><span>AKTIVITÄT</span><strong id="twitch-live-activity">⏹ Stream offline</strong></div>
-<div><span>KATEGORIE</span><strong id="twitch-current-game">–</strong></div>
-</div>
-<div class="twitch-account-connect-v11" id="twitch-account-connect">
-<div class="twitch-connect-copy">
-<strong>Dein Twitch-Konto</strong>
-<small id="twitch-account-status">Noch nicht mit ACY verbunden.</small>
-</div>
-<div class="twitch-connect-actions">
-<button class="button button-secondary button-small" id="twitch-connect-btn" title="Twitch-Konto mit ACY verbinden" type="button">🟣 Twitch verbinden</button>
-<button class="button button-danger button-small" hidden="" id="twitch-disconnect-btn" type="button">Trennen</button>
-</div>
-</div>
-<div class="twitch-club-stats-v11" hidden="" id="twitch-club-stats">
-<div><span>STREAM-ZEIT</span><strong id="twitch-watch-minutes">0m</strong></div>
-<div><span>WATCH POINTS</span><strong id="twitch-watch-points">0</strong></div>
-<div><span>STREAM-TAGE</span><strong id="twitch-stream-days">0</strong></div>
-<div><span>🔥 SERIE</span><strong id="twitch-stream-streak">0</strong></div>
-<div><span>BESTE SERIE</span><strong id="twitch-best-streak">0</strong></div>
-</div>
-<div class="twitch-watch-controls-v11">
-<span class="twitch-auto-pill" id="twitch-watch-mode">🤖 Automatisches Stream-Tracking</span>
-<small id="twitch-watch-mode-note">Verbinde Twitch, dann erkennt ACY automatisch, wenn ACYJANNIK live ist.</small>
-</div>
-<small class="twitch-watch-note-v11">ACY misst dafür aktive ACY-Streamzeit in der Website während der Live-Phase. Das ist keine offizielle Twitch-Watchtime.</small>
-<a class="button button-secondary" href="https://www.twitch.tv/acyjannik" rel="noreferrer" target="_blank">Twitch öffnen ↗</a>
-</section>
-<!-- Badges only: XP/Level progress is shown once in the Club Hub above. -->
-<section class="member-card member-span-2 badges-section-v11" id="member-badges-section">
-<div class="member-card-head">
-<div>
-<div class="eyebrow">ACHIEVEMENTS</div>
-<h2>Deine Badges</h2>
-<p>Auszeichnungen, die deinen Fortschritt sichtbar machen.</p>
-</div>
-<div class="level-chip">LEVEL <span id="level-number">1</span></div>
-</div>
-<div class="badge-grid" id="badge-grid"></div>
-</section>
-<details class="member-card member-span-2 progression-catalog-card member-fold" id="progression-catalog">
-<summary class="member-fold-summary"><span class="member-fold-art-wrap"><img alt="" class="member-fold-art" decoding="async" loading="lazy" src="assets/section-art/quests.webp"/></span>
-<span class="member-fold-summary-main">
-<span class="eyebrow">XP &amp; ACHIEVEMENTS</span>
-<strong>So funktioniert dein Fortschritt</strong>
-<small>Level, XP-Quellen und Achievements</small>
-</span>
-<span class="member-fold-summary-side"><span class="member-count-chip" id="catalog-earned-summary">Wird geladen…</span><span class="member-fold-chevron">⌄</span></span>
-</summary>
-<div class="member-fold-body">
-<div aria-label="Alle 30 Club-Level" class="catalog-levels catalog-levels-scroll" id="catalog-levels-render"></div>
-<div aria-live="polite" class="catalog-render-status" id="catalog-render-status">V14.6 · Progression wird geladen…</div>
-<div class="catalog-columns">
-<div><div class="section-mini-title">XP VERDIENEN</div><div class="catalog-list" id="xp-catalog-list"></div></div>
-<div><div class="section-mini-title">ACHIEVEMENTS</div><div class="catalog-list" id="achievement-catalog-list"></div></div>
-</div>
-<p class="catalog-note">XP und Achievements werden automatisch gespeichert. Manche Belohnungen sind einmalig, andere hängen von deinem aktuellen Fortschritt ab.</p>
-</div>
-</details>
-<details class="member-card member-span-2 member-fold" id="member-events-section">
-<summary class="member-fold-summary"><span class="member-fold-art-wrap"><img alt="" class="member-fold-art" decoding="async" loading="lazy" src="assets/section-art/news.webp"/></span>
-<span class="member-fold-summary-main"><span class="eyebrow">COMMUNITY</span><strong>Events</strong><small>Was im ACY Club als Nächstes ansteht.</small></span>
-<span class="member-fold-summary-side"><span class="member-fold-chevron">⌄</span></span>
-</summary>
-<div class="member-fold-body"><div class="club-content-list" id="member-events-list"><div class="club-content-empty">Events werden geladen…</div></div></div>
-</details>
-<details class="member-card member-span-2 member-fold" id="club-wheel-section">
-<summary class="member-fold-summary"><span class="member-fold-art-wrap"><img alt="" class="member-fold-art" decoding="async" loading="lazy" src="assets/section-art/rewards.webp"/></span>
-<span class="member-fold-summary-main">
-<span class="eyebrow">COMMUNITY GAME</span><strong>🎡 ACY Glücksrad</strong>
-<small>Einmal täglich drehen, Extras sammeln und seltene Jackpot-Gewinne abräumen.</small>
-</span>
-<span class="member-fold-summary-side"><span class="member-count-chip" id="wheel-status-chip">Status wird geladen…</span><span class="member-fold-chevron">⌄</span></span>
-</summary>
-<div class="member-fold-body wheel-body">
-<div class="wheel-layout">
-<div class="wheel-machine">
-<div aria-hidden="true" class="wheel-pointer">▼</div>
-<div aria-label="Glücksrad" class="wheel" id="club-wheel"><div class="wheel-inner"><span class="wheel-center">A</span></div></div>
-<button class="button button-primary wheel-spin-button" disabled="" id="club-wheel-spin" type="button">⏳ Status wird geladen…</button>
-<p class="club-auth-status" id="wheel-message"></p>
-</div>
-<div class="wheel-rewards">
-<span class="eyebrow">MÖGLICHE GEWINNE</span>
-<div class="wheel-reward-list">
-<div><span>🟣</span><strong>+25 XP</strong><small>Sehr häufig</small></div>
-<div><span>💜</span><strong>+50 XP</strong><small>Häufig</small></div>
-<div><span>✨</span><strong>+100 XP</strong><small>Häufig</small></div>
-<div><span>💎</span><strong>+250 XP</strong><small>Gut</small></div>
-<div><span>🪙</span><strong>+500 XP</strong><small>Selten</small></div>
-<div><span>👑</span><strong>+1.000 XP</strong><small>Sehr selten</small></div>
-<div><span>🐾</span><strong>Pet-Bonus</strong><small>+Pflege &amp; Energie</small></div>
-<div><span>💖</span><strong>Pet-Mega-Boost</strong><small>Großer Pflege-Boost</small></div>
-<div><span>🎡</span><strong>Extra-Dreh</strong><small>Selten</small></div>
-<div><span>🎡</span><strong>2 Extra-Drehs</strong><small>Extrem selten</small></div>
-<div><span>💜</span><strong>Twitch-Reward</strong><small>Für Twitch vorbereitet</small></div>
-<div><span>🎰</span><strong>XP-Jackpot</strong><small>+2.500 XP · Jackpot</small></div>
-</div>
-<div class="wheel-history-wrap">
-<div class="section-mini-title">LETZTE GEWINNE</div>
-<div class="wheel-history" id="wheel-history"><div class="club-content-empty">Noch keine Drehungen.</div></div>
-</div>
-</div>
-</div>
-</div>
-</details>
-<details class="member-card member-span-2 member-fold" id="daily-streak-section">
-<summary class="member-fold-summary"><span class="member-fold-art-wrap"><img alt="" class="member-fold-art" decoding="async" loading="lazy" src="assets/section-art/quests.webp"/></span>
-<span class="member-fold-summary-main">
-<span class="eyebrow">DAILY</span>
-<strong>🔥 Deine tägliche Serie</strong>
-<small>Alle 24 Stunden kurz vorbeischauen und XP mitnehmen.</small>
-</span>
-<span class="member-fold-summary-side">
-<span class="member-count-chip" id="daily-streak-chip">0 Tage</span>
-<span class="member-fold-chevron">⌄</span>
-</span>
-</summary>
-<div class="member-fold-body">
-<div class="daily-streak-layout">
-<div class="daily-streak-main">
-<div aria-hidden="true" class="daily-streak-pet-art" id="daily-streak-pet-art"><img alt="" src="assets/pet-cat.webp"/></div>
-<div class="streak-number"><strong id="daily-streak-current">0</strong><span>TAGE</span></div>
-<div class="streak-copy">
-<span class="eyebrow">AKTUELL</span>
-<strong id="daily-streak-title">Deine Serie wartet.</strong>
-<p id="daily-streak-text">Hol dir jeden Tag deinen Check-in.</p>
-</div>
-</div>
-<div class="daily-streak-stats">
-<div><span>BESTE SERIE</span><strong id="daily-streak-best">0</strong></div>
-<div><span>CHECK-INS</span><strong id="daily-streak-total">0</strong></div>
-<div><span>TAGESBONUS</span><strong id="daily-streak-reward">+25 XP</strong></div>
-</div>
-</div>
-<button class="button button-primary" id="daily-streak-claim" type="button">🔥 Tagesbonus abholen</button>
-<p class="club-auth-status" id="daily-streak-message"></p>
-</div>
-</details>
-<details class="member-card member-span-2 member-fold" id="club-quests-section">
-<summary class="member-fold-summary"><span class="member-fold-art-wrap"><img alt="" class="member-fold-art" decoding="async" loading="lazy" src="assets/section-art/quests.webp"/></span><span class="member-fold-summary-main"><span class="eyebrow">QUESTS</span><strong>Quests</strong><small>Kleine Ziele, zusätzliche XP.</small></span><span class="member-fold-summary-side"><span class="member-count-chip" id="quest-count-chip">0 offen</span><span class="member-fold-chevron">⌄</span></span></summary>
-<div class="member-fold-body">
-<div class="quest-tabs"><button class="quest-tab is-active" data-quest-tab="daily" type="button">Heute</button><button class="quest-tab" data-quest-tab="weekly" type="button">Diese Woche</button></div>
-<div class="quest-list" id="quest-list"><div class="club-content-empty">Aufgaben werden geladen…</div></div>
-<p class="club-auth-status" id="quest-message"></p>
-</div>
-</details>
-<details class="member-card member-span-2 member-fold" id="club-rewards-section">
-<summary class="member-fold-summary"><span class="member-fold-art-wrap"><img alt="" class="member-fold-art" decoding="async" loading="lazy" src="assets/section-art/rewards.webp"/></span>
-<span class="member-fold-summary-main"><span class="eyebrow">REWARDS</span><strong>Belohnungen</strong><small>Gewinne sammeln, ansehen und einlösen.</small></span>
-<span class="member-fold-summary-side"><span class="member-count-chip" id="my-rewards-count">0 verfügbar</span><span class="member-fold-chevron">⌄</span></span>
-</summary>
-<div class="member-fold-body">
-<div class="rewards-summary-grid">
-<div class="reward-stat"><span>VERFÜGBAR</span><strong id="reward-available-count">0</strong></div>
-<div class="reward-stat"><span>EINGELÖST</span><strong id="reward-used-count">0</strong></div>
-<div class="reward-stat"><span>EXTRA-DREHS</span><strong id="reward-spin-token-count">0</strong></div>
-</div>
-<div class="section-mini-title">MEINE REWARDS</div>
-<div class="my-rewards-list" id="my-rewards-list"><div class="club-content-empty">Rewards werden geladen…</div></div>
-<div class="section-mini-title reward-catalog-heading">VERFÜGBARE REWARDS</div>
-<div class="reward-catalog-list" id="reward-catalog-list"><div class="club-content-empty">Katalog wird geladen…</div></div>
-<p class="club-auth-status" id="rewards-message"></p>
-</div>
-</details>
-<details class="member-card member-span-2 member-fold" id="member-news-section">
-<summary class="member-fold-summary"><span class="member-fold-art-wrap"><img alt="" class="member-fold-art" decoding="async" loading="lazy" src="assets/section-art/news.webp"/></span>
-<span class="member-fold-summary-main"><span class="eyebrow">ACY NEWS</span><strong>News</strong><small>Updates aus dem ACY Club.</small></span>
-<span class="member-fold-summary-side"><span class="member-fold-chevron">⌄</span></span>
-</summary>
-<div class="member-fold-body"><div class="club-content-list" id="member-news-list"><div class="club-content-empty">News werden geladen…</div></div></div>
-</details>
-<details class="member-card member-span-2 member-dm-card member-fold" id="club-messages">
-<summary class="member-fold-summary"><span class="member-fold-art-wrap"><img alt="" class="member-fold-art" decoding="async" loading="lazy" src="assets/section-art/private.webp"/></span>
-<span class="member-fold-summary-main"><span class="eyebrow">PRIVATE</span><strong>Nachrichten</strong><small>Private Chats mit Clubmitgliedern.</small></span>
-<span class="member-fold-summary-side"><span class="member-count-chip" hidden="" id="dm-unread-count">0 ungelesen</span><span class="member-fold-chevron">⌄</span></span>
-</summary>
-<div class="member-fold-body">
-<p class="member-fold-helper">Nur du und der jeweilige Empfänger können eine Unterhaltung sehen.</p>
-<div class="dm-shell" id="dm-shell">
-<aside class="dm-conversations" id="dm-conversations"><div class="club-content-empty">Nachrichten werden geladen…</div></aside>
-<div class="dm-thread">
-<div class="dm-thread-head" id="dm-thread-head"><div class="dm-thread-placeholder"><strong>Private Nachricht</strong><span>Wähle links ein Mitglied aus.</span></div></div>
-<div aria-live="polite" class="dm-messages" id="dm-messages"><div class="club-content-empty">Noch keine Unterhaltung ausgewählt.</div></div>
-<form class="dm-composer" hidden="" id="dm-form"><textarea aria-label="Private Nachricht" id="dm-input" maxlength="1000" placeholder="Private Nachricht schreiben…" rows="2"></textarea><div class="dm-composer-foot"><span id="dm-counter">0 / 1000</span><button class="button button-primary" id="dm-send" type="submit">Senden ↗</button></div></form>
-<div class="dm-status" id="dm-status" role="status"></div>
-</div>
-</div>
-</div>
-</details>
-<details class="member-card member-span-2 member-chat-card member-fold" id="club-chat">
-<summary class="member-fold-summary"><span class="member-fold-art-wrap"><img alt="" class="member-fold-art" decoding="async" loading="lazy" src="assets/section-art/chat.webp"/></span>
-<span class="member-fold-summary-main"><span class="eyebrow">LIVE COMMUNITY</span><strong>Club Chat</strong><small>Quatsch, Fragen und Stream-Talk.</small></span>
-<span class="member-fold-summary-side"><span class="chat-online-chip"><span class="chat-online-dot"></span><span id="chat-online-count">0 online</span></span><span class="member-fold-chevron">⌄</span></span>
-</summary>
-<div class="member-fold-body">
-<div class="club-chat-shell"><div aria-live="polite" class="club-chat-messages" id="club-chat-messages"><div class="club-content-empty">Chat wird geladen…</div></div><div class="club-chat-status" id="club-chat-status" role="status"></div><form class="club-chat-composer" id="club-chat-form"><div class="club-chat-composer-main"><textarea aria-label="Chat-Nachricht" id="club-chat-input" maxlength="500" placeholder="Schreib etwas in den ACY Club Chat…" rows="1"></textarea><div class="club-chat-composer-meta"><span id="club-chat-counter">0 / 500</span><span>Enter zum Senden · Shift + Enter für neue Zeile</span></div></div><button class="button button-primary club-chat-send" type="submit">Senden ↗</button></form></div>
-</div>
-</details>
-<details class="member-card member-span-2 member-fold" id="social-connections-section">
-<summary class="member-fold-summary"><span class="member-fold-art-wrap"><img alt="" class="member-fold-art" decoding="async" loading="lazy" src="assets/section-art/friends.webp"/></span>
-<span class="member-fold-summary-main"><span class="eyebrow">COMMUNITY</span><strong>Freunde</strong><small>Freundschaftsanfragen, Freunde und blockierte Kontakte verwalten.</small></span>
-<span class="member-fold-summary-side"><span class="member-count-chip" id="social-friend-count">0 Freunde</span><span class="member-fold-chevron">⌄</span></span>
-</summary>
-<div class="member-fold-body">
-<p class="social-sync-note">Freundschaften werden beim Öffnen automatisch synchronisiert.</p>
-<div class="social-subsection">
-<div class="section-mini-title">ANFRAGEN</div>
-<div class="social-connection-list" id="social-incoming-list"><div class="club-content-empty">Keine offenen Anfragen.</div></div>
-</div>
-<div class="social-subsection">
-<div class="section-mini-title">DEINE FREUNDE</div>
-<div class="social-connection-list" id="social-friends-list"><div class="club-content-empty">Noch keine Freunde.</div></div>
-</div>
-<div class="social-subsection">
-<div class="section-mini-title">BLOCKIERTE KONTAKTE</div>
-<div class="social-connection-list" id="social-blocked-list"><div class="club-content-empty">Keine blockierten Kontakte.</div></div>
-</div>
-</div>
-</details>
+                <input id="pet-name-input" maxlength="18" minlength="2" placeholder="z. B. Nala" autocomplete="off" required>
+              </label>
+              <button class="button button-primary" type="submit">Tier adoptieren</button>
+            </form>
+            <p class="club-auth-status" id="pet-status"></p>
+          </div>
+
+          <div id="pet-active-state" class="pet-active-state" hidden>
+            <div class="pet-main">
+              <div class="pet-avatar" id="pet-avatar"><img src="assets/pet-cat.webp" alt="Katze"></div>
+              <div class="pet-identity">
+                <div class="eyebrow" id="pet-species-label">BEGLEITER</div>
+                <h3 id="pet-display-name">Dein Tier</h3>
+                <p id="pet-level-text">Level 1 · 0 Pflege-XP</p>
+              </div>
+              <div class="pet-manage-actions">
+                <button class="button button-secondary pet-rename-toggle" type="button" id="pet-rename-toggle">Umbenennen</button>
+                <button class="button button-secondary pet-switch-toggle" type="button" id="pet-switch-toggle">Wechseln</button>
+                <button class="button button-danger pet-release-toggle" type="button" id="pet-release-toggle">Abgeben</button>
+              </div>
+            </div>
+
+            <form id="pet-rename-form" class="pet-rename-form" hidden>
+              <input id="pet-rename-input" maxlength="18" minlength="2" placeholder="Neuer Name" required>
+              <button class="button button-secondary" type="submit">Speichern</button>
+            </form>
+
+            <div class="pet-progression">
+              <div class="pet-progression-head">
+                <span class="eyebrow">PET PROGRESSION</span>
+                <strong id="pet-progression-title">Kleiner Begleiter</strong>
+              </div>
+              <div class="pet-progression-steps">
+                <div class="pet-prog-step is-current" data-pet-level="1"><span>1</span><small>Begleiter</small></div>
+                <div class="pet-prog-step" data-pet-level="2"><span>2</span><small>Freund</small></div>
+                <div class="pet-prog-step" data-pet-level="3"><span>3</span><small>Gefährte</small></div>
+                <div class="pet-prog-step" data-pet-level="4"><span>4</span><small>Sidekick</small></div>
+                <div class="pet-prog-step" data-pet-level="5"><span>5</span><small>Legende</small></div>
+              </div>
+              <div class="pet-progression-bar"><span id="pet-progression-fill"></span></div>
+            </div>
+
+            <div class="pet-stats">
+              <div class="pet-stat">
+                <div><span>Hunger</span><strong id="pet-hunger-value">100%</strong></div>
+                <div class="pet-stat-bar"><span id="pet-hunger-bar"></span></div>
+              </div>
+              <div class="pet-stat">
+                <div><span>Laune</span><strong id="pet-happiness-value">100%</strong></div>
+                <div class="pet-stat-bar"><span id="pet-happiness-bar"></span></div>
+              </div>
+              <div class="pet-stat">
+                <div><span>Energie</span><strong id="pet-energy-value">100%</strong></div>
+                <div class="pet-stat-bar"><span id="pet-energy-bar"></span></div>
+              </div>
+            </div>
+
+            <div class="pet-actions">
+              <button class="button button-secondary pet-action-btn" type="button" data-pet-action="feed">🍖 Füttern <small>+35 Hunger · +5 Pflege-XP</small></button>
+              <button class="button button-secondary pet-action-btn" type="button" data-pet-action="play">🎾 Spielen <small>+25 Laune · −15 Energie · +5 Pflege-XP</small></button>
+              <button class="button button-secondary pet-action-btn" type="button" data-pet-action="pet">💜 Streicheln <small>+10 Laune · +5 Pflege-XP</small></button>
+            </div>
+
+            <div class="pet-footer">
+              <span id="pet-care-note">Pflege deinen Begleiter regelmäßig.</span>
+              <span id="pet-xp-note">+5 Pflege-XP pro Pflegeaktion</span>
+            </div>
+          </div>
+        </section>
+
+      <div class="member-grid">
+        <!-- Profile -->
+        <section class="member-card" id="profile-section">
+          <div class="eyebrow">PROFIL</div>
+          <h2>Dein Profil</h2>
+          <form id="profile-form" class="member-form">
+            <label>Anzeigename
+              <input id="edit-display-name" maxlength="40" required>
+            </label>
+            <label>Bio
+              <textarea id="edit-bio" maxlength="180" rows="3" placeholder="Erzähl etwas über dich…"></textarea>
+            </label>
+            <button class="button button-primary" type="submit">Profil speichern</button>
+            <p class="club-auth-status" id="profile-save-status"></p>
+          </form>
+        </section>
+
+        <!-- Twitch -->
+        <section class="member-card member-twitch-card" id="twitch-section">
+          <div class="eyebrow">TWITCH · ACY CONNECT</div>
+          <div class="member-card-head">
+            <div>
+              <h2 id="twitch-member-title">ACYJANNIK</h2>
+              <p id="twitch-member-sub">Live-Status wird geladen…</p>
+            </div>
+            <span class="member-live-pill" id="member-live-pill"><span class="live-dot" id="member-live-dot"></span><span id="member-live-text">CHECKING</span></span>
+          </div>
+          <div class="member-twitch-stats">
+            <div><span>Game</span><strong id="member-twitch-game">–</strong></div>
+            <div><span>Zuschauer</span><strong id="member-twitch-viewers">–</strong></div>
+          </div>
+          <div class="twitch-live-detail-v11">
+            <div><span>STREAM</span><strong id="twitch-current-title">–</strong></div>
+            <div><span>AKTIVITÄT</span><strong id="twitch-live-activity">⏹ Stream offline</strong></div>
+            <div><span>KATEGORIE</span><strong id="twitch-current-game">–</strong></div>
+          </div>
+
+          <div class="twitch-account-connect-v11" id="twitch-account-connect">
+            <div class="twitch-connect-copy">
+              <strong>Dein Twitch-Konto</strong>
+              <small id="twitch-account-status">Noch nicht mit ACY verbunden.</small>
+            </div>
+            <div class="twitch-connect-actions">
+              <button class="button button-secondary button-small" id="twitch-connect-btn" type="button" title="Twitch-Konto mit ACY verbinden">🟣 Twitch verbinden</button>
+              <button class="button button-danger button-small" id="twitch-disconnect-btn" type="button" hidden>Trennen</button>
+            </div>
+          </div>
+
+          <div class="twitch-club-stats-v11" id="twitch-club-stats" hidden>
+            <div><span>STREAM-ZEIT</span><strong id="twitch-watch-minutes">0m</strong></div>
+            <div><span>WATCH POINTS</span><strong id="twitch-watch-points">0</strong></div>
+            <div><span>STREAM-TAGE</span><strong id="twitch-stream-days">0</strong></div>
+            <div><span>🔥 SERIE</span><strong id="twitch-stream-streak">0</strong></div>
+            <div><span>BESTE SERIE</span><strong id="twitch-best-streak">0</strong></div>
+          </div>
+
+          <div class="twitch-watch-controls-v11">
+            <span class="twitch-auto-pill" id="twitch-watch-mode">🤖 Automatisches Stream-Tracking</span>
+            <small id="twitch-watch-mode-note">Verbinde Twitch, dann erkennt ACY automatisch, wenn ACYJANNIK live ist.</small>
+          </div>
+          <small class="twitch-watch-note-v11">ACY misst dafür aktive ACY-Streamzeit in der Website während der Live-Phase. Das ist keine offizielle Twitch-Watchtime.</small>
+          <a class="button button-secondary" href="https://www.twitch.tv/acyjannik" target="_blank" rel="noreferrer">Twitch öffnen ↗</a>
+        </section>
+
+        <!-- Badges only: XP/Level progress is shown once in the Club Hub above. -->
+        <section class="member-card member-span-2 badges-section-v11" id="member-badges-section">
+          <div class="member-card-head">
+            <div>
+              <div class="eyebrow">ACHIEVEMENTS</div>
+              <h2>Deine Badges</h2>
+              <p>Auszeichnungen, die deinen Fortschritt sichtbar machen.</p>
+            </div>
+            <div class="level-chip">LEVEL <span id="level-number">1</span></div>
+          </div>
+          <div class="badge-grid" id="badge-grid"></div>
+        </section>
+
+        <details class="member-card member-span-2 progression-catalog-card member-fold" id="progression-catalog">
+          <summary class="member-fold-summary"><span class="member-fold-art-wrap"><img class="member-fold-art" src="assets/section-art/quests.webp" alt="" loading="lazy" decoding="async"></span>
+            <span class="member-fold-summary-main">
+              <span class="eyebrow">XP & ACHIEVEMENTS</span>
+              <strong>So funktioniert dein Fortschritt</strong>
+              <small>Level, XP-Quellen und Achievements</small>
+            </span>
+            <span class="member-fold-summary-side"><span class="member-count-chip" id="catalog-earned-summary">Wird geladen…</span><span class="member-fold-chevron">⌄</span></span>
+          </summary>
+          <div class="member-fold-body">
+            <div class="catalog-levels catalog-levels-scroll" id="catalog-levels-render" aria-label="Alle 30 Club-Level"></div>
+            <div id="catalog-render-status" class="catalog-render-status" aria-live="polite">V14.6 · Progression wird geladen…</div>
+            <div class="catalog-columns">
+              <div><div class="section-mini-title">XP VERDIENEN</div><div class="catalog-list" id="xp-catalog-list"></div></div>
+              <div><div class="section-mini-title">ACHIEVEMENTS</div><div class="catalog-list" id="achievement-catalog-list"></div></div>
+            </div>
+            <p class="catalog-note">XP und Achievements werden automatisch gespeichert. Manche Belohnungen sind einmalig, andere hängen von deinem aktuellen Fortschritt ab.</p>
+          </div>
+        </details>
+
+        <details class="member-card member-span-2 member-fold" id="member-events-section">
+          <summary class="member-fold-summary"><span class="member-fold-art-wrap"><img class="member-fold-art" src="assets/section-art/news.webp" alt="" loading="lazy" decoding="async"></span><span class="member-fold-summary-main"><span class="eyebrow">COMMUNITY</span><strong>Events</strong><small>Was im ACY Club als Nächstes ansteht.</small></span>
+            <span class="member-fold-summary-side"><span class="member-fold-chevron">⌄</span></span>
+          </summary>
+          <div class="member-fold-body"><div class="club-content-list" id="member-events-list"><div class="club-content-empty">Events werden geladen…</div></div></div>
+        </details>
+
+        <details class="member-card member-span-2 member-fold" id="club-wheel-section">
+          <summary class="member-fold-summary"><span class="member-fold-art-wrap"><img class="member-fold-art" src="assets/section-art/rewards.webp" alt="" loading="lazy" decoding="async"></span><span class="member-fold-summary-main">
+              <span class="eyebrow">COMMUNITY GAME</span><strong>🎡 ACY Glücksrad</strong>
+              <small>Einmal täglich drehen, Extras sammeln und seltene Jackpot-Gewinne abräumen.</small>
+            </span>
+            <span class="member-fold-summary-side"><span class="member-count-chip" id="wheel-status-chip">Status wird geladen…</span><span class="member-fold-chevron">⌄</span></span>
+          </summary>
+          <div class="member-fold-body wheel-body">
+            <div class="wheel-layout">
+              <div class="wheel-machine">
+                <div class="wheel-pointer" aria-hidden="true">▼</div>
+                <div class="wheel" id="club-wheel" aria-label="Glücksrad"><div class="wheel-inner"><span class="wheel-center">A</span></div></div>
+                <button class="button button-primary wheel-spin-button" id="club-wheel-spin" type="button" disabled>⏳ Status wird geladen…</button>
+                <p class="club-auth-status" id="wheel-message"></p>
+              </div>
+              <div class="wheel-rewards">
+                <span class="eyebrow">MÖGLICHE GEWINNE</span>
+                <div class="wheel-reward-list">
+                  <div><span>🟣</span><strong>+25 XP</strong><small>Sehr häufig</small></div>
+                  <div><span>💜</span><strong>+50 XP</strong><small>Häufig</small></div>
+                  <div><span>✨</span><strong>+100 XP</strong><small>Häufig</small></div>
+                  <div><span>💎</span><strong>+250 XP</strong><small>Gut</small></div>
+                  <div><span>🪙</span><strong>+500 XP</strong><small>Selten</small></div>
+                  <div><span>👑</span><strong>+1.000 XP</strong><small>Sehr selten</small></div>
+                  <div><span>🐾</span><strong>Pet-Bonus</strong><small>+Pflege & Energie</small></div>
+                  <div><span>💖</span><strong>Pet-Mega-Boost</strong><small>Großer Pflege-Boost</small></div>
+                  <div><span>🎡</span><strong>Extra-Dreh</strong><small>Selten</small></div>
+                  <div><span>🎡</span><strong>2 Extra-Drehs</strong><small>Extrem selten</small></div>
+                  <div><span>💜</span><strong>Twitch-Reward</strong><small>Für Twitch vorbereitet</small></div>
+                  <div><span>🎰</span><strong>XP-Jackpot</strong><small>+2.500 XP · Jackpot</small></div>
+                </div>
+                <div class="wheel-history-wrap">
+                  <div class="section-mini-title">LETZTE GEWINNE</div>
+                  <div id="wheel-history" class="wheel-history"><div class="club-content-empty">Noch keine Drehungen.</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </details>
+
+        <details class="member-card member-span-2 member-fold" id="daily-streak-section">
+          <summary class="member-fold-summary"><span class="member-fold-art-wrap"><img class="member-fold-art" src="assets/section-art/quests.webp" alt="" loading="lazy" decoding="async"></span><span class="member-fold-summary-main">
+              <span class="eyebrow">DAILY</span>
+              <strong>🔥 Deine tägliche Serie</strong>
+              <small>Alle 24 Stunden kurz vorbeischauen und XP mitnehmen.</small>
+            </span>
+            <span class="member-fold-summary-side">
+              <span class="member-count-chip" id="daily-streak-chip">0 Tage</span>
+              <span class="member-fold-chevron">⌄</span>
+            </span>
+          </summary>
+          <div class="member-fold-body">
+            <div class="daily-streak-layout">
+              <div class="daily-streak-main">
+                <div class="daily-streak-pet-art" id="daily-streak-pet-art" aria-hidden="true"><img src="assets/pet-cat.webp" alt=""></div>
+                <div class="streak-number"><strong id="daily-streak-current">0</strong><span>TAGE</span></div>
+                <div class="streak-copy">
+                  <span class="eyebrow">AKTUELL</span>
+                  <strong id="daily-streak-title">Deine Serie wartet.</strong>
+                  <p id="daily-streak-text">Hol dir jeden Tag deinen Check-in.</p>
+                </div>
+              </div>
+              <div class="daily-streak-stats">
+                <div><span>BESTE SERIE</span><strong id="daily-streak-best">0</strong></div>
+                <div><span>CHECK-INS</span><strong id="daily-streak-total">0</strong></div>
+                <div><span>TAGESBONUS</span><strong id="daily-streak-reward">+25 XP</strong></div>
+              </div>
+            </div>
+            <button class="button button-primary" id="daily-streak-claim" type="button">🔥 Tagesbonus abholen</button>
+            <p class="club-auth-status" id="daily-streak-message"></p>
+          </div>
+        </details>
+
+        <details class="member-card member-span-2 member-fold" id="club-quests-section">
+          <summary class="member-fold-summary"><span class="member-fold-art-wrap"><img class="member-fold-art" src="assets/section-art/quests.webp" alt="" loading="lazy" decoding="async"></span><span class="member-fold-summary-main"><span class="eyebrow">QUESTS</span><strong>Quests</strong><small>Kleine Ziele, zusätzliche XP.</small></span><span class="member-fold-summary-side"><span class="member-count-chip" id="quest-count-chip">0 offen</span><span class="member-fold-chevron">⌄</span></span></summary>
+          <div class="member-fold-body">
+            <div class="quest-tabs"><button class="quest-tab is-active" type="button" data-quest-tab="daily">Heute</button><button class="quest-tab" type="button" data-quest-tab="weekly">Diese Woche</button></div>
+            <div id="quest-list" class="quest-list"><div class="club-content-empty">Aufgaben werden geladen…</div></div>
+            <p class="club-auth-status" id="quest-message"></p>
+          </div>
+        </details>
+
+        <details class="member-card member-span-2 member-fold" id="club-rewards-section">
+          <summary class="member-fold-summary"><span class="member-fold-art-wrap"><img class="member-fold-art" src="assets/section-art/rewards.webp" alt="" loading="lazy" decoding="async"></span><span class="member-fold-summary-main"><span class="eyebrow">REWARDS</span><strong>Belohnungen</strong><small>Gewinne sammeln, ansehen und einlösen.</small></span>
+            <span class="member-fold-summary-side"><span class="member-count-chip" id="my-rewards-count">0 verfügbar</span><span class="member-fold-chevron">⌄</span></span>
+          </summary>
+          <div class="member-fold-body">
+            <div class="rewards-summary-grid">
+              <div class="reward-stat"><span>VERFÜGBAR</span><strong id="reward-available-count">0</strong></div>
+              <div class="reward-stat"><span>EINGELÖST</span><strong id="reward-used-count">0</strong></div>
+              <div class="reward-stat"><span>EXTRA-DREHS</span><strong id="reward-spin-token-count">0</strong></div>
+            </div>
+            <div class="section-mini-title">MEINE REWARDS</div>
+            <div id="my-rewards-list" class="my-rewards-list"><div class="club-content-empty">Rewards werden geladen…</div></div>
+            <div class="section-mini-title reward-catalog-heading">VERFÜGBARE REWARDS</div>
+            <div id="reward-catalog-list" class="reward-catalog-list"><div class="club-content-empty">Katalog wird geladen…</div></div>
+            <p class="club-auth-status" id="rewards-message"></p>
+          </div>
+        </details>
+
+        <details class="member-card member-span-2 member-fold" id="member-news-section">
+          <summary class="member-fold-summary"><span class="member-fold-art-wrap"><img class="member-fold-art" src="assets/section-art/news.webp" alt="" loading="lazy" decoding="async"></span><span class="member-fold-summary-main"><span class="eyebrow">ACY NEWS</span><strong>News</strong><small>Updates aus dem ACY Club.</small></span>
+            <span class="member-fold-summary-side"><span class="member-fold-chevron">⌄</span></span>
+          </summary>
+          <div class="member-fold-body"><div class="club-content-list" id="member-news-list"><div class="club-content-empty">News werden geladen…</div></div></div>
+        </details>
+
+        
+        <details class="member-card member-span-2 member-dm-card member-fold" id="club-messages">
+          <summary class="member-fold-summary"><span class="member-fold-art-wrap"><img class="member-fold-art" src="assets/section-art/private.webp" alt="" loading="lazy" decoding="async"></span>
+            <span class="member-fold-summary-main"><span class="eyebrow">PRIVATE</span><strong>Nachrichten</strong><small>Private Chats mit Clubmitgliedern.</small></span>
+            <span class="member-fold-summary-side"><span class="member-count-chip" id="dm-unread-count" hidden>0 ungelesen</span><span class="member-fold-chevron">⌄</span></span>
+          </summary>
+          <div class="member-fold-body">
+            <p class="member-fold-helper">Nur du und der jeweilige Empfänger können eine Unterhaltung sehen.</p>
+            <div class="dm-shell" id="dm-shell">
+              <aside class="dm-conversations" id="dm-conversations"><div class="club-content-empty">Nachrichten werden geladen…</div></aside>
+              <div class="dm-thread">
+                <div class="dm-thread-head" id="dm-thread-head"><div class="dm-thread-placeholder"><strong>Private Nachricht</strong><span>Wähle links ein Mitglied aus.</span></div></div>
+                <div class="dm-messages" id="dm-messages" aria-live="polite"><div class="club-content-empty">Noch keine Unterhaltung ausgewählt.</div></div>
+                <form class="dm-composer" id="dm-form" hidden><textarea id="dm-input" maxlength="1000" rows="2" placeholder="Private Nachricht schreiben…" aria-label="Private Nachricht"></textarea><div class="dm-composer-foot"><span id="dm-counter">0 / 1000</span><button class="button button-primary" type="submit" id="dm-send">Senden ↗</button></div></form>
+                <div class="dm-status" id="dm-status" role="status"></div>
+              </div>
+            </div>
+          </div>
+        </details>
+
+        <details class="member-card member-span-2 member-chat-card member-fold" id="club-chat">
+          <summary class="member-fold-summary"><span class="member-fold-art-wrap"><img class="member-fold-art" src="assets/section-art/chat.webp" alt="" loading="lazy" decoding="async"></span>
+            <span class="member-fold-summary-main"><span class="eyebrow">LIVE COMMUNITY</span><strong>Club Chat</strong><small>Quatsch, Fragen und Stream-Talk.</small></span>
+            <span class="member-fold-summary-side"><span class="chat-online-chip"><span class="chat-online-dot"></span><span id="chat-online-count">0 online</span></span><span class="member-fold-chevron">⌄</span></span>
+          </summary>
+          <div class="member-fold-body">
+            <div class="club-chat-shell"><div class="club-chat-messages" id="club-chat-messages" aria-live="polite"><div class="club-content-empty">Chat wird geladen…</div></div><div class="club-chat-status" id="club-chat-status" role="status"></div><form class="club-chat-composer" id="club-chat-form"><div class="club-chat-composer-main"><textarea id="club-chat-input" maxlength="500" rows="1" placeholder="Schreib etwas in den ACY Club Chat…" aria-label="Chat-Nachricht"></textarea><div class="club-chat-composer-meta"><span id="club-chat-counter">0 / 500</span><span>Enter zum Senden · Shift + Enter für neue Zeile</span></div></div><button class="button button-primary club-chat-send" type="submit">Senden ↗</button></form></div>
+          </div>
+        </details>
+
+
+      <details class="member-card member-span-2 member-fold" id="social-connections-section">
+        <summary class="member-fold-summary"><span class="member-fold-art-wrap"><img class="member-fold-art" src="assets/section-art/friends.webp" alt="" loading="lazy" decoding="async"></span><span class="member-fold-summary-main"><span class="eyebrow">COMMUNITY</span><strong>Freunde</strong><small>Freundschaftsanfragen, Freunde und blockierte Kontakte verwalten.</small></span>
+          <span class="member-fold-summary-side"><span class="member-count-chip" id="social-friend-count">0 Freunde</span><span class="member-fold-chevron">⌄</span></span>
+        </summary>
+        <div class="member-fold-body">
+          <p class="social-sync-note">Freundschaften werden beim Öffnen automatisch synchronisiert.</p>
+          <div class="social-subsection">
+            <div class="section-mini-title">ANFRAGEN</div>
+            <div class="social-connection-list" id="social-incoming-list"><div class="club-content-empty">Keine offenen Anfragen.</div></div>
+          </div>
+          <div class="social-subsection">
+            <div class="section-mini-title">DEINE FREUNDE</div>
+            <div class="social-connection-list" id="social-friends-list"><div class="club-content-empty">Noch keine Freunde.</div></div>
+          </div>
+          <div class="social-subsection">
+            <div class="section-mini-title">BLOCKIERTE KONTAKTE</div>
+            <div class="social-connection-list" id="social-blocked-list"><div class="club-content-empty">Keine blockierten Kontakte.</div></div>
+          </div>
+        </div>
+      </details>
+
 <details class="member-card member-span-2 member-directory-card member-fold" id="member-directory-section">
-<summary class="member-fold-summary"><span class="member-fold-art-wrap"><img alt="" class="member-fold-art" decoding="async" loading="lazy" src="assets/section-art/friends.webp"/></span>
-<span class="member-fold-summary-main"><span class="eyebrow">COMMUNITY</span><strong>Mitglieder</strong><small>Mitglieder suchen, Profile öffnen oder direkt schreiben.</small></span>
-<span class="member-fold-summary-side"><span class="member-count-chip" id="member-directory-count">– Mitglieder</span><span class="member-fold-chevron">⌄</span></span>
-</summary>
-<div class="member-fold-body">
-<div class="member-directory-toolbar">
-<input aria-label="Mitglieder suchen" id="member-directory-search" placeholder="Mitglieder suchen…" type="search"/>
-<div aria-label="Mitglieder filtern" class="member-directory-filters" role="group">
-<button class="member-filter is-active" data-member-filter="all" type="button">Alle</button>
-<button class="member-filter" data-member-filter="online" type="button">🟢 Online</button>
-<button class="member-filter" data-member-filter="friends" type="button">👥 Freunde</button>
-<button class="member-filter" data-member-filter="pets" type="button">🐾 Mit Pet</button>
-</div>
-</div>
-<div class="member-directory-list" id="member-directory-list"><div class="club-content-empty">Mitglieder werden geladen…</div></div>
-</div>
-</details>
-<!-- Discord -->
-<details class="member-card member-span-2 member-fold" id="clips-section">
-<summary class="member-fold-summary"><span class="member-fold-art-wrap"><img alt="" class="member-fold-art" decoding="async" loading="lazy" src="assets/section-art/news.webp"/></span><span class="member-fold-summary-main"><span class="eyebrow">ACY CLIPS</span><strong>Clips</strong><small>Ausgewählte Clips aus den Streams.</small></span><span class="member-fold-summary-side"><span class="member-fold-chevron">⌄</span></span></summary>
-<div class="member-fold-body"><div class="clip-grid" id="member-clips-list"><div class="club-content-empty">Clips werden geladen…</div></div></div>
-</details>
-<details class="member-card member-span-2 member-fold" id="member-leaderboard-section">
-<summary class="member-fold-summary"><span class="member-fold-art-wrap"><img alt="" class="member-fold-art" decoding="async" loading="lazy" src="assets/section-art/friends.webp"/></span><span class="member-fold-summary-main"><span class="eyebrow">LEADERBOARD</span><strong>Ranking</strong><small>Wer sammelt aktuell die meisten XP?</small></span><span class="member-fold-summary-side"><span class="member-count-chip" id="leaderboard-count">– Mitglieder</span><span class="member-fold-chevron">⌄</span></span></summary>
-<div class="member-fold-body"><div class="leaderboard-list" id="member-leaderboard-list"><div class="club-content-empty">Ranking wird geladen…</div></div></div>
-</details>
-<details class="member-card member-span-2 member-fold" id="stats-section">
-<summary class="member-fold-summary"><span class="member-fold-art-wrap"><img alt="" class="member-fold-art" decoding="async" loading="lazy" src="assets/section-art/news.webp"/></span><span class="member-fold-summary-main"><span class="eyebrow">DEINE STATISTIK</span><strong>Club-Fortschritt</strong><small>Events, Badges, XP und Mitgliedstage.</small></span><span class="member-fold-summary-side"><span class="member-fold-chevron">⌄</span></span></summary>
-<div class="member-fold-body"><div class="member-stats-grid" id="member-stats-grid"><div><span>Events</span><strong id="stat-events">0</strong></div><div><span>Badges</span><strong id="stat-badges">0</strong></div><div><span>XP</span><strong id="stat-xp">0</strong></div><div><span>Mitgliedstage</span><strong id="stat-days">0</strong></div></div></div>
-</details>
-<details class="member-card member-span-2 member-discord-card member-fold" id="discord-section">
-<summary class="member-fold-summary"><span class="member-fold-art-wrap"><img alt="" class="member-fold-art" decoding="async" loading="lazy" src="assets/section-art/chat.webp"/></span><span class="member-fold-summary-main"><span class="eyebrow">COMMUNITY</span><strong>Discord</strong><small>Discord verbinden und +50 XP sichern.</small></span><span class="member-fold-summary-side"><span class="member-fold-chevron">⌄</span></span></summary>
-<div class="member-fold-body"><div class="member-discord-actions"><button class="button button-primary" id="discord-connect-btn" type="button">Discord verbinden</button><button class="button button-secondary" hidden="" id="discord-disconnect-btn" type="button">Discord trennen</button><a class="button button-secondary" href="https://discord.gg/74ACqBwfu" rel="noreferrer" target="_blank">Server öffnen ↗</a></div><div class="discord-link-state" id="discord-link-state"><span class="discord-state-dot"></span><span id="discord-link-text">Nicht verbunden</span></div><p class="club-auth-status" id="discord-link-status"></p><p class="discord-xp-note" id="discord-xp-note">Discord verbunden = +50 XP und Badge „Discord Member“.</p></div>
-</details>
-</div>
-</main>
-</div>
-<nav aria-label="Schnellnavigation" class="mobile-club-dock">
-<a data-dock-key="pet" href="#pet-section"><span class="dock-icon">🐾</span><span>Pet</span></a>
-<a data-dock-key="quests" href="#club-quests-section"><span class="dock-icon">🎯</span><span>Quests</span><span class="dock-badge" hidden="" id="mobile-quest-badge">0</span></a>
-<a data-dock-key="messages" href="#club-messages"><span class="dock-icon">💬</span><span>Privat</span><span class="dock-badge" hidden="" id="mobile-chat-badge">0</span></a>
-<button aria-label="Benachrichtigungen" data-dock-key="notifications" id="mobile-dock-notifications" type="button"><span class="dock-icon">🔔</span><span>Hinweise</span><span class="dock-badge" hidden="" id="mobile-notification-badge">0</span></button>
-<a data-dock-key="wheel" href="#club-wheel-section"><span class="dock-icon">🎡</span><span>Glücksrad</span></a>
+          <summary class="member-fold-summary"><span class="member-fold-art-wrap"><img class="member-fold-art" src="assets/section-art/friends.webp" alt="" loading="lazy" decoding="async"></span>
+            <span class="member-fold-summary-main"><span class="eyebrow">COMMUNITY</span><strong>Mitglieder</strong><small>Mitglieder suchen, Profile öffnen oder direkt schreiben.</small></span>
+            <span class="member-fold-summary-side"><span class="member-count-chip" id="member-directory-count">– Mitglieder</span><span class="member-fold-chevron">⌄</span></span>
+          </summary>
+          <div class="member-fold-body">
+            <div class="member-directory-toolbar">
+              <input id="member-directory-search" type="search" placeholder="Mitglieder suchen…" aria-label="Mitglieder suchen">
+              <div class="member-directory-filters" role="group" aria-label="Mitglieder filtern">
+                <button class="member-filter is-active" type="button" data-member-filter="all">Alle</button>
+                <button class="member-filter" type="button" data-member-filter="online">🟢 Online</button>
+                <button class="member-filter" type="button" data-member-filter="friends">👥 Freunde</button>
+                <button class="member-filter" type="button" data-member-filter="pets">🐾 Mit Pet</button>
+              </div>
+            </div>
+            <div class="member-directory-list" id="member-directory-list"><div class="club-content-empty">Mitglieder werden geladen…</div></div>
+          </div>
+        </details>
+
+        <!-- Discord -->
+        <details class="member-card member-span-2 member-fold" id="clips-section">
+          <summary class="member-fold-summary"><span class="member-fold-art-wrap"><img class="member-fold-art" src="assets/section-art/news.webp" alt="" loading="lazy" decoding="async"></span><span class="member-fold-summary-main"><span class="eyebrow">ACY CLIPS</span><strong>Clips</strong><small>Ausgewählte Clips aus den Streams.</small></span><span class="member-fold-summary-side"><span class="member-fold-chevron">⌄</span></span></summary>
+          <div class="member-fold-body"><div class="clip-grid" id="member-clips-list"><div class="club-content-empty">Clips werden geladen…</div></div></div>
+        </details>
+
+        <details class="member-card member-span-2 member-fold" id="member-leaderboard-section">
+          <summary class="member-fold-summary"><span class="member-fold-art-wrap"><img class="member-fold-art" src="assets/section-art/friends.webp" alt="" loading="lazy" decoding="async"></span><span class="member-fold-summary-main"><span class="eyebrow">LEADERBOARD</span><strong>Ranking</strong><small>Wer sammelt aktuell die meisten XP?</small></span><span class="member-fold-summary-side"><span class="member-count-chip" id="leaderboard-count">– Mitglieder</span><span class="member-fold-chevron">⌄</span></span></summary>
+          <div class="member-fold-body"><div class="leaderboard-list" id="member-leaderboard-list"><div class="club-content-empty">Ranking wird geladen…</div></div></div>
+        </details>
+
+        <details class="member-card member-span-2 member-fold" id="stats-section">
+          <summary class="member-fold-summary"><span class="member-fold-art-wrap"><img class="member-fold-art" src="assets/section-art/news.webp" alt="" loading="lazy" decoding="async"></span><span class="member-fold-summary-main"><span class="eyebrow">DEINE STATISTIK</span><strong>Club-Fortschritt</strong><small>Events, Badges, XP und Mitgliedstage.</small></span><span class="member-fold-summary-side"><span class="member-fold-chevron">⌄</span></span></summary>
+          <div class="member-fold-body"><div class="member-stats-grid" id="member-stats-grid"><div><span>Events</span><strong id="stat-events">0</strong></div><div><span>Badges</span><strong id="stat-badges">0</strong></div><div><span>XP</span><strong id="stat-xp">0</strong></div><div><span>Mitgliedstage</span><strong id="stat-days">0</strong></div></div></div>
+        </details>
+
+        <details class="member-card member-span-2 member-discord-card member-fold" id="discord-section">
+          <summary class="member-fold-summary"><span class="member-fold-art-wrap"><img class="member-fold-art" src="assets/section-art/chat.webp" alt="" loading="lazy" decoding="async"></span><span class="member-fold-summary-main"><span class="eyebrow">COMMUNITY</span><strong>Discord</strong><small>Discord verbinden und +50 XP sichern.</small></span><span class="member-fold-summary-side"><span class="member-fold-chevron">⌄</span></span></summary>
+          <div class="member-fold-body"><div class="member-discord-actions"><button class="button button-primary" id="discord-connect-btn" type="button">Discord verbinden</button><button class="button button-secondary" id="discord-disconnect-btn" type="button" hidden>Discord trennen</button><a class="button button-secondary" href="https://discord.gg/74ACqBwfu" target="_blank" rel="noreferrer">Server öffnen ↗</a></div><div class="discord-link-state" id="discord-link-state"><span class="discord-state-dot"></span><span id="discord-link-text">Nicht verbunden</span></div><p class="club-auth-status" id="discord-link-status"></p><p class="discord-xp-note" id="discord-xp-note">Discord verbunden = +50 XP und Badge „Discord Member“.</p></div>
+        </details>
+      </div>
+    </main>
+  </div>
+<nav class="mobile-club-dock" aria-label="Schnellnavigation">
+  <a href="#pet-section" data-dock-key="pet"><span class="dock-icon">🐾</span><span>Pet</span></a>
+  <a href="#club-quests-section" data-dock-key="quests"><span class="dock-icon">🎯</span><span>Quests</span><span class="dock-badge" id="mobile-quest-badge" hidden>0</span></a>
+  <a href="#club-messages" data-dock-key="messages"><span class="dock-icon">💬</span><span>Privat</span><span class="dock-badge" id="mobile-chat-badge" hidden>0</span></a>
+  <button id="mobile-dock-notifications" data-dock-key="notifications" type="button" aria-label="Benachrichtigungen"><span class="dock-icon">🔔</span><span>Hinweise</span><span class="dock-badge" id="mobile-notification-badge" hidden>0</span></button>
+  <a href="#club-wheel-section" data-dock-key="wheel"><span class="dock-icon">🎡</span><span>Glücksrad</span></a>
 </nav>
+
+
 <footer class="legal-footer"><a href="/impressum.html">Impressum</a><span>·</span><a href="/datenschutz.html">Datenschutz</a></footer>
-<button aria-label="Nach oben" class="acy-back-to-top" id="acy-back-to-top" style="position:fixed;right:14px;left:auto;bottom:calc(90px + env(safe-area-inset-bottom));z-index:10001" title="Nach oben" type="button"><span aria-hidden="true">↑</span><span class="acy-back-to-top-label">Nach oben</span></button>
-<div aria-hidden="true" id="acy-build-marker" style="position:fixed;right:10px;bottom:10px;z-index:99999;
+<button id="acy-back-to-top" class="acy-back-to-top" type="button" aria-label="Nach oben" title="Nach oben" style="position:fixed;right:14px;left:auto;bottom:calc(90px + env(safe-area-inset-bottom));z-index:10001"><span aria-hidden="true">↑</span><span class="acy-back-to-top-label">Nach oben</span></button>
+<div id="acy-build-marker" aria-hidden="true"
+     style="position:fixed;right:10px;bottom:10px;z-index:99999;
             padding:6px 9px;border:1px solid rgba(192,132,252,.45);
             border-radius:999px;background:rgba(12,9,18,.92);
             color:#c084fc;font:700 10px/1 system-ui,sans-serif;
             letter-spacing:.08em;pointer-events:none;opacity:.75">
-  ACY BUILD V15.9
+  ACY BUILD V16.0
 </div>
-<script defer="" src="liquid-ui.js?v=15.9.0"></script>
+
+  <script src="liquid-ui.js?v=16.0.0" defer></script>
 </body>
 </html>
