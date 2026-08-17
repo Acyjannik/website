@@ -1,6 +1,10 @@
 {
   "crons": [
     {
+      "path": "/api/push-daily",
+      "schedule": "0 * * * *"
+    },
+    {
       "path": "/api/cron-engagement",
       "schedule": "0 */6 * * *"
     }

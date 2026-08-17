@@ -7,7 +7,7 @@
   <meta name="robots" content="noindex,nofollow">
   <link rel="stylesheet" href="styles.css?v=14.4.0">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="admin.js?v=11.5.0" defer></script>
+  <script src="admin.js?v=15.5.0" defer></script>
   <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
   <link rel="shortcut icon" href="/assets/favicon.svg">
   <link rel="apple-touch-icon" href="/assets/favicon.svg">
@@ -18,7 +18,7 @@
       <div class="admin-brand">
         <div class="eyebrow">ACYJANNIK</div>
         <h1>Admin</h1>
-        <p class="admin-muted">Website, Community und Content verwalten.</p><div class="admin-version">Admin v5.5 · Control Center</div>
+        <p class="admin-muted">Website, Community und Content verwalten.</p><div class="admin-version">Admin v15.5 · Control Center</div>
       </div>
       <div class="admin-actions">
         <a class="button button-secondary" href="/">Website ↗</a>
@@ -433,10 +433,16 @@
 
             <div class="admin-card">
               <div class="eyebrow">MOBILE PUSH</div>
-              <h2>Push testen</h2>
-              <p class="admin-muted">Schickt eine Test-Benachrichtigung an alle Geräte, auf denen ein Mitglied ACY-Push aktiviert hat.</p>
-              <button class="button button-primary" id="test-push-all-btn" type="button">📱 Push-Test an alle Geräte</button><button class="button button-secondary button-small" id="check-push-status-btn" type="button">Push-Status prüfen</button>
+              <h2>Push & Grüße</h2>
+              <p class="admin-muted">Sende einen Gruß sofort an alle Mitglieder mit aktiviertem Push. Morgens um 08:00 und abends um 18:00 Uhr geht der passende Gruß automatisch raus.</p>
+              <div class="quick-actions">
+                <button class="button button-primary" id="send-morning-greeting-btn" type="button">🌅 Morgengruß an alle</button>
+                <button class="button button-secondary" id="send-evening-greeting-btn" type="button">🌙 Abendgruß an alle</button>
+                <button class="button button-secondary button-small" id="test-push-all-btn" type="button">📱 Push-Test an alle Geräte</button>
+                <button class="button button-secondary button-small" id="check-push-status-btn" type="button">Push-Status prüfen</button>
+              </div>
               <p class="admin-note" id="push-test-message"></p>
+              <p class="admin-note">Automatik nutzt die deutsche Zeit <strong>Europe/Berlin</strong> und berücksichtigt Sommer-/Winterzeit.</p>
             </div>
 
             <div class="admin-card">

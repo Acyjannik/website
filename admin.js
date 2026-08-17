@@ -1409,6 +1409,38 @@ $('check-push-status-btn')?.addEventListener('click', async()=>{
   }
 });
 
+async function sendDailyGreeting(mode, buttonId) {
+  const button = $(buttonId);
+  const status = $('push-test-message');
+  const label = mode === 'morning' ? '🌅 Morgengruß' : '🌙 Abendgruß';
+  if (!button) return;
+  if (!confirm(`${label} wirklich an alle Mitglieder mit aktiviertem Push senden?`)) return;
+  button.disabled = true;
+  button.textContent = mode === 'morning' ? '🌅 Wird gesendet…' : '🌙 Wird gesendet…';
+  if (status) { status.textContent = ''; status.classList.remove('error'); }
+  try {
+    const { data } = await supabaseClient.auth.getSession();
+    const token = data?.session?.access_token;
+    if (!token) throw new Error('Keine aktive Admin-Sitzung.');
+    const response = await fetch('/api/push-daily', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mode })
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(payload.error || `HTTP ${response.status}`);
+    if (status) status.textContent = `${label} gesendet · ${payload.sentPush || 0} Push(s) · ${payload.sentInApp || 0} Club-Hinweise · ${payload.removed || 0} alte Abos entfernt · ${payload.failed || 0} Fehler.`;
+  } catch (error) {
+    if (status) { status.textContent = error.message || 'Gruß konnte nicht gesendet werden.'; status.classList.add('error'); }
+  } finally {
+    button.disabled = false;
+    button.textContent = mode === 'morning' ? '🌅 Morgengruß an alle' : '🌙 Abendgruß an alle';
+  }
+}
+
+$('send-morning-greeting-btn')?.addEventListener('click', () => sendDailyGreeting('morning', 'send-morning-greeting-btn'));
+$('send-evening-greeting-btn')?.addEventListener('click', () => sendDailyGreeting('evening', 'send-evening-greeting-btn'));
+
 $('test-push-all-btn')?.addEventListener('click', async () => {
   const button=$('test-push-all-btn');
   const status=$('push-test-message');
