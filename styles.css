@@ -4470,7 +4470,7 @@ body.acy-cosmic-active .club-auth-shell{filter:saturate(1.12)}
 }
 
 
-/* V16.2 — cohesive section artwork for every mobile/desktop fold */
+/* V17.0 — cohesive section artwork for every mobile/desktop fold */
 .member-fold-summary{position:relative;min-height:88px}
 .member-fold-art-wrap{width:72px;height:72px;flex:0 0 72px;border-radius:16px;overflow:hidden;display:grid;place-items:center;background:linear-gradient(145deg,rgba(168,85,247,.16),rgba(59,130,246,.06));border:1px solid rgba(168,85,247,.26);box-shadow:inset 0 0 18px rgba(168,85,247,.10),0 8px 28px rgba(0,0,0,.22)}
 .member-fold-art{width:100%;height:100%;display:block;object-fit:cover}
@@ -4490,10 +4490,10 @@ body.acy-cosmic-active .club-auth-shell{filter:saturate(1.12)}
   .member-fold-summary-main strong{font-size:17px}
   .member-fold-summary-main small{font-size:11px;max-width:24ch}
 }
-/* V16.2 — quest progress should visually pop when it changes */
+/* V17.0 — quest progress should visually pop when it changes */
 .quest-row.is-complete{border-color:rgba(168,85,247,.42);box-shadow:0 10px 32px rgba(126,34,206,.12)}
 .quest-row.is-complete .quest-progress span{box-shadow:0 0 14px rgba(192,132,252,.55)}
-\n\n/* V16.2 — reference artwork + mobile polish */
+\n\n/* V17.0 — reference artwork + mobile polish */
 .member-fold-art-wrap{background:#0b0b10;border-color:rgba(192,132,252,.28);box-shadow:inset 0 0 22px rgba(168,85,247,.10),0 10px 30px rgba(0,0,0,.26)}
 .member-fold-art{object-fit:cover;object-position:center;mix-blend-mode:screen}
 @media(max-width:760px){
@@ -4507,7 +4507,7 @@ body.acy-cosmic-active .club-auth-shell{filter:saturate(1.12)}
 @media(max-width:430px){.club-auth-page .member-fold-art-wrap{width:56px;height:56px;flex-basis:56px}.club-auth-page .member-fold-summary-main strong{font-size:19px}.club-auth-page .member-fold-summary-main small{font-size:11px}}
 
 
-/* V16.4 — safe club hub glow hook */
+/* V17.0 — safe club hub glow hook */
 .member-hub .hub-main-card[class*="glow-tier-"],
 .member-hub .hub-progression-card[class*="glow-tier-"],
 .member-hub .hub-poll-card[class*="glow-tier-"],
@@ -4520,3 +4520,14 @@ body.acy-cosmic-active .club-auth-shell{filter:saturate(1.12)}
 }
 .member-hub .hub-glow-active{position:relative;overflow:hidden}
 .member-hub .hub-glow-active::after{content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;background:radial-gradient(circle at 20% 0%,var(--glow-strong),transparent 48%);opacity:.16}
+
+
+/* V17.0 — ACY PET LIFE */
+.pet-actions-v17{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.pet-actions-v17 .pet-action-btn{min-width:0;min-height:64px}
+.pet-life-panel-v17{padding:16px;border:1px solid rgba(168,85,247,.18);border-radius:18px;background:linear-gradient(180deg,rgba(168,85,247,.055),rgba(255,255,255,.018));box-shadow:inset 0 1px rgba(255,255,255,.035)}
+.pet-life-head-v17{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:14px}
+.pet-life-head-v17>div:first-child{display:grid;gap:3px}.pet-life-head-v17 strong{font-size:18px}.pet-life-head-v17 small{color:#8f8f99;font-size:10px}.pet-coins-v17{padding:9px 12px;border-radius:999px;border:1px solid rgba(168,85,247,.22);background:rgba(168,85,247,.08);color:#e9d5ff;font-weight:700;white-space:nowrap}
+.pet-inventory-v17{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:12px}.pet-item-v17{padding:10px;border-radius:13px;background:#0d0d12;border:1px solid rgba(255,255,255,.06);display:grid;gap:3px}.pet-item-v17 strong{font-size:11px}.pet-item-v17 small{font-size:9px;color:#71717a}.pet-life-actions-v17{display:flex;gap:8px;flex-wrap:wrap}.pet-life-actions-v17 .button{flex:1;min-width:130px}.pet-minigames-v17{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}.pet-mini-card-v17{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;padding:12px;border-radius:14px;background:#0b0b10;border:1px solid rgba(255,255,255,.06)}.pet-mini-card-v17>span{font-size:24px}.pet-mini-card-v17 div{display:grid;gap:2px}.pet-mini-card-v17 strong{font-size:11px}.pet-mini-card-v17 small{font-size:9px;color:#777}.pet-shop-v17{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.06)}.pet-shop-item-v17{padding:12px;border-radius:14px;background:#0b0b10;border:1px solid rgba(168,85,247,.14);display:grid;gap:6px}.pet-shop-item-v17 strong{font-size:11px}.pet-shop-item-v17 small{font-size:9px;color:#85858e}.pet-shop-item-v17 .button{width:100%}
+@media(max-width:700px){.pet-actions-v17{grid-template-columns:1fr 1fr}.pet-inventory-v17{grid-template-columns:repeat(2,minmax(0,1fr))}.pet-life-head-v17{align-items:flex-start;flex-direction:column}.pet-minigames-v17{grid-template-columns:1fr}.pet-shop-v17{grid-template-columns:1fr 1fr}}
+@media(max-width:450px){.pet-actions-v17{grid-template-columns:1fr}.pet-life-actions-v17{display:grid;grid-template-columns:1fr}.pet-life-actions-v17 .button{width:100%}.pet-shop-v17{grid-template-columns:1fr}}

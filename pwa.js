@@ -1,5 +1,5 @@
 
-/* ACY V16.2: keep the active service worker stable so Push can work reliably. */
+/* ACY V17.0: keep the active service worker stable so Push can work reliably. */
 
 let deferredPwaInstallPrompt = null;
 let PUSH_PUBLIC_KEY = '';
@@ -100,7 +100,7 @@ async function subscribeAcyPush(){
   const permission=await Notification.requestPermission();
   if(permission!=='granted') throw new Error('Benachrichtigungen wurden nicht erlaubt.');
 
-  const registration=await navigator.serviceWorker.register('/service-worker.js?v=16.4.0',{scope:'/'});
+  const registration=await navigator.serviceWorker.register('/service-worker.js?v=17.0.0',{scope:'/'});
   const ready=await navigator.serviceWorker.ready;
   let subscription=await ready.pushManager.getSubscription();
   if(!subscription){
@@ -203,6 +203,6 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('acy-pwa-install-overlay')?.addEventListener('click',e=>{
     if(e.target.id==='acy-pwa-install-overlay')closePwaInstallHelp();
   });
-  if('serviceWorker' in navigator)navigator.serviceWorker.register('/service-worker.js?v=16.4.0',{scope:'/'}).catch(()=>{});
+  if('serviceWorker' in navigator)navigator.serviceWorker.register('/service-worker.js?v=17.0.0',{scope:'/'}).catch(()=>{});
   setTimeout(updatePwaUi,250);
 });

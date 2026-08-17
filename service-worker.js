@@ -1,4 +1,4 @@
-/* ACY SERVICE WORKER V16.4 */
+/* ACY SERVICE WORKER V17.0 */
 
 self.addEventListener('install',event=>self.skipWaiting());
 self.addEventListener('activate',event=>event.waitUntil(self.clients.claim()));
