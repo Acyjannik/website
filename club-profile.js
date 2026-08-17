@@ -1255,7 +1255,7 @@ function renderProgressionCatalog(state) {
   const achievementList = $('achievement-catalog-list');
   if (!xpList || !achievementList) return;
   renderProgress(Number(state.xp || 0));
-  setText('catalog-render-status', 'V16.1 · Progression geladen');
+  setText('catalog-render-status', 'V16.2 · Progression geladen');
 
   const awarded = new Set(state.achievements || []);
   const xpEvents = new Set(state.xpEvents || []);
@@ -3706,8 +3706,9 @@ function renderQuestList(){
     const done=p>=target;
     const claimed=!!item.claimed;
     const percent=Math.round((p/target)*100);
+    const questKey = String(item.quest_key || item.key || '').trim();
     const button=done&&!claimed
-      ? `<button class="button button-small button-primary quest-claim" data-quest="${escapeAttr(item.key)}" data-reward="${Number(item.reward_xp||0)}">+${Number(item.reward_xp||0)} XP abholen</button>`
+      ? `<button class="button button-small button-primary quest-claim" data-quest="${escapeAttr(questKey)}" data-reward="${Number(item.reward_xp||0)}">+${Number(item.reward_xp||0)} XP abholen</button>`
       : claimed
         ? '<span class="quest-state quest-state-done">✓ Abgeholt</span>'
         : `<span class="quest-state">${p}/${target}</span>`;
@@ -3780,7 +3781,7 @@ async function loadQuests(){
     questData=data||{daily:[],weekly:[],periods:{}};
     for(const type of ['daily','weekly']){
       const items=Array.isArray(questData[type])?questData[type]:[];
-      for(const item of items){item.progress=Number(item.progress||0);item.claimed=Boolean(item.claimed);}
+      for(const item of items){item.progress=Number(item.progress||0);item.claimed=Boolean(item.claimed);item.key=String(item.quest_key||item.key||'').trim();}
     }
     renderQuestList();
   }catch(error){
