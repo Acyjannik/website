@@ -1,3 +1,3 @@
-ACYJANNIK
-Version: V17.5
-Build: ACY BUILD V17.5
+ACYJANNIK CLUB
+Version: V17.6
+Release: ACY Pet Archive + Species + Wheel

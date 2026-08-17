@@ -4,13 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Mein ACY Club · Acyjannik</title>
-  <link rel="stylesheet" href="styles.css?v=17.5.0">
+  <link rel="stylesheet" href="styles.css?v=17.6.0">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="/pet-companion.js?v=8.0.0" defer></script>
-  <script src="club-profile.js?v=17.5.0" defer></script>
+  <script src="club-profile.js?v=17.6.0" defer></script>
   <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
   <link rel="shortcut icon" href="/assets/favicon.svg">
   <link rel="apple-touch-icon" href="/assets/favicon.svg">
-<link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#0b0b10"><link rel="apple-touch-icon" href="/icons/acy-192.png"><script src="/pwa.js?v=17.5.0"></script></head>
+<link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#0b0b10"><link rel="apple-touch-icon" href="/icons/acy-192.png"><script src="/pwa.js?v=17.6.0"></script></head>
 <body class="club-auth-page">
   <div class="club-auth-shell">
     <header class="club-auth-header">
@@ -301,6 +301,7 @@
                 <div class="eyebrow" id="pet-species-label">BEGLEITER</div>
                 <h3 id="pet-display-name">Dein Tier</h3>
                 <p id="pet-level-text">Level 1 · 0 Pflege-XP</p>
+                <div class="pet-trait-v176" id="pet-trait" hidden><span>✨</span><div><strong id="pet-trait-title">Pet-Talent</strong><small id="pet-trait-text"></small></div></div>
               </div>
               <div class="pet-manage-actions">
                 <button class="button button-secondary pet-rename-toggle" type="button" id="pet-rename-toggle">Umbenennen</button>
@@ -374,6 +375,11 @@
               </div>
               <div class="pet-shop-v17" id="pet-shop" hidden></div>
               <p class="club-auth-status" id="pet-life-status" aria-live="polite"></p>
+            </div>
+
+            <div class="pet-archive-panel-v176" id="pet-archive-panel">
+              <div class="pet-archive-head-v176"><div><span class="eyebrow">PET ARCHIV</span><strong>Deine anderen Begleiter</strong><small>Archiviere dein aktuelles Tier und probiere später ein anderes aus. Nur ein Tier ist gleichzeitig aktiv.</small></div><span class="pet-archive-count-v176" id="pet-archive-count">0</span></div>
+              <div class="pet-archive-list-v176" id="pet-archive-list"><div class="club-content-empty">Noch keine archivierten Tiere.</div></div>
             </div>
 
             <div class="pet-footer">
@@ -471,7 +477,7 @@
           </summary>
           <div class="member-fold-body">
             <div class="catalog-levels catalog-levels-scroll" id="catalog-levels-render" aria-label="Alle 30 Club-Level"></div>
-            <div id="catalog-render-status" class="catalog-render-status" aria-live="polite">V17.5 · Progression wird geladen…</div>
+            <div id="catalog-render-status" class="catalog-render-status" aria-live="polite">V17.6 · Progression wird geladen…</div>
             <div class="catalog-columns">
               <div><div class="section-mini-title">XP VERDIENEN</div><div class="catalog-list" id="xp-catalog-list"></div></div>
               <div><div class="section-mini-title">ACHIEVEMENTS</div><div class="catalog-list" id="achievement-catalog-list"></div></div>
@@ -705,9 +711,9 @@
             border-radius:999px;background:rgba(12,9,18,.92);
             color:#c084fc;font:700 10px/1 system-ui,sans-serif;
             letter-spacing:.08em;pointer-events:none;opacity:.75">
-  ACY BUILD V17.5
+  ACY BUILD V17.6
 </div>
 
-  <script src="liquid-ui.js?v=17.5.0" defer></script>
+  <script src="liquid-ui.js?v=17.6.0" defer></script>
 </body>
 </html>

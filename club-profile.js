@@ -1291,7 +1291,7 @@ function renderProgressionCatalog(state) {
   const achievementList = $('achievement-catalog-list');
   if (!xpList || !achievementList) return;
   renderProgress(Number(state.xp || 0));
-  setText('catalog-render-status', 'V17.5 · Progression geladen');
+  setText('catalog-render-status', 'V17.6 · Progression geladen');
 
   const awarded = new Set(state.achievements || []);
   const xpEvents = new Set(state.xpEvents || []);
@@ -1444,7 +1444,7 @@ function handleDiscordOAuthCallback() {
 }
 
 function petLevelForXp(xp = 0) {
-  // V17.5 — expanded Pet progression: 10 meaningful milestones.
+  // V17.6 — expanded Pet progression: 10 meaningful milestones.
   // Thresholds are intentionally kept in the UI layer because pet_xp remains
   // the single source of truth in Supabase.
   const levels = [
@@ -1517,6 +1517,7 @@ function renderPet(pet) {
   setText('pet-species-label', species.label.toUpperCase());
   setText('pet-display-name', pet.name);
   setText('pet-level-text', `Level ${level.level} · ${Number(pet.pet_xp || 0)} Pflege-XP · ${level.title}`);
+  const trait=pet?.species_trait || null; const traitBox=$('pet-trait'); if(traitBox){ traitBox.hidden=!trait; if(trait){ setText('pet-trait-title',`${trait.icon||'✨'} ${trait.title||'Pet-Talent'}`); setText('pet-trait-text',trait.description||''); } }
   chip.textContent = `${level.icon} Level ${level.level} · ${level.title}`;
 
   const stats = [
@@ -1681,6 +1682,7 @@ async function createPet(species, name) {
   });
   if (error) throw error;
   renderPet(data);
+  await loadPet();
   await loadProfile();
   setPetStatus('Dein Begleiter ist eingezogen. 🐾', 'success');
 }
@@ -1730,7 +1732,7 @@ $('pet-release-toggle')?.addEventListener('click', async () => {
 });
 
 
-// V17.5 — ACY Pet Life expansion
+// V17.6 — ACY Pet Life expansion
 let petLifeState = null;
 function renderPetLife(state){
   petLifeState=state||null;
@@ -1738,40 +1740,41 @@ function renderPetLife(state){
   const inv=$('pet-inventory');
   if(inv){
     const items=state?.inventory||[];
-    inv.innerHTML=items.length?items.map(i=>{const usable=i.item_type!=='food'; return `<div class="pet-item-v17 ${usable?'pet-item-usable-v17':''}">${usable?`<button type="button" class="pet-item-use-v17" data-use-pet-item="${escapeAttr(i.key)}" aria-label="${escapeAttr(i.name)} verwenden">`:''}<strong>${escapeHtml(i.icon||'📦')} ${escapeHtml(i.name||'Item')}</strong><small><b>${Number(i.quantity||0)}× vorhanden</b> · ${escapeHtml(i.detail||'')}</small>${usable?'<span>Verwenden ›</span></button>':''}</div>`}).join(''):'<div class="club-content-empty">Dein Vorrat ist leer. Hol dir Snacks im Tagesvorrat oder in einem Minigame.</div>';
+    inv.innerHTML=items.length?items.map(i=>{const usable=i.item_type!=='food'; return `<div class="pet-item-v17 ${usable?'pet-item-usable-v17':''}">${usable?`<button type="button" class="pet-item-use-v17" data-use-pet-item="${escapeAttr(i.key)}" aria-label="${escapeAttr(i.name)} verwenden">`:''}<strong>${escapeHtml(i.icon||'📦')} ${escapeHtml(i.name||'Item')}</strong><small><b>${Number(i.quantity||0)}× vorhanden</b> · ${escapeHtml(i.detail||'')}</small>${usable?'<span>Verwenden ›</span></button>':''}</div>`}).join(''):'<div class="club-content-empty">Dein Vorrat ist leer. Hol dir Snacks im Tagesvorrat, im Shop oder bei einem Minigame.</div>';
   }
   const limits=state?.limits||{};
   const feedRemaining=Math.max(0,Number(limits.feed?.remaining||0));
   const feedMeta=$('pet-feed-meta'); if(feedMeta) feedMeta.textContent=feedRemaining>0?`Noch ${feedRemaining} von 3 heute · Futter auswählen`:'Heute ausgeschöpft · Futterlimit erreicht';
   document.querySelectorAll('.pet-action-btn').forEach(btn=>{
-    const key=btn.dataset.petAction; const lim=limits[key];
-    if(!lim)return;
-    const remaining=Math.max(0,Number(lim.remaining||0));
-    const exhausted=remaining<=0;
-    btn.disabled=exhausted;
-    btn.classList.toggle('is-exhausted',exhausted);
-    btn.setAttribute('aria-disabled',String(exhausted));
-    const small=btn.querySelector('small');
-    if(small){
-      const labels={feed:`${remaining} von 3 heute · Futter auswählen`,play:`${remaining} von 2 heute · +25 Laune · −15 Energie`,pet:`${remaining} von 3 heute · +10 Laune`,groom:`${remaining} von 1 heute · +15 Laune · +10 Energie`,sleep:`${remaining} von 1 heute · +30 Energie`};
-      small.textContent=exhausted?'Heute ausgeschöpft':labels[key]||small.textContent;
+    const key=btn.dataset.petAction; const lim=limits[key]; if(!lim)return;
+    const remaining=Math.max(0,Number(lim.remaining||0)); const exhausted=remaining<=0;
+    btn.disabled=exhausted; btn.classList.toggle('is-exhausted',exhausted); btn.setAttribute('aria-disabled',String(exhausted));
+    const small=btn.querySelector('small'); if(small){
+      const labels={feed:`${remaining} von 3 heute · Futter auswählen`,play:`${remaining} von 2 heute · +25 Laune · −15 Energie`,pet:`${remaining} von 3 heute · +10 Laune`,groom:`${remaining} von 1 heute · +15 Laune · +10 Energie`,sleep:`${remaining} von 1 heute · +30 Energie`}; small.textContent=exhausted?'Heute ausgeschöpft':labels[key]||small.textContent;
     }
     btn.title=exhausted?'Heute ausgeschöpft.':(lim.cooldown_until?`Wieder verfügbar um ${new Date(lim.cooldown_until).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})}`:'');
   });
-  const daily=$('pet-daily-supply'); if(daily) daily.disabled=Boolean(state?.daily_supply_claimed);
-  if(daily) daily.textContent=state?.daily_supply_claimed?'✓ Tagesvorrat abgeholt':'🎁 Tagesvorrat';
+  const daily=$('pet-daily-supply'); if(daily) daily.disabled=Boolean(state?.daily_supply_claimed); if(daily) daily.textContent=state?.daily_supply_claimed?'✓ Tagesvorrat abgeholt':'🎁 Tagesvorrat';
   const mystery=$('pet-mystery-box'); if(mystery) mystery.disabled=Number(state?.inventory?.find(x=>x.key==='mystery_box')?.quantity||0)<=0;
-  const games=state?.games||{};
-  const sg=$('pet-game-snack'); if(sg) sg.disabled=Boolean(games.snack_hunt?.used);
-  const pg=$('pet-game-paw'); if(pg) pg.disabled=Boolean(games.lucky_paw?.used);
+  const games=state?.games||{}; const sg=$('pet-game-snack'); if(sg) sg.disabled=Boolean(games.snack_hunt?.used); const pg=$('pet-game-paw'); if(pg) pg.disabled=Boolean(games.lucky_paw?.used);
+  const archives=state?.archives||[]; const list=$('pet-archive-list'); const count=$('pet-archive-count'); if(count) count.textContent=String(archives.length);
+  if(list){ list.innerHTML=archives.length?archives.map(a=>`<div class="pet-archive-card-v176"><img src="assets/pet-${escapeAttr(a.species)}.webp" alt="${escapeAttr(a.species_label||'Begleiter')}" loading="lazy"><div><strong>${escapeHtml(a.name)}</strong><small>${escapeHtml(a.species_label||'Begleiter')} · Level ${Number(a.level||1)} · ${Number(a.pet_xp||0)} Pflege-XP</small></div><button class="button button-small button-secondary" type="button" data-restore-pet="${escapeAttr(a.id)}">Aktivieren</button></div>`).join(''):'<div class="club-content-empty">Noch keine archivierten Tiere. Beim Wechseln wird dein aktuelles Tier hier sicher abgelegt.</div>'; }
 }
 
+
 document.querySelector('#pet-inventory')?.addEventListener('click',event=>{const btn=event.target.closest('[data-use-pet-item]'); if(!btn)return; usePetInventoryItem(btn.dataset.usePetItem);});
+
+document.querySelector('#pet-archive-list')?.addEventListener('click',async(event)=>{
+  const btn=event.target.closest('[data-restore-pet]'); if(!btn)return;
+  btn.disabled=true;
+  try{ await petLifeRpc('switch_to_archived_club_pet',{p_archive_id:btn.dataset.restorePet},'Begleiter gewechselt. 🐾'); await loadPet(); await loadPetLife(); }
+  catch(e){} finally{btn.disabled=false;}
+});
 
 async function loadPetLife(){
   if(!supabaseClient||!currentUser)return;
   try{ const {data,error}=await supabaseClient.rpc('get_pet_life_hub'); if(error)throw error; renderPetLife(data||{}); }
-  catch(error){ console.warn('Pet Life unavailable:',error); const st=$('pet-life-status'); if(st){st.textContent='Pet Life ist noch nicht vollständig eingerichtet. Bitte die V17.5-SQL-Migration ausführen.';st.className='club-auth-status error';} }
+  catch(error){ console.warn('Pet Life unavailable:',error); const st=$('pet-life-status'); if(st){st.textContent='Pet Life ist noch nicht vollständig eingerichtet. Bitte die V17.6-SQL-Migration ausführen.';st.className='club-auth-status error';} }
 }
 window.loadPetLife=loadPetLife;
 
