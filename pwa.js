@@ -204,5 +204,11 @@ document.addEventListener('DOMContentLoaded',()=>{
     if(e.target.id==='acy-pwa-install-overlay')closePwaInstallHelp();
   });
   if('serviceWorker' in navigator)navigator.serviceWorker.register('/service-worker.js?v=17.6.0',{scope:'/'}).catch(()=>{});
+  // club-profile.js is deferred, so DOMContentLoaded runs after its function
+  // declarations have been installed. Load the additive Pet refresh patch now.
+  const petFix=document.createElement('script');
+  petFix.src='/club-pet-refresh-fix.js?v=1.0.0';
+  petFix.async=false;
+  document.head.appendChild(petFix);
   setTimeout(updatePwaUi,250);
 });
