@@ -88,6 +88,32 @@ async function grantRewardAdmin(){
 document.getElementById('rewards-refresh')?.addEventListener('click',loadRewardsAdmin);
 document.getElementById('grant-reward-btn')?.addEventListener('click',grantRewardAdmin);
 
+async function loadPetCoinMembers(){
+  const select=$('pet-coin-member-select');
+  if(!select||!supabaseClient)return;
+  try{
+    const {data,error}=await supabaseClient.from('profiles').select('id,username,display_name').order('display_name');
+    if(error)throw error;
+    select.innerHTML='<option value="">Auswählen…</option>'+(data||[]).map(m=>`<option value="${escapeAttr(m.id)}">${escapeHtml(m.display_name||m.username||'Member')} · @${escapeHtml(m.username||'')}</option>`).join('');
+  }catch(error){ message('pet-coins-admin-message',error?.message||'Mitglieder konnten nicht geladen werden.'); }
+}
+
+async function grantPetCoinsAdmin(){
+  const userId=$('pet-coin-member-select')?.value;
+  const amount=Math.floor(Number($('pet-coin-amount')?.value||0));
+  const reason=String($('pet-coin-reason')?.value||'').trim();
+  if(!userId)return message('pet-coins-admin-message','Bitte zuerst ein Mitglied auswählen.');
+  if(!Number.isFinite(amount)||amount<1||amount>100000)return message('pet-coins-admin-message','Bitte 1 bis 100.000 AC Coins eingeben.');
+  const button=$('grant-pet-coins-btn'); if(button){button.disabled=true;button.textContent='Wird gutgeschrieben…';}
+  try{
+    const {data,error}=await supabaseClient.rpc('admin_grant_ac_coins',{p_user_id:userId,p_amount:amount,p_reason:reason||'Manuelle Admin-Gutschrift'});
+    if(error)throw error;
+    message('pet-coins-admin-message',`🪙 +${Number(data?.amount||amount).toLocaleString('de-DE')} AC Coins vergeben. Neues Guthaben: ${Number(data?.new_balance||0).toLocaleString('de-DE')}.`,true);
+  }catch(error){ message('pet-coins-admin-message',error?.message||'AC Coins konnten nicht gutgeschrieben werden.'); }
+  finally{if(button){button.disabled=false;button.textContent='🪙 AC Coins gutschreiben';}}
+}
+document.getElementById('grant-pet-coins-btn')?.addEventListener('click',grantPetCoinsAdmin);
+
 async function loadConfig() {
   const response = await fetch('/api/config', {
     cache: 'no-store',
@@ -170,6 +196,7 @@ function switchTab(tab) {
     loadBadgeMembers().catch(error => console.error('Badge member load error:', error));
   }
   if (tab === 'rewards' && supabaseClient) loadRewardsAdmin().catch(console.error);
+  if (tab === 'pet-admin' && supabaseClient) loadPetCoinMembers().catch(console.error);
   if (tab === 'health' && supabaseClient) { loadSystemHealth().catch(console.error); }
   if (tab === 'spotlight' && supabaseClient) {
     loadSpotlightAdmin().catch(error => {

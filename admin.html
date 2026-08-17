@@ -7,7 +7,7 @@
   <meta name="robots" content="noindex,nofollow">
   <link rel="stylesheet" href="styles.css?v=14.4.0">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="admin.js?v=17.0.0" defer></script>
+  <script src="admin.js?v=17.1.0" defer></script>
   <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
   <link rel="shortcut icon" href="/assets/favicon.svg">
   <link rel="apple-touch-icon" href="/assets/favicon.svg">
@@ -18,7 +18,7 @@
       <div class="admin-brand">
         <div class="eyebrow">ACYJANNIK</div>
         <h1>Admin</h1>
-        <p class="admin-muted">Website, Community und Content verwalten.</p><div class="admin-version">Admin v16.1 · Control Center</div>
+        <p class="admin-muted">Website, Community und Content verwalten.</p><div class="admin-version">Admin v17.1 · Control Center</div>
       </div>
       <div class="admin-actions">
         <a class="button button-secondary" href="/">Website ↗</a>
@@ -44,7 +44,7 @@
         <nav class="admin-tabs" aria-label="Adminbereiche">
   <div class="admin-nav-group"><span class="admin-nav-label">Übersicht</span><button class="admin-tab is-active" data-tab="overview">Dashboard</button></div>
   <div class="admin-nav-group"><span class="admin-nav-label">Website</span><button class="admin-tab" data-tab="content">Startseite</button><button class="admin-tab" data-tab="games">Games</button><button class="admin-tab" data-tab="socials">Socials</button><button class="admin-tab" data-tab="events">Events</button><button class="admin-tab" data-tab="news">News</button><button class="admin-tab" data-tab="clips">Clips</button><button class="admin-tab" data-tab="media">Bilder</button></div>
-  <div class="admin-nav-group"><span class="admin-nav-label">Community</span><button class="admin-tab" data-tab="progression">XP & Badges</button><button class="admin-tab" data-tab="rewards">Rewards</button><button class="admin-tab" data-tab="spotlight">Spotlight</button><button class="admin-tab" data-tab="polls">Community Votes</button></div>
+  <div class="admin-nav-group"><span class="admin-nav-label">Community</span><button class="admin-tab" data-tab="progression">XP & Badges</button><button class="admin-tab" data-tab="rewards">Rewards</button><button class="admin-tab" data-tab="pet-admin">Pet & Coins</button><button class="admin-tab" data-tab="spotlight">Spotlight</button><button class="admin-tab" data-tab="polls">Community Votes</button></div>
   <div class="admin-nav-group"><span class="admin-nav-label">System</span><button class="admin-tab" data-tab="security">Sicherheit</button><button class="admin-tab" data-tab="health">System Health</button></div>
 </nav>
 
@@ -134,6 +134,30 @@
                 <label class="admin-field"><span>Reward</span><select id="reward-select"><option value="">Auswählen…</option></select></label>
                 <button class="button button-primary" id="grant-reward-btn" type="button">Reward vergeben</button>
                 <p class="admin-note" id="rewards-admin-message"></p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Pet & Coins -->
+        <section class="admin-view" data-view="pet-admin">
+          <div class="admin-card admin-span-2">
+            <div class="section-heading">
+              <div><div class="eyebrow">PET LIFE</div><h2>Pet & AC Coins</h2><p class="admin-muted">AC Coins zum Testen oder als manuelle Gutschrift vergeben. Nur Admins dürfen diese Funktion verwenden.</p></div>
+            </div>
+            <div class="admin-grid admin-reward-grid">
+              <div class="admin-card">
+                <div class="eyebrow">COINS GUTSCHREIBEN</div>
+                <label class="admin-field"><span>Mitglied</span><select id="pet-coin-member-select"><option value="">Auswählen…</option></select></label>
+                <label class="admin-field"><span>AC Coins</span><input id="pet-coin-amount" type="number" min="1" max="100000" step="1" value="100" inputmode="numeric"></label>
+                <label class="admin-field"><span>Grund <small>(optional)</small></span><input id="pet-coin-reason" type="text" maxlength="120" placeholder="z. B. Testguthaben"></label>
+                <button class="button button-primary" id="grant-pet-coins-btn" type="button">🪙 AC Coins gutschreiben</button>
+                <p class="admin-note" id="pet-coins-admin-message"></p>
+              </div>
+              <div class="admin-card">
+                <div class="eyebrow">HINWEIS</div>
+                <h3>Testen ohne Chaos</h3>
+                <p class="admin-muted">Die Gutschrift wird serverseitig geprüft, protokolliert und direkt dem ausgewählten Profil gutgeschrieben. Der Wert kann nicht negativ sein.</p>
               </div>
             </div>
           </div>
