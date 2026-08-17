@@ -1291,7 +1291,7 @@ function renderProgressionCatalog(state) {
   const achievementList = $('achievement-catalog-list');
   if (!xpList || !achievementList) return;
   renderProgress(Number(state.xp || 0));
-  setText('catalog-render-status', 'V17.3 · Progression geladen');
+  setText('catalog-render-status', 'V17.4 · Progression geladen');
 
   const awarded = new Set(state.achievements || []);
   const xpEvents = new Set(state.xpEvents || []);
@@ -1719,7 +1719,7 @@ $('pet-release-toggle')?.addEventListener('click', async () => {
 });
 
 
-// V17.3 — ACY Pet Life
+// V17.4 — ACY Pet Life expansion
 let petLifeState = null;
 function renderPetLife(state){
   petLifeState=state||null;
@@ -1727,11 +1727,11 @@ function renderPetLife(state){
   const inv=$('pet-inventory');
   if(inv){
     const items=state?.inventory||[];
-    inv.innerHTML=items.length?items.map(i=>`<div class="pet-item-v17"><strong>${escapeHtml(i.icon||'📦')} ${escapeHtml(i.name||'Item')}</strong><small><b>${Number(i.quantity||0)}× vorhanden</b> · ${escapeHtml(i.detail||'')}</small></div>`).join(''):'<div class="club-content-empty">Dein Vorrat ist leer. Hol dir Snacks im Tagesvorrat oder in einem Minigame.</div>';
+    inv.innerHTML=items.length?items.map(i=>{const usable=i.item_type!=='food'; return `<div class="pet-item-v17 ${usable?'pet-item-usable-v17':''}">${usable?`<button type="button" class="pet-item-use-v17" data-use-pet-item="${escapeAttr(i.key)}" aria-label="${escapeAttr(i.name)} verwenden">`:''}<strong>${escapeHtml(i.icon||'📦')} ${escapeHtml(i.name||'Item')}</strong><small><b>${Number(i.quantity||0)}× vorhanden</b> · ${escapeHtml(i.detail||'')}</small>${usable?'<span>Verwenden ›</span></button>':''}</div>`}).join(''):'<div class="club-content-empty">Dein Vorrat ist leer. Hol dir Snacks im Tagesvorrat oder in einem Minigame.</div>';
   }
   const limits=state?.limits||{};
   const feedRemaining=Math.max(0,Number(limits.feed?.remaining||0));
-  const feedMeta=$('pet-feed-meta'); if(feedMeta) feedMeta.textContent=feedRemaining>0?`Noch ${feedRemaining} von 3 heute · 1 Snack`:'Heute ausgeschöpft · 1 Snack';
+  const feedMeta=$('pet-feed-meta'); if(feedMeta) feedMeta.textContent=feedRemaining>0?`Noch ${feedRemaining} von 3 heute · Futter auswählen`:'Heute ausgeschöpft · Futterlimit erreicht';
   document.querySelectorAll('.pet-action-btn').forEach(btn=>{
     const key=btn.dataset.petAction; const lim=limits[key];
     if(!lim)return;
@@ -1742,7 +1742,7 @@ function renderPetLife(state){
     btn.setAttribute('aria-disabled',String(exhausted));
     const small=btn.querySelector('small');
     if(small){
-      const labels={feed:`${remaining} von 3 heute · 1 Snack`,play:`${remaining} von 2 heute · +25 Laune · −15 Energie`,pet:`${remaining} von 3 heute · +10 Laune`,groom:`${remaining} von 1 heute · +15 Laune · +10 Energie`,sleep:`${remaining} von 1 heute · +30 Energie`};
+      const labels={feed:`${remaining} von 3 heute · Futter auswählen`,play:`${remaining} von 2 heute · +25 Laune · −15 Energie`,pet:`${remaining} von 3 heute · +10 Laune`,groom:`${remaining} von 1 heute · +15 Laune · +10 Energie`,sleep:`${remaining} von 1 heute · +30 Energie`};
       small.textContent=exhausted?'Heute ausgeschöpft':labels[key]||small.textContent;
     }
     btn.title=exhausted?'Heute ausgeschöpft.':(lim.cooldown_until?`Wieder verfügbar um ${new Date(lim.cooldown_until).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})}`:'');
@@ -1755,10 +1755,12 @@ function renderPetLife(state){
   const pg=$('pet-game-paw'); if(pg) pg.disabled=Boolean(games.lucky_paw?.used);
 }
 
+document.querySelector('#pet-inventory')?.addEventListener('click',event=>{const btn=event.target.closest('[data-use-pet-item]'); if(!btn)return; usePetInventoryItem(btn.dataset.usePetItem);});
+
 async function loadPetLife(){
   if(!supabaseClient||!currentUser)return;
   try{ const {data,error}=await supabaseClient.rpc('get_pet_life_hub'); if(error)throw error; renderPetLife(data||{}); }
-  catch(error){ console.warn('Pet Life unavailable:',error); const st=$('pet-life-status'); if(st){st.textContent='Pet Life ist noch nicht vollständig eingerichtet. Bitte die V17.3-SQL-Migration ausführen.';st.className='club-auth-status error';} }
+  catch(error){ console.warn('Pet Life unavailable:',error); const st=$('pet-life-status'); if(st){st.textContent='Pet Life ist noch nicht vollständig eingerichtet. Bitte die V17.4-SQL-Migration ausführen.';st.className='club-auth-status error';} }
 }
 window.loadPetLife=loadPetLife;
 
@@ -1807,6 +1809,55 @@ function renderPetShop(){
 }
 $('pet-shop-open')?.addEventListener('click',async()=>{const box=$('pet-shop'); if(!box)return; if(!petLifeState?.shop?.length) await loadPetLife(); box.hidden=!box.hidden; if(!box.hidden) renderPetShop();});
 $('pet-shop')?.addEventListener('click',async(event)=>{const btn=event.target.closest('[data-buy-pet]'); if(!btn)return; btn.disabled=true; try{await petLifeRpc('buy_pet_item',{p_item_key:btn.dataset.buyPet},'Gekauft. 🛍️'); await loadPetLife(); renderPetShop();}catch{}finally{btn.disabled=false;}});
+
+function closePetInfoModal(){ document.querySelector('.pet-info-overlay-v17')?.remove(); }
+function openPetInfoModal(){
+  closePetInfoModal();
+  const overlay=document.createElement('div'); overlay.className='pet-info-overlay-v17';
+  overlay.innerHTML=`<div class="pet-info-modal-v17" role="dialog" aria-modal="true" aria-labelledby="pet-info-title">
+    <button class="pet-game-close-v17" type="button" aria-label="Schließen">×</button>
+    <span class="eyebrow">PET LIFE GUIDE</span><h3 id="pet-info-title">So funktioniert dein Pet 🐾</h3>
+    <div class="pet-info-grid-v17">
+      <div><strong>🍖 Füttern</strong><p>Bis zu 3 Fütterungen pro Tag. Jede Portion verbraucht ein Futter-Item. Je besser das Futter, desto stärker der Effekt.</p></div>
+      <div><strong>💜 Streicheln</strong><p>Bis zu 3× täglich. Erhöht die Laune und gibt Pflege-XP.</p></div>
+      <div><strong>🎾 Spielen</strong><p>Bis zu 2× täglich. Viel Laune, kostet aber Energie.</p></div>
+      <div><strong>🛁 Pflegen</strong><p>1× täglich. Gibt Laune und etwas Energie.</p></div>
+      <div><strong>😴 Schlafen</strong><p>1× täglich. Gibt Energie zurück, kostet dafür etwas Hunger.</p></div>
+      <div><strong>🎯 Snack Hunt</strong><p>Fange den Snack im Spielfeld. Du bekommst Snacks und AC Coins.</p></div>
+      <div><strong>🐾 Lucky Paw</strong><p>Wähle eine Pfote und versuche dein Glück. Die Belohnung wird serverseitig bestimmt.</p></div>
+      <div><strong>🪙 AC Coins</strong><p>Eine kostenlose Club-Währung. Du verdienst sie durch Aktivitäten und gibst sie im Pet-Shop aus.</p></div>
+      <div><strong>🎁 Mystery Box</strong><p>Öffne eine Box und erhalte zufällige Pet-Items oder Coins.</p></div>
+      <div><strong>📈 Pet-XP</strong><p>Pflege und Items bringen Pflege-XP. Damit steigt dein Pet durch Begleiter, Freund, Gefährte, Sidekick und Legende.</p></div>
+    </div>
+  </div>`;
+  document.body.appendChild(overlay);
+  overlay.querySelector('.pet-game-close-v17')?.addEventListener('click',closePetInfoModal);
+  overlay.addEventListener('click',e=>{if(e.target===overlay)closePetInfoModal();});
+  document.addEventListener('keydown',function esc(e){if(e.key==='Escape'){closePetInfoModal();document.removeEventListener('keydown',esc);}}, {once:true});
+}
+$('pet-info-open')?.addEventListener('click',openPetInfoModal);
+
+function openPetFeedChooser(){
+  if((petLifeState?.limits?.feed?.remaining||0)<=0) return;
+  const foods=(petLifeState?.inventory||[]).filter(i=>i.item_type==='food' && Number(i.quantity)>0);
+  closePetInfoModal(); document.querySelector('.pet-feed-overlay-v17')?.remove();
+  const overlay=document.createElement('div'); overlay.className='pet-feed-overlay-v17';
+  const cards=foods.map(i=>`<button type="button" class="pet-feed-option-v17" data-feed-item="${escapeAttr(i.key)}"><span class="pet-feed-icon-v17">${escapeHtml(i.icon)}</span><span><strong>${escapeHtml(i.name)}</strong><small>${Number(i.quantity)}× · +${Number(i.hunger)} Hunger${i.happiness?` · +${Number(i.happiness)} Laune`:''}${i.energy?` · +${Number(i.energy)} Energie`:''}${i.xp?` · +${Number(i.xp)} XP`:''}</small></span></button>`).join('');
+  overlay.innerHTML=`<div class="pet-feed-modal-v17" role="dialog" aria-modal="true"><button class="pet-game-close-v17" type="button" aria-label="Schließen">×</button><span class="eyebrow">FÜTTERN</span><h3>Was bekommt dein Tier?</h3><p>Noch ${Number(petLifeState?.limits?.feed?.remaining||0)} von 3 Fütterungen heute.</p><div class="pet-feed-options-v17">${cards||'<div class="club-content-empty">Du hast gerade kein Futter. Hol dir Snacks im Tagesvorrat, im Shop oder bei einem Minigame.</div>'}</div></div>`;
+  document.body.appendChild(overlay);
+  overlay.querySelector('.pet-game-close-v17')?.addEventListener('click',()=>overlay.remove());
+  overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.remove();});
+  overlay.querySelectorAll('[data-feed-item]').forEach(btn=>btn.addEventListener('click',async()=>{
+    btn.disabled=true;
+    try{ const d=await petLifeRpc('use_pet_item',{p_item_key:btn.dataset.feedItem},'Dein Tier wurde gefüttert. 🍖'); if(d?.message) setPetStatus(d.message,'success'); overlay.remove(); }
+    catch(e){btn.disabled=false;}
+  }));
+}
+
+async function usePetInventoryItem(key){
+  try{const d=await petLifeRpc('use_pet_item',{p_item_key:key},'Item verwendet. 🐾'); if(d?.message) setPetStatus(d.message,'success');}
+  catch(e){}
+}
 
 async function performPetAction(action, button) {
   if (!currentPet || !button) return;
@@ -1880,7 +1931,10 @@ $('pet-create-form')?.addEventListener('submit', async (event) => {
 document.querySelectorAll('.pet-action-btn').forEach(button => {
   if (button.dataset.petBound === '1') return;
   button.dataset.petBound = '1';
-  button.addEventListener('click', () => performPetAction(button.dataset.petAction, button));
+  button.addEventListener('click', () => {
+    if(button.dataset.petAction==='feed'){ openPetFeedChooser(); return; }
+    performPetAction(button.dataset.petAction, button);
+  });
 });
 
 $('pet-rename-toggle')?.addEventListener('click', () => {
