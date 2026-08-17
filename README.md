@@ -1,4 +1,4 @@
-# ACYJANNIK V14.4 — Liquid Glass FX & Sounds
+# ACYJANNIK V16.1 — Liquid Glass FX & Sounds
 
 ## Aktueller Stand
 - Bounded Loading statt eines großen ungebremsten `Promise.all`: optionale Module werden in kleinen Batches geladen.

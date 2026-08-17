@@ -4470,7 +4470,7 @@ body.acy-cosmic-active .club-auth-shell{filter:saturate(1.12)}
 }
 
 
-/* V16.0 — cohesive section artwork for every mobile/desktop fold */
+/* V16.1 — cohesive section artwork for every mobile/desktop fold */
 .member-fold-summary{position:relative;min-height:88px}
 .member-fold-art-wrap{width:72px;height:72px;flex:0 0 72px;border-radius:16px;overflow:hidden;display:grid;place-items:center;background:linear-gradient(145deg,rgba(168,85,247,.16),rgba(59,130,246,.06));border:1px solid rgba(168,85,247,.26);box-shadow:inset 0 0 18px rgba(168,85,247,.10),0 8px 28px rgba(0,0,0,.22)}
 .member-fold-art{width:100%;height:100%;display:block;object-fit:cover}
@@ -4490,6 +4490,18 @@ body.acy-cosmic-active .club-auth-shell{filter:saturate(1.12)}
   .member-fold-summary-main strong{font-size:17px}
   .member-fold-summary-main small{font-size:11px;max-width:24ch}
 }
-/* V16.0 — quest progress should visually pop when it changes */
+/* V16.1 — quest progress should visually pop when it changes */
 .quest-row.is-complete{border-color:rgba(168,85,247,.42);box-shadow:0 10px 32px rgba(126,34,206,.12)}
 .quest-row.is-complete .quest-progress span{box-shadow:0 0 14px rgba(192,132,252,.55)}
+\n\n/* V16.1 — reference artwork + mobile polish */
+.member-fold-art-wrap{background:#0b0b10;border-color:rgba(192,132,252,.28);box-shadow:inset 0 0 22px rgba(168,85,247,.10),0 10px 30px rgba(0,0,0,.26)}
+.member-fold-art{object-fit:cover;object-position:center;mix-blend-mode:screen}
+@media(max-width:760px){
+  .club-auth-page .member-fold-summary{grid-template-columns:auto minmax(0,1fr) auto;align-items:center}
+  .club-auth-page .member-fold-art-wrap{width:62px;height:62px;flex-basis:62px;border-radius:16px}
+  .club-auth-page .member-fold-summary-main strong{font-size:clamp(18px,5vw,22px)}
+  .club-auth-page .member-fold-summary-main small{font-size:12px;line-height:1.35;max-width:30ch}
+  .notification-category-grid{grid-template-columns:1fr!important}
+  .notification-setting-card{min-height:58px}
+}
+@media(max-width:430px){.club-auth-page .member-fold-art-wrap{width:56px;height:56px;flex-basis:56px}.club-auth-page .member-fold-summary-main strong{font-size:19px}.club-auth-page .member-fold-summary-main small{font-size:11px}}

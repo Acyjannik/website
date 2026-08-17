@@ -47,6 +47,72 @@ function berlinDayStartUtc(date = new Date()) {
   return new Date(`${p.year}-${p.month}-${p.day}T00:00:00${offset}`).toISOString();
 }
 
+\nasync function sendDailyStreakReadyNotifications({base,key}) {
+  const now = new Date();
+  const readyBefore = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
+  const [streakRes,prefsRes] = await Promise.all([
+    sb(base,key,`/rest/v1/club_daily_streaks?select=user_id,current_streak,last_checkin_at&last_checkin_at=lte.${encodeURIComponent(readyBefore)}&limit=1000`),
+    sb(base,key,`/rest/v1/club_notification_preferences?select=user_id,in_app_enabled,push_enabled,email_enabled,email_daily_streak&limit=1000`)
+  ]);
+  if(!streakRes.ok) throw new Error('Daily-Streak-Daten konnten nicht geladen werden.');
+  const streaks=await streakRes.json();
+  const prefs=prefsRes.ok?await prefsRes.json():[];
+  const prefMap=new Map((prefs||[]).map(row=>[row.user_id,row]));
+  let inApp=0,push=0,email=0,skipped=0,failed=0,removed=0;
+
+  async function reserveChannel(userId,eventKey,channel){
+    const eventType=`daily_streak_ready_${channel}`;
+    const existing=await sb(base,key,`/rest/v1/club_notification_dispatch_log?user_id=eq.${encodeURIComponent(userId)}&event_type=eq.${encodeURIComponent(eventType)}&event_key=eq.${encodeURIComponent(eventKey)}&select=id&limit=1`);
+    if(existing.ok&&(await existing.json()).length)return false;
+    const reserve=await sb(base,key,'/rest/v1/club_notification_dispatch_log',{method:'POST',headers:{Prefer:'resolution=ignore-duplicates,return=representation'},body:JSON.stringify({user_id:userId,event_type:eventType,event_key:eventKey})});
+    if(!reserve.ok)return null;
+    const rows=await reserve.json().catch(()=>[]);
+    return Array.isArray(rows)&&rows.length;
+  }
+
+  for(const row of streaks||[]){
+    if(!row.user_id||!row.last_checkin_at) continue;
+    const eventKey=new Date(row.last_checkin_at).toISOString();
+    const pref=prefMap.get(row.user_id)||{};
+    const inAppEnabled=pref.in_app_enabled!==false;
+    const pushEnabled=pref.push_enabled===true;
+    const emailEnabled=pref.email_enabled===true&&pref.email_daily_streak===true;
+    if(!inAppEnabled&&!pushEnabled&&!emailEnabled){skipped++;continue;}
+
+    const title='🔥 Dein Daily-Check-in ist wieder bereit!';
+    const ageHours=(Date.now()-new Date(row.last_checkin_at).getTime())/3600000;
+    const body=ageHours<=48
+      ? `Deine 24 Stunden sind vorbei. Hol dir jetzt deinen Check-in und halte deine ${Number(row.current_streak||0)}-Tage-Serie am Leben. 💜`
+      : 'Dein Check-in ist wieder verfügbar. Wenn du die 48-Stunden-Gnadenfrist verpasst hast, startest du damit eine neue Serie. 💜';
+    const link='/club-profile.html#daily-streak-section';
+
+    if(inAppEnabled){
+      const reserved=await reserveChannel(row.user_id,eventKey,'in_app');
+      if(reserved===true){
+        const n=await sb(base,key,'/rest/v1/club_notifications',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({user_id:row.user_id,title,body,notification_type:'daily_streak_ready',link_url:link})});
+        if(n.ok)inApp++;else failed++;
+      }else if(reserved===null)failed++;
+    }
+    if(pushEnabled){
+      const reserved=await reserveChannel(row.user_id,eventKey,'push');
+      if(reserved===true){
+        const r=await sendPushToUser({supabaseUrl:base,serviceKey:key,userId:row.user_id,title,body,url:link,tag:'acy-daily-streak-ready'});
+        push+=Number(r.sent||0);removed+=Number(r.removed||0);failed+=Number(r.failed||0);
+      }else if(reserved===null)failed++;
+    }
+    if(emailEnabled&&process.env.CLUB_EVENT_HUB_SECRET){
+      const reserved=await reserveChannel(row.user_id,eventKey,'email');
+      if(reserved===true){
+        try{
+          const er=await fetch(`${env('PUBLIC_SITE_URL','https://acyjannik.de')}/api/club-notification-email`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({internalSecret:process.env.CLUB_EVENT_HUB_SECRET,personal:true,type:'daily_streak_ready',targetUserId:row.user_id,emailOnly:true,title,body,linkUrl:link})});
+          if(er.ok){const ep=await er.json().catch(()=>({}));email+=Number(ep.emailSent||0);}else failed++;
+        }catch{failed++;}
+      }else if(reserved===null)failed++;
+    }
+  }
+  return {readyCandidates:(streaks||[]).length,inApp,push,email,skipped,failed,removed};
+}
+
 const GREETINGS = {
   morning: {
     title: '🌅 Guten Morgen, ACY Club!',
@@ -152,15 +218,18 @@ export default async function handler(req, res) {
     const p = berlinParts(now);
     const hour = Number(p.hour);
     const minute = Number(p.minute);
-    if (minute !== 0 || ![8, 18].includes(hour)) {
-      return json(res, 200, { ok: true, skipped: true, reason: 'Kein geplanter Versandzeitpunkt.', berlinTime: `${p.hour}:${p.minute}` });
-    }
-    const mode = hour === 8 ? 'morning' : 'evening';
     try {
-      return json(res, 200, await sendGreeting({ mode, base, key }));
+      // Daily-Serie readiness is checked every hour. Greetings remain fixed at 08:00/18:00.
+      const ready = await sendDailyStreakReadyNotifications({base,key});
+      if (minute !== 0 || ![8, 18].includes(hour)) {
+        return json(res, 200, { ok: true, ready, greeting: null, berlinTime: `${p.hour}:${p.minute}` });
+      }
+      const mode = hour === 8 ? 'morning' : 'evening';
+      const greeting = await sendGreeting({ mode, base, key });
+      return json(res, 200, {ok:true,ready,greeting});
     } catch (error) {
       console.error('push-daily cron', error);
-      return json(res, 500, { error: error?.message || 'Automatischer Gruß fehlgeschlagen.' });
+      return json(res, 500, { error: error?.message || 'Automatischer Benachrichtigungsjob fehlgeschlagen.' });
     }
   }
 

@@ -1,6 +1,6 @@
 const tls = require('node:tls');
 
-const NOTIFICATION_EMAIL_API_VERSION = '7.1.14';
+const NOTIFICATION_EMAIL_API_VERSION = '7.2.0';
 const env = (name, fallback='') => String(process.env[name] || fallback);
 
 function json(res, status, payload) {
@@ -56,7 +56,9 @@ function prefColumn(type) {
     direct_message: 'email_direct_messages',
     spotlight: 'email_spotlight',
     reward: 'email_rewards',
-    pet: 'email_pet'
+    pet: 'email_pet',
+    daily_streak_ready: 'email_daily_streak',
+    quest: 'email_quests'
   })[type] || null;
 }
 
@@ -319,17 +321,24 @@ async function smtpSend({to, subject, text, html}) {
 module.exports = async (req, res) => {
   if (req.method !== 'POST') return json(res, 405, {error:'POST only'});
   try {
-    const token = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
-    if (!token) return json(res, 401, {error:'Nicht angemeldet.'});
-
     const body = typeof req.body === 'object' ? (req.body || {}) : JSON.parse(req.body || '{}');
-    const user = await getAuthUser(token);
-    if (!user?.id) return json(res, 401, {error:'Ungültige Sitzung.'});
+    const internal = Boolean(body.internalSecret && env('CLUB_EVENT_HUB_SECRET') && body.internalSecret === env('CLUB_EVENT_HUB_SECRET'));
+    const personalTypes = new Set(['achievement','reward','pet','daily_streak_ready','quest']);
+    const isPersonal = body.personal === true && personalTypes.has(String(body.type || ''));
+
+    const token = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+    let user = null;
+    if (internal && body.targetUserId) {
+      const targetUserId = String(body.targetUserId).trim();
+      if (!/^[0-9a-f-]{36}$/i.test(targetUserId)) return json(res,400,{error:'Ungültige Ziel-ID.'});
+      user = { id: targetUserId };
+    } else {
+      if (!token) return json(res, 401, {error:'Nicht angemeldet.'});
+      user = await getAuthUser(token);
+      if (!user?.id) return json(res, 401, {error:'Ungültige Sitzung.'});
+    }
 
     const admin = await isAdmin(user.id);
-    const internal = Boolean(body.internalSecret && env('CLUB_EVENT_HUB_SECRET') && body.internalSecret === env('CLUB_EVENT_HUB_SECRET'));
-    const personalTypes = new Set(['achievement','reward','pet']);
-    const isPersonal = body.personal === true && personalTypes.has(String(body.type || ''));
 
     if (!admin && !internal && !isPersonal) {
       return json(res, 403, {error:'Admin-, interner oder persönlicher Benachrichtigungszugriff erforderlich.'});
@@ -352,7 +361,7 @@ module.exports = async (req, res) => {
       const linkUrl = String(body.linkUrl || '/club-profile.html').trim().slice(0,500);
       if (!title || !text || !pref) return json(res,400,{error:'Ungültige persönliche Benachrichtigung.'});
 
-      const prefsRes = await sbFetch(`/rest/v1/club_notification_preferences?user_id=eq.${encodeURIComponent(user.id)}&select=email_enabled,${pref}&limit=1`);
+      const prefsRes = await sbFetch(`/rest/v1/club_notification_preferences?user_id=eq.${encodeURIComponent(user.id)}&select=in_app_enabled,email_enabled,${pref}&limit=1`);
       if (!prefsRes.ok) throw new Error(`Preferences: HTTP ${prefsRes.status}`);
       const prefsRows = await prefsRes.json();
       const prefsRow = prefsRows?.[0];
@@ -382,7 +391,7 @@ module.exports = async (req, res) => {
           </div>
         </div>`;
       let inAppSent = 0;
-      if (inAppEnabled) {
+      if (inAppEnabled && body.emailOnly !== true) {
         const notificationRes = await sbFetch('/rest/v1/club_notifications',{
           method:'POST',
           headers:{Prefer:'return=minimal'},
@@ -404,10 +413,12 @@ module.exports = async (req, res) => {
       }
 
       let pushSent = 0;
-      try {
-        const push = await sendPushToUsers({userIds:[user.id],title,body:text,url:linkUrl,tag:`acy-${type}`});
-        pushSent = push.sent || 0;
-      } catch {}
+      if (body.emailOnly !== true) {
+        try {
+          const push = await sendPushToUsers({userIds:[user.id],title,body:text,url:linkUrl,tag:`acy-${type}`});
+          pushSent = push.sent || 0;
+        } catch {}
+      }
 
       return json(res,200,{ok:true,personal:true,emailSent,inAppSent,pushSent,sentTo:authUser.email});
     }

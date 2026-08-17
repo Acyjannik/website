@@ -2,6 +2,11 @@
 export async function sendPushToUser({supabaseUrl,serviceKey,userId,title,body,url='/club-profile.html',tag='acy-club'}){
   const headers={apikey:serviceKey,Authorization:`Bearer ${serviceKey}`,'Content-Type':'application/json'};
   const result={sent:0,removed:0,failed:0};
+  const prefResponse=await fetch(`${supabaseUrl}/rest/v1/club_notification_preferences?user_id=eq.${encodeURIComponent(userId)}&select=push_enabled&limit=1`,{headers});
+  if(prefResponse.ok){
+    const prefRows=await prefResponse.json();
+    if(prefRows?.[0] && prefRows[0].push_enabled !== true) return result;
+  }
   const response=await fetch(
     `${supabaseUrl}/rest/v1/club_push_subscriptions?user_id=eq.${encodeURIComponent(userId)}&select=id,endpoint,p256dh,auth`,
     {headers}

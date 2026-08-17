@@ -1255,7 +1255,7 @@ function renderProgressionCatalog(state) {
   const achievementList = $('achievement-catalog-list');
   if (!xpList || !achievementList) return;
   renderProgress(Number(state.xp || 0));
-  setText('catalog-render-status', 'V14.5 · Progression geladen');
+  setText('catalog-render-status', 'V16.1 · Progression geladen');
 
   const awarded = new Set(state.achievements || []);
   const xpEvents = new Set(state.xpEvents || []);
@@ -1538,7 +1538,9 @@ async function loadNotificationPreferences() {
     'email-direct-messages': 'email_direct_messages',
     'email-spotlight': 'email_spotlight',
     'email-rewards': 'email_rewards',
-    'email-pet': 'email_pet'
+    'email-pet': 'email_pet',
+    'email-daily-streak': 'email_daily_streak',
+    'email-quests': 'email_quests'
   };
 
   for (const [id, key] of Object.entries(map)) {
@@ -1573,7 +1575,9 @@ $('save-notification-settings')?.addEventListener('click', async () => {
       p_email_direct_messages: pref('email-direct-messages'),
       p_email_spotlight: pref('email-spotlight'),
       p_email_rewards: pref('email-rewards'),
-      p_email_pet: pref('email-pet')
+      p_email_pet: pref('email-pet'),
+      p_email_daily_streak: pref('email-daily-streak'),
+      p_email_quests: pref('email-quests')
     });
     if (error) throw error;
 
@@ -2236,6 +2240,7 @@ async function init() {
     initMemberSectionNavigation();
     initSoundToggle();
     initNotificationFilters();
+    initAcyVisibilityRefresh();
     initV10SettingsActions();
     initMemberDirectoryFilters();
     initRememberedMemberFolds();
@@ -3775,17 +3780,7 @@ async function loadQuests(){
     questData=data||{daily:[],weekly:[],periods:{}};
     for(const type of ['daily','weekly']){
       const items=Array.isArray(questData[type])?questData[type]:[];
-      const period=questPeriodKey(type);
-      for(const item of items){
-        const {data:row}=await supabaseClient.from('club_quest_progress')
-          .select('progress,claimed')
-          .eq('user_id',currentUser.id)
-          .eq('quest_key',item.key)
-          .eq('period_start',period)
-          .maybeSingle();
-        item.progress=Number(row?.progress||0);
-        item.claimed=!!row?.claimed;
-      }
+      for(const item of items){item.progress=Number(item.progress||0);item.claimed=Boolean(item.claimed);}
     }
     renderQuestList();
   }catch(error){
@@ -3876,7 +3871,16 @@ async function progressQuestsForAction(actionKey, amount = 1) {
         p_increment: Math.max(1, Number(amount) || 1)
       });
       if (error) throw error;
-      results.push({ questKey, ...(data || {}) });
+      const result={questKey,...(data||{})};
+      results.push(result);
+      if(result.completed===true){
+        const quest=[...(questData.daily||[]),...(questData.weekly||[])].find(item=>item.key===questKey);
+        if(quest&&!quest.__readyNotified){
+          quest.__readyNotified=true;
+          void sendPersonalEmailNotification('quest','Quest abgeschlossen 🎯',`Du hast die Quest „${quest.title||questKey}“ abgeschlossen. Deine Belohnung wartet im ACY Club.`,'/club-profile.html#club-quests-section');
+          triggerClubEffect('reward',`🎯 Quest „${quest.title||'abgeschlossen'}“ bereit zum Abholen`);
+        }
+      }
     } catch (error) {
       console.warn(`Quest progress skipped for ${questKey}:`, error);
     }
@@ -4535,6 +4539,19 @@ function acyUnlockCosmicProtocol() {
     setTimeout(() => overlay.remove(), 500);
   }, 5200);
   setTimeout(() => { window.__acyCosmicCooldown = false; }, 6500);
+}
+
+function initAcyVisibilityRefresh(){
+  let lastRefresh=0;
+  const refresh=()=>{
+    if(document.visibilityState!=='visible'||!currentUser)return;
+    const now=Date.now(); if(now-lastRefresh<15000)return; lastRefresh=now;
+    void safeLoad('Daily streak visibility refresh',loadDailyStreak);
+    void safeLoad('Quest visibility refresh',loadQuests);
+    void safeLoad('Notifications visibility refresh',loadNotifications);
+  };
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refresh();});
+  window.addEventListener('focus',refresh,{passive:true});
 }
 
 function initAcyBackToTop() {

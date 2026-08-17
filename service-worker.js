@@ -1,4 +1,4 @@
-/* ACY SERVICE WORKER V14.4 */
+/* ACY SERVICE WORKER V16.1 */
 
 self.addEventListener('install',event=>self.skipWaiting());
 self.addEventListener('activate',event=>event.waitUntil(self.clients.claim()));
@@ -24,7 +24,7 @@ self.addEventListener('notificationclick',event=>{
   event.waitUntil((async()=>{
     const list=await clients.matchAll({type:'window',includeUncontrolled:true});
     for(const client of list){
-      if('focus' in client){
+      if('focus' in client && new URL(client.url).origin === self.location.origin){
         await client.focus();
         try{await client.navigate(target);}catch{}
         return;
