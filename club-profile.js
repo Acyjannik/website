@@ -3761,30 +3761,48 @@ async function loadQuests(){
   const list=$('quest-list');
   if(!list||!supabaseClient||!currentUser)return;
   try{
-    // Sync data-derived quests BEFORE reading the catalog/progress so the UI
-    // never renders one refresh behind (especially weekly game progress).
+    // Sync data-derived quests BEFORE reading the catalog/progress.
     for (const syncFn of ['sync_weekly_game_quest','sync_weekly_pet_quest']) {
-      try {
-        await supabaseClient.rpc(syncFn);
-      } catch (questSyncError) {
-        console.warn(`${syncFn} skipped:`, questSyncError);
-      }
+      try { await supabaseClient.rpc(syncFn); }
+      catch (questSyncError) { console.warn(`${syncFn} skipped:`, questSyncError); }
     }
+
     const {data,error}=await supabaseClient.rpc('get_my_quests');
     if(error)throw error;
     questData=data||{daily:[],weekly:[],periods:{}};
+
+    // Read all current-period rows once. The old implementation performed one
+    // maybeSingle() query per quest and silently converted any RLS/duplicate-row
+    // issue into 0 progress. That made completed quests appear unfinished.
+    const dailyPeriod=questData.periods?.daily;
+    const weeklyPeriod=questData.periods?.weekly;
+    const periods=[dailyPeriod,weeklyPeriod].filter(Boolean);
+    let progressRows=[];
+    if(periods.length){
+      const {data:rows,error:progressError}=await supabaseClient
+        .from('club_quest_progress')
+        .select('quest_key,period_start,progress,claimed,updated_at')
+        .eq('user_id',currentUser.id)
+        .in('period_start',periods);
+      if(progressError)throw progressError;
+      progressRows=Array.isArray(rows)?rows:[];
+    }
+
+    const progressMap=new Map(progressRows.map(row=>[`${row.quest_key}|${row.period_start}`,row]));
     for(const type of ['daily','weekly']){
       const items=Array.isArray(questData[type])?questData[type]:[];
       const period=questPeriodKey(type);
       for(const item of items){
-        const {data:row}=await supabaseClient.from('club_quest_progress')
-          .select('progress,claimed')
-          .eq('user_id',currentUser.id)
-          .eq('quest_key',item.key)
-          .eq('period_start',period)
-          .maybeSingle();
-        item.progress=Number(row?.progress||0);
-        item.claimed=!!row?.claimed;
+        const row=progressMap.get(`${item.key}|${period}`);
+        // Prefer progress supplied by the server function, then the explicit
+        // progress table row, and only then fall back to zero.
+        if(row){
+          item.progress=Math.max(Number(item.progress||0),Number(row.progress||0));
+          item.claimed=!!row.claimed;
+        }else{
+          item.progress=Number(item.progress||0);
+          item.claimed=!!item.claimed;
+        }
       }
     }
     renderQuestList();
