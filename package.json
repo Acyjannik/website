@@ -1,7 +1,7 @@
 {
   "name": "acyjannik-club-web",
   "private": true,
-  "version": "16.2.0",
+  "version": "16.3.0",
   "dependencies": {
     "web-push": "^3.6.7",
     "@supabase/supabase-js": "^2.54.0"

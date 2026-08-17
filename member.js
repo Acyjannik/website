@@ -203,6 +203,21 @@ async function init(){
     const id=new URLSearchParams(location.search).get('id');
     if(!id)throw new Error('Kein Mitglied ausgewählt.');
 
+    // Daily quest: opening another member profile counts as "Kontakt pflegen".
+    // This lives on the public profile page itself so it works regardless of whether
+    // the user arrived from the directory, leaderboard, spotlight or a pet link.
+    if (id !== data.session.user.id) {
+      try {
+        await supabaseClient.rpc('increment_quest', {
+          p_quest_key: 'daily_friend',
+          p_period_start: new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Berlin' }).format(new Date()),
+          p_increment: 1
+        });
+      } catch (questError) {
+        console.warn('Member profile quest progress skipped:', questError);
+      }
+    }
+
     const response=await fetch(`/api/club-members?id=${encodeURIComponent(id)}`,{
       cache:'no-store',
       headers:{Authorization:`Bearer ${data.session.access_token}`}

@@ -299,6 +299,24 @@ function levelIndexForXp(xp) {
   return idx;
 }
 
+function renderClubLevelCatalog(xp = 0) {
+  const levelGrid = $('catalog-levels-render');
+  if (!levelGrid) return;
+  const value = Math.max(0, Number(xp) || 0);
+  const idx = levelIndexForXp(value);
+  levelGrid.innerHTML = CLUB_LEVELS.map((item, levelIndex) => {
+    const reached = value >= item.min;
+    const current = levelIndex === idx;
+    const levelRatio = CLUB_LEVELS.length > 1 ? levelIndex / (CLUB_LEVELS.length - 1) : 0;
+    const achievedAlpha = Math.min(0.19, 0.055 + (levelRatio * 0.135));
+    const futureAlpha = 0.018 + (levelRatio * 0.012);
+    const cardAlpha = reached ? achievedAlpha : futureAlpha;
+    return `<div class="catalog-level catalog-level-v14 ${reached ? 'is-complete' : ''} ${current ? 'is-current' : ''}" data-level="${levelIndex + 1}" style="--level-card-alpha:${cardAlpha.toFixed(3)};--level-card-progress:${levelRatio.toFixed(3)};">
+      <span>${levelIndex + 1}</span><strong>${escapeHtml(item.title)}</strong><small>${item.min.toLocaleString('de-DE')} XP</small>
+    </div>`;
+  }).join('');
+}
+
 function renderProgress(xp) {
   const idx = levelIndexForXp(xp);
   const level = CLUB_LEVELS[idx];
@@ -1895,8 +1913,8 @@ async function spinWheel(){
     message.className='club-auth-status success';
     if(Number.isFinite(data.total_xp)){renderProgress(data.total_xp);setText('member-xp',`${data.total_xp} XP`);}
     if(data.reward_class==='pet')await loadPet();
-    void progressQuestsForAction('wheel_spin');
-      await loadWheelHistory();
+    await progressQuestsForAction('wheel_spin');
+    await loadWheelHistory();
     await loadMyRewards();
     setWheelCooldown(data.next_free_at, data.spin_tokens);
     await loadWheelState();
@@ -3178,11 +3196,17 @@ async function loadSpotlight() {
       ? `<img src="${escapeAttr(m.avatar_url)}" alt="" loading="lazy">`
       : `<div class="spotlight-avatar-fallback">${escapeHtml((m.display_name || m.username || 'A').charAt(0).toUpperCase())}</div>`;
 
-    box.innerHTML = `<a class="spotlight-person" href="/member.html?id=${encodeURIComponent(m.id)}">
+    box.innerHTML = `<a class="spotlight-person" href="/member.html?id=${encodeURIComponent(m.id)}" data-member-profile-link="${escapeAttr(m.id)}">
       <div class="spotlight-avatar">${avatar}</div>
       <div><strong>${escapeHtml(m.display_name || m.username)}</strong><small>@${escapeHtml(m.username)}</small><p>${escapeHtml(payload.spotlight.blurb || m.bio || 'Aktives ACY Club Mitglied.')}</p></div>
       <div class="spotlight-stats"><span>${Number(m.xp || 0)} XP</span><span>${Array.isArray(m.badges) ? m.badges.length : 0} Badges</span></div>
     </a>`;
+    box.querySelector('[data-member-profile-link]')?.addEventListener('click', async (event) => {
+      event.preventDefault();
+      const id = event.currentTarget.dataset.memberProfileLink;
+      await trackMemberProfileOpen(id);
+      window.location.href = `/member.html?id=${encodeURIComponent(id)}`;
+    });
   } catch (error) {
     console.warn('Spotlight unavailable:', error);
     box.innerHTML = '<div class="club-content-empty">Spotlight momentan nicht verfügbar.</div>';
@@ -4048,6 +4072,20 @@ function startMemberDirectoryPolling() {
       console.warn('Member directory refresh failed:', error)
     );
   }, 30000);
+}
+
+async function trackMemberProfileOpen(memberId) {
+  if (!memberId || !currentUser || memberId === currentUser.id || !supabaseClient) return;
+  try {
+    const period = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Berlin' }).format(new Date());
+    await supabaseClient.rpc('increment_quest', {
+      p_quest_key: 'daily_friend',
+      p_period_start: period,
+      p_increment: 1
+    });
+  } catch (error) {
+    console.warn('Member profile quest progress skipped:', error);
+  }
 }
 
 async function loadMemberDirectory(search = '', options = {}) {
