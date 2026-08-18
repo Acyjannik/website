@@ -1,4 +1,4 @@
-﻿-- ACY CLUB V18.0 ÔÇö Quest reliability and server-owned rewards
+-- ACY CLUB V18.0 — Quest reliability and server-owned rewards
 -- Run once in the Supabase SQL Editor after V17.9.
 -- This is required because V17.9 replaced the progress-aware quest reader
 -- with a static catalog and accepted a reward amount from the browser.
@@ -9,31 +9,31 @@ create table if not exists public.club_quest_catalog (
   category text not null default 'community',
   title text not null,
   description text not null,
-  icon text not null default '­ƒÄ»',
+  icon text not null default '🎯',
   target integer not null check (target > 0),
   reward_xp integer not null check (reward_xp >= 0),
   enabled boolean not null default true
 );
 
 insert into public.club_quest_catalog(quest_key,cadence,category,title,description,icon,target,reward_xp) values
- ('daily_login','daily','streak','Tages-Check-in','Hole deinen t├ñglichen Check-in ab.','­ƒöÑ',1,20),
- ('daily_pet','daily','pet','Pet-Pflege','F├╝hre heute eine Pet-Aktion aus.','­ƒÉ¥',1,25),
- ('daily_pet_training','daily','pet','Pet-Training','Trainiere deinen Begleiter heute 2-mal.','­ƒÆ¬',2,30),
- ('daily_social','daily','social','Community-Moment','Schreibe einem Mitglied eine Nachricht.','­ƒÆ¼',1,30),
- ('daily_poll','daily','community','Community Stimme','Stimme bei der aktuellen Umfrage ab.','­ƒù│´©Å',1,15),
- ('daily_profile','daily','profile','Profil-Check','Vervollst├ñndige dein Clubprofil.','­ƒ¬¬',1,10),
- ('daily_game','daily','games','Game Spotter','Setze heute ein aktuelles Game.','­ƒÄ«',1,20),
- ('daily_streak','daily','streak','Serie halten','Hole deinen Tagesbonus ab.','ÔÜí',1,25),
- ('daily_friend','daily','social','Kontakt pflegen','├ûffne ein anderes Mitgliedsprofil.','­ƒæÇ',1,10),
- ('weekly_wheel','weekly','rewards','Gl├╝cksrad-Woche','Drehe diese Woche mindestens 3-mal.','­ƒÄí',3,100),
- ('weekly_pet_adventure','weekly','pet','Pet-Abenteuer','Gehe diese Woche 3-mal auf Erkundungstour.','­ƒù║´©Å',3,100),
- ('weekly_pet_games','weekly','pet','Pet-Spielzeit','Spiele diese Woche 3 Pet-Minigames.','­ƒÄ»',3,100),
- ('weekly_social','weekly','social','Community-Netzwerk','Schlie├ƒe diese Woche 2 Freundschaften.','­ƒæÑ',2,125),
- ('weekly_games','weekly','games','Game Explorer','Entdecke diese Woche 3 verschiedene Games.','­ƒÄ«',3,150),
- ('weekly_event','weekly','events','Community dabei','Nimm diese Woche an mindestens einem Event teil.','­ƒôà',1,150),
- ('weekly_chat','weekly','social','Chat-Stammgast','Schreibe diese Woche 5 Nachrichten im Club-Chat.','­ƒÆ£',5,100),
- ('weekly_pet','weekly','pet','Pet-Freund','Sei an 4 Tagen f├╝r dein Pet da.','­ƒÉ¥',4,100),
- ('weekly_vote','weekly','community','Community Stimme','Stimme diese Woche bei 2 Votes ab.','­ƒù│´©Å',2,90)
+ ('daily_login','daily','streak','Tages-Check-in','Hole deinen täglichen Check-in ab.','🔥',1,20),
+ ('daily_pet','daily','pet','Pet-Pflege','Führe heute eine Pet-Aktion aus.','🐾',1,25),
+ ('daily_pet_training','daily','pet','Pet-Training','Trainiere deinen Begleiter heute 2-mal.','💪',2,30),
+ ('daily_social','daily','social','Community-Moment','Schreibe einem Mitglied eine Nachricht.','💬',1,30),
+ ('daily_poll','daily','community','Community Stimme','Stimme bei der aktuellen Umfrage ab.','🗳️',1,15),
+ ('daily_profile','daily','profile','Profil-Check','Vervollständige dein Clubprofil.','🪪',1,10),
+ ('daily_game','daily','games','Game Spotter','Setze heute ein aktuelles Game.','🎮',1,20),
+ ('daily_streak','daily','streak','Serie halten','Hole deinen Tagesbonus ab.','⚡',1,25),
+ ('daily_friend','daily','social','Kontakt pflegen','Öffne ein anderes Mitgliedsprofil.','👀',1,10),
+ ('weekly_wheel','weekly','rewards','Glücksrad-Woche','Drehe diese Woche mindestens 3-mal.','🎡',3,100),
+ ('weekly_pet_adventure','weekly','pet','Pet-Abenteuer','Gehe diese Woche 3-mal auf Erkundungstour.','🗺️',3,100),
+ ('weekly_pet_games','weekly','pet','Pet-Spielzeit','Spiele diese Woche 3 Pet-Minigames.','🎯',3,100),
+ ('weekly_social','weekly','social','Community-Netzwerk','Schließe diese Woche 2 Freundschaften.','👥',2,125),
+ ('weekly_games','weekly','games','Game Explorer','Entdecke diese Woche 3 verschiedene Games.','🎮',3,150),
+ ('weekly_event','weekly','events','Community dabei','Nimm diese Woche an mindestens einem Event teil.','📅',1,150),
+ ('weekly_chat','weekly','social','Chat-Stammgast','Schreibe diese Woche 5 Nachrichten im Club-Chat.','💜',5,100),
+ ('weekly_pet','weekly','pet','Pet-Freund','Sei an 4 Tagen für dein Pet da.','🐾',4,100),
+ ('weekly_vote','weekly','community','Community Stimme','Stimme diese Woche bei 2 Votes ab.','🗳️',2,90)
 on conflict(quest_key) do update set
  cadence=excluded.cadence,category=excluded.category,title=excluded.title,
  description=excluded.description,icon=excluded.icon,target=excluded.target,
@@ -87,7 +87,7 @@ begin
  if q.quest_key is null then raise exception 'Unbekannte Quest.'; end if;
  if (q.cadence='daily' and p_period_start<>current_date) or (q.cadence='weekly' and p_period_start<>date_trunc('week',current_date)::date) then raise exception 'Quest-Zeitraum abgelaufen.'; end if;
  select * into row from public.club_quest_progress where user_id=auth.uid() and quest_key=q.quest_key and period_start=p_period_start for update;
- if row.user_id is null or row.claimed or row.progress<q.target then raise exception 'Quest noch nicht erf├╝llt.'; end if;
+ if row.user_id is null or row.claimed or row.progress<q.target then raise exception 'Quest noch nicht erfüllt.'; end if;
  update public.club_quest_progress set claimed=true,updated_at=now() where user_id=auth.uid() and quest_key=q.quest_key and period_start=p_period_start;
  update public.profiles set xp=greatest(0,coalesce(xp,0)+q.reward_xp),updated_at=now() where id=auth.uid() returning xp into xp_total;
  return jsonb_build_object('ok',true,'claimed',true,'reward_xp',q.reward_xp,'total_xp',xp_total);

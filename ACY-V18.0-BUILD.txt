@@ -1,0 +1,7 @@
+ACYJANNIK V18.0
+- Quest-Katalog als zentrale Quelle
+- serverseitige Quest-Fortschrittslogik
+- serverseitige XP-Belohnung
+- Claim-Reward nicht mehr vom Browser steuerbar
+- get_my_quests / claim_quest auf V18.0-Logik
+- Ausgangspunkt für den ACY CLUB Masterplan
