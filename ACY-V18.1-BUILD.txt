@@ -1,0 +1,11 @@
+ACY CLUB V18.1 — PET WORLD + MOBILE APP NAVIGATION
+
+Visible changes:
+- Pet gets a dedicated /pet.html route using the existing full Pet Life system.
+- Club profile keeps a compact Pet World teaser instead of the full Pet system.
+- Mobile navigation reduced to 5 clear destinations: Home, Pet, Quests, Social, Mehr.
+- Notifications moved into the More sheet and remain accessible from the header bell.
+- V18 app script is now actually loaded on Club and Pet pages.
+- Mobile notification panel receives a proper top-layer layout.
+
+No new SQL migration is required for these UI changes. Existing Pet V17.9 data/RPCs are reused.

@@ -3312,6 +3312,8 @@ function renderNotifications(){
   const unread=cachedNotifications.filter(n=>!n.read_at).length;
   if(badge){badge.textContent=unread?String(unread):'';badge.hidden=!unread;}
   updateMobileDockBadge('mobile-notification-badge', unread);
+  updateMobileDockBadge('mobile-notification-badge-v18', unread);
+  updateMobileDockBadge('mobile-more-notification-count-v181', unread);
   container.innerHTML=filtered.length?filtered.slice(0,12).map(n=>`<div class="notification-row-wrap"><button class="notification-row ${n.read_at?'':'is-unread'}" type="button" data-notification-id="${n.id}" data-link="${escapeAttr(n.link_url||'')}"><span class="notification-icon">${notificationIcon(n.notification_type)}</span><span><strong>${escapeHtml(n.title)}</strong><small>${escapeHtml(n.body)}</small><em>${formatRelativeTime(n.created_at)}</em></span></button><button class="notification-delete-one" type="button" data-notification-delete="${n.id}" aria-label="Benachrichtigung löschen">×</button></div>`).join(''):'<div class="club-content-empty">Keine Benachrichtigungen in dieser Ansicht.</div>';
   container.querySelectorAll('.notification-row').forEach(row=>row.addEventListener('click',async()=>{
     const id=row.dataset.notificationId;
@@ -3389,7 +3391,11 @@ document.querySelectorAll('.mobile-club-dock [data-dock-key]').forEach(item=>{
     document.querySelectorAll('.mobile-club-dock [data-dock-key]').forEach(el=>el.classList.remove('is-active'));
     item.classList.add('is-active');
 
-    if(key==='notifications') return;
+    if(key==='notifications' || key==='more') return;
+    const href=item.getAttribute('href')||'';
+    // External/page navigation (e.g. the dedicated Pet World) must not be
+    // swallowed by the old hash-scrolling system.
+    if(href && !href.startsWith('#')) return;
     const target=openMobileDockTarget(key);
     if(target){
       event.preventDefault();

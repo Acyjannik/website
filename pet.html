@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ACY Pet · Deine Pet-Welt</title>
+<link rel="stylesheet" href="styles.css?v=18.1.1">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/pet-companion.js?v=8.1.0" defer></script>
+<script src="/club-profile.js?v=18.1.1" defer></script>
+<script src="/v18-app.js?v=18.1.1" defer></script>
+<script src="/pwa.js?v=18.1.1"></script>
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#0b0b10">
+</head>
+<body class="club-auth-page pet-world-page-v181">
+<div class="club-auth-shell">
+<header class="club-auth-header pet-world-header-v181">
+  <a class="brand" href="/club-profile.html"><span class="brand-mark">A</span><strong>ACY<span>JANNIK</span></strong></a>
+  <div class="pet-world-actions-v181">
+    <a class="button button-secondary" href="/club-profile.html">← Club</a>
+    <button class="notification-bell" id="notification-bell" type="button" aria-label="Benachrichtigungen">🔔<span class="notification-count" id="notification-count" hidden></span></button>
+  </div>
+  <div class="notification-panel" id="notification-panel" hidden>
+    <div class="notification-panel-head"><strong>Benachrichtigungen</strong><div class="notification-panel-actions"><button id="notification-read-all" type="button">Alle gelesen</button><button id="notification-clear-all" type="button">Alle löschen</button><button id="notification-close" type="button">×</button></div></div>
+    <div class="notification-filter-row" role="tablist"><button type="button" class="notification-filter is-active" data-notification-filter="all">Alle</button><button type="button" class="notification-filter" data-notification-filter="unread">Ungelesen</button></div>
+    <div id="notifications-list"><div class="club-content-empty">Keine neuen Benachrichtigungen.</div></div>
+  </div>
+</header>
+<main class="pet-world-main-v181">
+  <section class="pet-world-hero-v181">
+    <div><span class="eyebrow">ACY PETS · V18.1</span><h1>Deine <span>Pet-Welt.</span></h1><p>Dein Begleiter bekommt endlich seinen eigenen Bereich. Pflege ihn, entwickle ihn weiter, entdecke Items und schicke ihn auf Abenteuer.</p></div>
+    <div class="pet-world-hero-badge-v181"><span>🐾</span><strong>Pet Life</strong><small>Pflege · Level · Abenteuer · Inventar</small></div>
+  </section>
+  <section class="member-card member-span-2 pet-section" id="pet-section">
+          <div class="member-card-head">
+            <div>
+              <div class="eyebrow">DEIN ACY BEGLEITER</div>
+              <h2>Dein Tier</h2>
+              <p>Wähle deinen Begleiter, gib ihm einen Namen und lass ihn mit dir im ACY Club wachsen.</p>
+            </div>
+            <div class="pet-section-tools"><button class="pet-info-btn-v17" id="pet-info-open" type="button" aria-label="Pet-System erklären" data-tooltip="So funktioniert dein Pet">ⓘ</button><span class="member-count-chip" id="pet-level-chip">Noch kein Tier</span></div>
+          </div>
+
+          <div id="pet-empty-state" class="pet-empty-state">
+            <div class="pet-choice-grid" id="pet-choice-grid"></div>
+            <form id="pet-create-form" class="pet-create-form">
+              <label>
+                Name deines Tiers
+                <input id="pet-name-input" maxlength="18" minlength="2" placeholder="z. B. Nala" autocomplete="off" required>
+              </label>
+              <button class="button button-primary" type="submit">Tier adoptieren</button>
+            </form>
+            <p class="club-auth-status" id="pet-status"></p>
+          </div>
+
+          <div id="pet-active-state" class="pet-active-state" hidden>
+            <div class="pet-main">
+              <div class="pet-avatar" id="pet-avatar"><img src="assets/pet-cat.webp" alt="Katze"></div>
+              <div class="pet-identity">
+                <div class="eyebrow" id="pet-species-label">BEGLEITER</div>
+                <h3 id="pet-display-name">Dein Tier</h3>
+                <p id="pet-level-text">Level 1 · 0 Pflege-XP</p>
+                <div class="pet-trait-v176" id="pet-trait" hidden><span>✨</span><div><strong id="pet-trait-title">Pet-Talent</strong><small id="pet-trait-text"></small></div></div>
+              </div>
+              <div class="pet-manage-actions">
+                <button class="button button-secondary pet-rename-toggle" type="button" id="pet-rename-toggle">Umbenennen</button>
+                <button class="button button-secondary pet-switch-toggle" type="button" id="pet-switch-toggle">Wechseln</button>
+                <button class="button button-danger pet-release-toggle" type="button" id="pet-release-toggle">Abgeben</button>
+              </div>
+            </div>
+
+            <form id="pet-rename-form" class="pet-rename-form" hidden>
+              <input id="pet-rename-input" maxlength="18" minlength="2" placeholder="Neuer Name" required>
+              <button class="button button-secondary" type="submit">Speichern</button>
+            </form>
+
+            <div class="pet-progression">
+              <div class="pet-progression-head">
+                <span class="eyebrow">PET PROGRESSION</span>
+                <strong id="pet-progression-title">Kleiner Begleiter</strong>
+              </div>
+              <div class="pet-progression-summary"><span id="pet-progression-meta">0 / 100 Pflege-XP</span><span id="pet-next-level">Nächstes Level: Freund</span></div>
+              <div class="pet-progression-bar"><span id="pet-progression-fill"></span></div>
+              <details class="pet-mobile-fold pet-levels-fold">
+                <summary>Alle Level anzeigen <span>⌄</span></summary>
+                <div class="pet-progression-steps" aria-label="10 Pet-Level">
+                <div class="pet-prog-step is-current" data-pet-level="1"><span>1</span><small>Begleiter</small></div>
+                <div class="pet-prog-step" data-pet-level="2"><span>2</span><small>Freund</small></div>
+                <div class="pet-prog-step" data-pet-level="3"><span>3</span><small>Gefährte</small></div>
+                <div class="pet-prog-step" data-pet-level="4"><span>4</span><small>Sidekick</small></div>
+                <div class="pet-prog-step" data-pet-level="5"><span>5</span><small>Legende</small></div>
+                <div class="pet-prog-step" data-pet-level="6"><span>6</span><small>Champion</small></div>
+                <div class="pet-prog-step" data-pet-level="7"><span>7</span><small>Guardian</small></div>
+                <div class="pet-prog-step" data-pet-level="8"><span>8</span><small>Mythic</small></div>
+                <div class="pet-prog-step" data-pet-level="9"><span>9</span><small>Cosmic</small></div>
+                <div class="pet-prog-step" data-pet-level="10"><span>10</span><small>Overlord</small></div>
+              </div>
+              </details>
+            </div>
+
+            <div class="pet-stats">
+              <div class="pet-stat">
+                <div><span>Hunger</span><strong id="pet-hunger-value">100%</strong></div>
+                <div class="pet-stat-bar"><span id="pet-hunger-bar"></span></div>
+              </div>
+              <div class="pet-stat">
+                <div><span>Laune</span><strong id="pet-happiness-value">100%</strong></div>
+                <div class="pet-stat-bar"><span id="pet-happiness-bar"></span></div>
+              </div>
+              <div class="pet-stat">
+                <div><span>Energie</span><strong id="pet-energy-value">100%</strong></div>
+                <div class="pet-stat-bar"><span id="pet-energy-bar"></span></div>
+              </div>
+            </div>
+
+            <div class="pet-actions pet-actions-v17">
+              <button class="button button-secondary pet-action-btn" type="button" data-pet-action="feed">🍖 Füttern <small id="pet-feed-meta">0 von 3 heute · 1 ACY Snack pro Fütterung</small></button>
+              <button class="button button-secondary pet-action-btn" type="button" data-pet-action="play">🎾 Spielen <small>+25 Laune · −15 Energie</small></button>
+              <button class="button button-secondary pet-action-btn" type="button" data-pet-action="pet">💜 Streicheln <small>+10 Laune</small></button>
+              <button class="button button-secondary pet-action-btn" type="button" data-pet-action="groom">🛁 Pflegen <small>+15 Laune · +10 Energie</small></button>
+              <button class="button button-secondary pet-action-btn" type="button" data-pet-action="sleep">😴 Schlafen <small>+30 Energie</small></button>
+              <button class="button button-secondary pet-action-btn" type="button" data-pet-action="train">💪 Trainieren <small>+12 Pflege-XP · −20 Energie</small></button>
+              <button class="button button-secondary pet-action-btn" type="button" data-pet-action="explore">🗺️ Erkunden <small>Snacks + AC Coins · −15 Energie</small></button>
+            </div>
+
+            <div class="pet-life-panel-v17">
+              <div class="pet-life-head-v17">
+                <div><span class="eyebrow">PET LIFE</span><div class="pet-life-title-row-v17"><strong>Dein Vorrat</strong></div><small>Füttere dein Tier mit verschiedenen Items, verdiene Vorräte in Spielen und entwickle deinen Begleiter weiter.</small></div>
+                <div class="pet-coins-v17">🪙 <span id="pet-coins">0</span> AC Coins</div>
+              </div>
+              <details class="pet-mobile-fold pet-life-fold" open><summary>🎒 Vorrat <span id="pet-inventory-count">0 Items</span><b>⌄</b></summary><div class="pet-inventory-v17" id="pet-inventory"></div></details>
+              <details class="pet-mobile-fold pet-life-fold" open><summary>✨ Aktive Perks <span id="pet-perks-count-mobile">0</span><b>⌄</b></summary><div class="pet-perks-v177" id="pet-perks">
+                <div class="pet-perks-head-v177"><div><span class="eyebrow">PET PERKS</span><strong>Aktive Vorteile</strong><small>Gewonnene Perks laufen automatisch und verbrauchen Nutzungen, wenn ihr Effekt genutzt wird.</small></div><span class="pet-perks-count-v177" id="pet-perks-count">0</span></div>
+                <div class="pet-perks-list-v177" id="pet-perks-list"><div class="club-content-empty">Noch keine Perks. Vielleicht hat das Glücksrad heute Mitleid.</div></div>
+              </div></details>
+              <details class="pet-mobile-fold pet-life-fold" open><summary>🎁 Belohnungen & Shop <b>⌄</b></summary><div class="pet-life-actions-v17">
+                <button class="button button-secondary" id="pet-daily-supply" type="button">🎁 Tagesvorrat</button>
+                <button class="button button-secondary" id="pet-mystery-box" type="button">🎁 Mystery Box</button>
+                <button class="button button-secondary" id="pet-shop-open" type="button" aria-expanded="false">🛍️ Pet-Shop</button>
+              </div>
+              <div class="pet-shop-v17" id="pet-shop" hidden></div></details>
+              <details class="pet-mobile-fold pet-life-fold" open><summary>🎮 Pet-Spiele <b>⌄</b></summary><div class="pet-minigames-v17">
+                <div class="pet-mini-card-v17"><span>🎯</span><div><strong>Snack Hunt</strong><small>Finde einen Snack und gewinne Futter.</small></div><button class="button button-small button-primary" id="pet-game-snack" type="button">Spielen</button></div>
+                <div class="pet-mini-card-v17"><span>🐾</span><div><strong>Lucky Paw</strong><small>Einmal täglich dein Glück versuchen.</small></div><button class="button button-small button-primary" id="pet-game-paw" type="button">Spielen</button></div>
+              </div></details>
+              <p class="club-auth-status" id="pet-life-status" aria-live="polite"></p>
+            </div>
+
+            <details class="pet-mobile-fold pet-archive-panel-v176" id="pet-archive-panel" open>
+              <summary>📦 Archivierte Tiere <span id="pet-archive-count-mobile">0</span><b>⌄</b></summary>
+              <div class="pet-archive-head-v176"><div><span class="eyebrow">PET ARCHIV</span><strong>Deine anderen Begleiter</strong><small>Archiviere dein aktuelles Tier und probiere später ein anderes aus. Nur ein Tier ist gleichzeitig aktiv.</small></div><span class="pet-archive-count-v176" id="pet-archive-count">0</span></div>
+              <div class="pet-archive-list-v176" id="pet-archive-list"><div class="club-content-empty">Noch keine archivierten Tiere.</div></div>
+            </details>
+
+            <div class="pet-footer">
+              <span id="pet-care-note">Dein Tier verliert langsam Werte, aber kann nicht einfach verschwinden.</span>
+              <span id="pet-xp-note">+5 Pflege-XP pro Pflegeaktion</span>
+            </div>
+          </div>
+        </section>
+</main>
+</div>
+<nav class="mobile-club-dock" aria-label="ACY Club Navigation">
+  <a href="/club-profile.html" data-dock-key="home"><span class="dock-icon">⌂</span><span>Home</span></a>
+  <a href="/pet.html" data-dock-key="pet" class="is-active"><span class="dock-icon">🐾</span><span>Pet</span></a>
+  <a href="/club-profile.html#club-quests-section" data-dock-key="quests"><span class="dock-icon">🎯</span><span>Quests</span></a>
+  <a href="/club-profile.html#club-messages" data-dock-key="social"><span class="dock-icon">♡</span><span>Social</span></a>
+  <button id="mobile-dock-more-v18" data-dock-key="more" type="button" aria-label="Mehr Club-Bereiche"><span class="dock-icon">•••</span><span>Mehr</span></button>
+</nav>
+<div class="mobile-more-sheet-v181" id="mobile-more-sheet-v181" hidden>
+  <div class="mobile-more-backdrop-v181" data-close-more></div>
+  <div class="mobile-more-panel-v181" role="dialog" aria-modal="true" aria-label="Weitere Club-Bereiche">
+    <div class="mobile-more-head-v181"><div><span class="eyebrow">ACY CLUB</span><strong>Mehr</strong></div><button type="button" data-close-more aria-label="Schließen">×</button></div>
+    <div class="mobile-more-grid-v181">
+      <button type="button" data-open-notifications-v181><span>🔔</span><strong>Hinweise</strong><small>Benachrichtigungen</small><b id="mobile-more-notification-count-v181" hidden>0</b></button>
+      <a href="/club-profile.html#club-messages"><span>💬</span><strong>Privat</strong><small>Nachrichten</small></a>
+      <a href="/club-profile.html#member-events-section"><span>🎉</span><strong>Events</strong><small>Community-Termine</small></a>
+      <a href="/club-profile.html#club-wheel-section"><span>🎡</span><strong>Glücksrad</strong><small>Täglicher Bonus</small></a>
+      <a href="/club-profile.html#club-settings-section"><span>⚙️</span><strong>Einstellungen</strong><small>Club & App</small></a>
+    </div>
+  </div>
+</div>
+<div id="acy-build-marker" aria-hidden="true" class="acy-build-marker-v181">ACY BUILD V18.1 · PET WORLD</div>
+</body>
+</html>
