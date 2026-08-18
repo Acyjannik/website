@@ -67,25 +67,9 @@
       });
     }
 
-    // Pet-Shop: take over the click in capture phase, but reproduce the
-    // original shop renderer before toggling. The previous hardening handler
-    // stopped the original listener, which is why the shop could vanish.
-    document.addEventListener('click', async (event) => {
-      const toggle = event.target.closest('#pet-shop-open');
-      if (!toggle) return;
-      event.preventDefault();
-      event.stopPropagation();
-      const box = document.getElementById('pet-shop');
-      if (!box) return;
-      if (!window.petLifeState && typeof window.loadPetLife === 'function') {
-        await window.loadPetLife();
-      }
-      const nextOpen = box.hidden;
-      box.hidden = !nextOpen;
-      if (typeof window.renderPetShop === 'function') window.renderPetShop();
-      toggle.setAttribute('aria-expanded', nextOpen ? 'true' : 'false');
-      if (nextOpen) box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }, true);
+    // Pet-Shop is intentionally left to the original V17.9 renderer in
+    // club-profile.js. The previous delegated listener here intercepted the
+    // click before that renderer could populate the shop, making it appear to vanish.
 
     // Robust delegated handler for the mobile More button. This survives other
     // scripts re-rendering the dock or stopping direct listeners.
