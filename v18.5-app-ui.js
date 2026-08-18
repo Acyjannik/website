@@ -1,5 +1,5 @@
 (() => {
-  const VERSION = 'V18.5.1';
+  const VERSION = 'V18.5.2';
   const ready = (fn) => document.readyState === 'loading'
     ? document.addEventListener('DOMContentLoaded', fn, { once: true })
     : fn();
@@ -23,19 +23,27 @@
     .club-auth-page .member-fold-summary{font-size:16px!important;line-height:1.2!important}
     .club-auth-page .member-fold-summary strong,.club-auth-page .member-card h2,.club-auth-page .member-card h3{line-height:1.15!important}
     .club-auth-page .member-fold-body{scroll-margin-top:100px}
+    .acy-wheel-card{overflow:hidden!important}
+    .acy-wheel-card .member-fold-summary{min-height:72px!important}
+    .acy-wheel-card .member-fold-body{padding-top:14px!important;padding-bottom:14px!important}
+    .acy-wheel-card .member-fold-summary-main{min-width:0!important}
+    .acy-wheel-card .member-fold-summary-main strong{font-size:clamp(20px,4.6vw,28px)!important}
     @media(max-width:700px){
       .acy-v185-version{top:max(8px,env(safe-area-inset-top));font-size:12px;padding:6px 11px}
       .club-auth-page{padding-bottom:110px!important}
-      .club-auth-page .member-dashboard{gap:10px!important}
+      .club-auth-page .member-dashboard{gap:10px!important;min-height:0!important}
       .club-auth-page .member-card,.club-auth-page .member-fold{margin-bottom:10px!important}
       .club-auth-page .member-fold-summary{min-height:62px!important;padding:12px 14px!important}
       .club-auth-page .member-fold-body{padding:12px 14px!important}
+      .acy-wheel-card{margin-bottom:10px!important}
+      .acy-wheel-card .member-fold-summary{min-height:66px!important;padding:10px 12px!important}
       .mobile-club-dock{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:6px!important;padding:8px!important}
       .mobile-club-dock [data-dock-key]{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:4px!important;min-height:58px!important;border-radius:18px!important}
       .mobile-club-dock [data-dock-key] .dock-icon{font-size:24px!important;line-height:1!important}
       #mobile-more-sheet-v181{left:10px!important;right:10px!important;bottom:calc(84px + env(safe-area-inset-bottom))!important;max-height:72dvh!important;overflow:auto!important;border-radius:26px!important;padding:10px!important}
     }
     @media(min-width:701px){
+      .club-auth-page .member-dashboard{min-height:0!important}
       .mobile-club-dock{display:grid!important;grid-template-columns:repeat(5,minmax(112px,1fr))!important;gap:6px!important;position:fixed!important;left:50%!important;bottom:18px!important;transform:translateX(-50%)!important;width:min(720px,calc(100vw - 48px))!important;padding:8px!important;border:1px solid rgba(180,108,255,.22)!important;border-radius:24px!important;background:rgba(13,12,19,.94)!important;backdrop-filter:blur(24px)!important;box-shadow:0 18px 60px rgba(0,0,0,.4)!important}
       .mobile-club-dock [data-dock-key]{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;gap:9px!important;min-height:54px!important;border:1px solid transparent!important;border-radius:17px!important}
       .mobile-club-dock [data-dock-key] .dock-icon{font-size:20px!important;line-height:1!important}
@@ -89,6 +97,12 @@
     return true;
   }
 
+  function isVisibleTarget(el){
+    if(!el) return false;
+    if(el.closest('[hidden]')) return false;
+    return el.getClientRects().length>0;
+  }
+
   function targetFor(key){
     const ids={
       home:['#acy-v18-home','#member-spotlight','#member-hub'],
@@ -97,20 +111,31 @@
     };
     for(const id of (ids[key]||[])){
       const el=document.querySelector(id);
-      if(el) return el;
+      if(isVisibleTarget(el)) return el;
     }
     return null;
   }
 
   function scrollToTarget(target){
-    if(!target){window.scrollTo({top:0,behavior:'smooth'});return;}
+    if(!target) return false;
     const details=target.closest('details');
     if(details) details.open=true;
     requestAnimationFrame(()=>{
-      const offset=window.matchMedia('(max-width:700px)').matches?98:88;
-      const y=Math.max(0,window.scrollY+target.getBoundingClientRect().top-offset);
-      window.scrollTo({top:y,behavior:'smooth'});
+      requestAnimationFrame(()=>{
+        const offset=window.matchMedia('(max-width:700px)').matches?104:92;
+        const rect=target.getBoundingClientRect();
+        const y=Math.max(0,window.scrollY+rect.top-offset);
+        window.scrollTo({top:y,behavior:'smooth'});
+      });
     });
+    return true;
+  }
+
+  function markWheelCard(){
+    const nodes=[...document.querySelectorAll('body *')];
+    const hit=nodes.find(el=>el.children.length<8 && /ACY\s+Glücksrad/i.test(el.textContent||''));
+    const card=hit?.closest('details.member-card,details.member-fold,.member-card,.member-fold');
+    if(card) card.classList.add('acy-wheel-card');
   }
 
   function navigate(key){
@@ -125,6 +150,7 @@
       return;
     }
     const target=targetFor(key);
+    if(!target) return;
     setActive(key);
     closeMore();
     scrollToTarget(target);
@@ -211,9 +237,10 @@
     installVersion();
     normalizeDock();
     removeLegacyBuildBadge();
+    markWheelCard();
     interceptDock();
     interceptMore();
-    const observer=new MutationObserver(()=>{normalizeDock();removeLegacyBuildBadge();});
+    const observer=new MutationObserver(()=>{normalizeDock();removeLegacyBuildBadge();markWheelCard();});
     observer.observe(document.body,{childList:true,subtree:true});
     setTimeout(()=>observer.disconnect(),15000);
   }
