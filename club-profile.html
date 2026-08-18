@@ -164,7 +164,33 @@
         </div>
       </section>
 
-            <section class="member-card member-span-2 spotlight-card" id="member-spotlight">
+      
+      <section class="v18-app-home" id="acy-v18-home">
+        <div class="v18-app-home-head">
+          <div>
+            <span class="eyebrow">ACY CLUB · V18.0</span>
+            <h2>Dein Club. Auf einen Blick.</h2>
+            <p>Die neue ACY-App-Struktur startet hier: Pet, Quests, Community und Live-Status an einem Ort.</p>
+          </div>
+          <span class="v18-status-pill"><span></span> V18 FOUNDATION</span>
+        </div>
+        <div class="v18-action-grid">
+          <a class="v18-action-card v18-action-pet" href="#pet-section">
+            <span class="v18-action-icon">🐾</span><span><small>DEIN BEGLEITER</small><strong>Pet öffnen</strong><em>Pflege, Level & Abenteuer</em></span><b>›</b>
+          </a>
+          <a class="v18-action-card v18-action-quest" href="#club-quests-section">
+            <span class="v18-action-icon">🎯</span><span><small>GAMIFICATION</small><strong>Quests</strong><em>Deine nächsten Aufgaben</em></span><b>›</b>
+          </a>
+          <a class="v18-action-card v18-action-live" href="#twitch-section">
+            <span class="v18-action-icon">🔴</span><span><small>STREAMER CENTER · PREVIEW</small><strong>ACYJANNIK Live</strong><em id="v18-live-summary">Live-Status wird geprüft…</em></span><b>›</b>
+          </a>
+          <button class="v18-action-card v18-action-notify" id="v18-open-notifications" type="button">
+            <span class="v18-action-icon">🔔</span><span><small>COMMUNITY</small><strong>Notifications</strong><em>Hinweise & Live-Alerts</em></span><b>›</b>
+          </button>
+        </div>
+      </section>
+
+      <section class="member-card member-span-2 spotlight-card" id="member-spotlight">
         <div class="member-card-head">
           <div>
             <div class="eyebrow">COMMUNITY SPOTLIGHT</div>
@@ -710,11 +736,12 @@
     </main>
   </div>
 <nav class="mobile-club-dock" aria-label="Schnellnavigation">
+  <a href="#acy-v18-home" data-dock-key="home"><span class="dock-icon">🏠</span><span>Home</span></a>
   <a href="#pet-section" data-dock-key="pet"><span class="dock-icon">🐾</span><span>Pet</span></a>
   <a href="#club-quests-section" data-dock-key="quests"><span class="dock-icon">🎯</span><span>Quests</span><span class="dock-badge" id="mobile-quest-badge" hidden>0</span></a>
   <a href="#club-messages" data-dock-key="messages"><span class="dock-icon">💬</span><span>Privat</span><span class="dock-badge" id="mobile-chat-badge" hidden>0</span></a>
-  <button id="mobile-dock-notifications" data-dock-key="notifications" type="button" aria-label="Benachrichtigungen"><span class="dock-icon">🔔</span><span>Hinweise</span><span class="dock-badge" id="mobile-notification-badge" hidden>0</span></button>
-  <a href="#club-wheel-section" data-dock-key="wheel"><span class="dock-icon">🎡</span><span>Glücksrad</span></a>
+  <a href="#club-messages" data-dock-key="social"><span class="dock-icon">💬</span><span>Social</span><span class="dock-badge" id="mobile-chat-badge-v18" hidden>0</span></a>
+  <button id="mobile-dock-notifications-v18" data-dock-key="notifications" type="button" aria-label="Benachrichtigungen"><span class="dock-icon">🔔</span><span>Hinweise</span><span class="dock-badge" id="mobile-notification-badge-v18" hidden>0</span></button>
 </nav>
 
 
@@ -726,7 +753,7 @@
             border-radius:999px;background:rgba(12,9,18,.92);
             color:#c084fc;font:700 10px/1 system-ui,sans-serif;
             letter-spacing:.08em;pointer-events:none;opacity:.75">
-  ACY BUILD V17.9
+  ACY BUILD V18.0
 </div>
 
   <script src="liquid-ui.js?v=17.9.0" defer></script>

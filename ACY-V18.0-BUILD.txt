@@ -1,7 +1,10 @@
-ACYJANNIK V18.0
-- Quest-Katalog als zentrale Quelle
-- serverseitige Quest-Fortschrittslogik
-- serverseitige XP-Belohnung
-- Claim-Reward nicht mehr vom Browser steuerbar
-- get_my_quests / claim_quest auf V18.0-Logik
-- Ausgangspunkt für den ACY CLUB Masterplan
+ACY CLUB V18.0 — APP FOUNDATION
+
+Visible changes:
+- New ACY Club V18 Home / App Foundation panel
+- Mobile-first quick navigation: Home, Pet, Quests, Social, Notifications
+- Live-status preview card connected to existing Twitch status UI
+- Notification quick action
+- V18 build marker
+
+Base: V17.9 Pet + Community systems
