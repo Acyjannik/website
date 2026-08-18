@@ -1,0 +1,5 @@
+ACY CLUB V18.3
+Pet World functional views
+- Pet Home / Pet Life / Spiele / Archiv are now real in-page views, not dead anchor cards.
+- Mobile More navigation uses robust delegated click handling.
+- No database migration required.

@@ -4,11 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>ACY Pet · Deine Pet-Welt</title>
-<link rel="stylesheet" href="styles.css?v=18.2.0">
+<link rel="stylesheet" href="styles.css?v=18.3.0">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="/pet-companion.js?v=8.1.0" defer></script>
 <script src="/club-profile.js?v=18.2.1" defer></script>
-<script src="/v18-app.js?v=18.2.0" defer></script>
+<script src="/v18-app.js?v=18.3.0" defer></script>
+<script src="/v18.3-pet-navigation.js?v=18.3.0" defer></script>
 <script src="/pwa.js?v=18.2.0"></script>
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="theme-color" content="#0b0b10">
@@ -32,13 +33,13 @@
     <div><span class="eyebrow">ACY PETS · V18.2</span><h1>Deine <span>Pet-Welt.</span></h1><p>Dein Begleiter bekommt endlich seinen eigenen Bereich. Pflege ihn, entwickle ihn weiter, entdecke Items und schicke ihn auf Abenteuer.</p></div>
     <div class="pet-world-hero-badge-v181"><span>🐾</span><strong>Pet Life</strong><small>Pflege · Level · Abenteuer · Inventar</small></div>
   </section>
-  <section class="pet-mobile-hub-v182" aria-label="Pet Schnellzugriff">
-    <a href="#pet-core-v182" class="pet-hub-card-v182 is-primary"><span>🐾</span><div><strong>Pet Home</strong><small>Status, Pflege und Aktionen</small></div><b>→</b></a>
-    <a href="#pet-life-v182" class="pet-hub-card-v182"><span>🎒</span><div><strong>Pet Life</strong><small>Vorrat, Perks und Belohnungen</small></div><b>→</b></a>
-    <a href="#pet-games-v182" class="pet-hub-card-v182"><span>🎮</span><div><strong>Spiele</strong><small>Snack Hunt & Lucky Paw</small></div><b>→</b></a>
-    <a href="#pet-archive-panel" class="pet-hub-card-v182"><span>📦</span><div><strong>Archiv</strong><small>Andere Begleiter</small></div><b>→</b></a>
+  <section class="pet-mobile-hub-v182 pet-mobile-hub-v183" aria-label="Pet Schnellzugriff" role="tablist">
+    <button type="button" class="pet-hub-card-v182 pet-view-tab-v183 is-primary" data-pet-view="home" role="tab" aria-selected="true"><span>🐾</span><div><strong>Pet Home</strong><small>Status, Pflege und Aktionen</small></div><b>→</b></button>
+    <button type="button" class="pet-hub-card-v182 pet-view-tab-v183" data-pet-view="life" role="tab" aria-selected="false"><span>🎒</span><div><strong>Pet Life</strong><small>Vorrat, Perks und Belohnungen</small></div><b>→</b></button>
+    <button type="button" class="pet-hub-card-v182 pet-view-tab-v183" data-pet-view="games" role="tab" aria-selected="false"><span>🎮</span><div><strong>Spiele</strong><small>Snack Hunt & Lucky Paw</small></div><b>→</b></button>
+    <button type="button" class="pet-hub-card-v182 pet-view-tab-v183" data-pet-view="archive" role="tab" aria-selected="false"><span>📦</span><div><strong>Archiv</strong><small>Andere Begleiter</small></div><b>→</b></button>
   </section>
-  <section class="member-card member-span-2 pet-section" id="pet-section">
+  <section class="member-card member-span-2 pet-section pet-view-mode-v183" id="pet-section" data-pet-view="home">
           <div class="member-card-head">
             <div>
               <div class="eyebrow">DEIN ACY BEGLEITER</div>
@@ -153,7 +154,7 @@
               <p class="club-auth-status" id="pet-life-status" aria-live="polite"></p>
             </div>
 
-            <details class="pet-mobile-fold pet-archive-panel-v176" id="pet-archive-panel">
+            <details class="pet-mobile-fold pet-archive-panel-v176 pet-archive-panel-v183" id="pet-archive-panel">
               <summary>📦 Archivierte Tiere <span id="pet-archive-count-mobile">0</span><b>⌄</b></summary>
               <div class="pet-archive-head-v176"><div><span class="eyebrow">PET ARCHIV</span><strong>Deine anderen Begleiter</strong><small>Archiviere dein aktuelles Tier und probiere später ein anderes aus. Nur ein Tier ist gleichzeitig aktiv.</small></div><span class="pet-archive-count-v176" id="pet-archive-count">0</span></div>
               <div class="pet-archive-list-v176" id="pet-archive-list"><div class="club-content-empty">Noch keine archivierten Tiere.</div></div>
@@ -172,7 +173,7 @@
   <a href="/pet.html" data-dock-key="pet" class="is-active"><span class="dock-icon">🐾</span><span>Pet</span></a>
   <a href="/club-profile.html#club-quests-section" data-dock-key="quests"><span class="dock-icon">🎯</span><span>Quests</span></a>
   <a href="/club-profile.html#club-messages" data-dock-key="social"><span class="dock-icon">♡</span><span>Social</span></a>
-  <button id="mobile-dock-more-v18" data-dock-key="more" type="button" aria-label="Mehr Club-Bereiche"><span class="dock-icon">•••</span><span>Mehr</span></button>
+  <button id="mobile-dock-more-v18" data-dock-key="more" type="button" aria-label="Mehr Club-Bereiche" aria-haspopup="dialog" aria-expanded="false"><span class="dock-icon">•••</span><span>Mehr</span></button>
 </nav>
 <div class="mobile-more-sheet-v181" id="mobile-more-sheet-v181" hidden>
   <div class="mobile-more-backdrop-v181" data-close-more></div>
@@ -187,6 +188,6 @@
     </div>
   </div>
 </div>
-<div id="acy-build-marker" aria-hidden="true" class="acy-build-marker-v181">ACY BUILD V18.2 · PET WORLD</div>
+<div id="acy-build-marker" aria-hidden="true" class="acy-build-marker-v181">ACY BUILD V18.3 · PET WORLD</div>
 </body>
 </html>

@@ -5104,3 +5104,48 @@ body.acy-cosmic-active .club-auth-shell{filter:saturate(1.12)}
   .pet-hub-card-v182 small{display:none}
   .pet-actions.pet-actions-v17 .pet-action-btn{min-height:53px!important}
 }
+
+/* ============================================================
+   ACY V18.3 — Pet World functional views + mobile navigation fix
+   ============================================================ */
+.pet-mobile-hub-v183{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:0 0 14px}
+.pet-hub-card-v183{appearance:none;border:1px solid rgba(255,255,255,.08);font:inherit;text-align:left;cursor:pointer;width:100%}
+.pet-hub-card-v183.is-primary{border-color:rgba(192,132,252,.32);background:linear-gradient(145deg,rgba(168,85,247,.14),rgba(255,255,255,.025));box-shadow:0 0 0 1px rgba(168,85,247,.05) inset}
+.pet-view-mode-v183[data-pet-view="home"] .pet-life-panel-v17,
+.pet-view-mode-v183[data-pet-view="home"] #pet-archive-panel{display:none!important}
+.pet-view-mode-v183[data-pet-view="life"] .pet-main,
+.pet-view-mode-v183[data-pet-view="life"] .pet-rename-form,
+.pet-view-mode-v183[data-pet-view="life"] .pet-progression,
+.pet-view-mode-v183[data-pet-view="life"] .pet-stats,
+.pet-view-mode-v183[data-pet-view="life"] .pet-actions-v17,
+.pet-view-mode-v183[data-pet-view="life"] #pet-archive-panel{display:none!important}
+.pet-view-mode-v183[data-pet-view="games"] .pet-main,
+.pet-view-mode-v183[data-pet-view="games"] .pet-rename-form,
+.pet-view-mode-v183[data-pet-view="games"] .pet-progression,
+.pet-view-mode-v183[data-pet-view="games"] .pet-stats,
+.pet-view-mode-v183[data-pet-view="games"] .pet-actions-v17,
+.pet-view-mode-v183[data-pet-view="games"] .pet-life-head-v17,
+.pet-view-mode-v183[data-pet-view="games"] .pet-life-fold:not(#pet-games-v182),
+.pet-view-mode-v183[data-pet-view="games"] #pet-archive-panel{display:none!important}
+.pet-view-mode-v183[data-pet-view="games"] .pet-life-panel-v17{display:block!important}
+.pet-view-mode-v183[data-pet-view="games"] #pet-games-v182{display:block!important;margin-top:0}
+.pet-view-mode-v183[data-pet-view="archive"] .pet-main,
+.pet-view-mode-v183[data-pet-view="archive"] .pet-rename-form,
+.pet-view-mode-v183[data-pet-view="archive"] .pet-progression,
+.pet-view-mode-v183[data-pet-view="archive"] .pet-stats,
+.pet-view-mode-v183[data-pet-view="archive"] .pet-actions-v17,
+.pet-view-mode-v183[data-pet-view="archive"] .pet-life-panel-v17{display:none!important}
+.pet-view-mode-v183[data-pet-view="archive"] #pet-archive-panel{display:block!important}
+.pet-view-mode-v183[data-pet-view="archive"] + .pet-footer{display:none}
+.pet-view-mode-v183[data-pet-view="home"] .pet-footer{display:block}
+.pet-view-mode-v183[data-pet-view="life"] .pet-footer,
+.pet-view-mode-v183[data-pet-view="games"] .pet-footer{display:none}
+@media(max-width:760px){
+  .pet-mobile-hub-v183{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-bottom:9px}
+  .pet-hub-card-v183{min-height:58px}
+  .pet-view-mode-v183{scroll-margin-top:10px}
+  .pet-view-mode-v183[data-pet-view="home"] .pet-main{display:grid}
+  .pet-view-mode-v183[data-pet-view="home"] .pet-progression{display:block}
+  .pet-view-mode-v183[data-pet-view="home"] .pet-stats{display:grid}
+  .pet-view-mode-v183[data-pet-view="home"] .pet-actions-v17{display:grid}
+}

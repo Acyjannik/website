@@ -1,0 +1,59 @@
+(() => {
+  const ready = (fn) => document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', fn, { once: true }) : fn();
+
+  ready(() => {
+    const petSection = document.getElementById('pet-section');
+    const archive = document.getElementById('pet-archive-panel');
+    const tabs = [...document.querySelectorAll('.pet-view-tab-v183')];
+    if (petSection && tabs.length) {
+      const setView = (view, updateHash = true) => {
+        petSection.dataset.petView = view;
+        tabs.forEach(tab => {
+          const active = tab.dataset.petView === view;
+          tab.classList.toggle('is-primary', active);
+          tab.setAttribute('aria-selected', active ? 'true' : 'false');
+        });
+        if (archive) archive.open = view === 'archive';
+        if (updateHash) history.replaceState(null, '', `#pet-${view}`);
+        const target = view === 'archive' ? archive : petSection;
+        target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      };
+      tabs.forEach(tab => tab.addEventListener('click', () => setView(tab.dataset.petView)));
+      const initial = location.hash.match(/^#pet-(home|life|games|archive)$/)?.[1];
+      if (initial) setView(initial, false);
+      archive?.addEventListener('toggle', () => {
+        if (archive.open) setView('archive', false);
+      });
+      window.addEventListener('hashchange', () => {
+        const view = location.hash.match(/^#pet-(home|life|games|archive)$/)?.[1];
+        if (view) setView(view, false);
+      });
+    }
+
+    // Robust delegated handler for the mobile More button. This survives other
+    // scripts re-rendering the dock or stopping direct listeners.
+    document.addEventListener('click', (event) => {
+      const toggle = event.target.closest('#mobile-dock-more-v18');
+      if (!toggle) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      const sheet = document.getElementById('mobile-more-sheet-v181');
+      if (!sheet) return;
+      const shouldOpen = sheet.hidden;
+      sheet.hidden = !shouldOpen;
+      document.body.classList.toggle('mobile-more-open-v181', shouldOpen);
+      toggle.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
+    }, true);
+
+    document.addEventListener('click', (event) => {
+      const close = event.target.closest('[data-close-more]');
+      if (close) {
+        const sheet = document.getElementById('mobile-more-sheet-v181');
+        const toggle = document.getElementById('mobile-dock-more-v18');
+        if (sheet) sheet.hidden = true;
+        document.body.classList.remove('mobile-more-open-v181');
+        toggle?.setAttribute('aria-expanded', 'false');
+      }
+    }, true);
+  });
+})();
