@@ -1,0 +1,8 @@
+ACY CLUB V18.2 — MOBILE PET WORLD
+
+- Mobile Pet Home redesigned as a focused app dashboard
+- Secondary Pet Life sections collapsed by default
+- Quick-access Pet Home / Pet Life / Games / Archive cards
+- More navigation hardened with delegated click/touch handling
+- Mobile navigation safe-area and touch improvements
+- No new SQL required

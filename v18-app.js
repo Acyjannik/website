@@ -31,11 +31,33 @@
     const sheet = $('mobile-more-sheet-v181');
     const toggle = $('mobile-dock-more-v18');
     if (!sheet || !toggle) return;
-    const close = () => { sheet.hidden = true; document.body.classList.remove('mobile-more-open-v181'); };
-    toggle.addEventListener('click', () => { sheet.hidden = !sheet.hidden; document.body.classList.toggle('mobile-more-open-v181', !sheet.hidden); });
-    sheet.querySelectorAll('[data-close-more]').forEach(el => el.addEventListener('click', close));
-    sheet.querySelector('[data-open-notifications-v181]')?.addEventListener('click', () => { close(); openNotifications(); });
-    sheet.querySelectorAll('a[href]').forEach(a => a.addEventListener('click', close));
+
+    const close = () => {
+      sheet.hidden = true;
+      document.body.classList.remove('mobile-more-open-v181');
+      toggle.setAttribute('aria-expanded', 'false');
+    };
+    const open = () => {
+      sheet.hidden = false;
+      document.body.classList.add('mobile-more-open-v181');
+      toggle.setAttribute('aria-expanded', 'true');
+    };
+    const toggleSheet = (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      if (sheet.hidden) open(); else close();
+    };
+
+    toggle.setAttribute('aria-expanded', 'false');
+    toggle.addEventListener('click', toggleSheet, false);
+
+    sheet.addEventListener('click', (event) => {
+      const closeTarget = event.target.closest('[data-close-more]');
+      if (closeTarget) close();
+      const notificationTarget = event.target.closest('[data-open-notifications-v181]');
+      if (notificationTarget) { close(); openNotifications(); }
+    });
+
     document.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
   }
 
