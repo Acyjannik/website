@@ -1724,8 +1724,11 @@ $('pet-switch-toggle')?.addEventListener('click', () => {
   empty.hidden = !empty.hidden;
   if (!empty.hidden) {
     renderPetChoices(currentPet?.species || '');
-    $('pet-name-input').value = currentPet?.name || '';
-    $('pet-name-input')?.focus();
+    const petNameInput = $('pet-name-input');
+    if (petNameInput) {
+      petNameInput.value = currentPet?.name || '';
+      petNameInput.focus();
+    }
   }
 });
 
@@ -2650,8 +2653,10 @@ async function loadProfile() {
   setText('member-handle', `@${profile.username}`);
   setText('member-bio', profile.bio || 'Willkommen in deinem persönlichen ACY Club.');
   setText('member-since', profile.created_at ? new Date(profile.created_at).toLocaleDateString('de-DE') : '–');
-  $('edit-display-name').value = profile.display_name || profile.username;
-  $('edit-bio').value = profile.bio || '';
+  const editDisplayName = $('edit-display-name');
+  const editBio = $('edit-bio');
+  if (editDisplayName) editDisplayName.value = profile.display_name || profile.username;
+  if (editBio) editBio.value = profile.bio || '';
 
   renderAvatar(profile);
   renderProgress(Number(profile.xp || 0));

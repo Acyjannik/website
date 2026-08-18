@@ -1,0 +1,5 @@
+ACY CLUB V18.2.1
+Pet Switch Fix
+
+Fixes the null DOM access in shared club-profile.js when switching pets on pet.html.
+No database migration required.
