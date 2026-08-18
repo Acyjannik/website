@@ -5149,3 +5149,159 @@ body.acy-cosmic-active .club-auth-shell{filter:saturate(1.12)}
   .pet-view-mode-v183[data-pet-view="home"] .pet-stats{display:grid}
   .pet-view-mode-v183[data-pet-view="home"] .pet-actions-v17{display:grid}
 }
+
+
+/* ============================================================
+   ACY V18.4 — Mobile Pet Home compact layout
+   Goal: Pet Home should read like an app dashboard, not a long form.
+   Desktop intentionally untouched.
+   ============================================================ */
+@media(max-width:760px){
+  /* Remove the large marketing/hero area from the Pet route. */
+  .pet-world-page-v182 .pet-world-hero-v181,
+  .pet-world-page-v182 .pet-world-hero-v181 + * + *{ }
+  .pet-world-page-v182 .pet-world-hero-v181{display:none!important}
+
+  /* Four Pet destinations become a compact app switcher. */
+  .pet-mobile-hub-v183{
+    display:flex!important;
+    gap:6px!important;
+    margin:4px 0 8px!important;
+    overflow-x:auto;
+    padding:2px 1px 4px;
+    scrollbar-width:none;
+    scroll-snap-type:x proximity;
+  }
+  .pet-mobile-hub-v183::-webkit-scrollbar{display:none}
+  .pet-hub-card-v183{
+    flex:0 0 126px!important;
+    min-height:46px!important;
+    padding:8px 9px!important;
+    border-radius:13px!important;
+    grid-template-columns:22px 1fr!important;
+    gap:6px!important;
+    scroll-snap-align:start;
+  }
+  .pet-hub-card-v183>b{display:none}
+  .pet-hub-card-v183>span{font-size:17px!important}
+  .pet-hub-card-v183 strong{font-size:9px!important;line-height:1.1}
+  .pet-hub-card-v183 small{display:none!important}
+
+  /* The active Pet card becomes a tight app panel. */
+  .pet-view-mode-v183[data-pet-view="home"]{
+    padding:12px!important;
+    border-radius:18px!important;
+    margin-top:4px!important;
+  }
+  .pet-view-mode-v183[data-pet-view="home"] .pet-active-state{
+    display:flex!important;
+    flex-direction:column!important;
+    gap:8px!important;
+    margin-top:5px!important;
+  }
+  .pet-view-mode-v183[data-pet-view="home"] .pet-main{order:1!important}
+  .pet-view-mode-v183[data-pet-view="home"] .pet-stats{order:2!important}
+  .pet-view-mode-v183[data-pet-view="home"] .pet-progression{order:3!important}
+  .pet-view-mode-v183[data-pet-view="home"] .pet-actions-v17{order:4!important}
+
+  /* Compact identity row. */
+  .pet-view-mode-v183[data-pet-view="home"] .pet-main{
+    display:grid!important;
+    grid-template-columns:52px minmax(0,1fr)!important;
+    gap:8px!important;
+    align-items:center!important;
+  }
+  .pet-view-mode-v183[data-pet-view="home"] .pet-avatar,
+  .pet-view-mode-v183[data-pet-view="home"] .pet-avatar img{
+    width:52px!important;height:52px!important;border-radius:15px!important;
+  }
+  .pet-view-mode-v183[data-pet-view="home"] .pet-identity h3{font-size:19px!important;margin:2px 0!important}
+  .pet-view-mode-v183[data-pet-view="home"] .pet-identity .eyebrow{font-size:8px!important;letter-spacing:.16em}
+  .pet-view-mode-v183[data-pet-view="home"] .pet-level-text{font-size:8px!important;margin:0!important}
+  .pet-view-mode-v183[data-pet-view="home"] .pet-trait-v176{margin-top:5px!important;padding:5px 7px!important;border-radius:9px!important}
+  .pet-view-mode-v183[data-pet-view="home"] .pet-trait-v176 small{font-size:7px!important}
+  .pet-view-mode-v183[data-pet-view="home"] .pet-manage-actions{
+    grid-column:1/-1!important;
+    display:grid!important;
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    gap:5px!important;
+    margin-top:2px!important;
+  }
+  .pet-view-mode-v183[data-pet-view="home"] .pet-manage-actions .button{
+    min-height:34px!important;
+    padding:6px 4px!important;
+    font-size:8px!important;
+    border-radius:10px!important;
+  }
+
+  /* Stats move immediately under the pet and become a small, highly visible row. */
+  .pet-view-mode-v183[data-pet-view="home"] .pet-stats{
+    display:grid!important;
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    gap:5px!important;
+    margin:0!important;
+  }
+  .pet-view-mode-v183[data-pet-view="home"] .pet-stat{
+    padding:7px 7px 8px!important;
+    border-radius:11px!important;
+    background:linear-gradient(180deg,rgba(168,85,247,.075),rgba(255,255,255,.018))!important;
+    border-color:rgba(168,85,247,.14)!important;
+  }
+  .pet-view-mode-v183[data-pet-view="home"] .pet-stat>div:first-child{
+    display:flex!important;
+    margin-bottom:5px!important;
+    font-size:8px!important;
+  }
+  .pet-view-mode-v183[data-pet-view="home"] .pet-stat strong{font-size:9px!important}
+  .pet-view-mode-v183[data-pet-view="home"] .pet-stat-bar{height:4px!important}
+
+  /* Progression is informative, but no longer a giant second hero. */
+  .pet-view-mode-v183[data-pet-view="home"] .pet-progression{
+    margin:0!important;
+    padding:8px 9px!important;
+    border-radius:11px!important;
+  }
+  .pet-view-mode-v183[data-pet-view="home"] .pet-progression-head{margin-bottom:4px!important}
+  .pet-view-mode-v183[data-pet-view="home"] .pet-progression-head strong{font-size:9px!important}
+  .pet-view-mode-v183[data-pet-view="home"] .pet-progression-summary{font-size:7px!important}
+  .pet-view-mode-v183[data-pet-view="home"] .pet-progression-bar{margin-top:6px!important;height:4px!important}
+  .pet-view-mode-v183[data-pet-view="home"] .pet-levels-fold>summary{margin-top:5px!important;padding:5px 0!important;font-size:8px!important}
+
+  /* Actions are compact tiles. Descriptive copy is hidden on phones. */
+  .pet-view-mode-v183[data-pet-view="home"] .pet-actions-v17{
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:5px!important;
+    margin:0!important;
+  }
+  .pet-view-mode-v183[data-pet-view="home"] .pet-actions-v17 .pet-action-btn{
+    min-height:46px!important;
+    padding:6px 8px!important;
+    border-radius:11px!important;
+    font-size:9px!important;
+    align-items:center!important;
+    justify-content:center!important;
+    text-align:center!important;
+  }
+  .pet-view-mode-v183[data-pet-view="home"] .pet-actions-v17 .pet-action-btn small{display:none!important}
+
+  /* Don't let the fixed dock eat the bottom of the Pet Home. */
+  .pet-world-main-v181,.pet-world-main-v182{padding-bottom:82px!important}
+  .mobile-club-dock{
+    left:10px!important;right:10px!important;
+    padding:4px!important;
+    border-radius:18px!important;
+  }
+  .mobile-club-dock a,.mobile-club-dock button{min-height:48px!important;border-radius:13px!important;padding:4px 2px!important;gap:2px!important;font-size:8px!important}
+  .mobile-club-dock .dock-icon{font-size:18px!important;min-height:19px!important}
+  .mobile-club-dock [data-dock-key="more"] .dock-icon{font-size:15px!important}
+}
+
+@media(max-width:390px){
+  .pet-hub-card-v183{flex-basis:116px!important}
+  .pet-view-mode-v183[data-pet-view="home"]{padding:10px!important}
+  .pet-view-mode-v183[data-pet-view="home"] .pet-avatar,
+  .pet-view-mode-v183[data-pet-view="home"] .pet-avatar img{width:48px!important;height:48px!important}
+  .pet-view-mode-v183[data-pet-view="home"] .pet-main{grid-template-columns:48px minmax(0,1fr)!important}
+  .pet-view-mode-v183[data-pet-view="home"] .pet-identity h3{font-size:17px!important}
+}

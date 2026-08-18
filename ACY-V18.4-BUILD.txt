@@ -1,0 +1,9 @@
+ACY CLUB V18.4 — MOBILE PET HOME
+
+- Compact mobile Pet Home
+- Pet stats moved directly under identity
+- Compact 3-column Hunger / Laune / Energie display
+- Compact Pet actions
+- Reduced mobile navigation footprint
+- Mobile Pet route no longer shows large hero area
+- No database / SQL changes
