@@ -67,9 +67,9 @@
       });
     }
 
-    // Pet-Shop: make the inner shop toggle deterministic. The old direct
-    // listener could race with Pet Life re-renders, so this delegated handler
-    // owns the UI state and prevents the click from toggling the outer <details>.
+    // Pet-Shop: take over the click in capture phase, but reproduce the
+    // original shop renderer before toggling. The previous hardening handler
+    // stopped the original listener, which is why the shop could vanish.
     document.addEventListener('click', async (event) => {
       const toggle = event.target.closest('#pet-shop-open');
       if (!toggle) return;
@@ -77,11 +77,12 @@
       event.stopPropagation();
       const box = document.getElementById('pet-shop');
       if (!box) return;
-      if (!box.innerHTML.trim() && typeof window.loadPetLife === 'function') {
+      if (!window.petLifeState && typeof window.loadPetLife === 'function') {
         await window.loadPetLife();
       }
       const nextOpen = box.hidden;
       box.hidden = !nextOpen;
+      if (typeof window.renderPetShop === 'function') window.renderPetShop();
       toggle.setAttribute('aria-expanded', nextOpen ? 'true' : 'false');
       if (nextOpen) box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }, true);
