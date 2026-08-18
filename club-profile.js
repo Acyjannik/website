@@ -1454,30 +1454,38 @@ function handleDiscordOAuthCallback() {
 }
 
 function petLevelForXp(xp = 0) {
-  // V17.9 — expanded Pet progression: 10 meaningful milestones.
-  // Thresholds are intentionally kept in the UI layer because pet_xp remains
-  // the single source of truth in Supabase.
+  // V18.4 — 25-level Pet progression. pet_xp remains the single source of truth.
   const levels = [
-    { min: 0,    level: 1,  title: 'Kleiner Begleiter', short: 'Begleiter', effect: 'basic',      icon: '🐾', tier: 'starter' },
-    { min: 100,  level: 2,  title: 'Vertrauter Freund', short: 'Freund',    effect: 'glow',       icon: '💜', tier: 'warm' },
-    { min: 250,  level: 3,  title: 'Treuer Gefährte',  short: 'Gefährte',  effect: 'sparkle',    icon: '✨', tier: 'bright' },
-    { min: 500,  level: 4,  title: 'ACY Sidekick',      short: 'Sidekick',  effect: 'crown',      icon: '👑', tier: 'elite' },
-    { min: 1000, level: 5,  title: 'ACY Legende',       short: 'Legende',   effect: 'legendary',  icon: '🏆', tier: 'legend' },
-    { min: 1750, level: 6,  title: 'ACY Champion',      short: 'Champion',  effect: 'aurora',     icon: '⚡', tier: 'champion' },
-    { min: 2750, level: 7,  title: 'ACY Guardian',      short: 'Guardian',  effect: 'celestial',  icon: '🛡️', tier: 'guardian' },
-    { min: 4250, level: 8,  title: 'ACY Mythic',        short: 'Mythic',    effect: 'mythic',      icon: '🔮', tier: 'mythic' },
-    { min: 6500, level: 9,  title: 'ACY Cosmic',        short: 'Cosmic',    effect: 'cosmic',      icon: '🌌', tier: 'cosmic' },
-    { min: 10000,level: 10, title: 'ACY Overlord',      short: 'Overlord',  effect: 'overlord',    icon: '☄️', tier: 'overlord' }
+    {min:0,level:1,title:'Kleiner Begleiter',short:'Begleiter',effect:'basic',icon:'🐾',tier:'starter'},
+    {min:100,level:2,title:'Vertrauter Freund',short:'Freund',effect:'glow',icon:'💜',tier:'warm'},
+    {min:250,level:3,title:'Treuer Gefährte',short:'Gefährte',effect:'sparkle',icon:'✨',tier:'bright'},
+    {min:500,level:4,title:'ACY Sidekick',short:'Sidekick',effect:'crown',icon:'👑',tier:'elite'},
+    {min:1000,level:5,title:'ACY Legende',short:'Legende',effect:'legendary',icon:'🏆',tier:'legend'},
+    {min:1750,level:6,title:'ACY Champion',short:'Champion',effect:'aurora',icon:'⚡',tier:'champion'},
+    {min:2750,level:7,title:'ACY Guardian',short:'Guardian',effect:'celestial',icon:'🛡️',tier:'guardian'},
+    {min:4250,level:8,title:'ACY Mythic',short:'Mythic',effect:'mythic',icon:'🔮',tier:'mythic'},
+    {min:6500,level:9,title:'ACY Cosmic',short:'Cosmic',effect:'cosmic',icon:'🌌',tier:'cosmic'},
+    {min:10000,level:10,title:'ACY Overlord',short:'Overlord',effect:'overlord',icon:'☄️',tier:'overlord'},
+    {min:12300,level:11,title:'ACY Ascended',short:'Ascended',effect:'overlord',icon:'🌠',tier:'ascended'},
+    {min:14900,level:12,title:'ACY Celestial',short:'Celestial',effect:'overlord',icon:'🌌',tier:'celestial'},
+    {min:17700,level:13,title:'ACY Eternal',short:'Eternal',effect:'overlord',icon:'♾️',tier:'eternal'},
+    {min:20700,level:14,title:'ACY Guardian Prime',short:'Guardian+',effect:'overlord',icon:'🛡️',tier:'guardian'},
+    {min:23900,level:15,title:'ACY Champion Prime',short:'Champion+',effect:'overlord',icon:'⚡',tier:'champion'},
+    {min:27300,level:16,title:'ACY Legendary',short:'Legendary',effect:'overlord',icon:'🏆',tier:'legend'},
+    {min:30900,level:17,title:'ACY Mythic Prime',short:'Mythic+',effect:'overlord',icon:'🔮',tier:'mythic'},
+    {min:34700,level:18,title:'ACY Cosmic Prime',short:'Cosmic+',effect:'overlord',icon:'🌌',tier:'cosmic'},
+    {min:38700,level:19,title:'ACY Overlord Prime',short:'Overlord+',effect:'overlord',icon:'☄️',tier:'overlord'},
+    {min:42900,level:20,title:'ACY Pet Master',short:'Pet Master',effect:'overlord',icon:'👑',tier:'master'},
+    {min:47300,level:21,title:'ACY Master+',short:'Master+',effect:'overlord',icon:'💎',tier:'master'},
+    {min:51900,level:22,title:'ACY Legend+',short:'Legend+',effect:'overlord',icon:'🏆',tier:'legend'},
+    {min:56700,level:23,title:'ACY Grandmaster',short:'Grandmaster',effect:'overlord',icon:'🌟',tier:'grandmaster'},
+    {min:61700,level:24,title:'ACY Divine',short:'Divine',effect:'overlord',icon:'✨',tier:'divine'},
+    {min:66900,level:25,title:'ACY Pet Master',short:'Pet Master',effect:'overlord',icon:'👑',tier:'master'}
   ];
-  let current = levels[0];
-  for (const entry of levels) if (xp >= entry.min) current = entry;
-  const nextEntry = levels.find(entry => entry.min > xp);
-  return {
-    ...current,
-    next: nextEntry ? nextEntry.min : null,
-    nextTitle: nextEntry?.title || null,
-    levels
-  };
+  let current=levels[0];
+  for(const entry of levels) if(xp>=entry.min) current=entry;
+  const nextEntry=levels.find(entry=>entry.min>xp);
+  return {...current,next:nextEntry?nextEntry.min:null,nextTitle:nextEntry?.title||null,levels};
 }
 
 function renderPetChoices(selected = '') {
@@ -1567,7 +1575,7 @@ function renderPet(pet) {
     step.classList.toggle('is-current', Number(step.dataset.petLevel) === level.level);
     step.classList.toggle('is-complete', Number(step.dataset.petLevel) < level.level);
   });
-  setText('pet-care-note', 'Dein Tier wächst über Pflege-XP durch die 10 Pet-Level. Werte sinken langsam und dein Begleiter bleibt erhalten.');
+  setText('pet-care-note', 'Dein Tier wächst über Pflege-XP durch 25 Pet-Level. Werte sinken langsam und dein Begleiter bleibt erhalten.');
   if ($('pet-rename-input')) $('pet-rename-input').value = pet.name;
   if (window.loadPetLife) void window.loadPetLife();
 }
@@ -1758,7 +1766,7 @@ function renderPetLife(state){
   setText('pet-inventory-count',`${inventoryCount} ${inventoryCount===1?'Item':'Items'}`);
   if(inv){
     const items=state?.inventory||[];
-    inv.innerHTML=items.length?items.map(i=>{const usable=['boost','toy'].includes(i.item_type); return `<div class="pet-item-v17 ${usable?'pet-item-usable-v17':''}">${usable?`<button type="button" class="pet-item-use-v17" data-use-pet-item="${escapeAttr(i.key)}" aria-label="${escapeAttr(i.name)} verwenden">`:''}<strong>${escapeHtml(i.icon||'📦')} ${escapeHtml(i.name||'Item')}</strong><small><b>${Number(i.quantity||0)}× vorhanden</b> · ${escapeHtml(i.detail||'')}</small>${usable?'<span>Verwenden ›</span></button>':''}</div>`}).join(''):'<div class="club-content-empty">Dein Vorrat ist leer. Hol dir Snacks im Tagesvorrat, im Shop oder bei einem Minigame.</div>';
+    inv.innerHTML=items.length?items.map(i=>{const usable=['food','boost','toy'].includes(i.item_type); const actionLabel=i.item_type==='food'?'Füttern':'Verwenden'; return `<div class="pet-item-v17 ${usable?'pet-item-usable-v17':''}">${usable?`<button type="button" class="pet-item-use-v17" data-use-pet-item="${escapeAttr(i.key)}" aria-label="${escapeAttr(i.name)} ${actionLabel}">`:''}<strong>${escapeHtml(i.icon||'📦')} ${escapeHtml(i.name||'Item')}</strong><small><b>${Number(i.quantity||0)}× vorhanden</b> · ${escapeHtml(i.detail||'')}</small>${usable?`<span>${actionLabel} ›</span></button>`:''}</div>`}).join(''):'<div class="club-content-empty">Dein Vorrat ist leer. Hol dir Snacks im Tagesvorrat, im Shop oder bei einem Minigame.</div>';
   }
   const perks=state?.perks||[];
   const perkList=$('pet-perks-list'), perkCount=$('pet-perks-count');
@@ -2675,7 +2683,8 @@ async function loadProfile() {
     void safeLoad('7 Day XP', () => awardProgression('member_7_days'));
   }
 
-  $('avatar-input').dataset.currentUrl = profile.avatar_url || '';
+  const avatarInput = $('avatar-input');
+  if (avatarInput) avatarInput.dataset.currentUrl = profile.avatar_url || '';
 }
 
 let twitchStatusTimer = null;

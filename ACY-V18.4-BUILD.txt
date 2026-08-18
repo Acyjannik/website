@@ -1,9 +1,13 @@
-ACY CLUB V18.4 — MOBILE PET HOME
+ACY CLUB V18.4 — MOBILE PET REWORK
 
-- Compact mobile Pet Home
-- Pet stats moved directly under identity
-- Compact 3-column Hunger / Laune / Energie display
-- Compact Pet actions
-- Reduced mobile navigation footprint
-- Mobile Pet route no longer shows large hero area
+- Compact, consistent Pet World on desktop and mobile
+- Pet Home / Pet Life / Spiele / Archiv are true views
+- Pet Archiv moved into the Pet view container so the Archiv tab works
+- Food items in the inventory can be used directly for feeding
+- Null-safe profile/avatar code on pet.html
+- 25 Pet levels with a consistent XP progression
+- Mobile Pet stats/actions compressed without hiding important controls
+- Mobile Pet navigation uses a compact 2x2 view switcher
+- Desktop and mobile share the same view structure
 - No database / SQL changes
+- Development branch only; no main commit

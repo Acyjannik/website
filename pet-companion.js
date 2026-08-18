@@ -8,11 +8,15 @@
 
   function esc(v=''){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));}
   function levelInfo(xp=0){
-    if(xp>=1000)return {level:5,title:'ACY Legende',effect:'legendary'};
-    if(xp>=500)return {level:4,title:'ACY Sidekick',effect:'crown'};
-    if(xp>=250)return {level:3,title:'Treuer Gefährte',effect:'sparkle'};
-    if(xp>=100)return {level:2,title:'Vertrauter Freund',effect:'glow'};
-    return {level:1,title:'Kleiner Begleiter',effect:'basic'};
+    const levels=[
+      [0,1,'Kleiner Begleiter','basic'],[100,2,'Vertrauter Freund','glow'],[250,3,'Treuer Gefährte','sparkle'],[500,4,'ACY Sidekick','crown'],[1000,5,'ACY Legende','legendary'],
+      [1750,6,'ACY Champion','aurora'],[2750,7,'ACY Guardian','celestial'],[4250,8,'ACY Mythic','mythic'],[6500,9,'ACY Cosmic','cosmic'],[10000,10,'ACY Overlord','overlord'],
+      [12300,11,'ACY Ascended','overlord'],[14900,12,'ACY Celestial','overlord'],[17700,13,'ACY Eternal','overlord'],[20700,14,'ACY Guardian Prime','overlord'],[23900,15,'ACY Champion Prime','overlord'],
+      [27300,16,'ACY Legendary','overlord'],[30900,17,'ACY Mythic Prime','overlord'],[34700,18,'ACY Cosmic Prime','overlord'],[38700,19,'ACY Overlord Prime','overlord'],[42900,20,'ACY Pet Master','overlord'],
+      [47300,21,'ACY Master+','overlord'],[51900,22,'ACY Legend+','overlord'],[56700,23,'ACY Grandmaster','overlord'],[61700,24,'ACY Divine','overlord'],[66900,25,'ACY Pet Master','overlord']
+    ];
+    let current=levels[0]; for(const entry of levels) if(xp>=entry[0]) current=entry;
+    return {level:current[1],title:current[2],effect:current[3]};
   }
 
   async function init(){
