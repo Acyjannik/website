@@ -5013,3 +5013,28 @@ body.acy-cosmic-active .club-auth-shell{filter:saturate(1.12)}
     width:38px!important;height:38px!important;min-width:38px!important;
   }
 }
+
+
+/* V18.0 — ACY Club App Foundation */
+.v18-app-home{position:relative;display:grid;gap:18px;padding:22px;border:1px solid rgba(168,85,247,.20);border-radius:22px;background:linear-gradient(145deg,rgba(25,14,39,.96),rgba(10,10,15,.98));box-shadow:0 18px 60px rgba(0,0,0,.22),inset 0 1px rgba(255,255,255,.035);overflow:hidden}
+.v18-app-home:before{content:"";position:absolute;inset:auto -90px -100px auto;width:240px;height:240px;border-radius:50%;background:rgba(168,85,247,.11);filter:blur(55px);pointer-events:none}
+.v18-app-home-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;position:relative;z-index:1}
+.v18-app-home-head h2{margin:4px 0 6px;font-size:26px;letter-spacing:-.025em}
+.v18-app-home-head p{margin:0;max-width:680px;color:#a1a1aa;font-size:12px;line-height:1.55}
+.v18-status-pill{display:inline-flex;align-items:center;gap:7px;white-space:nowrap;padding:8px 11px;border:1px solid rgba(192,132,252,.22);border-radius:999px;background:rgba(168,85,247,.07);color:#d8b4fe;font-size:9px;font-weight:900;letter-spacing:.12em}
+.v18-status-pill span{width:6px;height:6px;border-radius:50%;background:#c084fc;box-shadow:0 0 12px rgba(192,132,252,.8)}
+.v18-action-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;position:relative;z-index:1}
+.v18-action-card{min-width:0;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;padding:14px;border:1px solid rgba(255,255,255,.07);border-radius:16px;background:rgba(255,255,255,.025);color:#fff;text-decoration:none;text-align:left;cursor:pointer;transition:transform .18s ease,border-color .18s ease,background .18s ease;box-sizing:border-box}
+.v18-action-card:hover{transform:translateY(-2px);border-color:rgba(192,132,252,.30);background:rgba(168,85,247,.07)}
+.v18-action-card>span:nth-child(2){display:grid;min-width:0}
+.v18-action-card small{font-size:8px;letter-spacing:.10em;color:#71717a;font-weight:800}
+.v18-action-card strong{font-size:12px;margin-top:2px}
+.v18-action-card em{font-style:normal;color:#8f8f98;font-size:9px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v18-action-card b{font-size:20px;font-weight:400;color:#71717a}
+.v18-action-icon{display:grid;place-items:center;width:40px;height:40px;border-radius:12px;background:rgba(168,85,247,.10);font-size:20px}
+.v18-action-live .v18-action-icon{background:rgba(239,68,68,.08)}
+.v18-action-quest .v18-action-icon{background:rgba(59,130,246,.08)}
+.v18-action-notify .v18-action-icon{background:rgba(245,158,11,.08)}
+.mobile-club-dock .is-active{color:#fff;background:rgba(168,85,247,.12);border-color:rgba(168,85,247,.24)}
+@media(max-width:900px){.v18-action-grid{grid-template-columns:1fr 1fr}.v18-app-home-head{flex-direction:column}.v18-status-pill{align-self:flex-start}}
+@media(max-width:600px){.v18-app-home{padding:16px;border-radius:18px}.v18-app-home-head h2{font-size:21px}.v18-app-home-head p{font-size:11px}.v18-action-grid{grid-template-columns:1fr;gap:8px}.v18-action-card{padding:12px}.v18-action-icon{width:36px;height:36px;font-size:18px}.v18-action-card strong{font-size:11px}}
