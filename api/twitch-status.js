@@ -35,22 +35,34 @@ async function getAppAccessToken() {
   return cachedToken;
 }
 
+async function fetchLiveStream(clientId, token) {
+  return fetch(
+    "https://api.twitch.tv/helix/streams?user_login=acyjannik",
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Client-Id": clientId,
+      },
+    }
+  );
+}
+
 export default async function handler(_req, res) {
   res.setHeader("Cache-Control", "no-store");
 
   try {
     const clientId = process.env.TWITCH_CLIENT_ID;
-    const token = await getAppAccessToken();
+    let token = await getAppAccessToken();
+    let twitchResponse = await fetchLiveStream(clientId, token);
 
-    const twitchResponse = await fetch(
-      "https://api.twitch.tv/helix/streams?user_login=acyjannik",
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Client-Id": clientId,
-        },
-      }
-    );
+    // Twitch can revoke an otherwise cached app token. Retry once with a
+    // completely fresh token instead of surfacing a 500 to every club client.
+    if (twitchResponse.status === 401) {
+      cachedToken = null;
+      tokenExpiresAt = 0;
+      token = await getAppAccessToken();
+      twitchResponse = await fetchLiveStream(clientId, token);
+    }
 
     if (!twitchResponse.ok) {
       const body = await twitchResponse.text();

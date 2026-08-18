@@ -815,40 +815,47 @@ function getRememberedMemberFolds() {
   try {
     const raw = sessionStorage.getItem(MEMBER_FOLD_STATE_KEY);
     const ids = raw ? JSON.parse(raw) : [];
-    return Array.isArray(ids) ? ids.filter(Boolean) : [];
+    return Array.isArray(ids) ? ids.filter(Boolean).slice(0, 1) : [];
   } catch {
     return [];
   }
 }
 
 function saveRememberedMemberFolds() {
-  const ids = [...document.querySelectorAll('.member-fold, .member-card details')]
-    .filter(el => el.open && el.id)
-    .map(el => el.id);
-
+  const open = document.querySelector('.member-dashboard > details.member-fold[open]');
   try {
-    sessionStorage.setItem(MEMBER_FOLD_STATE_KEY, JSON.stringify(ids));
+    sessionStorage.setItem(MEMBER_FOLD_STATE_KEY, JSON.stringify(open?.id ? [open.id] : []));
   } catch {
     // Storage can be unavailable in privacy modes. The UI still works normally.
   }
 }
 
-function restoreRememberedMemberFolds() {
-  const ids = getRememberedMemberFolds();
-  ids.forEach(id => {
-    const target = document.getElementById(id);
-    if (target?.tagName === 'DETAILS') target.open = true;
+function closeSiblingMemberFolds(target) {
+  if (!target || target.tagName !== 'DETAILS') return;
+  const parent = target.parentElement;
+  if (!parent) return;
+  parent.querySelectorAll(':scope > details.member-fold[open]').forEach(other => {
+    if (other !== target) other.open = false;
   });
 }
 
+function restoreRememberedMemberFolds() {
+  const ids = getRememberedMemberFolds();
+  if (!ids.length) return;
+  const target = document.getElementById(ids[0]);
+  if (target?.tagName === 'DETAILS') target.open = true;
+}
+
 function initRememberedMemberFolds() {
-  document.querySelectorAll('.member-fold, .member-card details').forEach(details => {
-    details.addEventListener('toggle', saveRememberedMemberFolds);
+  document.querySelectorAll('.member-fold').forEach(details => {
+    details.addEventListener('toggle', () => {
+      if (details.open) closeSiblingMemberFolds(details);
+      saveRememberedMemberFolds();
+    });
   });
 
   restoreRememberedMemberFolds();
 
-  // Browser back/forward can restore the page from bfcache.
   window.addEventListener('pageshow', () => {
     restoreRememberedMemberFolds();
   });
@@ -879,7 +886,10 @@ function initMemberSectionNavigation() {
 
 function openMemberFold(id, shouldScroll = false) {
   const target = document.getElementById(id);
-  if (target?.tagName === 'DETAILS') target.open = true;
+  if (target?.tagName === 'DETAILS') {
+    closeSiblingMemberFolds(target);
+    target.open = true;
+  }
   if (shouldScroll && target) setTimeout(() => target.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
 }
 
@@ -1536,6 +1546,9 @@ function renderPet(pet) {
   setText('pet-xp-note', next
     ? `Noch ${Math.max(0, next - Number(pet.pet_xp || 0))} Pflege-XP bis ${level.nextTitle}`
     : 'Maximales Tier-Level erreicht.');
+  const currentXp=Number(pet.pet_xp||0);
+  setText('pet-progression-meta', next ? `${currentXp.toLocaleString('de-DE')} / ${next.toLocaleString('de-DE')} Pflege-XP` : `${currentXp.toLocaleString('de-DE')} Pflege-XP`);
+  setText('pet-next-level', next ? `Nächstes Level: ${level.nextTitle}` : 'Maximales Level erreicht');
 
   setText('pet-progression-title', `${level.icon} ${level.title}`);
   const progression = document.querySelector('.pet-progression');
@@ -1738,6 +1751,8 @@ function renderPetLife(state){
   petLifeState=state||null;
   setText('pet-coins', Number(state?.ac_coins||0).toLocaleString('de-DE'));
   const inv=$('pet-inventory');
+  const inventoryCount=(state?.inventory||[]).reduce((total,item)=>total+Math.max(0,Number(item.quantity||0)),0);
+  setText('pet-inventory-count',`${inventoryCount} ${inventoryCount===1?'Item':'Items'}`);
   if(inv){
     const items=state?.inventory||[];
     inv.innerHTML=items.length?items.map(i=>{const usable=['boost','toy'].includes(i.item_type); return `<div class="pet-item-v17 ${usable?'pet-item-usable-v17':''}">${usable?`<button type="button" class="pet-item-use-v17" data-use-pet-item="${escapeAttr(i.key)}" aria-label="${escapeAttr(i.name)} verwenden">`:''}<strong>${escapeHtml(i.icon||'📦')} ${escapeHtml(i.name||'Item')}</strong><small><b>${Number(i.quantity||0)}× vorhanden</b> · ${escapeHtml(i.detail||'')}</small>${usable?'<span>Verwenden ›</span></button>':''}</div>`}).join(''):'<div class="club-content-empty">Dein Vorrat ist leer. Hol dir Snacks im Tagesvorrat, im Shop oder bei einem Minigame.</div>';
@@ -1745,10 +1760,9 @@ function renderPetLife(state){
   const perks=state?.perks||[];
   const perkList=$('pet-perks-list'), perkCount=$('pet-perks-count');
   if(perkCount) perkCount.textContent=String(perks.length);
+  setText('pet-perks-count-mobile',String(perks.length));
   if(perkList){ perkList.innerHTML=perks.length?perks.map(p=>`<div class="pet-perk-card-v177"><span class="pet-perk-icon-v177">${escapeHtml(p.icon||'✨')}</span><div><strong>${escapeHtml(p.name||'Pet-Perk')}</strong><small>${escapeHtml(p.detail||'Passiver Vorteil')}</small></div><b>${Number(p.charges||0)}×</b></div>`).join(''):'<div class="club-content-empty">Noch keine Perks. Gewinne einen beim Glücksrad oder in einer Mystery Box.</div>'; }
   const limits=state?.limits||{};
-  const testMode=Boolean(state?.test_mode);
-  const testBadge=$('pet-test-mode-badge'); if(testBadge){testBadge.hidden=!testMode;testBadge.textContent='🧪 TESTMODUS · Limits & Verbrauch aus';}
   const feedRemaining=Math.max(0,Number(limits.feed?.remaining||0));
   const feedMeta=$('pet-feed-meta'); if(feedMeta) feedMeta.textContent=feedRemaining>0?`Noch ${feedRemaining} von 3 heute · Futter auswählen`:'Heute ausgeschöpft · Futterlimit erreicht';
   document.querySelectorAll('.pet-action-btn').forEach(btn=>{
@@ -1763,7 +1777,7 @@ function renderPetLife(state){
   const daily=$('pet-daily-supply'); if(daily) daily.disabled=Boolean(state?.daily_supply_claimed); if(daily) daily.textContent=state?.daily_supply_claimed?'✓ Tagesvorrat abgeholt':'🎁 Tagesvorrat';
   const mystery=$('pet-mystery-box'); if(mystery) mystery.disabled=Number(state?.inventory?.find(x=>x.key==='mystery_box')?.quantity||0)<=0;
   const games=state?.games||{}; const sg=$('pet-game-snack'); if(sg) sg.disabled=Boolean(games.snack_hunt?.used); const pg=$('pet-game-paw'); if(pg) pg.disabled=Boolean(games.lucky_paw?.used);
-  const archives=state?.archives||[]; const list=$('pet-archive-list'); const count=$('pet-archive-count'); if(count) count.textContent=String(archives.length);
+  const archives=state?.archives||[]; const list=$('pet-archive-list'); const count=$('pet-archive-count'); if(count) count.textContent=String(archives.length); setText('pet-archive-count-mobile',String(archives.length));
   if(list){ list.innerHTML=archives.length?archives.map(a=>`<div class="pet-archive-card-v176"><img src="assets/pet-${escapeAttr(a.species)}.webp" alt="${escapeAttr(a.species_label||'Begleiter')}" loading="lazy"><div><strong>${escapeHtml(a.name)}</strong><small>${escapeHtml(a.species_label||'Begleiter')} · Level ${Number(a.level||1)} · ${Number(a.pet_xp||0)} Pflege-XP</small></div><button class="button button-small button-secondary" type="button" data-restore-pet="${escapeAttr(a.id)}">Aktivieren</button></div>`).join(''):'<div class="club-content-empty">Noch keine archivierten Tiere. Beim Wechseln wird dein aktuelles Tier hier sicher abgelegt.</div>'; }
 }
 
@@ -1772,6 +1786,7 @@ document.querySelector('#pet-inventory')?.addEventListener('click',event=>{const
 
 document.querySelector('#pet-archive-list')?.addEventListener('click',async(event)=>{
   const btn=event.target.closest('[data-restore-pet]'); if(!btn)return;
+  if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(btn.dataset.restorePet||''))){setPetStatus('Archiviertes Tier hat keine gültige ID. Bitte Seite neu laden.','error');return;}
   btn.disabled=true;
   try{ await petLifeRpc('switch_to_archived_club_pet',{p_archive_id:btn.dataset.restorePet},'Begleiter gewechselt. 🐾'); await loadPet(); await loadPetLife(); }
   catch(e){} finally{btn.disabled=false;}
@@ -1785,9 +1800,12 @@ async function loadPetLife(){
 window.loadPetLife=loadPetLife;
 
 async function petLifeRpc(fn,args={},success='Erledigt. 🐾'){
+  if(petLifeRpc.pending) return null;
+  petLifeRpc.pending=true;
   const status=$('pet-life-status');
   try{ const {data,error}=await supabaseClient.rpc(fn,args); if(error)throw error; renderPetLife(data?.hub||data||{}); if(data?.pet) renderPet(data.pet); if(status){status.textContent=data?.message||success;status.className='club-auth-status success';} await loadProfile(); await loadProgressionCatalog(); return data; }
   catch(error){ if(status){status.textContent=error?.message||'Pet-Aktion konnte nicht ausgeführt werden.';status.className='club-auth-status error';} throw error; }
+  finally{petLifeRpc.pending=false;}
 }
 
 $('pet-daily-supply')?.addEventListener('click',()=>petLifeRpc('claim_pet_daily_supply',{},'Tagesvorrat abgeholt. 🎁'));
@@ -4002,8 +4020,7 @@ function renderQuestList(){
     try{
       const {data,error}=await supabaseClient.rpc('claim_quest',{
         p_quest_key:key,
-        p_period_start:periodStart,
-        p_reward_xp:reward
+        p_period_start:periodStart
       });
       if(error)throw error;
       const total=Number(data?.total_xp);
@@ -4102,6 +4119,7 @@ const QUEST_ACTIONS = Object.freeze({
   friend_profile_opened: ['daily_friend'],
   game_explored: ['weekly_games']
 });
+const questCompletionNotices = new Set();
 
 async function progressQuestsForAction(actionKey, amount = 1) {
   if (!actionKey || !currentUser || !supabaseClient) return;
@@ -4144,8 +4162,9 @@ async function progressQuestsForAction(actionKey, amount = 1) {
       results.push(result);
       if(result.completed===true){
         const quest=[...(questData.daily||[]),...(questData.weekly||[])].find(item=>item.key===questKey);
-        if(quest&&!quest.__readyNotified){
-          quest.__readyNotified=true;
+        const noticeKey=`${periodType}:${period}:${questKey}`;
+        if(quest&&!questCompletionNotices.has(noticeKey)){
+          questCompletionNotices.add(noticeKey);
           void sendPersonalEmailNotification('quest','Quest abgeschlossen 🎯',`Du hast die Quest „${quest.title||questKey}“ abgeschlossen. Deine Belohnung wartet im ACY Club.`,'/club-profile.html#club-quests-section');
           triggerClubEffect('reward',`🎯 Quest „${quest.title||'abgeschlossen'}“ bereit zum Abholen`);
         }
