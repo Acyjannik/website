@@ -30,6 +30,62 @@
       });
     }
 
+    // V18.5 — Pet UI hardening. The Pet page is the same responsive page on
+    // mobile and desktop, so these fixes intentionally apply to both layouts.
+    const style = document.createElement('style');
+    style.id = 'acy-v185-pet-fixes';
+    style.textContent = `
+      #pet-active-state[hidden] { display: none !important; }
+      #pet-empty-state[hidden] { display: none !important; }
+      #pet-shop[hidden] { display: none !important; }
+      #pet-shop-open[aria-expanded="false"] { opacity: .96; }
+      #pet-shop-open[aria-expanded="true"] { border-color: rgba(168,85,247,.45); }
+    `;
+    document.head.appendChild(style);
+
+    // After an async release, force the visual state to agree with the server
+    // result and refresh Pet Life so the newly archived companion appears.
+    const release = document.getElementById('pet-release-toggle');
+    if (release) {
+      release.addEventListener('click', () => {
+        const startedAt = Date.now();
+        const syncReleasedState = () => {
+          const status = document.getElementById('pet-status');
+          const active = document.getElementById('pet-active-state');
+          const empty = document.getElementById('pet-empty-state');
+          const success = status?.classList.contains('success') && /verabschiedet/i.test(status.textContent || '');
+          if (success) {
+            if (active) { active.hidden = true; active.style.display = 'none'; }
+            if (empty) { empty.hidden = false; empty.style.removeProperty('display'); }
+            if (archive) archive.open = false;
+            window.loadPetLife?.();
+            return;
+          }
+          if (Date.now() - startedAt < 5000) setTimeout(syncReleasedState, 150);
+        };
+        setTimeout(syncReleasedState, 150);
+      });
+    }
+
+    // Pet-Shop: make the inner shop toggle deterministic. The old direct
+    // listener could race with Pet Life re-renders, so this delegated handler
+    // owns the UI state and prevents the click from toggling the outer <details>.
+    document.addEventListener('click', async (event) => {
+      const toggle = event.target.closest('#pet-shop-open');
+      if (!toggle) return;
+      event.preventDefault();
+      event.stopPropagation();
+      const box = document.getElementById('pet-shop');
+      if (!box) return;
+      if (!box.innerHTML.trim() && typeof window.loadPetLife === 'function') {
+        await window.loadPetLife();
+      }
+      const nextOpen = box.hidden;
+      box.hidden = !nextOpen;
+      toggle.setAttribute('aria-expanded', nextOpen ? 'true' : 'false');
+      if (nextOpen) box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, true);
+
     // Robust delegated handler for the mobile More button. This survives other
     // scripts re-rendering the dock or stopping direct listeners.
     document.addEventListener('click', (event) => {
