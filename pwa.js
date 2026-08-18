@@ -177,6 +177,50 @@ async function updatePwaUi(){
   }
 }
 
+function injectDevVersionBadge(){
+  const host=window.location.hostname||'';
+  if(!host.includes('git-v18-development-'))return;
+  if(document.getElementById('acy-dev-version-badge'))return;
+
+  const style=document.createElement('style');
+  style.id='acy-dev-version-badge-style';
+  style.textContent=`
+    #acy-dev-version-badge{
+      position:fixed;
+      top:max(8px,env(safe-area-inset-top));
+      left:50%;
+      transform:translateX(-50%);
+      z-index:2147483647;
+      display:flex;
+      align-items:center;
+      gap:7px;
+      padding:6px 11px;
+      border:1px solid rgba(255,255,255,.16);
+      border-radius:999px;
+      background:rgba(10,10,15,.88);
+      color:rgba(255,255,255,.9);
+      box-shadow:0 8px 28px rgba(0,0,0,.28);
+      backdrop-filter:blur(14px);
+      -webkit-backdrop-filter:blur(14px);
+      font:700 11px/1.1 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      letter-spacing:.06em;
+      text-transform:uppercase;
+      pointer-events:none;
+    }
+    #acy-dev-version-badge .dot{width:7px;height:7px;border-radius:50%;background:#8b5cf6;box-shadow:0 0 10px rgba(139,92,246,.8);flex:0 0 auto}
+    #acy-dev-version-badge .version{color:#fff}
+    #acy-dev-version-badge .env{opacity:.55}
+    @media(max-width:700px){#acy-dev-version-badge{top:max(6px,env(safe-area-inset-top));padding:5px 9px;font-size:10px}}
+  `;
+  document.head.appendChild(style);
+
+  const badge=document.createElement('div');
+  badge.id='acy-dev-version-badge';
+  badge.setAttribute('aria-label','ACY Entwicklungsstand V18.3.1');
+  badge.innerHTML='<span class="dot"></span><span class="version">V18.3.1</span><span class="env">DEV</span>';
+  document.body.appendChild(badge);
+}
+
 window.addEventListener('beforeinstallprompt',e=>{
   e.preventDefault();
   deferredPwaInstallPrompt=e;
@@ -184,6 +228,7 @@ window.addEventListener('beforeinstallprompt',e=>{
 });
 window.addEventListener('appinstalled',()=>{deferredPwaInstallPrompt=null;updatePwaUi();});
 document.addEventListener('DOMContentLoaded',()=>{
+  injectDevVersionBadge();
   document.getElementById('acy-install-pwa')?.addEventListener('click',installAcyPwa);
   document.getElementById('acy-enable-push')?.addEventListener('click',async()=>{
     const btn=document.getElementById('acy-enable-push');
