@@ -1,0 +1,161 @@
+/* ACY V18.2 App Polish: mobile-first, desktop-aware */
+:root{
+  --acy-surface-0:#09090d;
+  --acy-surface-1:#111018;
+  --acy-surface-2:#17131f;
+  --acy-surface-3:#20182b;
+  --acy-border:rgba(255,255,255,.075);
+  --acy-border-accent:rgba(168,85,247,.34);
+  --acy-purple:#a855f7;
+  --acy-purple-soft:rgba(168,85,247,.12);
+  --acy-purple-mid:rgba(168,85,247,.20);
+  --acy-text:#f7f7fb;
+  --acy-muted:#a6a1ad;
+}
+
+/* Hierarchy: black = surface, violet = interaction, red = destructive. */
+.club-auth-page .button,
+.club-auth-page button:not(.notification-filter):not(.quest-tab):not(.member-filter){
+  border-color:rgba(255,255,255,.08);
+  transition:background .18s ease,border-color .18s ease,transform .18s ease,box-shadow .18s ease,opacity .18s ease;
+}
+.club-auth-page .button-secondary,
+.club-auth-page .button:not(.button-primary):not(.button-danger){
+  background:var(--acy-purple-soft);
+  border-color:var(--acy-border-accent);
+  color:#eee7f8;
+}
+.club-auth-page .button-secondary:hover,
+.club-auth-page .button:not(.button-primary):not(.button-danger):hover{
+  background:var(--acy-purple-mid);
+  border-color:rgba(192,132,252,.48);
+  box-shadow:0 8px 26px rgba(168,85,247,.12);
+}
+.club-auth-page .button-primary{
+  background:linear-gradient(135deg,#b86bf8,#8b5cf6);
+  border-color:rgba(216,180,254,.38);
+  box-shadow:0 8px 24px rgba(168,85,247,.18);
+}
+.club-auth-page .button-danger,
+#notification-clear-all{
+  background:rgba(239,68,68,.08)!important;
+  border-color:rgba(239,68,68,.28)!important;
+  color:#fca5a5!important;
+}
+.club-auth-page button:disabled,
+.club-auth-page .button.disabled{opacity:.52;transform:none!important;box-shadow:none!important}
+
+/* Panels become distinct surfaces instead of one giant black rectangle. */
+.club-auth-page .member-card,
+.club-auth-page .member-fold,
+.club-auth-page .member-hub,
+.club-auth-page .v18-app-home{
+  border-color:var(--acy-border);
+  background:linear-gradient(145deg,rgba(23,19,31,.94),rgba(13,12,17,.96));
+}
+.club-auth-page .member-fold > summary,
+.club-auth-page .member-fold-summary{
+  background:rgba(255,255,255,.018);
+}
+.club-auth-page .member-fold[open] > summary,
+.club-auth-page .member-fold[open] .member-fold-summary{
+  background:linear-gradient(90deg,rgba(168,85,247,.10),rgba(255,255,255,.018));
+  border-bottom-color:rgba(168,85,247,.18);
+}
+.club-auth-page .member-fold-summary strong{color:#f5f1f8}
+.club-auth-page .member-fold-summary small{color:#aaa4b0}
+
+/* Section refresh controls are utility controls, not visual noise. */
+.club-auth-page .acy-section-refresh{
+  opacity:.38;
+  background:rgba(168,85,247,.08);
+  border:1px solid rgba(168,85,247,.18);
+  color:#d8b4fe;
+}
+.club-auth-page .acy-section-refresh:hover{opacity:1}
+.club-auth-page .acy-section-refresh.is-refreshing{opacity:1;animation:acy-spin 900ms linear infinite}
+@keyframes acy-spin{to{transform:rotate(360deg)}}
+
+/* Notifications: actions have explicit hierarchy. */
+.club-auth-page .notification-panel{
+  background:rgba(9,9,13,.985);
+  border-color:rgba(168,85,247,.28);
+  box-shadow:0 28px 90px rgba(0,0,0,.58),0 0 50px rgba(168,85,247,.08);
+}
+.club-auth-page .notification-panel-actions button{
+  min-height:44px;
+  padding:0 16px;
+  border-radius:14px;
+  background:rgba(168,85,247,.10);
+  border:1px solid rgba(168,85,247,.25);
+  color:#eee7f8;
+}
+.club-auth-page #notification-clear-all{background:rgba(239,68,68,.08)!important}
+.club-auth-page #notification-close{
+  width:46px;min-width:46px;padding:0;
+  background:rgba(255,255,255,.035);
+  color:#d8d4dc;
+}
+.club-auth-page .notification-filter.is-active,
+.club-auth-page .quest-tab.is-active,
+.club-auth-page .member-filter.is-active{
+  background:var(--acy-purple-soft);
+  border-color:var(--acy-border-accent);
+  color:#f4eaff;
+}
+
+/* App-like density: descriptions become secondary on small screens. */
+@media (max-width:700px){
+  .club-auth-page .member-dashboard{padding-bottom:110px}
+  .club-auth-page .member-hero-card{border-radius:24px;padding:22px 18px}
+  .club-auth-page .v18-app-home{padding:22px 18px;border-radius:24px}
+  .club-auth-page .v18-app-home-head p{font-size:13px;line-height:1.5}
+  .club-auth-page .v18-action-grid{gap:10px}
+  .club-auth-page .v18-action-card{min-height:74px;padding:14px 12px;border-radius:18px}
+  .club-auth-page .v18-action-card em{font-size:11px}
+  .club-auth-page .member-fold-summary{min-height:74px;padding:12px 14px}
+  .club-auth-page .member-fold-summary small{display:none}
+  .club-auth-page .member-fold-art-wrap{width:42px;height:42px}
+  .club-auth-page .member-fold-body{padding:16px 14px}
+  .club-auth-page .acy-section-refresh{display:none}
+  .club-auth-page .member-card{border-radius:22px}
+  .club-auth-page .notification-panel{
+    position:fixed!important;
+    left:14px!important;right:14px!important;
+    top:78px!important;bottom:94px!important;
+    width:auto!important;max-height:none!important;
+    overflow:hidden!important;
+    z-index:10000!important;
+    display:flex;flex-direction:column;
+  }
+  .club-auth-page .notification-panel-head{
+    position:sticky;top:0;z-index:2;
+    padding:18px 14px 14px;
+    background:rgba(9,9,13,.98);
+    border-bottom:1px solid rgba(255,255,255,.07);
+  }
+  .club-auth-page .notification-panel-head strong{font-size:22px}
+  .club-auth-page .notification-panel-actions{display:grid;grid-template-columns:1fr 1fr 48px;gap:8px;margin-top:12px}
+  .club-auth-page .notification-filter-row{padding:10px 14px;background:rgba(9,9,13,.98);z-index:1}
+  .club-auth-page #notifications-list{overflow:auto;overscroll-behavior:contain;padding:0 12px 18px}
+  .club-auth-page .notification-item{margin:8px 0}
+  .club-auth-page .notification-panel-actions button{font-size:12px;padding:0 8px}
+  .club-auth-page .notification-count{box-shadow:0 0 0 3px #09090d}
+}
+
+@media (min-width:701px){
+  .club-auth-page .member-dashboard{max-width:1180px;margin:0 auto}
+  .club-auth-page .member-card,.club-auth-page .member-fold{box-shadow:0 18px 55px rgba(0,0,0,.18)}
+  .club-auth-page .member-fold-summary{min-height:86px}
+}
+
+/* Immediate touch feedback: the interface should acknowledge a tap instantly. */
+.club-auth-page [data-acy-pressing="true"]{
+  transform:scale(.985)!important;
+  filter:brightness(1.08);
+}
+.club-auth-page [data-acy-busy="true"]{cursor:wait;pointer-events:none}
+.club-auth-page [data-acy-busy="true"]::after{
+  content:"";display:inline-block;width:12px;height:12px;margin-left:8px;vertical-align:-2px;
+  border:2px solid rgba(255,255,255,.28);border-top-color:#fff;border-radius:50%;animation:acy-spin .7s linear infinite;
+}
