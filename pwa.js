@@ -1,4 +1,3 @@
-
 /* ACY V17.6: keep the active service worker stable so Push can work reliably. */
 
 let deferredPwaInstallPrompt = null;
@@ -174,7 +173,7 @@ async function updatePwaUi(){
       ? 'iPhone: Teilen → Zum Home-Bildschirm → Hinzufügen.'
       : state.canPrompt
         ? 'Dein Browser kann ACY direkt als App installieren.'
-        : 'Du kannst ACY wie eine App auf dem Startbildschirm installieren.';
+        : 'Du kannst ACY wie eine App auf den Startbildschirm installieren.';
   }
 }
 
@@ -210,5 +209,13 @@ document.addEventListener('DOMContentLoaded',()=>{
   petFix.src='/club-pet-refresh-fix.js?v=1.0.0';
   petFix.async=false;
   document.head.appendChild(petFix);
+
+  // V18.3 — additive app shell. Keeping this separate makes the new
+  // navigation reversible without touching the large Club application file.
+  const appShell=document.createElement('script');
+  appShell.src='/v18-app-shell.js?v=18.3.0';
+  appShell.async=false;
+  document.head.appendChild(appShell);
+
   setTimeout(updatePwaUi,250);
 });
