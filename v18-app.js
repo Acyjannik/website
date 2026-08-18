@@ -1,6 +1,15 @@
 (() => {
   const $ = (id) => document.getElementById(id);
 
+  function loadV182Polish() {
+    if (document.getElementById('acy-v182-polish-script')) return;
+    const script = document.createElement('script');
+    script.id = 'acy-v182-polish-script';
+    script.src = '/v18.2-app-polish.js?v=1821';
+    script.defer = true;
+    document.head.appendChild(script);
+  }
+
   function openNotifications() {
     const panel = $('notification-panel');
     if (!panel) return;
@@ -122,9 +131,6 @@
 
   function initNotifications() {
     injectNotificationMobileFixes();
-
-    // Delegation keeps the notification controls working even when the panel
-    // or its contents are re-rendered by loadNotifications().
     document.addEventListener('click', (event) => {
       const bell = event.target.closest('#notification-bell');
       if (bell) {
@@ -134,7 +140,6 @@
         if (panel?.hidden) openNotifications(); else closeNotifications();
         return;
       }
-
       const close = event.target.closest('#notification-close');
       if (close) {
         event.preventDefault();
@@ -142,7 +147,6 @@
         closeNotifications();
         return;
       }
-
       const readAll = event.target.closest('#notification-read-all');
       if (readAll) {
         event.preventDefault();
@@ -150,7 +154,6 @@
         handleNotificationAction('mark_all_read', readAll);
         return;
       }
-
       const clearAll = event.target.closest('#notification-clear-all');
       if (clearAll) {
         event.preventDefault();
@@ -158,21 +161,18 @@
         handleNotificationAction('clear_all', clearAll);
         return;
       }
-
       const openCard = event.target.closest('#v18-open-notifications');
       if (openCard) {
         event.preventDefault();
         openNotifications();
         return;
       }
-
       const dockNotification = event.target.closest('#mobile-dock-notifications-v18');
       if (dockNotification) {
         event.preventDefault();
         openNotifications();
       }
     }, true);
-
     $('mobile-more-notification-count-v181')?.setAttribute('aria-live', 'polite');
   }
 
@@ -180,7 +180,6 @@
     const sheet = $('mobile-more-sheet-v181');
     const toggle = $('mobile-dock-more-v18');
     if (!sheet || !toggle) return;
-
     const close = () => {
       sheet.hidden = true;
       document.body.classList.remove('mobile-more-open-v181');
@@ -196,17 +195,14 @@
       event.stopPropagation();
       if (sheet.hidden) open(); else close();
     };
-
     toggle.setAttribute('aria-expanded', 'false');
     toggle.addEventListener('click', toggleSheet, false);
-
     sheet.addEventListener('click', (event) => {
       const closeTarget = event.target.closest('[data-close-more]');
       if (closeTarget) close();
       const notificationTarget = event.target.closest('[data-open-notifications-v181]');
       if (notificationTarget) { close(); openNotifications(); }
     });
-
     document.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
   }
 
@@ -234,6 +230,7 @@
   }
 
   function init() {
+    loadV182Polish();
     initNotifications();
     initMoreSheet();
     initDock();
