@@ -86,14 +86,74 @@
     status.dataset.rc8Bound = '1';
   }
 
+  function installNewsDeleteFallback() {
+    const list = document.getElementById('news-admin-list');
+    if (!list || list.dataset.rc8DeleteBound === '1') return;
+    list.dataset.rc8DeleteBound = '1';
+
+    list.addEventListener('click', async (event) => {
+      const button = event.target.closest('.content-delete-news');
+      if (!button) return;
+
+      event.preventDefault();
+      event.stopImmediatePropagation();
+
+      const row = button.closest('.content-admin-row');
+      const id = row?.dataset.id;
+      const title = row?.querySelector('.content-inline-title')?.value?.trim() || row?.querySelector('strong')?.textContent || 'diese News';
+      if (!id || !window.confirm(`„${title}“ wirklich löschen?`)) return;
+
+      button.disabled = true;
+      const previous = button.textContent;
+      button.textContent = 'Löschen…';
+
+      try {
+        const session = window.supabase?.auth?.getSession
+          ? await window.supabase.auth.getSession()
+          : null;
+        const token = session?.data?.session?.access_token || '';
+        if (!token) throw new Error('Admin-Sitzung abgelaufen. Bitte neu anmelden.');
+
+        const response = await fetch(`/api/admin-news?id=${encodeURIComponent(id)}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${token}` },
+          cache: 'no-store'
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(payload.error || `HTTP ${response.status}`);
+
+        row.remove();
+        const message = document.getElementById('news-message');
+        if (message) {
+          message.textContent = 'News gelöscht.';
+          message.classList.add('success');
+          message.classList.remove('error');
+        }
+        const stamp = document.getElementById('last-saved-message');
+        if (stamp) stamp.textContent = `Gespeichert · ${new Date().toLocaleString('de-DE')}`;
+      } catch (error) {
+        button.disabled = false;
+        button.textContent = previous;
+        const message = document.getElementById('news-message');
+        if (message) {
+          message.textContent = `News konnte nicht gelöscht werden: ${error?.message || 'Unbekannter Fehler'}`;
+          message.classList.add('error');
+          message.classList.remove('success');
+        }
+      }
+    }, true);
+  }
+
   function init() {
     injectStyles();
     upgradeNewsFields();
     improvePushStatus();
+    installNewsDeleteFallback();
 
     const observer = new MutationObserver(() => {
       upgradeNewsFields();
       improvePushStatus();
+      installNewsDeleteFallback();
     });
     const news = document.getElementById('news-admin-list');
     const dashboard = document.getElementById('dashboard');
