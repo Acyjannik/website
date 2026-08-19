@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = 'V18.8';
+  const VERSION = 'V18.8.1';
   const RETRY_DELAYS = [350, 900];
   let retryInstalled = false;
   const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
@@ -33,11 +33,11 @@
         .club-auth-page .pet-life-panel-v17{margin-top:14px}.club-auth-page .pet-life-head-v17{gap:12px;flex-direction:column;align-items:flex-start}.club-auth-page .pet-coins-v17{align-self:stretch;justify-content:center}
         .club-auth-page .pet-inventory-v17,.club-auth-page .pet-perks-list-v177,.club-auth-page .pet-minigames-v17,.club-auth-page .pet-archive-list-v176{min-width:0}.club-auth-page .pet-mini-card-v17{grid-template-columns:auto 1fr;gap:12px;align-items:center}.club-auth-page .pet-mini-card-v17 .button{grid-column:1/-1;width:100%}.club-auth-page .pet-archive-head-v176{gap:12px;align-items:flex-start}
         .club-auth-page .notification-panel{max-width:calc(100vw - 24px)}.club-auth-page .settings-grid-v10{grid-template-columns:1fr}.club-auth-page .notification-settings-grid,.club-auth-page .notification-category-grid{grid-template-columns:1fr}.club-auth-page .notification-settings-foot{gap:12px;align-items:stretch;flex-direction:column}.club-auth-page .notification-settings-foot .button{width:100%}
+        .acy-staff-entry{font-size:12px!important;padding:9px 11px!important;white-space:nowrap}
       }
       @media(max-width:380px){.club-auth-page .member-dashboard,.club-auth-page .pet-world-main-v181{padding-left:10px;padding-right:10px}.club-auth-page .member-card{padding-left:12px;padding-right:12px}.club-auth-page .button{font-size:13px}.club-auth-page .pet-hub-card-v182{min-width:160px}}
       .acy-db-recovery{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:12020;display:flex;align-items:center;gap:10px;max-width:min(560px,calc(100vw - 28px));padding:10px 12px;border:1px solid rgba(248,113,113,.34);border-radius:14px;background:rgba(18,12,18,.96);backdrop-filter:blur(18px);box-shadow:0 16px 48px rgba(0,0,0,.42);color:#f7f3ff;font:600 13px/1.35 system-ui,sans-serif}.acy-db-recovery button{border:1px solid rgba(180,108,255,.3);background:rgba(180,108,255,.12);color:#fff;border-radius:10px;padding:8px 10px;font-weight:700}
       #acy-staff-entry{margin-left:auto}
-      @media(max-width:700px){#acy-staff-entry{font-size:12px;padding:9px 11px}}
     `;
     document.head.appendChild(style);
   }
@@ -64,21 +64,21 @@
 
   async function installStaffEntry(){
     if(!location.pathname.endsWith('club-profile.html'))return;
+    const host=document.querySelector('.member-header-actions');
+    const old=[...document.querySelectorAll('.member-header-actions a,.member-header-actions button')].find(el=>/admin\s*\/\s*mod|mod\s*center|admin\s*center/i.test(el.textContent||''));
+    old?.remove();
     if(document.getElementById('acy-staff-entry'))return;
-    const token=getAccessToken(); if(!token)return;
+    const token=getAccessToken();
+    if(!token||!host)return;
     try{
       const response=await fetch('/api/mod-auth',{headers:{Authorization:`Bearer ${token}`},cache:'no-store'});
       const data=await response.json().catch(()=>({}));
       if(!response.ok||!data?.ok||!data?.isStaff)return;
-      const old=[...document.querySelectorAll('.member-header-actions a,.member-header-actions button')].find(el=>/admin\s*\/\s*mod|mod\s*center|admin\s*center/i.test(el.textContent||''));
-      old?.remove();
-      const host=document.querySelector('.member-header-actions');
-      if(!host)return;
       const link=document.createElement('a');
       link.id='acy-staff-entry'; link.className='button button-secondary'; link.href='/staff.html';
       link.textContent=data.isAdmin?'🛡️ Admin / Mod':data.isModerator?'🛡️ Mod Center':'🎥 Streamer Center';
       host.appendChild(link);
-    }catch(error){console.warn('[V18.8] Staff entry unavailable:',error);}
+    }catch(error){console.warn('[V18.8.1] Staff entry unavailable:',error);}
   }
 
   function showRecovery(message) {
