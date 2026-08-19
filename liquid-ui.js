@@ -41,6 +41,23 @@
     script.defer = true;
     document.head.appendChild(script);
   };
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', loadAudit, {once:true});
-  else loadAudit();
+
+  const loadAdminRc8 = () => {
+    if (!document.body?.classList.contains('admin-page')) return;
+    if (document.getElementById('acy-admin-rc8-script')) return;
+    const script = document.createElement('script');
+    script.id = 'acy-admin-rc8-script';
+    script.src = '/admin-rc8-hotfix.js?v=19008';
+    document.head.appendChild(script);
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      loadAudit();
+      loadAdminRc8();
+    }, {once:true});
+  } else {
+    loadAudit();
+    loadAdminRc8();
+  }
 })();
