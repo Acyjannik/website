@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ACY Streamer Center</title>
+  <link rel="stylesheet" href="/styles.css?v=18.7.0">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/pet-companion.js?v=8.0.0" defer></script>
+  <script src="/club-profile.js?v=18.1.1" defer></script>
+  <script src="/streamer.js?v=18.7.0" defer></script>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="theme-color" content="#0b0b10">
+</head>
+<body class="club-auth-page">
+  <div class="club-auth-shell">
+    <header class="club-auth-header">
+      <a class="brand" href="/"><span class="brand-mark">A</span><strong>ACY<span>JANNIK</span></strong></a>
+      <div class="member-header-actions">
+        <a class="button button-secondary" href="/club-profile.html">← Club</a>
+        <a class="button button-secondary" href="https://www.twitch.tv/acyjannik" target="_blank" rel="noreferrer">Twitch ↗</a>
+        <button class="button button-secondary" id="streamer-logout" type="button">Abmelden</button>
+      </div>
+    </header>
+
+    <main class="member-dashboard streamer-dashboard" id="streamer-app">
+      <section class="member-hero-card streamer-hero-card">
+        <div class="member-identity">
+          <div class="member-avatar-wrap">
+            <img id="streamer-avatar" class="member-avatar-img" alt="Streamer-Profilbild" hidden>
+            <div class="member-avatar" id="streamer-avatar-fallback">A</div>
+          </div>
+          <div>
+            <span class="eyebrow">ACY STREAMER CENTER</span>
+            <h1 id="streamer-name">Streamer</h1>
+            <p>Creator-Steuerung für deinen ACY Club.</p>
+            <span class="member-glow-title" id="streamer-role">Streamer</span>
+          </div>
+        </div>
+        <div class="member-quick">
+          <div><span>Rolle</span><strong id="streamer-role-quick">–</strong></div>
+          <div><span>Live</span><strong id="streamer-live-quick">–</strong></div>
+          <div><span>Game</span><strong id="streamer-game-quick">–</strong></div>
+        </div>
+      </section>
+
+      <section class="member-card member-span-2 streamer-live-card" id="streamer-live-card">
+        <div class="member-card-head">
+          <div>
+            <div class="eyebrow">STREAM CENTER</div>
+            <h2>ACYJANNIK Live</h2>
+            <p id="streamer-live-title">Live-Status wird geladen…</p>
+          </div>
+          <span class="member-count-chip" id="streamer-live-chip">CHECKING</span>
+        </div>
+        <div class="streamer-metric-grid">
+          <div><span>Status</span><strong id="streamer-status">–</strong></div>
+          <div><span>Aktuelles Game</span><strong id="streamer-game">–</strong></div>
+          <div><span>Zuschauer</span><strong id="streamer-viewers">–</strong></div>
+          <div><span>Stream-Link</span><a class="button button-primary button-small" href="https://www.twitch.tv/acyjannik" target="_blank" rel="noreferrer">Twitch öffnen ↗</a></div>
+        </div>
+      </section>
+
+      <section class="member-card streamer-actions-card">
+        <div class="eyebrow">CREATOR TOOLS</div>
+        <h2>Deine Werkzeuge</h2>
+        <div class="streamer-tool-grid">
+          <button class="button button-primary" type="button" disabled>📣 Stream ankündigen <small>Bald verfügbar</small></button>
+          <button class="button button-secondary" type="button" disabled>🔔 Community informieren <small>Bald verfügbar</small></button>
+          <button class="button button-secondary" type="button" disabled>🎯 Stream-Quest starten <small>Bald verfügbar</small></button>
+          <button class="button button-secondary" type="button" disabled>📊 Stream-Statistik <small>Bald verfügbar</small></button>
+        </div>
+      </section>
+
+      <section class="member-card streamer-permissions-card">
+        <div class="eyebrow">BERECHTIGUNGEN</div>
+        <h2>Was du hier darfst</h2>
+        <div class="streamer-permission-list">
+          <div>✅ Deinen Stream-Status anzeigen und aktualisieren</div>
+          <div>✅ Stream Center und Creator-Werkzeuge öffnen</div>
+          <div>✅ Community-Streamdaten ansehen</div>
+          <div>✅ Twitch-Zugriff über vorhandene Stream-Funktionen verwenden</div>
+          <div>✅ Creator-Funktionen später gezielt freischalten</div>
+          <div>❌ Keine Admin-Verwaltung</div>
+          <div>❌ Keine Moderator-Rollen verwalten</div>
+          <div>❌ Keine Website-/Systemeinstellungen verändern</div>
+          <div>❌ Keine XP/Rewards beliebig verändern</div>
+        </div>
+      </section>
+
+      <p class="club-auth-status" id="streamer-status-message" role="status"></p>
+    </main>
+  </div>
+</body>
+</html>
