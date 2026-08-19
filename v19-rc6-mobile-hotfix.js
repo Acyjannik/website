@@ -1,6 +1,6 @@
 (() => {
   'use strict';
-  const VERSION = 'V19.0.0 · RC6';
+  const VERSION = 'V19.0.0 · RC9';
   const isClub = /club-profile\.html$/i.test(location.pathname) || /club-profile/i.test(location.pathname);
   let staffBusy = false;
   let lastStaffRun = 0;
