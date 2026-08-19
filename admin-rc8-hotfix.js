@@ -68,7 +68,6 @@
   function upgradeNewsFields() {
     const list = document.getElementById('news-admin-list');
     if (!list) return;
-
     list.querySelectorAll('input.content-inline-body').forEach(input => {
       const textarea = document.createElement('textarea');
       textarea.className = input.className;
@@ -84,6 +83,24 @@
     const status = document.getElementById('push-test-message');
     if (!status || status.dataset.rc8Bound === '1') return;
     status.dataset.rc8Bound = '1';
+  }
+
+  async function getAdminToken() {
+    if (window.__acyAdminToken) return window.__acyAdminToken;
+    if (!window.supabase?.createClient) throw new Error('Supabase-JavaScript-Bibliothek fehlt.');
+
+    const configResponse = await fetch('/api/config', { cache:'no-store' });
+    const config = await configResponse.json().catch(() => ({}));
+    if (!configResponse.ok || !config.configured) throw new Error('Supabase-Konfiguration konnte nicht geladen werden.');
+
+    const client = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey, {
+      auth: { persistSession:true, autoRefreshToken:true, detectSessionInUrl:true }
+    });
+    const { data } = await client.auth.getSession();
+    const token = data?.session?.access_token || '';
+    if (!token) throw new Error('Admin-Sitzung abgelaufen. Bitte neu anmelden.');
+    window.__acyAdminToken = token;
+    return token;
   }
 
   function installNewsDeleteFallback() {
@@ -108,12 +125,7 @@
       button.textContent = 'Löschen…';
 
       try {
-        const session = window.supabase?.auth?.getSession
-          ? await window.supabase.auth.getSession()
-          : null;
-        const token = session?.data?.session?.access_token || '';
-        if (!token) throw new Error('Admin-Sitzung abgelaufen. Bitte neu anmelden.');
-
+        const token = await getAdminToken();
         const response = await fetch(`/api/admin-news?id=${encodeURIComponent(id)}`, {
           method: 'DELETE',
           headers: { Authorization: `Bearer ${token}` },
