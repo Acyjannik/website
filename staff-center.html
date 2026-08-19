@@ -5,29 +5,15 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
 <title>ACY Club · Staff Center</title>
-<link rel="stylesheet" href="/styles.css?v=19.0.0-rc3">
+<link rel="stylesheet" href="/styles.css?v=19.0.0-rc6">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 body.staff-page{min-height:100vh;background:#09090d;color:#f7f3ff;font-family:Inter,system-ui,sans-serif}
 .staff-shell{max-width:1120px;margin:0 auto;padding:32px 20px 80px}
-.staff-head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:24px}
-.staff-kicker{letter-spacing:.22em;color:#bd82ff;font-weight:800;font-size:13px}
-.staff-head h1{margin:6px 0 8px;font-size:clamp(32px,5vw,52px);line-height:1}
-.staff-head p{margin:0;color:#aaa6b3;max-width:720px;line-height:1.5}
-.staff-meta{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:flex-end}
-.staff-chip{padding:9px 12px;border:1px solid rgba(180,108,255,.28);border-radius:999px;background:rgba(168,85,247,.08);font-weight:800;white-space:nowrap}
-.staff-card{padding:22px;border:1px solid rgba(255,255,255,.08);border-radius:22px;background:linear-gradient(145deg,rgba(20,17,29,.96),rgba(12,12,18,.98));box-shadow:0 18px 50px rgba(0,0,0,.18)}
-.staff-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
-.staff-card h2{margin:8px 0 8px;font-size:24px}.staff-card p{color:#aaa6b3;line-height:1.5;min-height:74px}
-.staff-card .button{width:100%;margin-top:12px;min-height:52px}
-.staff-card-admin{border-color:rgba(180,108,255,.28)}
-.staff-card-mod{border-color:rgba(255,255,255,.10)}
-.staff-card-streamer{border-color:rgba(120,200,255,.18)}
-.staff-loading{display:flex;align-items:center;gap:10px;color:#cfc8d8}.staff-error{border-color:rgba(248,113,113,.24);background:rgba(80,20,30,.18)}
-.staff-foot{margin-top:22px;color:#807b88;font-size:13px;line-height:1.5}
+.staff-head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:24px}.staff-kicker{letter-spacing:.22em;color:#bd82ff;font-weight:800;font-size:13px}.staff-head h1{margin:6px 0 8px;font-size:clamp(32px,5vw,52px);line-height:1}.staff-head p{margin:0;color:#aaa6b3;max-width:720px;line-height:1.5}.staff-meta{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:flex-end}.staff-chip{padding:9px 12px;border:1px solid rgba(180,108,255,.28);border-radius:999px;background:rgba(168,85,247,.08);font-weight:800;white-space:nowrap}.staff-card{padding:22px;border:1px solid rgba(255,255,255,.08);border-radius:22px;background:linear-gradient(145deg,rgba(20,17,29,.96),rgba(12,12,18,.98));box-shadow:0 18px 50px rgba(0,0,0,.18)}.staff-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.staff-card h2{margin:8px 0 8px;font-size:24px}.staff-card p{color:#aaa6b3;line-height:1.5;min-height:74px}.staff-card .button{width:100%;margin-top:12px;min-height:52px}.staff-loading{display:flex;align-items:center;gap:10px;color:#cfc8d8}.staff-error{border-color:rgba(248,113,113,.24);background:rgba(80,20,30,.18)}.staff-foot{margin-top:22px;color:#807b88;font-size:13px;line-height:1.5}
 @media(max-width:760px){
- .staff-shell{padding:18px 14px calc(60px + env(safe-area-inset-bottom))}.staff-head{display:block;margin-bottom:18px}.staff-head p{font-size:15px;line-height:1.45}.staff-meta{display:grid;grid-template-columns:1fr;gap:8px;margin-top:14px}.staff-meta>*{width:100%;min-width:0}.staff-chip{display:flex;justify-content:center;white-space:normal;text-align:center;min-height:44px;align-items:center}
- .staff-grid{grid-template-columns:1fr;gap:12px}.staff-card{padding:18px;border-radius:20px}.staff-card h2{font-size:22px}.staff-card p{min-height:0;font-size:15px}.staff-card .button{min-height:54px;font-size:16px}
+ .staff-shell{padding:14px 12px calc(64px + env(safe-area-inset-bottom))}.staff-head{display:block;margin-bottom:16px}.staff-head h1{font-size:34px}.staff-head p{font-size:15px;line-height:1.45}.staff-meta{display:grid;grid-template-columns:1fr;gap:8px;margin-top:14px}.staff-meta>*{width:100%;min-width:0}.staff-chip{display:flex;justify-content:center;white-space:normal;text-align:center;min-height:46px;align-items:center}
+ .staff-grid{grid-template-columns:1fr;gap:10px}.staff-card{padding:16px;border-radius:19px}.staff-card h2{font-size:21px;line-height:1.15}.staff-card p{min-height:0;font-size:14px;line-height:1.45}.staff-card .button{min-height:54px;font-size:16px;white-space:normal;overflow-wrap:anywhere}
 }
 </style>
 </head>
@@ -38,43 +24,33 @@ body.staff-page{min-height:100vh;background:#09090d;color:#f7f3ff;font-family:In
   <div class="staff-meta"><span class="staff-chip" id="staff-role">Rolle wird geprüft…</span><a class="button button-secondary" href="/club-profile.html">← Zurück zum Club</a></div>
  </header>
  <section id="staff-loading" class="staff-card staff-loading"><strong>Zugriff wird geprüft…</strong></section>
- <section id="staff-error" class="staff-card staff-error" hidden><strong id="staff-error-title">Staff-Zugriff konnte nicht geprüft werden.</strong><p id="staff-error-text">Bitte kurz neu laden.</p></section>
+ <section id="staff-error" class="staff-card staff-error" hidden><strong id="staff-error-title">Staff-Zugriff konnte nicht geprüft werden.</strong><p id="staff-error-text">Bitte kurz neu laden.</p><button class="button button-secondary" id="staff-retry" type="button">Erneut prüfen</button></section>
  <section id="staff-grid" class="staff-grid" hidden>
   <article class="staff-card staff-card-admin" id="admin-card" hidden><div class="staff-kicker">ADMIN</div><h2>Admin Control Center</h2><p>Website, Community, Rewards, XP, Pet-Administration, Medien und Systemeinstellungen.</p><a class="button button-primary" href="/admin.html">Admin Center öffnen ↗</a></article>
   <article class="staff-card staff-card-mod" id="mod-card" hidden><div class="staff-kicker">MODERATION</div><h2>Mod Center</h2><p>Community Votes, Meldungen, Chat-/Community-Moderation, Mitglieder und Ankündigungen.</p><a class="button button-primary" href="/mod.html">Mod Center öffnen ↗</a></article>
   <article class="staff-card staff-card-streamer" id="streamer-card" hidden><div class="staff-kicker">CREATOR</div><h2>Streamer Center</h2><p>Live-Status, Stream-Werkzeuge und Creator-Funktionen für den eigenen Stream.</p><a class="button button-primary" href="/streamer.html">Streamer Center öffnen ↗</a></article>
  </section>
- <p class="staff-foot">V19.0.0 RC3 · Dieser Einstieg ersetzt keine serverseitige Berechtigungsprüfung. Jede privilegierte Aktion bleibt separat geschützt.</p>
+ <p class="staff-foot">V19.0.0 RC6 · Dieser Einstieg ersetzt keine serverseitige Berechtigungsprüfung. Jede privilegierte Aktion bleibt separat geschützt.</p>
 </main>
 <script>
 (()=>{
  const $=id=>document.getElementById(id);
- const getStoredToken=()=>{try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i)||'';if(!k.startsWith('sb-')||!k.endsWith('-auth-token'))continue;const raw=localStorage.getItem(k)||'{}';const p=JSON.parse(raw);const candidates=[p?.access_token,p?.currentSession?.access_token,p?.session?.access_token,p?.data?.session?.access_token];const t=candidates.find(Boolean);if(t)return t;}}catch{}return null;};
- const sleep=ms=>new Promise(r=>setTimeout(r,ms));
- async function getSessionToken(){
-   const stored=getStoredToken(); if(stored)return stored;
-   try{
-     const cfg=await fetch('/api/config',{cache:'no-store'}).then(r=>r.json());
-     if(cfg?.supabaseUrl&&cfg?.supabaseAnonKey&&window.supabase?.createClient){const sb=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseAnonKey);const {data}=await sb.auth.getSession();return data?.session?.access_token||null;}
-   }catch{}
-   return null;
- }
+ const storedToken=()=>{try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i)||'';if(!k.startsWith('sb-')||!k.endsWith('-auth-token'))continue;const raw=localStorage.getItem(k)||'{}';const p=JSON.parse(raw);const t=p?.access_token||p?.currentSession?.access_token||p?.session?.access_token||p?.data?.session?.access_token;if(t)return t;}}catch{}return null;};
+ async function getSessionToken(){const t=storedToken();if(t)return t;try{const cfg=await fetch('/api/config',{cache:'no-store',signal:AbortSignal.timeout(5000)}).then(r=>r.json());if(cfg?.supabaseUrl&&cfg?.supabaseAnonKey&&window.supabase?.createClient){const sb=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseAnonKey);const {data}=await sb.auth.getSession();return data?.session?.access_token||null;}}catch{}return null;}
  async function load(){
-   for(let attempt=0;attempt<3;attempt++){
-     try{
-       const t=await getSessionToken(); if(!t)throw new Error('Keine aktive Anmeldung gefunden.');
-       const r=await fetch('/api/mod-auth',{headers:{Authorization:`Bearer ${t}`,Accept:'application/json'},cache:'no-store'});
-       const d=await r.json().catch(()=>({}));
-       if(r.ok&&d?.ok){
-         const admin=Boolean(d.isAdmin), mod=Boolean(d.isModerator||admin), streamer=Boolean(d.isStreamer||admin);
-         if(!admin&&!mod&&!streamer)throw new Error('Dein Account besitzt keine privilegierte ACY-Rolle.');
-         $('staff-role').textContent=admin?'Admin + Mod + Streamer':mod?(streamer?'Mod + Streamer':'Mod'):'Streamer';
-         $('admin-card').hidden=!admin;$('mod-card').hidden=!mod;$('streamer-card').hidden=!streamer;$('staff-loading').hidden=true;$('staff-grid').hidden=false;return;
-       }
-       throw new Error(d?.error||`Rollenprüfung fehlgeschlagen (${r.status}).`);
-     }catch(err){if(attempt===2){$('staff-loading').hidden=true;$('staff-error').hidden=false;$('staff-role').textContent='Prüfung fehlgeschlagen';$('staff-error-text').textContent=err?.message||'Rolle konnte nicht geprüft werden.';return;}await sleep([250,600,1000][attempt]);}
-   }
+  $('staff-loading').hidden=false;$('staff-error').hidden=true;$('staff-grid').hidden=true;$('staff-role').textContent='Rolle wird geprüft…';
+  try{
+   const access=await getSessionToken();if(!access)throw new Error('Keine aktive Anmeldung gefunden.');
+   const r=await fetch('/api/mod-auth',{headers:{Authorization:`Bearer ${access}`,Accept:'application/json'},cache:'no-store',signal:AbortSignal.timeout(8000)});
+   const d=await r.json().catch(()=>({}));
+   if(!r.ok||!d.ok)throw new Error(d?.error||`Rollenprüfung fehlgeschlagen (${r.status}).`);
+   const admin=Boolean(d.isAdmin),mod=Boolean(d.isModerator||admin),streamer=Boolean(d.isStreamer||admin),staff=Boolean(d.isStaff||admin||mod||streamer);
+   if(!staff)throw new Error('Dein Account besitzt keine privilegierte ACY-Rolle.');
+   $('staff-role').textContent=admin?'Admin + Mod + Streamer':mod?(streamer?'Mod + Streamer':'Mod'):'Streamer';
+   $('admin-card').hidden=!admin;$('mod-card').hidden=!mod;$('streamer-card').hidden=!streamer;$('staff-loading').hidden=true;$('staff-grid').hidden=false;
+  }catch(err){$('staff-loading').hidden=true;$('staff-error').hidden=false;$('staff-role').textContent='Prüfung fehlgeschlagen';$('staff-error-text').textContent=err?.message||'Rolle konnte nicht geprüft werden.';}
  }
+ $('staff-retry')?.addEventListener('click',load);
  load();
 })();
 </script>
