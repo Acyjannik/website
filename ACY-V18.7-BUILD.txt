@@ -1,0 +1,11 @@
+ACY CLUB V18.7 — STREAMER ROLE + CREATOR CENTER
+
+- Added server-side streamer role resolution to the existing auth resolver.
+- Admins are streamers by default.
+- Additional streamer usernames can be allowlisted with Vercel env ACY_STREAMER_USERNAMES.
+- Added dedicated /streamer.html Creator Center.
+- Added /streamer.js role gate and live Twitch mirror.
+- Added authorized Streamer Center entry to Club Home.
+- No new SQL migration required.
+- Existing Moderator permissions remain unchanged.
+- Streamer role does not grant admin/mod permissions.
