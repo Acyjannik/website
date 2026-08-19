@@ -20,6 +20,7 @@
     addScript('acy-v186-stream-center-script','/v18.6-stream-center.js?v=1866');
     addScript('acy-v187-streamer-entry-script','/v18.7-streamer-entry.js?v=1870');
     addScript('acy-v189-universal-mobile-script','/v18.9-universal-mobile.js?v=1892');
+    addScript('acy-v19-rc1-mobile-script','/v19-rc-mobile-fix.js?v=19001');
     initNotifications();initMore();initDock();
     const mo=new MutationObserver(syncLive);['member-live-text','member-twitch-game','member-twitch-viewers','member-live-pill'].forEach(id=>{const el=$(id);el&&mo.observe(el,{childList:true,subtree:true,attributes:true,characterData:true});});
     syncLive();
