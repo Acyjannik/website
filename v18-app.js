@@ -1,5 +1,12 @@
 (() => {
   const $ = (id) => document.getElementById(id);
+  // V19 RC7: club-profile.js expects this legacy upload control even on the
+  // dedicated Pet page. Create a harmless hidden fallback before DOMContentLoaded.
+  if (!document.getElementById('avatar-input')) {
+    const input = document.createElement('input');
+    input.id = 'avatar-input'; input.type = 'file'; input.accept = 'image/jpeg,image/png,image/webp'; input.hidden = true;
+    (document.body || document.documentElement).appendChild(input);
+  }
   const addScript=(id,src)=>{if(document.getElementById(id))return;const s=document.createElement('script');s.id=id;s.src=src;s.defer=true;document.head.appendChild(s);};
   const getToken=()=>{try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i)||'';if(!k.startsWith('sb-')||!k.endsWith('-auth-token'))continue;const p=JSON.parse(localStorage.getItem(k)||'{}');const t=p?.access_token||p?.currentSession?.access_token||p?.session?.access_token||p?.data?.session?.access_token;if(t)return t;}}catch{}return null;};
   const openNotifications=()=>{const p=$('notification-panel');if(!p)return;p.hidden=false;p.classList.add('v181-open');document.body.classList.add('acy-notifications-open-v182');window.loadNotifications?.().catch?.(()=>{});};
@@ -21,6 +28,8 @@
     // V19 RC6: one canonical mobile layer. The legacy V18.9/V19 RC3 layers are intentionally no longer loaded.
     addScript('acy-v19-safe-mobile-script','/v19-mobile-ux-safe.js?v=19006');
     addScript('acy-v19-rc6-hotfix-script','/v19-rc6-mobile-hotfix.js?v=19006');
+    // V19 RC7: Pet runtime and ranking polish.
+    addScript('acy-v19-pet-rc7-hotfix-script','/v19-pet-rc7-hotfix.js?v=19007');
     initNotifications();initMore();initDock();
     const mo=new MutationObserver(syncLive);['member-live-text','member-twitch-game','member-twitch-viewers','member-live-pill'].forEach(id=>{const el=$(id);el&&mo.observe(el,{childList:true,subtree:true,attributes:true,characterData:true});});
     syncLive();
