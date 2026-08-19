@@ -178,6 +178,23 @@ async function updatePwaUi(){
   }
 }
 
+function hidePublicPrivilegedLinks(){
+  const path=location.pathname;
+  const isPublicHome=path==='/'||path==='/index.html'||path==='/index';
+  if(!isPublicHome)return;
+  const remove=()=>{
+    document.querySelectorAll('a,button').forEach(el=>{
+      const href=el.getAttribute('href')||'';
+      const text=(el.textContent||'').trim();
+      if(/\/admin\.html|\/mod\.html|\/staff\.html/i.test(href) || /^(admin(\s|\/|$)|mod center|admin center|admin \/ mod)/i.test(text)){
+        el.remove();
+      }
+    });
+  };
+  remove();
+  new MutationObserver(remove).observe(document.body,{childList:true,subtree:true});
+}
+
 window.addEventListener('beforeinstallprompt',e=>{
   e.preventDefault();
   deferredPwaInstallPrompt=e;
@@ -185,6 +202,7 @@ window.addEventListener('beforeinstallprompt',e=>{
 });
 window.addEventListener('appinstalled',()=>{deferredPwaInstallPrompt=null;updatePwaUi();});
 document.addEventListener('DOMContentLoaded',()=>{
+  hidePublicPrivilegedLinks();
   document.getElementById('acy-install-pwa')?.addEventListener('click',installAcyPwa);
   document.getElementById('acy-enable-push')?.addEventListener('click',async()=>{
     const btn=document.getElementById('acy-enable-push');
