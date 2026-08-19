@@ -30,4 +30,17 @@
     const el = event.target.closest?.('button, a, .member-card, .club-content-item, .member-badge, .catalog-level, .hub-roadmap-step');
     if (el && !el.contains(event.relatedTarget)) el.classList.remove('acy-pointer-active');
   }, {passive:true});
+
+  // V18.6.4 — load the isolated mobile/readability/data-recovery layer on pages
+  // that already include this lightweight global UI helper (e.g. member.html).
+  const loadAudit = () => {
+    if (document.getElementById('acy-v186-global-audit-script')) return;
+    const script = document.createElement('script');
+    script.id = 'acy-v186-global-audit-script';
+    script.src = '/v18.6-global-audit.js?v=1864';
+    script.defer = true;
+    document.head.appendChild(script);
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', loadAudit, {once:true});
+  else loadAudit();
 })();
