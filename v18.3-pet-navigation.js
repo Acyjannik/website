@@ -3,9 +3,22 @@
 
   ready(() => {
     const petSection = document.getElementById('pet-section');
+    const lifePanel = document.getElementById('pet-life-v182');
+    const gamesPanel = document.getElementById('pet-games-v182');
     const archive = document.getElementById('pet-archive-panel');
     const tabs = [...document.querySelectorAll('.pet-view-tab-v183')];
+
     if (petSection && tabs.length) {
+      const scrollToTarget = (target) => {
+        if (!target) return;
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            const top = target.getBoundingClientRect().top + window.scrollY - 18;
+            window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+          });
+        });
+      };
+
       const setView = (view, updateHash = true) => {
         petSection.dataset.petView = view;
         tabs.forEach(tab => {
@@ -13,17 +26,48 @@
           tab.classList.toggle('is-primary', active);
           tab.setAttribute('aria-selected', active ? 'true' : 'false');
         });
-        if (archive) archive.open = view === 'archive';
+
+        if (view === 'archive') {
+          if (archive) archive.open = true;
+          if (gamesPanel) gamesPanel.open = false;
+          scrollToTarget(archive);
+        } else if (view === 'games') {
+          if (archive) archive.open = false;
+          if (gamesPanel) gamesPanel.open = true;
+          scrollToTarget(gamesPanel || lifePanel || petSection);
+        } else if (view === 'life') {
+          if (archive) archive.open = false;
+          if (gamesPanel) gamesPanel.open = false;
+          scrollToTarget(lifePanel || petSection);
+        } else {
+          if (archive) archive.open = false;
+          if (gamesPanel) gamesPanel.open = false;
+          scrollToTarget(petSection);
+        }
+
         if (updateHash) history.replaceState(null, '', `#pet-${view}`);
-        const target = view === 'archive' ? archive : petSection;
-        target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       };
-      tabs.forEach(tab => tab.addEventListener('click', () => setView(tab.dataset.petView)));
+
+      tabs.forEach(tab => tab.addEventListener('click', (event) => {
+        event.preventDefault();
+        setView(tab.dataset.petView);
+      }));
+
       const initial = location.hash.match(/^#pet-(home|life|games|archive)$/)?.[1];
       if (initial) setView(initial, false);
+
       archive?.addEventListener('toggle', () => {
-        if (archive.open) setView('archive', false);
+        if (archive.open) {
+          setView('archive', false);
+        }
       });
+
+      gamesPanel?.addEventListener('toggle', () => {
+        if (gamesPanel.open) {
+          setView('games', false);
+        }
+      });
+
       window.addEventListener('hashchange', () => {
         const view = location.hash.match(/^#pet-(home|life|games|archive)$/)?.[1];
         if (view) setView(view, false);
