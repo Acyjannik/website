@@ -2,7 +2,6 @@
   const $ = (id) => document.getElementById(id);
   const addScript=(id,src)=>{if(document.getElementById(id))return;const s=document.createElement('script');s.id=id;s.src=src;s.defer=true;document.head.appendChild(s);};
   const getToken=()=>{try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i)||'';if(!k.startsWith('sb-')||!k.endsWith('-auth-token'))continue;const p=JSON.parse(localStorage.getItem(k)||'{}');if(p?.access_token)return p.access_token;}}catch{}return null;};
-
   const openNotifications=()=>{const p=$('notification-panel');if(!p)return;p.hidden=false;p.classList.add('v181-open');document.body.classList.add('acy-notifications-open-v182');window.loadNotifications?.().catch?.(()=>{});};
   const closeNotifications=()=>{const p=$('notification-panel');if(p){p.hidden=true;p.classList.remove('v181-open');}document.body.classList.remove('acy-notifications-open-v182');};
   async function notificationAction(action){const token=getToken();if(!token)throw new Error('Deine Sitzung ist abgelaufen.');const r=await fetch(`/api/club-notifications?action=${encodeURIComponent(action)}`,{method:'POST',headers:{Authorization:`Bearer ${token}`},cache:'no-store'});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d?.error||'Benachrichtigungen konnten nicht aktualisiert werden.');return d;}
@@ -20,9 +19,7 @@
     addScript('acy-v186-stream-center-script','/v18.6-stream-center.js?v=1866');
     addScript('acy-v187-streamer-entry-script','/v18.7-streamer-entry.js?v=1870');
     addScript('acy-v189-universal-mobile-script','/v18.9-universal-mobile.js?v=1892');
-    addScript('acy-v19-rc1-mobile-script','/v19-rc-mobile-fix.js?v=19001');
-    addScript('acy-v19-mobile-ux-script','/v19-mobile-ux.js?v=19002');
-    addScript('acy-v19-rc2-final-script','/v19-rc2-final.js?v=19003');
+    addScript('acy-v19-safe-mobile-script','/v19-mobile-ux-safe.js?v=19004');
     initNotifications();initMore();initDock();
     const mo=new MutationObserver(syncLive);['member-live-text','member-twitch-game','member-twitch-viewers','member-live-pill'].forEach(id=>{const el=$(id);el&&mo.observe(el,{childList:true,subtree:true,attributes:true,characterData:true});});
     syncLive();
