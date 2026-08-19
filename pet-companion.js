@@ -6,6 +6,28 @@
     frog:'Frosch', bee:'Biene'
   };
 
+  // V19 RC8: club-profile.js expects this legacy upload control even on pet.html.
+  // Create it before club-profile.js runs, not later inside DOMContentLoaded.
+  function ensureAvatarInput(){
+    if(document.getElementById('avatar-input')) return;
+    const input=document.createElement('input');
+    input.id='avatar-input';
+    input.type='file';
+    input.accept='image/jpeg,image/png,image/webp';
+    input.hidden=true;
+    (document.body||document.documentElement).appendChild(input);
+  }
+
+  function loadPetRc8Hotfix(){
+    if(document.getElementById('acy-v19-pet-rc8-script')) return;
+    const script=document.createElement('script');
+    script.id='acy-v19-pet-rc8-script';
+    script.src='/v19-pet-rc8-hotfix.js?v=19008';
+    document.head.appendChild(script);
+  }
+
+  ensureAvatarInput();
+
   function esc(v=''){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));}
   function levelInfo(xp=0){
     if(xp>=1000)return {level:5,title:'ACY Legende',effect:'legendary'};
@@ -16,6 +38,8 @@
   }
 
   async function init(){
+    ensureAvatarInput();
+    loadPetRc8Hotfix();
     if(!window.supabase?.createClient) return;
     try{
       let client=window.__acySupabaseClient || null;
@@ -39,7 +63,7 @@
       el.className='acy-pet-float';
       el.href='/club-profile.html#pet-section';
       el.setAttribute('aria-label',`Dein Begleiter ${pet.name}`);
-            el.innerHTML=`
+      el.innerHTML=`
         <span class="acy-pet-float-art pet-effect-${info.effect}"><img src="${image}" alt=""></span>
         <span class="acy-pet-float-copy">
           <small>DEIN BEGLEITER · LVL ${info.level}</small>
@@ -56,6 +80,16 @@
     sharedClientReady = true;
     init();
   }, { once: true });
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',() => { if(!sharedClientReady) init(); },{once:true});
-  else if(!window.__acySupabaseClient) init();
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',() => {
+      ensureAvatarInput();
+      loadPetRc8Hotfix();
+      if(!sharedClientReady) init();
+    },{once:true});
+  } else {
+    ensureAvatarInput();
+    loadPetRc8Hotfix();
+    if(!window.__acySupabaseClient) init();
+  }
 })();
