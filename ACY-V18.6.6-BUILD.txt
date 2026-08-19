@@ -1,0 +1,9 @@
+ACY CLUB V18.6.6 — STREAM CENTER + MOBILE PASS
+
+- Mobile information hierarchy pass: readable type, proportionate summary cards, less awkward wrapping
+- Community/Progress/Events/Glücksrad cards keep artwork, heading and description aligned on mobile
+- Legacy V18.1 visible build stamp removed from Club UI
+- Isolated Stream Center feature added to the Club Home using existing Twitch status data
+- Stream Center provides live/offline state, current game, viewers and Twitch/stream-details actions
+- No Supabase schema changes
+- Existing Twitch API, watch tracking and Club data logic remain unchanged
