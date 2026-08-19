@@ -1,8 +1,21 @@
 
-/* ACY V14.4 — lightweight global pointer / liquid-glass interaction.
-   No animation loop unless the pointer actually moves. */
+/* ACY V14.4 — lightweight global pointer / liquid-glass interaction. */
 (() => {
+  const loadAdminRc8 = () => {
+    if (!document.body?.classList.contains('admin-page')) return;
+    if (document.getElementById('acy-admin-rc8-script')) return;
+    const script = document.createElement('script');
+    script.id = 'acy-admin-rc8-script';
+    script.src = '/admin-rc8-hotfix.js?v=19008';
+    document.head.appendChild(script);
+  };
+
+  const bootAdmin = () => loadAdminRc8();
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootAdmin, { once:true });
+  else bootAdmin();
+
   if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+
   const root = document.documentElement;
   let raf = 0;
   let x = window.innerWidth * .5;
@@ -20,8 +33,6 @@
     if (!raf) raf = requestAnimationFrame(paint);
   }, {passive:true});
 
-  // V14.4 — event delegation avoids attaching dozens/hundreds of pointer listeners
-  // to dynamic Club cards that are re-rendered after every refresh.
   document.addEventListener('pointerover', event => {
     const el = event.target.closest?.('button, a, .member-card, .club-content-item, .member-badge, .catalog-level, .hub-roadmap-step');
     if (el) el.classList.add('acy-pointer-active');
@@ -31,8 +42,6 @@
     if (el && !el.contains(event.relatedTarget)) el.classList.remove('acy-pointer-active');
   }, {passive:true});
 
-  // V18.6.4 — load the isolated mobile/readability/data-recovery layer on pages
-  // that already include this lightweight global UI helper (e.g. member.html).
   const loadAudit = () => {
     if (document.getElementById('acy-v186-global-audit-script')) return;
     const script = document.createElement('script');
@@ -42,22 +51,6 @@
     document.head.appendChild(script);
   };
 
-  const loadAdminRc8 = () => {
-    if (!document.body?.classList.contains('admin-page')) return;
-    if (document.getElementById('acy-admin-rc8-script')) return;
-    const script = document.createElement('script');
-    script.id = 'acy-admin-rc8-script';
-    script.src = '/admin-rc8-hotfix.js?v=19008';
-    document.head.appendChild(script);
-  };
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-      loadAudit();
-      loadAdminRc8();
-    }, {once:true});
-  } else {
-    loadAudit();
-    loadAdminRc8();
-  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', loadAudit, {once:true});
+  else loadAudit();
 })();
