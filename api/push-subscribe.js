@@ -10,13 +10,14 @@ export default async function handler(req,res){
     if(!who.ok)return res.status(401).json({error:"Ungültige Sitzung."});
     const user=await who.json();
 
-    const body=typeof req.body==="string"?JSON.parse(req.body||"{}"):(req.body||{});
+    const body=typeof req.body==="string"?JSON.parse(req.body||"{}"):((req.body&&typeof req.body==='object')?req.body:{});
     if(req.method==="DELETE"){
       const endpoint=String(body.endpoint||"").trim();
       if(!endpoint)return res.status(400).json({error:"endpoint fehlt."});
       const r=await fetch(`${url}/rest/v1/club_push_subscriptions?user_id=eq.${encodeURIComponent(user.id)}&endpoint=eq.${encodeURIComponent(endpoint)}`,{method:"DELETE",headers});
       if(!r.ok)return res.status(500).json({error:await r.text()});
-      await fetch(`${url}/rest/v1/club_notification_preferences?user_id=eq.${encodeURIComponent(user.id)}`,{method:'PATCH',headers:{...headers,Prefer:'return=minimal'},body:JSON.stringify({push_enabled:false,updated_at:new Date().toISOString()})});
+      const pref=await fetch(`${url}/rest/v1/club_notification_preferences?user_id=eq.${encodeURIComponent(user.id)}`,{method:'PATCH',headers:{...headers,Prefer:'return=minimal'},body:JSON.stringify({push_enabled:false,updated_at:new Date().toISOString()})});
+      if(!pref.ok) console.warn('Push preference cleanup failed:',await pref.text().catch(()=>''));
       return res.status(200).json({ok:true,deleted:true});
     }
     if(req.method!=="POST")return res.status(405).json({error:"POST or DELETE only"});
@@ -25,7 +26,10 @@ export default async function handler(req,res){
     if(!sub?.endpoint||!sub?.keys?.p256dh||!sub?.keys?.auth){
       return res.status(400).json({error:"Ungültige Push-Subscription."});
     }
-    const r=await fetch(`${url}/rest/v1/club_push_subscriptions`,{
+
+    // club_push_subscriptions has a UNIQUE(endpoint) constraint. PostgREST
+    // needs the conflict target explicitly for a merge-duplicates upsert.
+    const r=await fetch(`${url}/rest/v1/club_push_subscriptions?on_conflict=endpoint`,{
       method:"POST",
       headers:{...headers,Prefer:"resolution=merge-duplicates,return=minimal"},
       body:JSON.stringify({
@@ -38,7 +42,12 @@ export default async function handler(req,res){
       })
     });
     if(!r.ok)return res.status(500).json({error:await r.text()});
-    await fetch(`${url}/rest/v1/club_notification_preferences?user_id=eq.${encodeURIComponent(user.id)}`,{method:'PATCH',headers:{...headers,Prefer:'return=minimal'},body:JSON.stringify({push_enabled:true,updated_at:new Date().toISOString()})});
+
+    const pref=await fetch(`${url}/rest/v1/club_notification_preferences?user_id=eq.${encodeURIComponent(user.id)}`,{method:'PATCH',headers:{...headers,Prefer:'return=minimal'},body:JSON.stringify({push_enabled:true,updated_at:new Date().toISOString()})});
+    // A successful push subscription must not be reported as HTTP 500 just
+    // because the preference row is temporarily missing or malformed.
+    if(!pref.ok) console.warn('Push preference update failed:',await pref.text().catch(()=>''));
+
     return res.status(200).json({ok:true,saved:true});
   }catch(error){return res.status(500).json({error:error?.message||"Push-Abo konnte nicht gespeichert werden."});}
 }
