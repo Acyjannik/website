@@ -19,14 +19,11 @@ export default async function handler(req,res){
     const isModerator=modRes.ok && (await modRes.json()).length>0;
     const profile=profileRes.ok ? (await profileRes.json())[0] : null;
 
-    // Streamer access intentionally stays server-side. No SQL migration is needed:
-    // admins are streamers by default; additional streamer accounts can be listed in
-    // Vercel's ACY_STREAMER_USERNAMES env var as a comma-separated allowlist.
-    // The profile username is only evaluated after Supabase has authenticated the user.
     const configured=(process.env.ACY_STREAMER_USERNAMES||'').split(',').map(v=>v.trim().toLowerCase()).filter(Boolean);
     const username=(profile?.username||'').trim().toLowerCase();
     const defaultStreamer=username==='acyjannik';
     const isStreamer=isAdmin || configured.includes(username) || defaultStreamer;
+    const isStaff=isAdmin || isModerator || isStreamer;
 
     return res.status(200).json({
       ok:true,
@@ -34,6 +31,7 @@ export default async function handler(req,res){
       isAdmin,
       isModerator:isModerator||isAdmin,
       isStreamer,
+      isStaff,
       role:isAdmin?'admin':(isModerator?'mod':(isStreamer?'streamer':'member')),
       profile
     });
