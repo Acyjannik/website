@@ -21,15 +21,14 @@
   function init(){
     addScript('acy-v182-polish-script','/v18.2-app-polish.js?v=1821');
     addScript('acy-v186-navigation-script','/v18.6-navigation-isolated.js?v=1863');
-    addScript('acy-v186-global-audit-script','/v18.6-global-audit.js?v=1864');
-    addScript('acy-v186-mobile-pass-script','/v18.6-mobile-pass.js?v=1865');
-    addScript('acy-v186-stream-center-script','/v18.6-stream-center.js?v=1866');
-    addScript('acy-v187-streamer-entry-script','/v18.7-streamer-entry.js?v=1870');
-    // V19 RC6: one canonical mobile layer. The legacy V18.9/V19 RC3 layers are intentionally no longer loaded.
-    addScript('acy-v19-safe-mobile-script','/v19-mobile-ux-safe.js?v=19006');
-    addScript('acy-v19-rc6-hotfix-script','/v19-rc6-mobile-hotfix.js?v=19006');
-    // V19 RC7: Pet runtime and ranking polish.
-    addScript('acy-v19-pet-rc7-hotfix-script','/v19-pet-rc7-hotfix.js?v=19007');
+    addScript('acy-v186-global-audit-script','/v18.6-global-audit.js?v=1865');
+    addScript('acy-v186-mobile-pass-script','/v18.6-mobile-pass.js?v=1866');
+    addScript('acy-v186-stream-center-script','/v18.6-stream-center.js?v=1867');
+    addScript('acy-v187-streamer-entry-script','/v18.7-streamer-entry.js?v=1871');
+    addScript('acy-v19-safe-mobile-script','/v19-mobile-ux-safe.js?v=19007');
+    addScript('acy-v19-rc6-hotfix-script','/v19-rc6-mobile-hotfix.js?v=19007');
+    // V19 RC8: Pet runtime and ranking polish.
+    addScript('acy-v19-pet-rc8-hotfix-script','/v19-pet-rc7-hotfix.js?v=19008');
     initNotifications();initMore();initDock();
     const mo=new MutationObserver(syncLive);['member-live-text','member-twitch-game','member-twitch-viewers','member-live-pill'].forEach(id=>{const el=$(id);el&&mo.observe(el,{childList:true,subtree:true,attributes:true,characterData:true});});
     syncLive();
