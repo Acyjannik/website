@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  // V18.6.1: isolated navigation. Does not touch Supabase/data rendering.
+  // V18.6.2: predictable More toggle + close-on-selection.
   const $ = (id) => document.getElementById(id);
   const MOBILE_MAX = 700;
   const isPetPage = /\/pet\.html$/i.test(location.pathname);
@@ -34,6 +34,7 @@
     if (sheet) sheet.hidden = true;
     document.body.classList.remove('mobile-more-open-v181');
     toggle?.setAttribute('aria-expanded', 'false');
+    toggle?.classList.remove('is-open');
   }
 
   function ensureMoreSheet() {
@@ -68,7 +69,17 @@
     sheet.hidden = false;
     document.body.classList.add('mobile-more-open-v181');
     toggle?.setAttribute('aria-expanded', 'true');
+    toggle?.classList.add('is-open');
     return true;
+  }
+
+  function toggleMore() {
+    const sheet = ensureMoreSheet();
+    if (!sheet.hidden) {
+      closeMore();
+      return false;
+    }
+    return openMore();
   }
 
   function setActive(key) {
@@ -97,7 +108,7 @@
   function navigate(key) {
     if (key === 'more') {
       setActive('more');
-      return openMore();
+      return toggleMore();
     }
 
     if (key === 'home') {
@@ -112,6 +123,7 @@
     }
 
     if (key === 'pet') {
+      closeMore();
       setActive('pet');
       if (!isPetPage) window.location.assign('/pet.html');
       else window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -150,16 +162,24 @@
     }
 
     const item = event.target.closest('#mobile-more-sheet-v181 [data-more-target], #mobile-more-sheet-v181 [data-target-id]');
-    if (!item) return;
-    event.preventDefault();
-    event.stopImmediatePropagation();
+    if (item) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      const target = item.dataset.targetId ? $(item.dataset.targetId) : findMoreTarget(item.dataset.moreTarget);
+      closeMore();
+      if (!target) return;
+      const details = target.closest('details');
+      if (details) details.open = true;
+      scrollToTarget(target);
+      return;
+    }
 
-    const target = item.dataset.targetId ? $(item.dataset.targetId) : findMoreTarget(item.dataset.moreTarget);
-    if (!target) return;
-    const details = target.closest('details');
-    if (details) details.open = true;
-    closeMore();
-    scrollToTarget(target);
+    // Existing Club menu entries are owned by the older app shell. Close the
+    // sheet immediately, but deliberately let their own click handler continue.
+    // This keeps notifications/events/etc. working while guaranteeing that
+    // More never remains visually open after a selection.
+    const interactive = event.target.closest('#mobile-more-sheet-v181 button, #mobile-more-sheet-v181 a, #mobile-more-sheet-v181 [role="button"]');
+    if (interactive) closeMore();
   }
 
   function hardenDockMarkup() {
@@ -192,8 +212,8 @@
   }
 
   function installGuard() {
-    if (document.documentElement.dataset.acyNavGuard === '1861') return;
-    document.documentElement.dataset.acyNavGuard = '1861';
+    if (document.documentElement.dataset.acyNavGuard === '1862') return;
+    document.documentElement.dataset.acyNavGuard = '1862';
     document.addEventListener('click', (event) => {
       const dockItem = event.target.closest('.mobile-club-dock [data-dock-key]');
       if (dockItem) {
