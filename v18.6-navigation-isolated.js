@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  // V18.6.2: predictable More toggle + close-on-selection.
+  // V18.6.3: isolated navigation + visual polish loader.
   const $ = (id) => document.getElementById(id);
   const MOBILE_MAX = 700;
   const isPetPage = /\/pet\.html$/i.test(location.pathname);
@@ -40,7 +40,6 @@
   function ensureMoreSheet() {
     let sheet = $('mobile-more-sheet-v181');
     if (sheet) return sheet;
-
     sheet = document.createElement('div');
     sheet.id = 'mobile-more-sheet-v181';
     sheet.hidden = true;
@@ -96,12 +95,10 @@
     const details = target.closest('details');
     if (details) details.open = true;
     const offset = window.matchMedia(`(max-width:${MOBILE_MAX}px)`).matches ? 112 : 96;
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        const y = Math.max(0, target.getBoundingClientRect().top + window.scrollY - offset);
-        window.scrollTo({ top: y, behavior: 'smooth' });
-      });
-    });
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      const y = Math.max(0, target.getBoundingClientRect().top + window.scrollY - offset);
+      window.scrollTo({ top: y, behavior: 'smooth' });
+    }));
     return true;
   }
 
@@ -110,7 +107,6 @@
       setActive('more');
       return toggleMore();
     }
-
     if (key === 'home') {
       closeMore();
       if (isPetPage) {
@@ -121,7 +117,6 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return true;
     }
-
     if (key === 'pet') {
       closeMore();
       setActive('pet');
@@ -129,7 +124,6 @@
       else window.scrollTo({ top: 0, behavior: 'smooth' });
       return true;
     }
-
     const target = findTarget(key);
     if (!target) return false;
     closeMore();
@@ -160,7 +154,6 @@
       closeMore();
       return;
     }
-
     const item = event.target.closest('#mobile-more-sheet-v181 [data-more-target], #mobile-more-sheet-v181 [data-target-id]');
     if (item) {
       event.preventDefault();
@@ -173,11 +166,6 @@
       scrollToTarget(target);
       return;
     }
-
-    // Existing Club menu entries are owned by the older app shell. Close the
-    // sheet immediately, but deliberately let their own click handler continue.
-    // This keeps notifications/events/etc. working while guaranteeing that
-    // More never remains visually open after a selection.
     const interactive = event.target.closest('#mobile-more-sheet-v181 button, #mobile-more-sheet-v181 a, #mobile-more-sheet-v181 [role="button"]');
     if (interactive) closeMore();
   }
@@ -211,9 +199,18 @@
     document.head.appendChild(style);
   }
 
+  function loadPolishLayer() {
+    if (document.querySelector('script[data-acy-v1863-polish]')) return;
+    const script = document.createElement('script');
+    script.src = '/v18.6-pet-member-polish.js?v=18.6.3';
+    script.defer = true;
+    script.dataset.acyV1863Polish = '1';
+    document.head.appendChild(script);
+  }
+
   function installGuard() {
-    if (document.documentElement.dataset.acyNavGuard === '1862') return;
-    document.documentElement.dataset.acyNavGuard = '1862';
+    if (document.documentElement.dataset.acyNavGuard === '1863') return;
+    document.documentElement.dataset.acyNavGuard = '1863';
     document.addEventListener('click', (event) => {
       const dockItem = event.target.closest('.mobile-club-dock [data-dock-key]');
       if (dockItem) {
@@ -230,6 +227,7 @@
     installStyles();
     ensureMoreSheet();
     hardenDockMarkup();
+    loadPolishLayer();
     installGuard();
     const observer = new MutationObserver(() => hardenDockMarkup());
     if (document.body) observer.observe(document.body, { childList: true, subtree: true });
