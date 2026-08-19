@@ -1,5 +1,7 @@
 (() => {
-  const ready = (fn) => document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', fn, { once: true }) : fn();
+  const ready = (fn) => document.readyState === 'loading'
+    ? document.addEventListener('DOMContentLoaded', fn, { once: true })
+    : fn();
 
   ready(() => {
     const petSection = document.getElementById('pet-section');
@@ -20,7 +22,11 @@
       };
 
       const setView = (view, updateHash = true) => {
-        petSection.dataset.petView = view;
+        // IMPORTANT: do not write data-pet-view on the main Pet section.
+        // styles.css uses that attribute as a visibility switch, which made
+        // the Games tab hide the rest of the Pet UI until a reload.
+        petSection.removeAttribute('data-pet-view');
+
         tabs.forEach(tab => {
           const active = tab.dataset.petView === view;
           tab.classList.toggle('is-primary', active);
@@ -55,17 +61,14 @@
 
       const initial = location.hash.match(/^#pet-(home|life|games|archive)$/)?.[1];
       if (initial) setView(initial, false);
+      else petSection.removeAttribute('data-pet-view');
 
       archive?.addEventListener('toggle', () => {
-        if (archive.open) {
-          setView('archive', false);
-        }
+        if (archive.open) setView('archive', false);
       });
 
       gamesPanel?.addEventListener('toggle', () => {
-        if (gamesPanel.open) {
-          setView('games', false);
-        }
+        if (gamesPanel.open) setView('games', false);
       });
 
       window.addEventListener('hashchange', () => {
