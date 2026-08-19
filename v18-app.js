@@ -46,6 +46,15 @@
     document.head.appendChild(script);
   }
 
+  function loadV187StreamerEntry() {
+    if (document.getElementById('acy-v187-streamer-entry-script')) return;
+    const script = document.createElement('script');
+    script.id = 'acy-v187-streamer-entry-script';
+    script.src = '/v18.7-streamer-entry.js?v=1870';
+    script.defer = true;
+    document.head.appendChild(script);
+  }
+
   function openNotifications() {
     const panel = $('notification-panel');
     if (!panel) return;
@@ -116,6 +125,6 @@
   }
   function initDock(){document.querySelectorAll('.mobile-club-dock [data-dock-key]').forEach(item=>item.addEventListener('click',()=>{if(item.dataset.dockKey==='more')return;document.querySelectorAll('.mobile-club-dock [data-dock-key]').forEach(el=>el.classList.remove('is-active'));item.classList.add('is-active');}));}
   function syncLiveSummary(){const target=$('v18-live-summary');if(!target)return;const liveText=$('member-live-text')?.textContent?.trim(),game=$('member-twitch-game')?.textContent?.trim(),viewers=$('member-twitch-viewers')?.textContent?.trim();if(liveText==='LIVE'||liveText==='LIVE NOW'||$('member-live-pill')?.classList.contains('is-live'))target.textContent=`LIVE${game&&game!=='–'?` · ${game}`:''}${viewers&&viewers!=='–'?` · ${viewers} Zuschauer`:''}`;else if(liveText&&liveText!=='CHECKING')target.textContent='Offline · beim nächsten Stream wieder dabei';}
-  function init(){loadV182Polish();loadV186Navigation();loadV186GlobalAudit();loadV186MobilePass();loadV186StreamCenter();initNotifications();initMoreSheet();initDock();const observer=new MutationObserver(syncLiveSummary);['member-live-text','member-twitch-game','member-twitch-viewers','member-live-pill'].forEach(id=>{const el=$(id);if(el)observer.observe(el,{childList:true,subtree:true,attributes:true,characterData:true});});syncLiveSummary();}
+  function init(){loadV182Polish();loadV186Navigation();loadV186GlobalAudit();loadV186MobilePass();loadV186StreamCenter();loadV187StreamerEntry();initNotifications();initMoreSheet();initDock();const observer=new MutationObserver(syncLiveSummary);['member-live-text','member-twitch-game','member-twitch-viewers','member-live-pill'].forEach(id=>{const el=$(id);if(el)observer.observe(el,{childList:true,subtree:true,attributes:true,characterData:true});});syncLiveSummary();}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
