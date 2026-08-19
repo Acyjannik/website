@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = 'V18.8.1';
+  const VERSION = 'V19.0.0';
   const RETRY_DELAYS = [350, 900];
   let retryInstalled = false;
   const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
@@ -20,6 +20,8 @@
       .acy-v186-version i{display:inline-block;width:7px;height:7px;margin-right:7px;border-radius:50%;background:#b46cff;box-shadow:0 0 12px rgba(180,108,255,.8)}
       .club-auth-page .member-avatar-img,.club-auth-page .member-avatar,.club-auth-page .member-directory-avatar,.club-auth-page .member-card-avatar,.club-auth-page .public-member-avatar,.club-auth-page .public-member-avatar img,.club-auth-page .pet-avatar,.club-auth-page .member-directory-card img,.club-auth-page .member-directory-item img{object-fit:cover;object-position:center;aspect-ratio:1/1}
       .club-auth-page .member-avatar-img,.club-auth-page .member-avatar,.club-auth-page .member-directory-avatar,.club-auth-page .member-card-avatar{overflow:hidden;border-radius:50%}
+      .member-header-actions .notification-bell #notification-count[hidden]{display:none!important}
+      .member-header-actions .notification-bell #notification-count{min-width:18px;min-height:18px;line-height:18px;text-align:center;font-size:9px;font-weight:900}
       @media(min-width:701px){.club-auth-page .member-dashboard,.club-auth-page .pet-world-main-v181{max-width:1240px;margin-left:auto;margin-right:auto}.club-auth-page .member-card,.club-auth-page .member-hub,.club-auth-page .v18-app-home,.club-auth-page .pet-section{min-width:0}.club-auth-page .v18-action-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
       @media(max-width:700px){
         .club-auth-page{font-size:15px;padding-left:max(0px,env(safe-area-inset-left));padding-right:max(0px,env(safe-area-inset-right))}.club-auth-page .club-auth-shell{width:100%;max-width:100%;overflow-x:clip}
@@ -47,38 +49,50 @@
     let badge = document.getElementById('acy-dev-version-badge');
     if (!badge) { badge = document.createElement('div'); badge.id = 'acy-dev-version-badge'; document.body.appendChild(badge); }
     badge.className = 'acy-v186-version';
-    badge.innerHTML = `<i></i><span>${VERSION} · DEV</span>`;
+    badge.innerHTML = `<i></i><span>${VERSION} · RC9</span>`;
   }
 
-  function getAccessToken(){
+  async function getAccessToken(){
     try{
-      for(let i=0;i<localStorage.length;i++){
-        const key=localStorage.key(i)||'';
-        if(!key.startsWith('sb-')||!key.endsWith('-auth-token'))continue;
-        const raw=localStorage.getItem(key); if(!raw)continue;
-        const parsed=JSON.parse(raw); if(parsed?.access_token)return parsed.access_token;
+      if(window.__acySupabaseClient){
+        const {data}=await window.__acySupabaseClient.auth.getSession();
+        if(data?.session?.access_token)return data.session.access_token;
       }
-    }catch{}
-    return null;
+      if(!window.supabase?.createClient)return null;
+      const cfg=await fetch('/api/config?_=19009',{cache:'no-store'}).then(r=>r.json());
+      if(!cfg?.supabaseUrl||!cfg?.supabaseAnonKey)return null;
+      const client=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseAnonKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+      const {data}=await client.auth.getSession();
+      return data?.session?.access_token||null;
+    }catch{return null;}
   }
 
   async function installStaffEntry(){
     if(!location.pathname.endsWith('club-profile.html'))return;
     const host=document.querySelector('.member-header-actions');
-    const old=[...document.querySelectorAll('.member-header-actions a,.member-header-actions button')].find(el=>/admin\s*\/\s*mod|mod\s*center|admin\s*center/i.test(el.textContent||''));
-    old?.remove();
-    if(document.getElementById('acy-staff-entry'))return;
-    const token=getAccessToken();
-    if(!token||!host)return;
+    if(!host||document.getElementById('acy-staff-entry'))return;
+    const token=await getAccessToken();
+    if(!token)return;
     try{
-      const response=await fetch('/api/mod-auth',{headers:{Authorization:`Bearer ${token}`},cache:'no-store'});
+      const response=await fetch('/api/mod-auth?_=19009',{headers:{Authorization:`Bearer ${token}`},cache:'no-store'});
       const data=await response.json().catch(()=>({}));
       if(!response.ok||!data?.ok||!data?.isStaff)return;
+      const old=[...host.querySelectorAll('a,button')].find(el=>/admin\s*\/\s*mod|mod\s*center|admin\s*center/i.test(el.textContent||''));
+      old?.remove();
       const link=document.createElement('a');
       link.id='acy-staff-entry'; link.className='button button-secondary'; link.href='/staff.html';
       link.textContent=data.isAdmin?'🛡️ Admin / Mod':data.isModerator?'🛡️ Mod Center':'🎥 Streamer Center';
       host.appendChild(link);
-    }catch(error){console.warn('[V18.8.1] Staff entry unavailable:',error);}
+    }catch(error){console.warn('[V19 RC9] Staff entry unavailable:',error);}
+  }
+
+  function loadRc9Hotfix(){
+    if(document.getElementById('acy-v19-rc9-hotfix'))return;
+    const script=document.createElement('script');
+    script.id='acy-v19-rc9-hotfix';
+    script.src='/v19-rc9-hotfix.js?v=19009';
+    script.defer=true;
+    document.head.appendChild(script);
   }
 
   function showRecovery(message) {
@@ -125,7 +139,7 @@
   }
 
   function init() {
-    injectStyles(); installVersion(); improveImages(); watchForRegistry(); installStaffEntry();
+    injectStyles(); installVersion(); improveImages(); watchForRegistry(); installStaffEntry(); loadRc9Hotfix();
     window.addEventListener('offline', () => showRecovery('Keine Verbindung. Die Anzeige bleibt erhalten, bis du wieder online bist.'));
     window.addEventListener('online', onlineState);
     if (navigator.onLine === false) showRecovery('Keine Verbindung. Bitte prüfe deine Internetverbindung.');
