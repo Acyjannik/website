@@ -17,22 +17,35 @@
   }
 
   function loadPetRc8Hotfix(){
-    if(document.getElementById('acy-v19-pet-rc8-script')) return;
-    const script=document.createElement('script');
-    script.id='acy-v19-pet-rc8-script';
-    script.src='/v19-pet-rc8-hotfix.js?v=19008';
-    script.async=false;
-    document.head.appendChild(script);
+    if(document.getElementById('acy-v19-pet-rc8-script')) return Promise.resolve();
+    return new Promise(resolve => {
+      const script=document.createElement('script');
+      script.id='acy-v19-pet-rc8-script';
+      script.src='/v19-pet-rc8-hotfix.js?v=19008';
+      script.async=false;
+      script.addEventListener('load',resolve,{once:true});
+      script.addEventListener('error',resolve,{once:true});
+      document.head.appendChild(script);
+    });
   }
 
   function loadPetInteractionFix(){
-    if(!/\/pet\.html$/i.test(location.pathname)) return;
-    if(document.getElementById('acy-v19-pet-interaction-script')) return;
-    const script=document.createElement('script');
-    script.id='acy-v19-pet-interaction-script';
-    script.src='/v19-pet-interaction-fix.js?v=19120';
-    script.async=false;
-    document.head.appendChild(script);
+    if(!/\/(pet\.html|club-profile\.html)$/i.test(location.pathname)) return Promise.resolve();
+    if(document.getElementById('acy-v19-pet-interaction-script')) return Promise.resolve();
+    return new Promise(resolve => {
+      const script=document.createElement('script');
+      script.id='acy-v19-pet-interaction-script';
+      script.src='/v19-pet-interaction-fix.js?v=19121';
+      script.async=false;
+      script.addEventListener('load',resolve,{once:true});
+      script.addEventListener('error',resolve,{once:true});
+      document.head.appendChild(script);
+    });
+  }
+
+  async function loadPetInteractionThenLegacy(){
+    await loadPetInteractionFix();
+    await loadPetRc8Hotfix();
   }
 
   ensureAvatarInput();
@@ -48,10 +61,8 @@
 
   async function init(){
     ensureAvatarInput();
-    // Load the active V19 interaction layer first so legacy capture-phase
-    // handlers cannot swallow the feed/shop clicks before the picker handles them.
-    loadPetInteractionFix();
-    loadPetRc8Hotfix();
+    // The interaction layer must finish registering before legacy RC8 handlers.
+    await loadPetInteractionThenLegacy();
     if(!window.supabase?.createClient) return;
     try{
       let client=window.__acySupabaseClient || null;
@@ -96,14 +107,10 @@
   if(document.readyState==='loading'){
     document.addEventListener('DOMContentLoaded',() => {
       ensureAvatarInput();
-      loadPetInteractionFix();
-      loadPetRc8Hotfix();
       if(!sharedClientReady) init();
     },{once:true});
   } else {
     ensureAvatarInput();
-    loadPetInteractionFix();
-    loadPetRc8Hotfix();
     if(!window.__acySupabaseClient) init();
   }
 })();
