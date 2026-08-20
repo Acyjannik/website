@@ -37,7 +37,7 @@
 
   ensureAvatarInput();
 
-  function esc(v=''){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));}
+  function esc(v=''){return String(v).replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#039;'}[c]));}
   function levelInfo(xp=0){
     if(xp>=1000)return {level:5,title:'ACY Legende',effect:'legendary'};
     if(xp>=500)return {level:4,title:'ACY Sidekick',effect:'crown'};
@@ -48,8 +48,10 @@
 
   async function init(){
     ensureAvatarInput();
-    loadPetRc8Hotfix();
+    // Load the active V19 interaction layer first so legacy capture-phase
+    // handlers cannot swallow the feed/shop clicks before the picker handles them.
     loadPetInteractionFix();
+    loadPetRc8Hotfix();
     if(!window.supabase?.createClient) return;
     try{
       let client=window.__acySupabaseClient || null;
@@ -94,14 +96,14 @@
   if(document.readyState==='loading'){
     document.addEventListener('DOMContentLoaded',() => {
       ensureAvatarInput();
-      loadPetRc8Hotfix();
       loadPetInteractionFix();
+      loadPetRc8Hotfix();
       if(!sharedClientReady) init();
     },{once:true});
   } else {
     ensureAvatarInput();
-    loadPetRc8Hotfix();
     loadPetInteractionFix();
+    loadPetRc8Hotfix();
     if(!window.__acySupabaseClient) init();
   }
 })();
