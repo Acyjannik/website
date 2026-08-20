@@ -6,8 +6,6 @@
     frog:'Frosch', bee:'Biene'
   };
 
-  // V19 RC8: club-profile.js expects this legacy upload control even on pet.html.
-  // Create it before club-profile.js runs, not later inside DOMContentLoaded.
   function ensureAvatarInput(){
     if(document.getElementById('avatar-input')) return;
     const input=document.createElement('input');
@@ -23,6 +21,17 @@
     const script=document.createElement('script');
     script.id='acy-v19-pet-rc8-script';
     script.src='/v19-pet-rc8-hotfix.js?v=19008';
+    script.async=false;
+    document.head.appendChild(script);
+  }
+
+  function loadPetInteractionFix(){
+    if(!/\/pet\.html$/i.test(location.pathname)) return;
+    if(document.getElementById('acy-v19-pet-interaction-script')) return;
+    const script=document.createElement('script');
+    script.id='acy-v19-pet-interaction-script';
+    script.src='/v19-pet-interaction-fix.js?v=19120';
+    script.async=false;
     document.head.appendChild(script);
   }
 
@@ -40,6 +49,7 @@
   async function init(){
     ensureAvatarInput();
     loadPetRc8Hotfix();
+    loadPetInteractionFix();
     if(!window.supabase?.createClient) return;
     try{
       let client=window.__acySupabaseClient || null;
@@ -85,11 +95,13 @@
     document.addEventListener('DOMContentLoaded',() => {
       ensureAvatarInput();
       loadPetRc8Hotfix();
+      loadPetInteractionFix();
       if(!sharedClientReady) init();
     },{once:true});
   } else {
     ensureAvatarInput();
     loadPetRc8Hotfix();
+    loadPetInteractionFix();
     if(!window.__acySupabaseClient) init();
   }
 })();
