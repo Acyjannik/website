@@ -75,13 +75,24 @@
     }
   };
 
+  const loadPetInteractionFix = () => {
+    if (!/\/pet\.html$/i.test(location.pathname)) return;
+    if (document.getElementById('acy-v19-pet-interaction-script')) return;
+    const script = document.createElement('script');
+    script.id = 'acy-v19-pet-interaction-script';
+    script.src = '/v19-pet-interaction-fix.js?v=19110';
+    script.async = false;
+    document.head.appendChild(script);
+  };
+
   const install = () => {
     lockVersionBadge();
     installStaffCenterNav();
-    // One delayed pass catches legacy badges or navigation injected by deferred scripts.
+    loadPetInteractionFix();
     setTimeout(() => {
       lockVersionBadge();
       installStaffCenterNav();
+      loadPetInteractionFix();
     }, 1200);
 
     if (typeof window.petLifeRpc === 'function' && !window.__acyPetLifeRpcRefreshPatched) {
