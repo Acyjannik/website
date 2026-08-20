@@ -75,12 +75,38 @@
     }
   };
 
+  const syncFeedAvailability = async () => {
+    const buttons = [...document.querySelectorAll('.pet-action-btn[data-pet-action="feed"]')];
+    const client = window.__acySupabaseClient;
+    if (!buttons.length || !client?.rpc) return;
+    try {
+      const { data, error } = await client.rpc('get_club_pet');
+      if (error || !data) return;
+      const full = Number(data.hunger) >= 100;
+      buttons.forEach(button => {
+        button.disabled = full;
+        button.setAttribute('aria-disabled', String(full));
+        button.title = full ? 'Dein Tier ist bereits satt.' : 'Futter auswählen';
+        const label = button.querySelector('strong') || button;
+        if (!button.dataset.acyOriginalFeedLabel) button.dataset.acyOriginalFeedLabel = label.textContent || '🍖 Füttern';
+        label.textContent = full ? '🍖 Satt' : button.dataset.acyOriginalFeedLabel;
+      });
+      if (full) {
+        const status = document.getElementById('pet-life-status') || document.getElementById('pet-status');
+        if (status) {
+          status.textContent = '🐾 Dein Tier ist bereits satt. Es braucht gerade kein Futter.';
+          status.className = 'club-auth-status';
+        }
+      }
+    } catch {}
+  };
+
   const loadPetInteractionFix = () => {
-    if (!/\/pet\.html$/i.test(location.pathname)) return;
+    if (!/\/(pet\.html|club-profile\.html)$/i.test(location.pathname)) return;
     if (document.getElementById('acy-v19-pet-interaction-script')) return;
     const script = document.createElement('script');
     script.id = 'acy-v19-pet-interaction-script';
-    script.src = '/v19-pet-interaction-fix.js?v=19110';
+    script.src = '/v19-pet-interaction-fix.js?v=19122';
     script.async = false;
     document.head.appendChild(script);
   };
@@ -89,10 +115,12 @@
     lockVersionBadge();
     installStaffCenterNav();
     loadPetInteractionFix();
+    void syncFeedAvailability();
     setTimeout(() => {
       lockVersionBadge();
       installStaffCenterNav();
       loadPetInteractionFix();
+      void syncFeedAvailability();
     }, 1200);
 
     if (typeof window.petLifeRpc === 'function' && !window.__acyPetLifeRpcRefreshPatched) {
@@ -103,6 +131,7 @@
           typeof window.loadPetLife === 'function' ? window.loadPetLife() : Promise.resolve(),
           typeof window.loadQuests === 'function' ? window.loadQuests() : Promise.resolve()
         ]);
+        void syncFeedAvailability();
         return result;
       };
       window.__acyPetLifeRpcRefreshPatched = true;
@@ -116,6 +145,7 @@
           typeof window.loadPetLife === 'function' ? window.loadPetLife() : Promise.resolve(),
           typeof window.loadQuests === 'function' ? window.loadQuests() : Promise.resolve()
         ]);
+        void syncFeedAvailability();
         return result;
       };
       window.__acyPerformPetActionRefreshPatched = true;
