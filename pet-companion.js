@@ -35,7 +35,7 @@
     return new Promise(resolve => {
       const script=document.createElement('script');
       script.id='acy-v19-pet-interaction-script';
-      script.src='/v19-pet-interaction-fix.js?v=19121';
+      script.src='/v19-pet-interaction-fix.js?v=19122';
       script.async=false;
       script.addEventListener('load',resolve,{once:true});
       script.addEventListener('error',resolve,{once:true});
@@ -107,10 +107,12 @@
   if(document.readyState==='loading'){
     document.addEventListener('DOMContentLoaded',() => {
       ensureAvatarInput();
-      if(!sharedClientReady) init();
+      // Always initialize the interaction layer, even if another script already created the shared client.
+      init();
     },{once:true});
   } else {
     ensureAvatarInput();
-    if(!window.__acySupabaseClient) init();
+    // Do not gate the interaction layer on the shared Supabase client.
+    init();
   }
 })();
