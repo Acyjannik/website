@@ -1,9 +1,50 @@
 /* ACY Pet refresh compatibility fix.
  * Loaded after club-profile.js so successful Pet Life actions always re-read
  * the canonical hub state and refresh quest progress in the visible UI.
+ *
+ * V19 RELEASE LOCK: one visible version marker, without a DOM observer loop.
  */
 (() => {
+  const VERSION = 'V19.0.0 · RC11';
+
+  const lockVersionBadge = () => {
+    const selectors = [
+      '#acy-build-marker', '#acy-v19-rc6-badge', '#acy-dev-version-badge',
+      '#acy-v189-version-badge', '#acy-v19-rc-badge', '#acy-v19-rc-badge-v2',
+      '#acy-v19-rc-safe-badge', '#acy-v19-rc3-badge', '#acy-v19-rc5-badge',
+      '#acy-canonical-version-badge', '#acy-v19-canonical-version',
+      '.streamer-version', '[data-acy-version-badge]'
+    ];
+    document.querySelectorAll(selectors.join(',')).forEach(el => el.remove());
+
+    document.querySelectorAll('body *').forEach(el => {
+      if (el.children.length) return;
+      const text = (el.textContent || '').replace(/\s+/g, ' ').trim();
+      if (/^V(?:18|19)\.[0-9.]+\s*[·•]\s*(?:DEV|RC\d+|RELEASE)$/i.test(text)) el.remove();
+    });
+
+    let badge = document.getElementById('acy-v19-release-version');
+    if (!badge) {
+      badge = document.createElement('div');
+      badge.id = 'acy-v19-release-version';
+      badge.setAttribute('aria-hidden', 'true');
+      document.body.appendChild(badge);
+    }
+    badge.textContent = VERSION;
+    badge.style.cssText = [
+      'position:fixed','top:max(8px,env(safe-area-inset-top))','right:10px','z-index:13050',
+      'padding:7px 11px','border:1px solid rgba(180,108,255,.42)','border-radius:999px',
+      'background:rgba(10,9,15,.95)','backdrop-filter:blur(14px)','color:#f7f3ff',
+      'font:800 11px/1.1 system-ui,sans-serif','letter-spacing:.04em','pointer-events:none',
+      'white-space:nowrap','box-shadow:0 8px 30px rgba(0,0,0,.28)'
+    ].join(';');
+  };
+
   const install = () => {
+    lockVersionBadge();
+    // One delayed pass catches legacy badges injected by deferred scripts.
+    setTimeout(lockVersionBadge, 1200);
+
     if (typeof window.petLifeRpc === 'function' && !window.__acyPetLifeRpcRefreshPatched) {
       const originalPetLifeRpc = window.petLifeRpc;
       window.petLifeRpc = async function patchedPetLifeRpc(fn, args = {}, success = 'Erledigt. 🐾') {
