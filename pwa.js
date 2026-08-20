@@ -150,7 +150,76 @@ async function unsubscribeAcyPush(){
   updatePwaUi();
 }
 
+function movePushCardIntoClub(){
+  const card=document.getElementById('acy-mobile-app-card');
+  const dashboard=document.querySelector('.member-dashboard');
+  if(!card || !dashboard || card.dataset.acyMoved==='1')return;
+  card.dataset.acyMoved='1';
+  card.classList.add('acy-push-setup-visible');
+  dashboard.insertBefore(card,dashboard.firstElementChild || null);
+}
+
+function updatePushCardCopy(state,pushSub,permission){
+  const card=document.getElementById('acy-mobile-app-card');
+  if(!card)return;
+  const title=card.querySelector('h3');
+  const text=card.querySelector('.push-pwa-copy p');
+  const installBtn=document.getElementById('acy-install-pwa');
+  const pushBtn=document.getElementById('acy-enable-push');
+  const status=document.getElementById('acy-pwa-status');
+  const hint=document.getElementById('acy-pwa-hint');
+  const eyebrow=card.querySelector('.eyebrow');
+
+  card.hidden=false;
+  card.removeAttribute('aria-hidden');
+
+  if(pushSub){
+    if(eyebrow)eyebrow.textContent='ACY MOBILE · AKTIV';
+    if(title)title.textContent='🔔 Push ist aktiv';
+    if(text)text.textContent='Du bekommst wichtige ACY-Club-Benachrichtigungen direkt auf dieses Gerät.';
+    if(status)status.textContent='✅ Benachrichtigungen sind aktiviert.';
+    if(hint)hint.textContent='Du kannst diese Einstellung jederzeit im Bereich Benachrichtigungen ändern.';
+    if(installBtn)installBtn.hidden=true;
+    if(pushBtn){pushBtn.textContent='✅ Push ist aktiv';pushBtn.disabled=true;}
+    card.classList.add('acy-push-setup-complete');
+    return;
+  }
+
+  card.classList.remove('acy-push-setup-complete');
+  if(eyebrow)eyebrow.textContent='ACY MOBILE · WICHTIG';
+  if(title)title.textContent=state.ios && !state.standalone ? '📱 ACY als App installieren' : '🔔 Push-Benachrichtigungen aktivieren';
+  if(text)text.textContent=state.ios && !state.standalone
+    ? 'Installiere ACY zuerst auf deinem Home-Bildschirm. Danach kannst du Push-Benachrichtigungen aktivieren.'
+    : 'Verpasse keine Live-Alerts, Events, Daily-Serien und wichtigen Club-Nachrichten.';
+
+  if(installBtn){
+    installBtn.hidden=state.standalone;
+    installBtn.disabled=false;
+    installBtn.textContent=state.canPrompt ? '📱 ACY installieren' : '📱 Installationshilfe';
+  }
+  if(pushBtn){
+    pushBtn.hidden=false;
+    pushBtn.disabled=false;
+    pushBtn.textContent=state.ios && !state.standalone ? '🔔 Danach Push aktivieren' : '🔔 Push aktivieren';
+  }
+  if(status){
+    status.textContent=permission==='denied'
+      ? '⚠️ Benachrichtigungen sind im Browser blockiert. Bitte in den Geräteeinstellungen erlauben.'
+      : state.ios && !state.standalone
+        ? '1. App installieren  →  2. Push aktivieren'
+        : 'Noch nicht aktiviert.';
+  }
+  if(hint){
+    hint.textContent=state.ios && !state.standalone
+      ? 'iPhone: Teilen → Zum Home-Bildschirm → Hinzufügen. Anschließend diese Seite in der ACY-App öffnen.'
+      : state.canPrompt
+        ? 'Dein Browser kann ACY direkt als App installieren.'
+        : 'Du kannst ACY wie eine App auf den Startbildschirm installieren.';
+  }
+}
+
 async function updatePwaUi(){
+  movePushCardIntoClub();
   const installBtn=document.getElementById('acy-install-pwa');
   const pushBtn=document.getElementById('acy-enable-push');
   const status=document.getElementById('acy-pwa-status');
@@ -161,27 +230,26 @@ async function updatePwaUi(){
   const registration=await navigator.serviceWorker?.getRegistration?.('/');
   const pushSub=registration ? await registration.pushManager?.getSubscription?.() : null;
 
-  if(installBtn){
-    installBtn.textContent=state.standalone ? '✅ ACY ist installiert' : '📱 ACY installieren';
+  updatePushCardCopy(state,pushSub,permission);
+
+  if(installBtn && !pushSub){
+    installBtn.textContent=state.standalone ? '✅ ACY ist installiert' : (state.canPrompt ? '📱 ACY installieren' : '📱 Installationshilfe');
     installBtn.disabled=state.standalone;
-    installBtn.hidden=state.standalone;
   }
-  if(pushBtn){
-    pushBtn.textContent=pushSub ? '🔔 Push ist aktiv' : '🔔 Push-Benachrichtigungen aktivieren';
-    pushBtn.classList.toggle('is-enabled',!!pushSub);
+  if(pushBtn && pushSub){
+    pushBtn.textContent='🔔 Push ist aktiv';
+    pushBtn.classList.add('is-enabled');
   }
-  if(status){
-    status.textContent=pushSub
-      ? 'Push-Benachrichtigungen sind auf diesem Gerät aktiv.'
-      : permission==='denied'
-        ? 'Benachrichtigungen sind im Browser blockiert.'
-        : state.ios && !state.standalone
-          ? 'Auf iPhone zuerst zum Home-Bildschirm hinzufügen.'
-          : 'Noch nicht aktiviert.';
+  if(status && !pushSub){
+    status.textContent=permission==='denied'
+      ? '⚠️ Benachrichtigungen sind im Browser blockiert. Bitte in den Geräteeinstellungen erlauben.'
+      : state.ios && !state.standalone
+        ? '1. App installieren  →  2. Push aktivieren'
+        : 'Noch nicht aktiviert.';
   }
-  if(hint){
+  if(hint && !pushSub){
     hint.textContent=state.ios && !state.standalone
-      ? 'iPhone: Teilen → Zum Home-Bildschirm → Hinzufügen.'
+      ? 'iPhone: Teilen → Zum Home-Bildschirm → Hinzufügen. Anschließend diese Seite in der ACY-App öffnen.'
       : state.canPrompt
         ? 'Dein Browser kann ACY direkt als App installieren.'
         : 'Du kannst ACY wie eine App auf den Startbildschirm installieren.';
@@ -244,6 +312,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     if(existing && Notification.permission==='granted'){
       await syncAcyPushSubscription(existing);
     }
+    updatePwaUi();
   }).catch(()=>{});
   const petFix=document.createElement('script');
   petFix.src='/club-pet-refresh-fix.js?v=1.0.1';
