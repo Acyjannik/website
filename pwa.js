@@ -225,7 +225,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   // club-profile.js is deferred, so DOMContentLoaded runs after its function
   // declarations have been installed. Load the additive Pet refresh patch now.
   const petFix=document.createElement('script');
-  petFix.src='/club-pet-refresh-fix.js?v=1.0.0';
+  petFix.src='/club-pet-refresh-fix.js?v=1.0.1';
   petFix.async=false;
   document.head.appendChild(petFix);
   setTimeout(updatePwaUi,250);
