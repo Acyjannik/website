@@ -57,7 +57,6 @@
       .acy-food-choice-qty{min-width:30px;padding:5px 7px;border-radius:999px;background:rgba(168,85,247,.12);color:#e9d5ff;font-size:11px;font-weight:900;text-align:center}
       .acy-food-empty{padding:18px;border:1px dashed rgba(255,255,255,.12);border-radius:16px;color:#a1a1aa;text-align:center;font-size:13px}
 
-      /* RC12: rewards and shop are separate, so closing the shop can never close rewards. */
       #pet-rewards-panel{margin-top:8px}
       #pet-shop-panel{margin-top:8px;border-color:rgba(180,108,255,.30)!important;background:linear-gradient(135deg,rgba(168,85,247,.075),rgba(255,255,255,.018))!important}
       #pet-shop-panel > summary{min-height:72px!important;padding:17px 20px!important}
@@ -89,7 +88,7 @@
           <div><h3 id="acy-food-picker-title">🍖 Futter auswählen</h3><p>Wähle genau das Futter aus deinem Inventar, das dein Tier bekommen soll.</p></div>
           <button class="button button-secondary acy-food-picker-close" type="button" aria-label="Futterauswahl schließen">×</button>
         </div>
-        <div class="acy-food-picker-grid" id="acy-food-picker-grid"></div>
+        <div class="acy-food-picker-grid" id="acy-pet-food-picker-grid"></div>
       </div>`;
     document.body.appendChild(picker);
     picker.addEventListener('click', event => {
@@ -114,8 +113,10 @@
     button.disabled = true;
     button.querySelector('.acy-food-choice-qty')?.replaceChildren(document.createTextNode('…'));
     try {
+      const itemKey = String(item?.key || item?.item_key || '').trim();
+      if (!itemKey) throw new Error('Futter-Artikel konnte nicht eindeutig bestimmt werden.');
       const client = await getClient();
-      const { data, error } = await client.rpc('use_pet_item', { p_item_key: item.key });
+      const { data, error } = await client.rpc('use_pet_item', { p_item_key: itemKey });
       if (error) throw error;
       if (data?.pet && typeof window.renderPet === 'function') window.renderPet(data.pet);
       if (data?.hub && typeof window.renderPetLife === 'function') window.renderPetLife(data.hub);
@@ -178,9 +179,7 @@
     if (actions) actions.removeChild(shopButton);
 
     const summary = rewardsDetails.querySelector(':scope > summary');
-    if (summary) {
-      summary.innerHTML = '🎁 Belohnungen <b>⌄</b>';
-    }
+    if (summary) summary.innerHTML = '🎁 Belohnungen <b>⌄</b>';
     rewardsDetails.id = 'pet-rewards-panel';
 
     const shopDetails = document.createElement('details');
@@ -251,7 +250,10 @@
     ensurePicker();
     separateShopFromRewards();
 
-    document.addEventListener('click', event => {
+    // Window capture runs before legacy document/body handlers. This prevents the old
+    // RC9/RC10 feed handlers from calling club_pet_action('feed'), which the database
+    // intentionally rejects because feeding must use an inventory item.
+    window.addEventListener('click', event => {
       const feed = event.target.closest('.pet-action-btn[data-pet-action="feed"]');
       if (feed) {
         event.preventDefault();
