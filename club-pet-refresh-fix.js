@@ -40,10 +40,49 @@
     ].join(';');
   };
 
+  const installStaffCenterNav = () => {
+    const clubPath = /\/club-profile\.html$/i.test(location.pathname);
+    if (!clubPath) return;
+
+    const nav = document.querySelector('.member-section-nav');
+    if (!nav) return;
+
+    const legacy = [...nav.querySelectorAll('a,button')].find(el => {
+      const text = (el.textContent || '').replace(/\s+/g, ' ').trim();
+      const href = (el.getAttribute('href') || '').toLowerCase();
+      return /admin\s*\/\s*mod|admin\s*center|mod\s*center/i.test(text)
+        || href.endsWith('/admin.html')
+        || href.endsWith('/mod.html');
+    });
+
+    if (legacy) {
+      legacy.textContent = '🛠️ Staff Center';
+      legacy.setAttribute('href', '/staff-center.html');
+      legacy.hidden = false;
+      legacy.removeAttribute('id');
+      legacy.classList.add('staff-center-nav-link');
+      legacy.dataset.acyStaffCenter = '1';
+      return;
+    }
+
+    if (!nav.querySelector('[data-acy-staff-center]')) {
+      const link = document.createElement('a');
+      link.href = '/staff-center.html';
+      link.textContent = '🛠️ Staff Center';
+      link.className = 'staff-center-nav-link';
+      link.dataset.acyStaffCenter = '1';
+      nav.appendChild(link);
+    }
+  };
+
   const install = () => {
     lockVersionBadge();
-    // One delayed pass catches legacy badges injected by deferred scripts.
-    setTimeout(lockVersionBadge, 1200);
+    installStaffCenterNav();
+    // One delayed pass catches legacy badges or navigation injected by deferred scripts.
+    setTimeout(() => {
+      lockVersionBadge();
+      installStaffCenterNav();
+    }, 1200);
 
     if (typeof window.petLifeRpc === 'function' && !window.__acyPetLifeRpcRefreshPatched) {
       const originalPetLifeRpc = window.petLifeRpc;
