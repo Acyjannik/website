@@ -1,7 +1,7 @@
-/* ACY V19 RC10 — canonical version, Pet DB recovery, isolated mobile navigation. */
+/* ACY V19 RC11 — canonical version, Pet DB recovery, isolated mobile navigation. */
 (() => {
   'use strict';
-  const VERSION = 'V19.0.0 · RC10';
+  const VERSION = 'V19.0.0 · RC11';
   const PET_PATH = /\/pet\.html$/i.test(location.pathname);
   const CLUB_PATH = /\/club-profile\.html$/i.test(location.pathname);
   const $ = (id) => document.getElementById(id);
@@ -11,6 +11,7 @@
       '#acy-build-marker', '#acy-v19-rc6-badge', '#acy-dev-version-badge',
       '#acy-v189-version-badge', '#acy-v19-rc-badge', '#acy-v19-rc-badge-v2',
       '#acy-v19-rc-safe-badge', '#acy-v19-rc3-badge', '#acy-v19-rc5-badge',
+      '#acy-canonical-version-badge', '#acy-v19-canonical-version',
       '.streamer-version', '[data-acy-version-badge]'
     ];
     document.querySelectorAll(selectors.join(',')).forEach(el => el.remove());
@@ -87,7 +88,6 @@
         rpcError = error;
       }
 
-      // Fallback to the own-row RLS select if the helper RPC is unavailable.
       if (rpcError) {
         const direct = await client
           .from('club_pets')
@@ -103,7 +103,7 @@
       if (!pet) setPetStatus('', '');
       return pet || null;
     } catch (error) {
-      console.warn('[RC10] Pet DB recovery:', error);
+      console.warn('[RC11] Pet DB recovery:', error);
       setPetStatus(`Tier-Datenbank konnte nicht geladen werden: ${error?.message || 'Unbekannter Fehler'}`, 'error');
       return null;
     }
@@ -118,7 +118,7 @@
       if (typeof window.renderPetLife === 'function') window.renderPetLife(data || {});
       return data || {};
     } catch (error) {
-      console.warn('[RC10] Pet Life DB recovery:', error);
+      console.warn('[RC11] Pet Life DB recovery:', error);
       const status = $('pet-life-status');
       if (status) {
         status.textContent = `Pet Life konnte nicht geladen werden: ${error?.message || 'Unbekannter Fehler'}`;
@@ -235,7 +235,6 @@
       event.stopImmediatePropagation();
       applySectionIsolation(key);
     }, true);
-    // Re-apply after the older navigation layer finishes loading.
     setTimeout(() => applySectionIsolation('home'), 900);
   }
 
