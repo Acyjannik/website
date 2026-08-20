@@ -1,6 +1,6 @@
 (() => {
   const $ = (id) => document.getElementById(id);
-  // V19 RC7: club-profile.js expects this legacy upload control even on the
+  // V19 RC10: club-profile.js expects this legacy upload control even on the
   // dedicated Pet page. Create a harmless hidden fallback before DOMContentLoaded.
   if (!document.getElementById('avatar-input')) {
     const input = document.createElement('input');
@@ -25,10 +25,10 @@
     addScript('acy-v186-mobile-pass-script','/v18.6-mobile-pass.js?v=1866');
     addScript('acy-v186-stream-center-script','/v18.6-stream-center.js?v=1867');
     addScript('acy-v187-streamer-entry-script','/v18.7-streamer-entry.js?v=1871');
-    addScript('acy-v19-safe-mobile-script','/v19-mobile-ux-safe.js?v=19009');
-    addScript('acy-v19-rc6-hotfix-script','/v19-rc6-mobile-hotfix.js?v=19009');
-    // V19 RC9: Pet runtime and ranking polish.
-    addScript('acy-v19-pet-rc8-hotfix-script','/v19-pet-rc7-hotfix.js?v=19009');
+    addScript('acy-v19-safe-mobile-script','/v19-mobile-ux-safe.js?v=19010');
+    addScript('acy-v19-rc6-hotfix-script','/v19-rc6-mobile-hotfix.js?v=19010');
+    addScript('acy-v19-pet-rc8-hotfix-script','/v19-pet-rc7-hotfix.js?v=19010');
+    addScript('acy-v19-rc10-hotfix-script','/v19-rc10-hotfix.js?v=19010');
     initNotifications();initMore();initDock();
     const mo=new MutationObserver(syncLive);['member-live-text','member-twitch-game','member-twitch-viewers','member-live-pill'].forEach(id=>{const el=$(id);el&&mo.observe(el,{childList:true,subtree:true,attributes:true,characterData:true});});
     syncLive();
