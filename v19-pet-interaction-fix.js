@@ -1,20 +1,20 @@
-/* ACY V19 RC11 — Pet interaction fix: real food picker, inventory consumption and isolated shop toggle. */
+/* ACY V19 RC12 — Pet interactions: reliable food picker + standalone shop section. */
 (() => {
   'use strict';
-
-  if (!document.body?.classList.contains('club-auth-page')) return;
 
   const $ = id => document.getElementById(id);
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#039;' }[c]));
   let clientPromise = null;
   let busy = false;
 
+  if (!document.body?.classList.contains('club-auth-page')) return;
+
   async function getClient() {
     if (window.__acySupabaseClient) return window.__acySupabaseClient;
     if (clientPromise) return clientPromise;
     clientPromise = (async () => {
       if (!window.supabase?.createClient) throw new Error('Supabase-Bibliothek fehlt.');
-      const cfg = await fetch('/api/config?_=19110', { cache: 'no-store' }).then(r => r.json());
+      const cfg = await fetch('/api/config?_=19120', { cache: 'no-store' }).then(r => r.json());
       if (!cfg?.configured || !cfg.supabaseUrl || !cfg.supabaseAnonKey) throw new Error('Supabase-Konfiguration fehlt.');
       const client = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey, {
         auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
@@ -33,11 +33,10 @@
   }
 
   function ensureStyles() {
-    if ($('acy-rc11-pet-interaction-style')) return;
+    if ($('acy-rc12-pet-interaction-style')) return;
     const style = document.createElement('style');
-    style.id = 'acy-rc11-pet-interaction-style';
+    style.id = 'acy-rc12-pet-interaction-style';
     style.textContent = `
-      /* Notification badge: keep the count fully inside its pill/circle. */
       .notification-bell{position:relative!important;overflow:visible!important;isolation:isolate}
       .notification-bell .notification-count{position:absolute!important;top:-5px!important;right:-5px!important;z-index:5!important;display:grid!important;place-items:center!important;min-width:18px!important;height:18px!important;padding:0 4px!important;box-sizing:border-box!important;border-radius:999px!important;line-height:1!important;font-size:10px!important;font-weight:900!important;white-space:nowrap!important;overflow:visible!important;transform:none!important}
 
@@ -57,10 +56,22 @@
       .acy-food-choice small{display:block;margin-top:3px;color:#a1a1aa;font-size:10px;line-height:1.35}
       .acy-food-choice-qty{min-width:30px;padding:5px 7px;border-radius:999px;background:rgba(168,85,247,.12);color:#e9d5ff;font-size:11px;font-weight:900;text-align:center}
       .acy-food-empty{padding:18px;border:1px dashed rgba(255,255,255,.12);border-radius:16px;color:#a1a1aa;text-align:center;font-size:13px}
+
+      /* RC12: rewards and shop are separate, so closing the shop can never close rewards. */
+      #pet-rewards-panel{margin-top:8px}
+      #pet-shop-panel{margin-top:8px;border-color:rgba(180,108,255,.30)!important;background:linear-gradient(135deg,rgba(168,85,247,.075),rgba(255,255,255,.018))!important}
+      #pet-shop-panel > summary{min-height:72px!important;padding:17px 20px!important}
+      #pet-shop-panel > summary strong{display:block;font-size:15px}
+      #pet-shop-panel > summary small{display:block;margin-top:3px;color:#a1a1aa;font-size:11px;font-weight:500}
+      #pet-shop-panel .pet-shop-v19-wrap{padding:0 20px 20px}
+      #pet-shop-panel #pet-shop-open{width:100%;margin-bottom:10px;min-height:48px}
+      #pet-shop-panel #pet-shop{margin-top:0}
       @media(max-width:650px){
         #acy-pet-food-picker{padding:12px}
         .acy-food-picker-card{padding:16px;border-radius:20px;max-height:calc(100vh - 24px)}
         .acy-food-picker-grid{grid-template-columns:1fr}
+        #pet-shop-panel > summary{min-height:64px!important;padding:14px 16px!important}
+        #pet-shop-panel .pet-shop-v19-wrap{padding:0 16px 16px}
       }
     `;
     document.head.appendChild(style);
@@ -139,19 +150,61 @@
       }
 
       grid.innerHTML = foods.map(item => `
-        <button class="acy-food-choice" type="button" data-food-key="${esc(item.key)}">
+        <button class="acy-food-choice" type="button" data-food-key="${esc(item.key || item.item_key)}">
           <span class="acy-food-choice-icon">${esc(item.icon || '🍖')}</span>
           <span><strong>${esc(item.name)}</strong><small>+${Number(item.hunger || 0)} Hunger${Number(item.happiness || 0) ? ` · +${Number(item.happiness)} Laune` : ''}${Number(item.energy || 0) ? ` · ${Number(item.energy) > 0 ? '+' : ''}${Number(item.energy)} Energie` : ''}</small></span>
           <span class="acy-food-choice-qty">×${Number(item.quantity)}</span>
         </button>`).join('');
 
       grid.querySelectorAll('[data-food-key]').forEach(button => {
-        const item = foods.find(entry => String(entry.key) === String(button.dataset.foodKey));
-        if (item) button.addEventListener('click', () => useFood(item, button), { once: true });
+        const item = foods.find(entry => String(entry.key || entry.item_key) === String(button.dataset.foodKey));
+        if (item) button.addEventListener('click', () => useFood({ ...item, key: item.key || item.item_key }, button), { once: true });
       });
     } catch (error) {
       grid.innerHTML = `<div class="acy-food-empty">${esc(error?.message || 'Inventar konnte nicht geladen werden.')}</div>`;
     }
+  }
+
+  function separateShopFromRewards() {
+    const shopButton = $('pet-shop-open');
+    const shopBox = $('pet-shop');
+    if (!shopButton || !shopBox) return;
+    if ($('pet-shop-panel')) return;
+
+    const rewardsDetails = shopButton.closest('details.pet-life-fold');
+    if (!rewardsDetails) return;
+
+    const actions = shopButton.closest('.pet-life-actions-v17');
+    if (actions) actions.removeChild(shopButton);
+
+    const summary = rewardsDetails.querySelector(':scope > summary');
+    if (summary) {
+      summary.innerHTML = '🎁 Belohnungen <b>⌄</b>';
+    }
+    rewardsDetails.id = 'pet-rewards-panel';
+
+    const shopDetails = document.createElement('details');
+    shopDetails.className = 'pet-mobile-fold pet-life-fold pet-shop-fold-v19';
+    shopDetails.id = 'pet-shop-panel';
+    shopDetails.innerHTML = `
+      <summary>🛍️ <strong>Pet-Shop</strong><small>Futter, Boosts, Spielzeug & mehr</small><b>⌄</b></summary>
+      <div class="pet-shop-v19-wrap"></div>`;
+    rewardsDetails.after(shopDetails);
+
+    const wrap = shopDetails.querySelector('.pet-shop-v19-wrap');
+    wrap.appendChild(shopButton);
+    wrap.appendChild(shopBox);
+    shopBox.hidden = true;
+    shopButton.setAttribute('aria-expanded', 'false');
+    shopButton.textContent = '🛍️ Shop öffnen';
+
+    shopDetails.addEventListener('toggle', () => {
+      if (!shopDetails.open) {
+        shopBox.hidden = true;
+        shopButton.setAttribute('aria-expanded', 'false');
+        shopButton.textContent = '🛍️ Shop öffnen';
+      }
+    });
   }
 
   async function toggleShop(event) {
@@ -166,8 +219,7 @@
     if (!box.hidden) {
       box.hidden = true;
       button.setAttribute('aria-expanded', 'false');
-      button.textContent = '🛍️ Pet-Shop öffnen';
-      // Intentionally leave the surrounding "Belohnungen & Shop" details open.
+      button.textContent = '🛍️ Shop öffnen';
       return true;
     }
 
@@ -178,12 +230,12 @@
       const shop = Array.isArray(data?.shop) ? data.shop : [];
       box.hidden = false;
       button.setAttribute('aria-expanded', 'true');
-      button.textContent = `⌃ Pet-Shop schließen`;
+      button.textContent = '⌃ Shop schließen';
       box.innerHTML = shop.length ? shop.map(item => `
         <div class="pet-shop-item-v177">
           <span class="pet-shop-icon-v177">${esc(item.icon || '📦')}</span>
           <div><strong>${esc(item.name)}</strong><small>${esc(item.detail || '')}</small><em>${Number(item.cost || 0)} AC Coins</em></div>
-          <button class="button button-small button-secondary" type="button" data-buy-pet="${esc(item.key)}">Kaufen</button>
+          <button class="button button-small button-secondary" type="button" data-buy-pet="${esc(item.key || item.item_key)}">Kaufen</button>
         </div>`).join('') : '<div class="club-content-empty">Aktuell sind keine Shop-Artikel verfügbar.</div>';
     } catch (error) {
       box.hidden = false;
@@ -193,21 +245,25 @@
   }
 
   function bind() {
-    if (document.documentElement.dataset.acyRc11PetInteraction === '1') return;
-    document.documentElement.dataset.acyRc11PetInteraction = '1';
+    if (document.documentElement.dataset.acyRc12PetInteraction === '1') return;
+    document.documentElement.dataset.acyRc12PetInteraction = '1';
     ensureStyles();
     ensurePicker();
+    separateShopFromRewards();
 
     document.addEventListener('click', event => {
       const feed = event.target.closest('.pet-action-btn[data-pet-action="feed"]');
       if (feed) {
         event.preventDefault();
         event.stopImmediatePropagation();
-        if (!feed.disabled) openFoodPicker();
+        if (!feed.disabled) void openFoodPicker();
         return;
       }
       void toggleShop(event);
     }, true);
+
+    setTimeout(separateShopFromRewards, 250);
+    setTimeout(separateShopFromRewards, 1000);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bind, { once: true });
