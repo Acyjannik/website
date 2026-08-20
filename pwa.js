@@ -37,10 +37,20 @@ function closePwaInstallHelp(){
 }
 
 async function installAcyPwa(){
+  if(isIosDevice() && !isStandalone()){
+    openPwaInstallHelp();
+    return;
+  }
   if(deferredPwaInstallPrompt){
-    deferredPwaInstallPrompt.prompt();
-    try{ await deferredPwaInstallPrompt.userChoice; }catch{}
-    deferredPwaInstallPrompt=null;
+    try{
+      deferredPwaInstallPrompt.prompt();
+      const choice=await deferredPwaInstallPrompt.userChoice;
+      deferredPwaInstallPrompt=null;
+      if(choice?.outcome!=='accepted') openPwaInstallHelp();
+    }catch(error){
+      deferredPwaInstallPrompt=null;
+      openPwaInstallHelp();
+    }
     updatePwaUi();
     return;
   }
@@ -195,7 +205,7 @@ function updatePushCardCopy(state,pushSub,permission){
   if(installBtn){
     installBtn.hidden=state.standalone;
     installBtn.disabled=false;
-    installBtn.textContent=state.canPrompt ? '📱 ACY installieren' : '📱 Installationshilfe';
+    installBtn.textContent=state.ios && !state.standalone ? '📱 Installationshilfe öffnen' : (state.canPrompt ? '📱 ACY installieren' : '📱 Installationshilfe');
   }
   if(pushBtn){
     pushBtn.hidden=false;
@@ -233,7 +243,7 @@ async function updatePwaUi(){
   updatePushCardCopy(state,pushSub,permission);
 
   if(installBtn && !pushSub){
-    installBtn.textContent=state.standalone ? '✅ ACY ist installiert' : (state.canPrompt ? '📱 ACY installieren' : '📱 Installationshilfe');
+    installBtn.textContent=state.standalone ? '✅ ACY ist installiert' : (state.ios && !state.standalone ? '📱 Installationshilfe öffnen' : (state.canPrompt ? '📱 ACY installieren' : '📱 Installationshilfe'));
     installBtn.disabled=state.standalone;
   }
   if(pushBtn && pushSub){
