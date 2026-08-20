@@ -22,15 +22,29 @@ export async function sendPushToUser({supabaseUrl,serviceKey,userId,title,body,u
     for(const sub of subs){
       try{
         if(!sub.endpoint||!sub.p256dh||!sub.auth){result.failed++;continue;}
+        const relativeUrl=String(url||'/club-profile.html').slice(0,500);
+        const absoluteUrl=relativeUrl.startsWith('http') ? relativeUrl : `${String(process.env.PUBLIC_SITE_URL||'https://acyjannik.de').replace(/\/$/,'')}${relativeUrl.startsWith('/')?'':'/'}${relativeUrl}`;
+        const safeTitle=String(title||'ACY Club').slice(0,120);
+        const safeBody=String(body||'').slice(0,300);
+        const safeTag=String(tag||'acy-club').slice(0,80);
         await webpush.sendNotification(
           {endpoint:sub.endpoint,keys:{p256dh:sub.p256dh,auth:sub.auth}},
           JSON.stringify({
-            title:String(title||'ACY Club').slice(0,120),
-            body:String(body||'').slice(0,300),
-            url:String(url||'/club-profile.html').slice(0,500),
+            // WebKit Declarative Web Push. Newer iOS can display this directly,
+            // while the service worker below remains the backwards-compatible path.
+            web_push:8030,
+            notification:{
+              title:safeTitle,
+              body:safeBody,
+              navigate:absoluteUrl,
+              silent:false
+            },
+            title:safeTitle,
+            body:safeBody,
+            url:absoluteUrl,
             icon:'/icons/acy-192.png',
             badge:'/icons/acy-192.png',
-            tag:String(tag||'acy-club').slice(0,80)
+            tag:safeTag
           })
         );
         result.sent++;
@@ -42,8 +56,6 @@ export async function sendPushToUser({supabaseUrl,serviceKey,userId,title,body,u
       }
     }
   }catch(error){
-    // Push is a best-effort channel. Never let one network/subscription failure
-    // turn the entire admin greeting endpoint into HTTP 500.
     result.failed=Math.max(result.failed,1);
     console.error('[ACY Push] delivery failed:',error?.message||error);
   }
