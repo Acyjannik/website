@@ -34,3 +34,4 @@
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
+// Rollback checkpoint: keep the known-good RC10 runtime while V19 is repaired.
