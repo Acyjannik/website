@@ -88,6 +88,23 @@ async function loadPushConfig(){
   }catch{return {publicKey:''};}
 }
 
+async function syncAcyPushSubscription(subscription){
+  try{
+    if(!subscription)return false;
+    const token=await getAcyAccessToken();
+    if(!token)return false;
+    const response=await fetch('/api/push-subscribe',{
+      method:'POST',
+      headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},
+      body:JSON.stringify({subscription:subscription.toJSON(),userAgent:navigator.userAgent})
+    });
+    return response.ok;
+  }catch(error){
+    console.warn('ACY Push: subscription sync failed',error);
+    return false;
+  }
+}
+
 async function subscribeAcyPush(){
   await loadPushConfig();
   if(!supportsPush()) throw new Error('Push-Benachrichtigungen werden auf diesem Gerät nicht unterstützt.');
@@ -110,18 +127,11 @@ async function subscribeAcyPush(){
     });
   }
 
-  const token=await getAcyAccessToken();
-  if(!token)throw new Error('Deine ACY-Sitzung konnte für Push nicht gelesen werden. Bitte einmal ausloggen und erneut einloggen.');
-  const response=await fetch('/api/push-subscribe',{
-    method:'POST',
-    headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},
-    body:JSON.stringify({subscription:subscription.toJSON(),userAgent:navigator.userAgent})
-  });
-  const payload=await response.json().catch(()=>({}));
-  if(!response.ok)throw new Error(payload.error||'Push-Abo konnte nicht gespeichert werden.');
+  const synced=await syncAcyPushSubscription(subscription);
+  if(!synced)throw new Error('Push-Abo konnte nicht gespeichert werden.');
 
   updatePwaUi();
-  return payload;
+  return {ok:true,saved:true};
 }
 
 async function unsubscribeAcyPush(){
@@ -174,7 +184,7 @@ async function updatePwaUi(){
       ? 'iPhone: Teilen → Zum Home-Bildschirm → Hinzufügen.'
       : state.canPrompt
         ? 'Dein Browser kann ACY direkt als App installieren.'
-        : 'Du kannst ACY wie eine App auf dem Startbildschirm installieren.';
+        : 'Du kannst ACY wie eine App auf den Startbildschirm installieren.';
   }
 }
 
@@ -203,7 +213,14 @@ window.addEventListener('beforeinstallprompt',e=>{
 window.addEventListener('appinstalled',()=>{deferredPwaInstallPrompt=null;updatePwaUi();});
 document.addEventListener('DOMContentLoaded',()=>{
   hidePublicPrivilegedLinks();
-  document.getElementById('acy-install-pwa')?.addEventListener('click',installAcyPwa);
+  document.getElementById('acy-install-pwa')?.addEventListener('click',async()=>{
+    try{
+      await installAcyPwa();
+    }catch(error){
+      const status=document.getElementById('acy-pwa-status');
+      if(status)status.textContent=error.message||'Installation konnte nicht gestartet werden.';
+    }
+  });
   document.getElementById('acy-enable-push')?.addEventListener('click',async()=>{
     const btn=document.getElementById('acy-enable-push');
     try{
@@ -221,9 +238,13 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('acy-pwa-install-overlay')?.addEventListener('click',e=>{
     if(e.target.id==='acy-pwa-install-overlay')closePwaInstallHelp();
   });
-  if('serviceWorker' in navigator)navigator.serviceWorker.register('/service-worker.js?v=17.6.0',{scope:'/'}).catch(()=>{});
-  // club-profile.js is deferred, so DOMContentLoaded runs after its function
-  // declarations have been installed. Load the additive Pet refresh patch now.
+  if('serviceWorker' in navigator)navigator.serviceWorker.register('/service-worker.js?v=17.6.0',{scope:'/'}).then(async registration=>{
+    const ready=await navigator.serviceWorker.ready;
+    const existing=ready.pushManager.getSubscription ? await ready.pushManager.getSubscription() : null;
+    if(existing && Notification.permission==='granted'){
+      await syncAcyPushSubscription(existing);
+    }
+  }).catch(()=>{});
   const petFix=document.createElement('script');
   petFix.src='/club-pet-refresh-fix.js?v=1.0.1';
   petFix.async=false;
