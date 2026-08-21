@@ -9,43 +9,30 @@
   function ensureAvatarInput(){
     if(document.getElementById('avatar-input')) return;
     const input=document.createElement('input');
-    input.id='avatar-input';
-    input.type='file';
-    input.accept='image/jpeg,image/png,image/webp';
-    input.hidden=true;
+    input.id='avatar-input'; input.type='file'; input.accept='image/jpeg,image/png,image/webp'; input.hidden=true;
     (document.body||document.documentElement).appendChild(input);
   }
 
-  function loadPetRc8Hotfix(){
-    if(document.getElementById('acy-v19-pet-rc8-script')) return Promise.resolve();
-    return new Promise(resolve => {
-      const script=document.createElement('script');
-      script.id='acy-v19-pet-rc8-script';
-      script.src='/v19-pet-rc8-hotfix.js?v=19008';
-      script.async=false;
-      script.addEventListener('load',resolve,{once:true});
-      script.addEventListener('error',resolve,{once:true});
+  function loadScriptOnce(id,src){
+    if(document.getElementById(id)) return Promise.resolve();
+    return new Promise(resolve=>{
+      const script=document.createElement('script'); script.id=id; script.src=src; script.async=false;
+      script.addEventListener('load',resolve,{once:true}); script.addEventListener('error',resolve,{once:true});
       document.head.appendChild(script);
     });
   }
 
-  function loadPetInteractionFix(){
-    if(!/\/(pet\.html|club-profile\.html)$/i.test(location.pathname)) return Promise.resolve();
-    if(document.getElementById('acy-v19-pet-interaction-script')) return Promise.resolve();
-    return new Promise(resolve => {
-      const script=document.createElement('script');
-      script.id='acy-v19-pet-interaction-script';
-      script.src='/v19-pet-interaction-fix.js?v=19122';
-      script.async=false;
-      script.addEventListener('load',resolve,{once:true});
-      script.addEventListener('error',resolve,{once:true});
-      document.head.appendChild(script);
-    });
+  async function loadPetRc8Hotfix(){ await loadScriptOnce('acy-v19-pet-rc8-script','/v19-pet-rc8-hotfix.js?v=19008'); }
+  async function loadPetInteractionFix(){
+    if(!/\/(pet\.html|club-profile\.html)$/i.test(location.pathname)) return;
+    await loadScriptOnce('acy-v19-pet-interaction-script','/v19-pet-interaction-fix.js?v=19130');
   }
+  async function loadFinalUxFix(){ await loadScriptOnce('acy-v19-final-ux-script','/v19-rc12-final-fix.js?v=19130'); }
 
   async function loadPetInteractionThenLegacy(){
     await loadPetInteractionFix();
     await loadPetRc8Hotfix();
+    await loadFinalUxFix();
   }
 
   ensureAvatarInput();
@@ -61,7 +48,6 @@
 
   async function init(){
     ensureAvatarInput();
-    // The interaction layer must finish registering before legacy RC8 handlers.
     await loadPetInteractionThenLegacy();
     if(!window.supabase?.createClient) return;
     try{
@@ -73,46 +59,18 @@
       }
       const {data}=await client.auth.getSession();
       if(!data?.session?.user) return;
-
       const {data:pet,error}=await client.rpc('get_club_pet');
-      if(error || !pet) return;
-
-      if(pet._died) return;
+      if(error || !pet || pet._died) return;
       const species=PETS[pet.species]||'Begleiter';
       const info=levelInfo(Number(pet.pet_xp||0));
       const image=`/assets/pet-${encodeURIComponent(pet.species)}.webp`;
-
       const el=document.createElement('a');
-      el.className='acy-pet-float';
-      el.href='/club-profile.html#pet-section';
-      el.setAttribute('aria-label',`Dein Begleiter ${pet.name}`);
-      el.innerHTML=`
-        <span class="acy-pet-float-art pet-effect-${info.effect}"><img src="${image}" alt=""></span>
-        <span class="acy-pet-float-copy">
-          <small>DEIN BEGLEITER · LVL ${info.level}</small>
-          <strong>${esc(pet.name)}</strong>
-          <span>${esc(species)} · ${esc(info.title)}</span>
-        </span>
-      `;
+      el.className='acy-pet-float'; el.href='/club-profile.html#pet-section'; el.setAttribute('aria-label',`Dein Begleiter ${pet.name}`);
+      el.innerHTML=`<span class="acy-pet-float-art pet-effect-${info.effect}"><img src="${image}" alt=""></span><span class="acy-pet-float-copy"><small>DEIN BEGLEITER · LVL ${info.level}</small><strong>${esc(pet.name)}</strong><span>${esc(species)} · ${esc(info.title)}</span></span>`;
       document.body.appendChild(el);
     }catch(e){console.debug('ACY pet companion unavailable',e);}
   }
 
-  let sharedClientReady = false;
-  window.addEventListener('acy:supabase-ready', () => {
-    sharedClientReady = true;
-    init();
-  }, { once: true });
-
-  if(document.readyState==='loading'){
-    document.addEventListener('DOMContentLoaded',() => {
-      ensureAvatarInput();
-      // Always initialize the interaction layer, even if another script already created the shared client.
-      init();
-    },{once:true});
-  } else {
-    ensureAvatarInput();
-    // Do not gate the interaction layer on the shared Supabase client.
-    init();
-  }
+  window.addEventListener('acy:supabase-ready',()=>init(),{once:true});
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init,{once:true}); else init();
 })();
