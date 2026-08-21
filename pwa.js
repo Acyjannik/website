@@ -1,4 +1,4 @@
-/* ACY V19.2: robust PWA install help with explicit modal forcing. */
+/* ACY V19.3: PWA install help + canonical uploaded app icon. */
 
 let deferredPwaInstallPrompt = null;
 let PUSH_PUBLIC_KEY = '';
@@ -9,8 +9,9 @@ function supportsPush(){return 'serviceWorker' in navigator && 'PushManager' in 
 function pwaInstallState(){return {standalone:isStandalone(),ios:isIosDevice(),canPrompt:!!deferredPwaInstallPrompt,supportsPush:supportsPush()};}
 
 function forceAcyIconLinks(){
-  const stamp='20260822-v2';
-  const icon192=`/icons/acy-192.png?v=${stamp}`;
+  const stamp='20260822-v5';
+  const icon192=`/icons/acy-192.png.png?v=${stamp}`;
+  const icon512=`/icons/acy-512.png.png?v=${stamp}`;
   const manifest=`/manifest.webmanifest?v=${stamp}`;
   document.querySelectorAll('link[rel="icon"],link[rel="shortcut icon"],link[rel="apple-touch-icon"]').forEach(link=>link.remove());
   const add=(rel,href,attrs={})=>{const link=document.createElement('link');link.rel=rel;link.href=href;Object.entries(attrs).forEach(([k,v])=>link.setAttribute(k,v));document.head.appendChild(link);};
