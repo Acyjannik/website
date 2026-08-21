@@ -25,9 +25,9 @@
   async function loadPetRc8Hotfix(){ await loadScriptOnce('acy-v19-pet-rc8-script','/v19-pet-rc8-hotfix.js?v=19008'); }
   async function loadPetInteractionFix(){
     if(!/\/(pet\.html|club-profile\.html)$/i.test(location.pathname)) return;
-    await loadScriptOnce('acy-v19-pet-interaction-script','/v19-pet-interaction-fix.js?v=19130');
+    await loadScriptOnce('acy-v19-pet-interaction-script','/v19-pet-interaction-fix.js?v=19131');
   }
-  async function loadFinalUxFix(){ await loadScriptOnce('acy-v19-final-ux-script','/v19-rc12-final-fix.js?v=19130'); }
+  async function loadFinalUxFix(){ await loadScriptOnce('acy-v19-final-ux-script','/v19-rc12-final-fix.js?v=19131'); }
 
   async function loadPetInteractionThenLegacy(){
     await loadPetInteractionFix();
