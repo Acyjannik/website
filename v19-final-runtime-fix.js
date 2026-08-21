@@ -48,9 +48,11 @@
       };
       modal.addEventListener('click', event => {
         if (event.target === modal || event.target.closest('.acy-v19-install-close') || event.target.closest('#acy-pwa-install-close')) close();
-        if (event.target.id === 'acy-pwa-install-overlay') close();
       });
-      modal.querySelector('#acy-pwa-install-close')?.addEventListener('click', close);
+      modal.querySelector('.acy-v19-install-close')?.addEventListener('click', event => {
+        event.preventDefault();
+        close();
+      });
     }
     return modal;
   }
@@ -63,14 +65,42 @@
   }
 
   function patchInstallHelp() {
-    window.openPwaInstallHelp = openInstallHelp;
-    document.addEventListener('click', event => {
-      const button = event.target.closest('#acy-install-pwa');
-      if (!button) return;
+    const button = $('acy-install-pwa');
+    if (!button || button.dataset.v19StableInstall === '1') return;
+    button.dataset.v19StableInstall = '1';
+    let downX = 0, downY = 0, moved = false;
+
+    button.addEventListener('touchstart', event => {
+      const t = event.touches?.[0];
+      if (!t) return;
+      downX = t.clientX; downY = t.clientY; moved = false;
+    }, { passive: true });
+
+    button.addEventListener('touchmove', event => {
+      const t = event.touches?.[0];
+      if (!t) return;
+      if (Math.hypot(t.clientX - downX, t.clientY - downY) > 10) moved = true;
+    }, { passive: true });
+
+    button.addEventListener('touchend', () => {
+      if (moved) {
+        button.dataset.v19IgnoreClick = '1';
+        window.setTimeout(() => { delete button.dataset.v19IgnoreClick; }, 350);
+      }
+    }, { passive: true });
+
+    button.addEventListener('click', event => {
+      if (button.dataset.v19IgnoreClick === '1') {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        return;
+      }
       event.preventDefault();
       event.stopImmediatePropagation();
       openInstallHelp();
     }, true);
+
+    window.openPwaInstallHelp = openInstallHelp;
   }
 
   function patchQuestLoading() {
@@ -102,20 +132,13 @@
         p_period_start: period
       });
       if (error) throw error;
-
       const total = Number(data?.total_xp);
       if (Number.isFinite(total) && typeof renderProgress === 'function') renderProgress(total);
       if (typeof playUISound === 'function') playUISound('reward');
       if (typeof triggerClubEffect === 'function') triggerClubEffect('reward', `Quest abgeschlossen! +${Number(data?.reward_xp ?? reward)} XP 🎯`);
-
-      // Give the user immediate visual confirmation. Do not make the button
-      // wait for achievements/catalog refreshes before the claim appears.
       button.textContent = '✓ Abgeholt';
       button.classList.add('quest-claim-success');
       button.setAttribute('aria-label', 'Quest abgeholt');
-
-      // Refresh the quest row next, but do not block the reward UI on unrelated
-      // background work. This removes the delayed/flickering claim feeling.
       const refresh = originalLoadQuests ? originalLoadQuests().catch(() => {}) : Promise.resolve();
       void Promise.allSettled([
         typeof checkAchievements === 'function' ? checkAchievements() : Promise.resolve(),
@@ -153,6 +176,8 @@
     ensureInstallHelp();
     patchInstallHelp();
     patchQuestClaim();
+    setTimeout(patchInstallHelp, 300);
+    setTimeout(patchInstallHelp, 1200);
     setTimeout(patchQuestLoading, 300);
     setTimeout(patchQuestLoading, 1200);
   }
