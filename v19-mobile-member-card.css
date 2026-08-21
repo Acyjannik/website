@@ -1,0 +1,112 @@
+/* ACY V19 RC11 - mobile member hero readability */
+@media (max-width:700px){
+  .member-dashboard{padding-left:12px!important;padding-right:12px!important}
+
+  .member-hero-card{
+    width:100%!important;
+    max-width:100%!important;
+    padding:28px 22px 22px!important;
+    border-radius:28px!important;
+  }
+
+  .member-hero-card .member-identity{
+    display:grid!important;
+    grid-template-columns:104px minmax(0,1fr)!important;
+    align-items:center!important;
+    gap:18px!important;
+    width:100%!important;
+  }
+
+  .member-hero-card .member-avatar-wrap{
+    width:104px!important;
+    height:104px!important;
+    min-width:104px!important;
+  }
+
+  .member-hero-card .member-identity > div:last-child{
+    min-width:0!important;
+  }
+
+  .member-hero-card .member-identity .eyebrow{
+    display:block!important;
+    margin-bottom:7px!important;
+    font-size:12px!important;
+    line-height:1.2!important;
+    letter-spacing:.16em!important;
+  }
+
+  .member-hero-card .member-identity h1{
+    margin:0!important;
+    font-size:34px!important;
+    line-height:1.02!important;
+    letter-spacing:-.055em!important;
+    white-space:normal!important;
+  }
+
+  .member-hero-card .member-identity p{
+    margin:10px 0 5px!important;
+    font-size:17px!important;
+    line-height:1.35!important;
+    color:#b7b4be!important;
+  }
+
+  .member-hero-card .member-identity small{
+    display:block!important;
+    font-size:16px!important;
+    line-height:1.25!important;
+    color:#8f8b97!important;
+  }
+
+  .member-hero-card .member-glow-title{
+    display:inline-flex!important;
+    margin-top:12px!important;
+    padding:8px 12px!important;
+    font-size:11px!important;
+    line-height:1.15!important;
+    letter-spacing:.08em!important;
+    border-radius:12px!important;
+  }
+
+  .member-hero-card .member-quick{
+    display:grid!important;
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    gap:10px!important;
+    margin-top:24px!important;
+    width:100%!important;
+  }
+
+  .member-hero-card .member-quick > div{
+    min-width:0!important;
+    min-height:92px!important;
+    padding:15px 13px!important;
+    border-radius:18px!important;
+  }
+
+  .member-hero-card .member-quick span{
+    display:block!important;
+    font-size:11px!important;
+    line-height:1.15!important;
+    letter-spacing:.1em!important;
+    white-space:normal!important;
+  }
+
+  .member-hero-card .member-quick strong{
+    display:block!important;
+    margin-top:10px!important;
+    font-size:21px!important;
+    line-height:1.05!important;
+    white-space:normal!important;
+    overflow-wrap:anywhere!important;
+  }
+}
+
+@media (max-width:390px){
+  .member-hero-card{padding:24px 16px 18px!important}
+  .member-hero-card .member-identity{grid-template-columns:88px minmax(0,1fr)!important;gap:14px!important}
+  .member-hero-card .member-avatar-wrap{width:88px!important;height:88px!important;min-width:88px!important}
+  .member-hero-card .member-identity h1{font-size:29px!important}
+  .member-hero-card .member-identity p{font-size:15px!important}
+  .member-hero-card .member-quick{gap:7px!important}
+  .member-hero-card .member-quick > div{padding:13px 9px!important;min-height:88px!important}
+  .member-hero-card .member-quick strong{font-size:18px!important}
+}
