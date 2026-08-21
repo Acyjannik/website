@@ -1,4 +1,4 @@
-/* ACY V19 RC11 — Pet interactions: reliable food picker + standalone shop section. */
+/* ACY V19 RC12 — Pet interactions: reliable food picker + standalone shop + clear full-state. */
 (() => {
   'use strict';
 
@@ -14,7 +14,7 @@
     if (clientPromise) return clientPromise;
     clientPromise = (async () => {
       if (!window.supabase?.createClient) throw new Error('Supabase-Bibliothek fehlt.');
-      const cfg = await fetch('/api/config?_=19120', { cache: 'no-store' }).then(r => r.json());
+      const cfg = await fetch('/api/config?_=19130', { cache: 'no-store' }).then(r => r.json());
       if (!cfg?.configured || !cfg.supabaseUrl || !cfg.supabaseAnonKey) throw new Error('Supabase-Konfiguration fehlt.');
       const client = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey, {
         auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
@@ -33,9 +33,9 @@
   }
 
   function ensureStyles() {
-    if ($('acy-rc11-pet-interaction-style')) return;
+    if ($('acy-rc12-pet-interaction-style')) return;
     const style = document.createElement('style');
-    style.id = 'acy-rc11-pet-interaction-style';
+    style.id = 'acy-rc12-pet-interaction-style';
     style.textContent = `
       .notification-bell{position:relative!important;overflow:visible!important;isolation:isolate}
       .notification-bell .notification-count{position:absolute!important;top:-5px!important;right:-5px!important;z-index:5!important;display:grid!important;place-items:center!important;min-width:18px!important;height:18px!important;padding:0 4px!important;box-sizing:border-box!important;border-radius:999px!important;line-height:1!important;font-size:10px!important;font-weight:900!important;white-space:nowrap!important;overflow:visible!important;transform:none!important}
@@ -49,12 +49,13 @@
       .acy-food-picker-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
       .acy-food-choice{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:10px;width:100%;padding:12px;border:1px solid rgba(255,255,255,.08);border-radius:16px;background:rgba(255,255,255,.025);color:#f7f3ff;text-align:left;cursor:pointer}
       .acy-food-choice:hover{border-color:rgba(180,108,255,.42);background:rgba(168,85,247,.08)}
-      .acy-food-choice:disabled{opacity:.55;cursor:wait}
+      .acy-food-choice:disabled{opacity:.55;cursor:not-allowed}
       .acy-food-choice-icon{font-size:25px}
       .acy-food-choice strong{display:block;font-size:13px}
       .acy-food-choice small{display:block;margin-top:3px;color:#a1a1aa;font-size:10px;line-height:1.35}
       .acy-food-choice-qty{min-width:30px;padding:5px 7px;border-radius:999px;background:rgba(168,85,247,.12);color:#e9d5ff;font-size:11px;font-weight:900;text-align:center}
       .acy-food-empty{padding:18px;border:1px dashed rgba(255,255,255,.12);border-radius:16px;color:#a1a1aa;text-align:center;font-size:13px}
+      .acy-food-full{padding:14px 16px;margin-bottom:10px;border:1px solid rgba(248,113,113,.25);border-radius:16px;background:rgba(248,113,113,.07);color:#fecaca;font-size:13px;line-height:1.45}
       #pet-rewards-panel{margin-top:8px}
       #pet-shop-panel{margin-top:8px;border-color:rgba(180,108,255,.30)!important;background:linear-gradient(135deg,rgba(168,85,247,.075),rgba(255,255,255,.018))!important}
       #pet-shop-panel > summary{min-height:72px!important;padding:17px 20px!important}
@@ -109,7 +110,9 @@
     if (busy) return;
     busy = true;
     button.disabled = true;
-    button.querySelector('.acy-food-choice-qty')?.replaceChildren(document.createTextNode('…'));
+    const qtyEl = button.querySelector('.acy-food-choice-qty');
+    const originalQty = qtyEl?.textContent || '';
+    if (qtyEl) qtyEl.textContent = '…';
     try {
       const itemKey = String(item?.key || item?.item_key || '').trim();
       if (!itemKey) throw new Error('Futter-Artikel konnte nicht eindeutig bestimmt werden.');
@@ -125,6 +128,7 @@
       status(`Füttern: ${error?.message || 'Futter konnte nicht verwendet werden.'}`, 'error');
       await refreshPet();
     } finally {
+      if (qtyEl) qtyEl.textContent = originalQty;
       busy = false;
       button.disabled = false;
     }
@@ -138,24 +142,35 @@
     grid.innerHTML = '<div class="acy-food-empty">Inventar wird geladen…</div>';
     try {
       const client = await getClient();
-      const { data, error } = await client.rpc('get_pet_life_hub');
-      if (error) throw error;
-      const foods = (Array.isArray(data?.inventory) ? data.inventory : [])
+      const [{ data: hub, error: hubError }, { data: pet, error: petError }] = await Promise.all([
+        client.rpc('get_pet_life_hub'),
+        client.rpc('get_club_pet')
+      ]);
+      if (hubError) throw hubError;
+      if (petError) throw petError;
+      const foods = (Array.isArray(hub?.inventory) ? hub.inventory : [])
         .filter(item => item?.item_type === 'food' && Number(item.quantity) > 0);
       if (!foods.length) {
         grid.innerHTML = '<div class="acy-food-empty">Du hast aktuell kein Futter im Inventar.</div>';
         return;
       }
-      grid.innerHTML = foods.map(item => `
-        <button class="acy-food-choice" type="button" data-food-key="${esc(item.key || item.item_key)}">
+
+      const full = Number(pet?.hunger ?? 0) >= 100;
+      const fullNotice = full
+        ? '<div class="acy-food-full"><strong>Dein Tier ist bereits satt.</strong><br>Füttern ist erst wieder möglich, wenn der Hunger unter 100 % gefallen ist.</div>'
+        : '';
+      grid.innerHTML = fullNotice + foods.map(item => `
+        <button class="acy-food-choice" type="button" data-food-key="${esc(item.key || item.item_key)}" ${full ? 'disabled title="Dein Tier ist bereits satt."' : ''}>
           <span class="acy-food-choice-icon">${esc(item.icon || '🍖')}</span>
           <span><strong>${esc(item.name)}</strong><small>+${Number(item.hunger || 0)} Hunger${Number(item.happiness || 0) ? ` · +${Number(item.happiness)} Laune` : ''}${Number(item.energy || 0) ? ` · ${Number(item.energy) > 0 ? '+' : ''}${Number(item.energy)} Energie` : ''}</small></span>
           <span class="acy-food-choice-qty">×${Number(item.quantity)}</span>
         </button>`).join('');
-      grid.querySelectorAll('[data-food-key]').forEach(button => {
-        const item = foods.find(entry => String(entry.key || entry.item_key) === String(button.dataset.foodKey));
-        if (item) button.addEventListener('click', () => useFood({ ...item, key: item.key || item.item_key }, button), { once: true });
-      });
+      if (!full) {
+        grid.querySelectorAll('[data-food-key]').forEach(button => {
+          const item = foods.find(entry => String(entry.key || entry.item_key) === String(button.dataset.foodKey));
+          if (item) button.addEventListener('click', () => useFood({ ...item, key: item.key || item.item_key }, button), { once: true });
+        });
+      }
     } catch (error) {
       grid.innerHTML = `<div class="acy-food-empty">${esc(error?.message || 'Inventar konnte nicht geladen werden.')}</div>`;
     }
@@ -232,8 +247,8 @@
   }
 
   function bind() {
-    if (document.documentElement.dataset.acyRc11PetInteraction === '1') return;
-    document.documentElement.dataset.acyRc11PetInteraction = '1';
+    if (document.documentElement.dataset.acyRc12PetInteraction === '1') return;
+    document.documentElement.dataset.acyRc12PetInteraction = '1';
     ensureStyles();
     ensurePicker();
     separateShopFromRewards();
