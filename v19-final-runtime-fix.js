@@ -4,7 +4,6 @@
 
   const $ = id => document.getElementById(id);
   let questClaimBusy = false;
-  let questRefreshPending = false;
   let originalLoadQuests = null;
 
   function closeNotifications() {
@@ -73,10 +72,7 @@
     if (typeof window.loadQuests !== 'function' || window.__acyQuestLoadWrapped) return;
     originalLoadQuests = window.loadQuests;
     window.loadQuests = async function wrappedQuestLoad(...args) {
-      if (questClaimBusy) {
-        questRefreshPending = true;
-        return null;
-      }
+      if (questClaimBusy) return null;
       return originalLoadQuests.apply(this, args);
     };
     window.__acyQuestLoadWrapped = true;
@@ -85,30 +81,32 @@
   async function claimQuest(button) {
     if (!button || questClaimBusy || button.dataset.claiming === '1') return;
     const key = String(button.dataset.quest || '').trim();
-    if (!key || typeof window.supabaseClient === 'undefined') return;
-    const period = typeof window.questPeriodKey === 'function' ? window.questPeriodKey(window.activeQuestTab || 'daily') : null;
+    if (!key || typeof supabaseClient === 'undefined' || !supabaseClient?.rpc) return;
+    const period = typeof questPeriodKey === 'function' ? questPeriodKey(activeQuestTab || 'daily') : null;
     if (!period) return;
 
     questClaimBusy = true;
-    questRefreshPending = false;
     button.dataset.claiming = '1';
     button.disabled = true;
     const reward = Number(button.dataset.reward || 0);
     button.textContent = 'Wird abgeholt…';
 
     try {
-      const { data, error } = await window.supabaseClient.rpc('claim_quest', {
+      const { data, error } = await supabaseClient.rpc('claim_quest', {
         p_quest_key: key,
         p_period_start: period
       });
       if (error) throw error;
 
       const total = Number(data?.total_xp);
-      if (Number.isFinite(total) && typeof window.renderProgress === 'function') window.renderProgress(total);
-      if (typeof window.playUISound === 'function') window.playUISound('reward');
-      if (typeof window.triggerClubEffect === 'function') window.triggerClubEffect('reward', `Quest abgeschlossen! +${Number(data?.reward_xp ?? reward)} XP 🎯`);
-      if (typeof window.checkAchievements === 'function') await window.checkAchievements();
-      if (typeof window.loadProgressionCatalog === 'function') await window.loadProgressionCatalog();
+      if (Number.isFinite(total) && typeof renderProgress === 'function') renderProgress(total);
+      if (typeof playUISound === 'function') playUISound('reward');
+      if (typeof triggerClubEffect === 'function') triggerClubEffect('reward', `Quest abgeschlossen! +${Number(data?.reward_xp ?? reward)} XP 🎯`);
+      if (typeof checkAchievements === 'function') await checkAchievements();
+      if (typeof loadProgressionCatalog === 'function') await loadProgressionCatalog();
+      questClaimBusy = false;
+      button.dataset.claiming = '0';
+      if (originalLoadQuests) await originalLoadQuests().catch(() => {});
     } catch (error) {
       console.warn('V19 quest claim failed:', error);
       const message = $('quest-message');
@@ -118,13 +116,7 @@
       button.textContent = `+${reward} XP abholen`;
       questClaimBusy = false;
       if (originalLoadQuests) await originalLoadQuests().catch(() => {});
-      return;
     }
-
-    questClaimBusy = false;
-    button.dataset.claiming = '0';
-    if (originalLoadQuests) await originalLoadQuests().catch(() => {});
-    questRefreshPending = false;
   }
 
   function patchQuestClaim() {
