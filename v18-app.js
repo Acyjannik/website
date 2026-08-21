@@ -17,6 +17,7 @@
   function initDock(){document.querySelectorAll('.mobile-club-dock [data-dock-key]').forEach(item=>item.addEventListener('click',()=>{if(item.dataset.dockKey==='more')return;document.querySelectorAll('.mobile-club-dock [data-dock-key]').forEach(x=>x.classList.remove('is-active'));item.classList.add('is-active');}));}
   function syncLive(){const t=$('v18-live-summary');if(!t)return;const live=$('member-live-text')?.textContent?.trim(),game=$('member-twitch-game')?.textContent?.trim(),v=$('member-twitch-viewers')?.textContent?.trim();if(/LIVE/i.test(live||'')||$('member-live-pill')?.classList.contains('is-live'))t.textContent=`LIVE${game&&game!=='–'?` · ${game}`:''}${v&&v!=='–'?` · ${v} Zuschauer`:''}`;else if(live)t.textContent='Offline · beim nächsten Stream wieder dabei';}
   function init(){
+    addScript('acy-v192-pwa-script','/pwa.js?v=1920');
     addScript('acy-v182-polish-script','/v18.2-app-polish.js?v=1821');
     addScript('acy-v186-navigation-script','/v18.6-navigation-isolated.js?v=1863');
     addScript('acy-v186-global-audit-script','/v18.6-global-audit.js?v=1865');
