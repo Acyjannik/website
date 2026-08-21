@@ -1,4 +1,4 @@
-/* ACY V19 final runtime fixes: notifications, PWA help and reliable quest claiming. */
+/* ACY V19.1 runtime fixes: notification close, reliable PWA help and immediate quest claims. */
 (() => {
   'use strict';
 
@@ -20,7 +20,7 @@
       const clear = event.target.closest('#notification-clear-all');
       const read = event.target.closest('#notification-read-all');
       if (!clear && !read) return;
-      setTimeout(closeNotifications, 250);
+      setTimeout(closeNotifications, 100);
     }, true);
   }
 
@@ -36,17 +36,21 @@
     if (!document.getElementById('acy-v19-install-style')) {
       const style = document.createElement('style');
       style.id = 'acy-v19-install-style';
-      style.textContent = `#acy-pwa-install-modal[hidden]{display:none!important}#acy-pwa-install-modal{position:fixed;inset:0;z-index:30000;background:rgba(4,3,8,.82);backdrop-filter:blur(16px);display:grid;place-items:center;padding:18px}.acy-v19-install-overlay{width:100%;display:grid;place-items:center}.acy-v19-install-card{position:relative;width:min(520px,100%);padding:26px;border:1px solid rgba(180,108,255,.38);border-radius:24px;background:#111018;color:#f7f3ff;box-shadow:0 30px 100px rgba(0,0,0,.6)}.acy-v19-install-card h2{margin:6px 0 12px}.acy-v19-install-card p,.acy-v19-install-card li{color:#c8c3d2;line-height:1.5}.acy-v19-install-card li{margin:9px 0}.acy-v19-install-close{position:absolute;right:14px;top:14px;width:38px;height:38px;border:1px solid rgba(255,255,255,.12);border-radius:50%;background:#1b1822;color:#fff;font-size:24px;cursor:pointer}`;
+      style.textContent = `#acy-pwa-install-modal[hidden]{display:none!important}#acy-pwa-install-modal{position:fixed!important;inset:0!important;z-index:30000!important;background:rgba(4,3,8,.82)!important;backdrop-filter:blur(16px);display:grid!important;place-items:center!important;padding:18px!important}.acy-v19-install-overlay{width:100%;display:grid;place-items:center}.acy-v19-install-card{position:relative;width:min(520px,100%);padding:26px;border:1px solid rgba(180,108,255,.38);border-radius:24px;background:#111018;color:#f7f3ff;box-shadow:0 30px 100px rgba(0,0,0,.6)}.acy-v19-install-card h2{margin:6px 0 12px}.acy-v19-install-card p,.acy-v19-install-card li{color:#c8c3d2;line-height:1.5}.acy-v19-install-card li{margin:9px 0}.acy-v19-install-close{position:absolute;right:14px;top:14px;width:38px;height:38px;border:1px solid rgba(255,255,255,.12);border-radius:50%;background:#1b1822;color:#fff;font-size:24px;cursor:pointer}`;
       document.head.appendChild(style);
     }
     if (!modal.dataset.v19Bound) {
       modal.dataset.v19Bound = '1';
+      const close = () => {
+        modal.hidden = true;
+        modal.style.removeProperty('display');
+        document.body.classList.remove('pwa-modal-open');
+      };
       modal.addEventListener('click', event => {
-        if (event.target === modal || event.target.closest('.acy-v19-install-close')) {
-          modal.hidden = true;
-          document.body.classList.remove('pwa-modal-open');
-        }
+        if (event.target === modal || event.target.closest('.acy-v19-install-close') || event.target.closest('#acy-pwa-install-close')) close();
+        if (event.target.id === 'acy-pwa-install-overlay') close();
       });
+      modal.querySelector('#acy-pwa-install-close')?.addEventListener('click', close);
     }
     return modal;
   }
@@ -54,6 +58,7 @@
   function openInstallHelp() {
     const modal = ensureInstallHelp();
     modal.hidden = false;
+    modal.style.setProperty('display', 'grid', 'important');
     document.body.classList.add('pwa-modal-open');
   }
 
@@ -102,18 +107,31 @@
       if (Number.isFinite(total) && typeof renderProgress === 'function') renderProgress(total);
       if (typeof playUISound === 'function') playUISound('reward');
       if (typeof triggerClubEffect === 'function') triggerClubEffect('reward', `Quest abgeschlossen! +${Number(data?.reward_xp ?? reward)} XP 🎯`);
-      if (typeof checkAchievements === 'function') await checkAchievements();
-      if (typeof loadProgressionCatalog === 'function') await loadProgressionCatalog();
+
+      // Give the user immediate visual confirmation. Do not make the button
+      // wait for achievements/catalog refreshes before the claim appears.
+      button.textContent = '✓ Abgeholt';
+      button.classList.add('quest-claim-success');
+      button.setAttribute('aria-label', 'Quest abgeholt');
+
+      // Refresh the quest row next, but do not block the reward UI on unrelated
+      // background work. This removes the delayed/flickering claim feeling.
+      const refresh = originalLoadQuests ? originalLoadQuests().catch(() => {}) : Promise.resolve();
+      void Promise.allSettled([
+        typeof checkAchievements === 'function' ? checkAchievements() : Promise.resolve(),
+        typeof loadProgressionCatalog === 'function' ? loadProgressionCatalog() : Promise.resolve()
+      ]);
+      await refresh;
       questClaimBusy = false;
       button.dataset.claiming = '0';
-      if (originalLoadQuests) await originalLoadQuests().catch(() => {});
     } catch (error) {
-      console.warn('V19 quest claim failed:', error);
+      console.warn('V19.1 quest claim failed:', error);
       const message = $('quest-message');
       if (message) { message.textContent = error?.message || 'Quest konnte nicht abgeholt werden.'; message.className = 'club-auth-status error'; }
       button.disabled = false;
       button.dataset.claiming = '0';
       button.textContent = `+${reward} XP abholen`;
+      button.classList.remove('quest-claim-success');
       questClaimBusy = false;
       if (originalLoadQuests) await originalLoadQuests().catch(() => {});
     }
