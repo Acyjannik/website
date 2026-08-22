@@ -29,7 +29,7 @@
     addScript('acy-v19-pet-rc8-hotfix-script','/v19-pet-rc7-hotfix.js?v=19009');
     addScript('acy-v19-final-runtime-fix','/v19-final-runtime-fix.js?v=19002');
     addScript('acy-v19-install-portal-fix','/v19-install-portal-fix.js?v=19001');
-    addScript('acy-v19-member-card-css','/v19-mobile-member-card.css?v=19002');
+    addScript('acy-v19-member-card-css','/v19-mobile-member-card.css?v=19014');
     initNotifications();initMore();initDock();
     const mo=new MutationObserver(syncLive);['member-live-text','member-twitch-game','member-twitch-viewers','member-live-pill'].forEach(id=>{const el=$(id);el&&mo.observe(el,{childList:true,subtree:true,attributes:true,characterData:true});});
     syncLive();
