@@ -1,0 +1,114 @@
+/* === V19.1 MOBILE NAVIGATION ENHANCEMENT === */
+/* Icons vergrä§§ert, Touch-Targets optimiert, modernisiert */
+/* V19.0.0 - Final Mobile Nav Enhancement */
+
+/* === MOBILE NAV CONTAINER === */
+.mobile-nav-container,
+.bottom-nav-container,
+.mobile-nav,
+.bottom-nav,
+.dock-nav,
+.tab-bar {
+  z-index: 9999 !important;
+  pointer-events: auto !important;
+  position: fixed !important;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+/* === ICONS VERGRä§§ERN === */
+.mobile-nav .nav-icon,
+.mobile-nav i,
+.mobile-nav svg,
+.mobile-nav .icon,
+.mobile-nav .iconfont,
+.bottom-nav .nav-icon,
+.bottom-nav i,
+.bottom-nav svg,
+.bottom-nav .icon,
+.dock-nav .nav-icon,
+.dock-nav i,
+.dock-nav svg,
+.dock-nav .icon,
+.tab-bar .nav-icon,
+.tab-bar i,
+.tab-bar svg,
+.tab-bar .icon {
+  font-size: 28px !important;
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  min-height: 32px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* === TOUCH-TARGETS VERGRä§§ERN === */
+.mobile-nav .nav-item,
+.mobile-nav button,
+.mobile-nav a,
+.mobile-nav [role="button"],
+.bottom-nav .nav-item,
+.bottom-nav button,
+.bottom-nav a,
+.bottom-nav [role="button"],
+.dock-nav .nav-item,
+.dock-nav button,
+.dock-nav a,
+.dock-nav [role="button"],
+.tab-bar .nav-item,
+.tab-bar button,
+.tab-bar a,
+.tab-bar [role="button"] {
+  padding: 14px 16px !important;
+  min-height: 60px !important;
+  min-width: 60px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  cursor: pointer !important;
+  -webkit-tap-highlight-color: transparent !important;
+  touch-action: manipulation !important;
+}
+
+/* === LABEL-TEXT === */
+.mobile-nav .nav-label,
+.bottom-nav .nav-label,
+.dock-nav .nav-label,
+.tab-bar .nav-label {
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  margin-top: 4px !important;
+  text-align: center !important;
+  line-height: 1.2 !important;
+}
+
+/* === AKTIVER TAB === */
+.mobile-nav .nav-item.active,
+.mobile-nav .nav-item.active .nav-icon,
+.bottom-nav .nav-item.active,
+.bottom-nav .nav-item.active .nav-icon {
+  opacity: 1 !important;
+  transform: scale(1.05) !important;
+}
+
+/* === CLUB-TABS === */
+.club-tabs button,
+.club-accordion button,
+.club-section-header button {
+  min-height: 52px !important;
+  padding: 14px 18px !important;
+  font-size: 15px !important;
+  cursor: pointer !important;
+}
+
+/* === Z-INDEX SICHERUNG === */
+.mobile-nav-container,
+.bottom-nav-container,
+#mobile-nav,
+#bottom-nav {
+  z-index: 10000 !important;
+}
