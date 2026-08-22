@@ -20,7 +20,9 @@
     addScript('acy-v192-pwa-script','/pwa.js?v=1920');
     addScript('acy-v182-polish-script','/v18.2-app-polish.js?v=1821');
     addScript('acy-v186-navigation-script','/v18.6-navigation-isolated.js?v=1865');
-    addScript('acy-v186-global-audit-script','/v18.6-global-audit.js?v=1865');
+    // Legacy v18.6-global-audit intentionally removed. It dynamically loaded
+    // the RC9 -> RC12 hotfix chain, which added competing capture-phase click
+    // handlers on top of the final V19 handlers.
     addScript('acy-v186-mobile-pass-script','/v18.6-mobile-pass.js?v=1866');
     addScript('acy-v186-stream-center-script','/v18.6-stream-center.js?v=1867');
     addScript('acy-v187-streamer-entry-script','/v18.7-streamer-entry.js?v=1871');
@@ -37,4 +39,4 @@
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
-// Rollback checkpoint: keep the known-good RC10 runtime while V19 is repaired.
+// V19 interaction cleanup: legacy RC audit chain removed; final V19 handlers remain.
