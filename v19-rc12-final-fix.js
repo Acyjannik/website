@@ -24,6 +24,41 @@
     return overlay;
   }
 
+  function ensureAvatarConsistency(){
+    if(document.getElementById('acy-v19-avatar-consistency-style')) return;
+    const style=document.createElement('style');
+    style.id='acy-v19-avatar-consistency-style';
+    style.textContent=`
+      #member-directory-section .member-directory-avatar,
+      #social-connections-section .social-connection-avatar,
+      #member-leaderboard-section .leaderboard-avatar,
+      #member-spotlight .spotlight-avatar{
+        width:72px!important;height:72px!important;min-width:72px!important;min-height:72px!important;
+        flex:0 0 72px!important;border-radius:50%!important;overflow:hidden!important;
+        display:grid!important;place-items:center!important;box-sizing:border-box!important;
+      }
+      #member-directory-section .member-directory-avatar>img,
+      #member-directory-section .member-directory-avatar>.member-directory-avatar-fallback,
+      #social-connections-section .social-connection-avatar>img,
+      #social-connections-section .social-connection-avatar>span,
+      #member-leaderboard-section .leaderboard-avatar>img,
+      #member-leaderboard-section .leaderboard-avatar>.leaderboard-avatar-fallback,
+      #member-spotlight .spotlight-avatar>img,
+      #member-spotlight .spotlight-avatar>.spotlight-avatar-fallback{
+        width:100%!important;height:100%!important;min-width:100%!important;min-height:100%!important;
+        border-radius:50%!important;object-fit:cover!important;display:grid!important;place-items:center!important;
+        box-sizing:border-box!important;
+      }
+      @media(max-width:650px){
+        #member-directory-section .member-directory-avatar,
+        #social-connections-section .social-connection-avatar,
+        #member-leaderboard-section .leaderboard-avatar,
+        #member-spotlight .spotlight-avatar{width:72px!important;height:72px!important;flex-basis:72px!important;}
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
   function patchInstallHelp(){
     if(window.__acyFinalInstallPatched) return;
     window.__acyFinalInstallPatched=true;
@@ -129,6 +164,7 @@
 
   function init(){
     ensureInstallHelp();
+    ensureAvatarConsistency();
     patchInstallHelp();
     patchNotifications();
     patchPetRelease();
