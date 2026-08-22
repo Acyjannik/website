@@ -4,9 +4,22 @@
   const SHEET_ID = 'mobile-more-sheet-v181';
   const TOGGLE_ID = 'mobile-dock-more-v18';
 
+  const ensureStaffEntry = (sheet) => {
+    if (!sheet || sheet.querySelector('[data-more-href="/staff-center.html"]')) return;
+    const grid = sheet.querySelector('.acy-more-grid-v186') || sheet;
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.setAttribute('data-more-href', '/staff-center.html');
+    button.textContent = '🛡️ Staff Center';
+    grid.appendChild(button);
+  };
+
   const ensureSheet = () => {
     let sheet = document.getElementById(SHEET_ID);
-    if (sheet) return sheet;
+    if (sheet) {
+      ensureStaffEntry(sheet);
+      return sheet;
+    }
 
     sheet = document.createElement('div');
     sheet.id = SHEET_ID;
