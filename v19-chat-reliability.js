@@ -9,8 +9,7 @@
   let fallbackTimer = null;
   let reconnectTimer = null;
   let reconnectAttempts = 0;
-  let lastKnownMessageId = null;
-  let lastWasNearBottom = true;
+  let reconnectInFlight = false;
 
   function chatStatus(text, type = '') {
     const el = $('club-chat-status');
@@ -19,17 +18,13 @@
     el.className = `club-chat-status ${type}`.trim();
   }
 
-  function getChannelState() {
-    try {
-      return window.clubChatChannel?.state || 'closed';
-    } catch {
-      return 'closed';
-    }
+  function currentStatusText() {
+    return $('club-chat-status')?.textContent?.trim() || '';
   }
 
-  function isConnected() {
-    const state = getChannelState();
-    return state === 'joined' || state === 'joining';
+  function hasConnectionError() {
+    const text = currentStatusText();
+    return /Live-Verbindung|Verbindung konnte nicht|wiederhergestellt|Timeout|Fehler/i.test(text);
   }
 
   function ensureChatStatusUI() {
@@ -52,39 +47,6 @@
     if (labelEl) labelEl.textContent = label;
   }
 
-  function updateScrollState() {
-    const list = $('club-chat-messages');
-    if (!list) return;
-    lastWasNearBottom = list.scrollHeight - list.scrollTop - list.clientHeight < 80;
-  }
-
-  function mergeMessages(next) {
-    if (!Array.isArray(next)) return false;
-    const current = Array.isArray(window.clubChatMessages) ? window.clubChatMessages : [];
-    const byId = new Map(current.map(item => [String(item.id), item]));
-    next.forEach(item => byId.set(String(item.id), item));
-    const merged = [...byId.values()].sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
-    const changed = merged.length !== current.length || merged.some((m, i) => String(m.id) !== String(current[i]?.id));
-    window.clubChatMessages = merged.slice(-100);
-    return changed;
-  }
-
-  async function fallbackRefresh() {
-    if (!window.supabaseClient || !window.currentUser || typeof window.fetchChatMessages !== 'function') return;
-    try {
-      const messages = await window.fetchChatMessages(100);
-      const changed = mergeMessages(messages);
-      if (changed && typeof window.renderChat === 'function') {
-        window.renderChat();
-        const list = $('club-chat-messages');
-        if (list && lastWasNearBottom) list.scrollTop = list.scrollHeight;
-      }
-      if (messages?.length) lastKnownMessageId = messages[messages.length - 1]?.id ?? lastKnownMessageId;
-    } catch (error) {
-      console.warn('[V19 Chat] fallback refresh failed:', error);
-    }
-  }
-
   function stopFallback() {
     if (fallbackTimer) {
       clearInterval(fallbackTimer);
@@ -92,33 +54,49 @@
     }
   }
 
+  async function fallbackRefresh() {
+    if (reconnectInFlight || typeof window.loadClubChat !== 'function') return;
+    try {
+      await window.loadClubChat();
+      if (!hasConnectionError()) {
+        reconnectAttempts = 0;
+        stopFallback();
+        setLiveState('is-live', 'Live verbunden');
+        chatStatus('');
+      }
+    } catch (error) {
+      console.warn('[V19 Chat] fallback reload failed:', error);
+    }
+  }
+
   function startFallback() {
     if (fallbackTimer) return;
     fallbackRefresh();
     fallbackTimer = setInterval(() => {
-      if (isConnected()) {
+      if (!hasConnectionError()) {
         stopFallback();
         return;
       }
       fallbackRefresh();
-    }, 7000);
+    }, 8000);
   }
 
   function scheduleReconnect() {
-    if (reconnectTimer) return;
+    if (reconnectTimer || reconnectInFlight || typeof window.loadClubChat !== 'function') return;
     reconnectAttempts += 1;
     const delay = Math.min(30000, 1200 * Math.pow(1.7, Math.min(reconnectAttempts - 1, 8)));
     reconnectTimer = setTimeout(async () => {
       reconnectTimer = null;
+      reconnectInFlight = true;
       try {
-        if (typeof window.loadClubChat === 'function') await window.loadClubChat();
-        if (isConnected()) {
+        await window.loadClubChat();
+        if (!hasConnectionError()) {
           reconnectAttempts = 0;
           stopFallback();
           setLiveState('is-live', 'Live verbunden');
-          chatStatus('Live verbunden', 'success');
-          setTimeout(() => chatStatus(''), 2200);
+          chatStatus('');
         } else {
+          setLiveState('is-offline', 'Live getrennt · Wiederherstellung…');
           startFallback();
           scheduleReconnect();
         }
@@ -126,26 +104,22 @@
         console.warn('[V19 Chat] reconnect failed:', error);
         startFallback();
         scheduleReconnect();
+      } finally {
+        reconnectInFlight = false;
       }
     }, delay);
   }
 
-  function watchChannel() {
-    const state = getChannelState();
-    if (state === 'joined') {
-      reconnectAttempts = 0;
-      stopFallback();
-      setLiveState('is-live', 'Live verbunden');
+  function inspectConnection() {
+    ensureChatStatusUI();
+    if (hasConnectionError()) {
+      setLiveState('is-offline', 'Live getrennt · Wiederherstellung…');
+      startFallback();
+      scheduleReconnect();
       return;
     }
-    if (state === 'joining') {
-      setLiveState('is-connecting', 'Verbindung wird hergestellt…');
-      return;
-    }
-    setLiveState('is-offline', 'Live getrennt · Wiederherstellung…');
-    chatStatus('Live-Verbindung wird wiederhergestellt…', 'warning');
-    startFallback();
-    scheduleReconnect();
+    setLiveState('is-live', 'Live verbunden');
+    if (currentStatusText() === '') stopFallback();
   }
 
   function installCSS() {
@@ -167,29 +141,30 @@
   function init() {
     ensureChatStatusUI();
     installCSS();
-    const list = $('club-chat-messages');
-    list?.addEventListener('scroll', updateScrollState, { passive: true });
 
-    // The existing chat implementation owns message rendering and the Realtime
-    // channel. This layer only adds watchdog/reconnect/fallback behavior, so it
-    // does not duplicate subscriptions or submit handlers.
+    const statusEl = $('club-chat-status');
+    if (statusEl) {
+      const observer = new MutationObserver(inspectConnection);
+      observer.observe(statusEl, { childList: true, characterData: true, subtree: true, attributes: true });
+    }
+
     let ticks = 0;
     const timer = setInterval(() => {
       if (!$('club-chat')) return;
       ensureChatStatusUI();
       installCSS();
-      watchChannel();
+      inspectConnection();
       ticks += 1;
-      if (ticks > 3 && isConnected()) clearInterval(timer);
+      if (ticks > 5 && !hasConnectionError()) clearInterval(timer);
     }, 2500);
 
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState !== 'visible') return;
-      if (!isConnected()) {
+      if (hasConnectionError()) {
         startFallback();
         scheduleReconnect();
       } else {
-        fallbackRefresh();
+        inspectConnection();
       }
     });
 
@@ -201,12 +176,11 @@
 
     window.addEventListener('offline', () => {
       setLiveState('is-offline', 'Offline · Nachrichten bleiben verfügbar');
-      chatStatus('Keine Internetverbindung. Nachrichten bleiben zwischengespeichert.', 'warning');
+      chatStatus('Keine Internetverbindung. Nachrichten bleiben verfügbar.', 'warning');
       startFallback();
     });
 
-    // Give the original loader a moment to create its Realtime channel.
-    setTimeout(watchChannel, 1200);
+    setTimeout(inspectConnection, 1500);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
