@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  // V18.6.3: isolated navigation + visual polish loader.
+  // V18.6.4: single-source More navigation + Staff Center entry.
   const $ = (id) => document.getElementById(id);
   const MOBILE_MAX = 700;
   const isPetPage = /\/pet\.html$/i.test(location.pathname);
@@ -57,6 +57,7 @@
         <button type="button" data-more-target="stats">📊 Club-Fortschritt</button>
         <button type="button" data-more-target="discord">🎧 Discord</button>
         <button type="button" data-more-target="settings">⚙️ Einstellungen</button>
+        <button type="button" data-more-href="/staff-center.html">🛡️ Staff Center</button>
       </div>`;
     document.body.appendChild(sheet);
     return sheet;
@@ -154,6 +155,17 @@
       closeMore();
       return;
     }
+
+    const hrefItem = event.target.closest('#mobile-more-sheet-v181 [data-more-href]');
+    if (hrefItem) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      const href = hrefItem.dataset.moreHref;
+      closeMore();
+      if (href) window.location.assign(href);
+      return;
+    }
+
     const item = event.target.closest('#mobile-more-sheet-v181 [data-more-target], #mobile-more-sheet-v181 [data-target-id]');
     if (item) {
       event.preventDefault();
@@ -166,6 +178,7 @@
       scrollToTarget(target);
       return;
     }
+
     const interactive = event.target.closest('#mobile-more-sheet-v181 button, #mobile-more-sheet-v181 a, #mobile-more-sheet-v181 [role="button"]');
     if (interactive) closeMore();
   }
@@ -202,15 +215,15 @@
   function loadPolishLayer() {
     if (document.querySelector('script[data-acy-v1863-polish]')) return;
     const script = document.createElement('script');
-    script.src = '/v18.6-pet-member-polish.js?v=18.6.3';
+    script.src = '/v18.6-pet-member-polish.js?v=18.6.4';
     script.defer = true;
     script.dataset.acyV1863Polish = '1';
     document.head.appendChild(script);
   }
 
   function installGuard() {
-    if (document.documentElement.dataset.acyNavGuard === '1863') return;
-    document.documentElement.dataset.acyNavGuard = '1863';
+    if (document.documentElement.dataset.acyNavGuard === '1864') return;
+    document.documentElement.dataset.acyNavGuard = '1864';
     document.addEventListener('click', (event) => {
       const dockItem = event.target.closest('.mobile-club-dock [data-dock-key]');
       if (dockItem) {
