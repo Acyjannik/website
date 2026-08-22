@@ -19,7 +19,7 @@
   function init(){
     addScript('acy-v192-pwa-script','/pwa.js?v=1920');
     addScript('acy-v182-polish-script','/v18.2-app-polish.js?v=1821');
-    addScript('acy-v186-navigation-script','/v18.6-navigation-isolated.js?v=1863');
+    addScript('acy-v186-navigation-script','/v18.6-navigation-isolated.js?v=1864');
     addScript('acy-v186-global-audit-script','/v18.6-global-audit.js?v=1865');
     addScript('acy-v186-mobile-pass-script','/v18.6-mobile-pass.js?v=1866');
     addScript('acy-v186-stream-center-script','/v18.6-stream-center.js?v=1867');
@@ -30,7 +30,7 @@
     addScript('acy-v19-final-runtime-fix','/v19-final-runtime-fix.js?v=19002');
     addScript('acy-v19-install-portal-fix','/v19-install-portal-fix.js?v=19001');
     addScript('acy-v19-member-card-css','/v19-mobile-member-card.css?v=19014');
-    initNotifications();initMore();initDock();
+    initNotifications();initDock();
     const mo=new MutationObserver(syncLive);['member-live-text','member-twitch-game','member-twitch-viewers','member-live-pill'].forEach(id=>{const el=$(id);el&&mo.observe(el,{childList:true,subtree:true,attributes:true,characterData:true});});
     syncLive();
   }
