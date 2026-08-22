@@ -123,9 +123,6 @@
 
     window.__acyWheelFixInstalled = true;
 
-    // Replace the old listener by replacing the button node. The old handler
-    // used a CSS animation with a fixed endpoint and then waited on several
-    // unrelated refresh requests. That is why later spins could visibly jump.
     const freshButton = button.cloneNode(true);
     button.replaceWith(freshButton);
 
@@ -184,6 +181,15 @@
       wheel.dataset.acyRotation = String(next);
     };
 
+    const runBackground = (label, fn) => {
+      if (typeof fn !== 'function') return Promise.resolve();
+      return Promise.resolve()
+        .then(fn)
+        .catch(error => {
+          console.warn(`[ACY Wheel] ${label} refresh skipped:`, error);
+        });
+    };
+
     const spin = async () => {
       if (freshButton.disabled || freshButton.dataset.acySpinning === '1') return;
       freshButton.dataset.acySpinning = '1';
@@ -202,15 +208,13 @@
           return;
         }
 
-        // Start the visual spin immediately after the RPC. The slow dashboard
-        // refreshes run in the background and no longer hold up the result.
-        const background = [
-          typeof window.loadWheelHistory === 'function' ? window.loadWheelHistory() : Promise.resolve(),
-          typeof window.loadMyRewards === 'function' ? window.loadMyRewards() : Promise.resolve(),
-          data.reward_class === 'pet' && typeof window.loadPet === 'function' ? window.loadPet() : Promise.resolve(),
-          typeof window.progressQuestsForAction === 'function' ? window.progressQuestsForAction('wheel_spin') : Promise.resolve()
-        ];
-        Promise.allSettled(background).catch(() => {});
+        // Non-critical refreshes must never block or fail the visible spin result.
+        void Promise.all([
+          runBackground('Wheel-Verlauf', window.loadWheelHistory),
+          runBackground('Rewards', window.loadMyRewards),
+          data.reward_class === 'pet' ? runBackground('Pet', window.loadPet) : Promise.resolve(),
+          runBackground('Quests', () => typeof window.progressQuestsForAction === 'function' ? window.progressQuestsForAction('wheel_spin') : Promise.resolve())
+        ]);
 
         await animateWheel(data.reward_key);
 
@@ -233,10 +237,12 @@
         message.className = 'club-auth-status error';
       } finally {
         freshButton.dataset.acySpinning = '0';
-        if (typeof window.loadWheelState === 'function') {
-          void window.loadWheelState();
-        } else {
-          freshButton.disabled = false;
+        // Do not call loadWheelState here. That was the source of the long
+        // "Status wird geladen…" pause after every spin and could overwrite a
+        // perfectly valid result with a transient network error.
+        if (freshButton.disabled && !message.textContent?.startsWith('⏳')) {
+          const cooldownActive = message.classList.contains('error') && /nächster Dreh/i.test(message.textContent || '');
+          if (!cooldownActive) freshButton.disabled = false;
         }
       }
     };
