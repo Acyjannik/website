@@ -1,0 +1,80 @@
+/* === V19.2 MOBILE NAVIGATION FINAL === */
+/* Font Awesome Icons, größer, moderner */
+
+/* === BAR HÖ¨HER === */
+.mobile-nav-container,
+.bottom-nav-container,
+#mobile-nav,
+#bottom-nav,
+.app-dock,
+.tab-bar,
+.dock-nav {
+  height: 80px !important;
+  min-height: 80px !important;
+  padding: 8px 0 !important;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15) !important;
+  backdrop-filter: blur(15px) !important;
+  z-index: 10000 !important;
+  position: fixed !important;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+/* === ICONS GRÖ¨ß§ER === */
+.mobile-nav i,
+.mobile-nav svg,
+.bottom-nav i,
+.bottom-nav svg,
+.app-dock i,
+.app-dock svg,
+.tab-bar i,
+.tab-bar svg,
+.nav-icon,
+.iconfont {
+  font-size: 36px !important;
+  width: 40px !important;
+  height: 40px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* === BUTTONS GRÖ¨ß§ER === */
+.mobile-nav button,
+.mobile-nav a,
+.bottom-nav button,
+.bottom-nav a,
+.app-dock button,
+.app-dock a,
+.tab-bar button,
+.tab-bar a,
+.nav-item {
+  min-height: 70px !important;
+  min-width: 70px !important;
+  padding: 12px 20px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 10px !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+/* === HOVER-EFFEKTE === */
+.mobile-nav button:hover,
+.bottom-nav button:hover,
+.nav-item:hover {
+  transform: translateY(-3px) !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* === CLUB-TABS === */
+.club-tabs button,
+.club-accordion button,
+.club-section-header button {
+  min-height: 60px !important;
+  padding: 16px 20px !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+}
