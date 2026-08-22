@@ -111,16 +111,151 @@
     document.head.appendChild(script);
   };
 
+  const installWheelFix = () => {
+    if (!/\/club-profile\.html$/i.test(location.pathname)) return;
+    if (window.__acyWheelFixInstalled) return;
+
+    const button = document.getElementById('club-wheel-spin');
+    const wheel = document.getElementById('club-wheel');
+    const message = document.getElementById('wheel-message');
+    const client = window.__acySupabaseClient;
+    if (!button || !wheel || !message || !client?.rpc) return;
+
+    window.__acyWheelFixInstalled = true;
+
+    // Replace the old listener by replacing the button node. The old handler
+    // used a CSS animation with a fixed endpoint and then waited on several
+    // unrelated refresh requests. That is why later spins could visibly jump.
+    const freshButton = button.cloneNode(true);
+    button.replaceWith(freshButton);
+
+    wheel.classList.remove('is-spinning');
+    wheel.style.setProperty('animation', 'none', 'important');
+    wheel.style.setProperty('transition', 'none', 'important');
+    wheel.__acyRotation = Number(wheel.dataset.acyRotation || 0) || 0;
+
+    const getSegment = key => {
+      const segments = Array.isArray(window.WHEEL_SEGMENTS) ? window.WHEEL_SEGMENTS : [
+        {key:'xp_25',angle:0},{key:'xp_50',angle:30},{key:'xp_100',angle:60},
+        {key:'xp_250',angle:90},{key:'xp_500',angle:120},{key:'xp_1000',angle:150},
+        {key:'pet_care',angle:180},{key:'pet_perk',angle:210},
+        {key:'extra_spin',angle:240},{key:'extra_spin_2',angle:270},
+        {key:'twitch_reward',angle:300},{key:'xp_jackpot',angle:330}
+      ];
+      return segments.find(s => s.key === key) || segments[0];
+    };
+
+    const animateWheel = async rewardKey => {
+      const seg = getSegment(rewardKey);
+      const current = Number(wheel.__acyRotation || 0);
+      const targetOffset = (360 - Number(seg.angle || 0)) % 360;
+      const delta = 1800 + targetOffset;
+      const next = current + delta;
+
+      wheel.getAnimations().forEach(animation => animation.cancel());
+      wheel.style.setProperty('animation', 'none', 'important');
+      wheel.style.setProperty('transition', 'none', 'important');
+      wheel.style.transform = `rotate(${current}deg)`;
+      wheel.offsetWidth;
+
+      if (typeof wheel.animate !== 'function') {
+        wheel.style.transform = `rotate(${next}deg)`;
+        wheel.__acyRotation = next;
+        wheel.dataset.acyRotation = String(next);
+        return;
+      }
+
+      const animation = wheel.animate(
+        [
+          { transform: `rotate(${current}deg)` },
+          { transform: `rotate(${next}deg)` }
+        ],
+        {
+          duration: 2400,
+          easing: 'cubic-bezier(.12,.72,.16,1)',
+          fill: 'forwards'
+        }
+      );
+
+      try { await animation.finished; } catch {}
+      animation.cancel();
+      wheel.style.transform = `rotate(${next}deg)`;
+      wheel.__acyRotation = next;
+      wheel.dataset.acyRotation = String(next);
+    };
+
+    const spin = async () => {
+      if (freshButton.disabled || freshButton.dataset.acySpinning === '1') return;
+      freshButton.dataset.acySpinning = '1';
+      freshButton.disabled = true;
+      message.textContent = 'Das Rad dreht…';
+      message.className = 'club-auth-status';
+
+      try {
+        const { data, error } = await client.rpc('spin_club_wheel');
+        if (error) throw error;
+
+        if (data?.cooldown) {
+          message.textContent = `Dein nächster Dreh ist um ${typeof window.formatWheelDate === 'function' ? window.formatWheelDate(data.next_free_at) : new Date(data.next_free_at).toLocaleString('de-DE')} verfügbar.`;
+          message.className = 'club-auth-status error';
+          if (typeof window.setWheelCooldown === 'function') window.setWheelCooldown(data.next_free_at, data.spin_tokens);
+          return;
+        }
+
+        // Start the visual spin immediately after the RPC. The slow dashboard
+        // refreshes run in the background and no longer hold up the result.
+        const background = [
+          typeof window.loadWheelHistory === 'function' ? window.loadWheelHistory() : Promise.resolve(),
+          typeof window.loadMyRewards === 'function' ? window.loadMyRewards() : Promise.resolve(),
+          data.reward_class === 'pet' && typeof window.loadPet === 'function' ? window.loadPet() : Promise.resolve(),
+          typeof window.progressQuestsForAction === 'function' ? window.progressQuestsForAction('wheel_spin') : Promise.resolve()
+        ];
+        Promise.allSettled(background).catch(() => {});
+
+        await animateWheel(data.reward_key);
+
+        message.textContent = `🎉 ${data.reward_label}${data.test_mode ? ' · 🧪 Testmodus' : ''}${data.reward_class === 'spin' ? ' · Du kannst sofort noch einmal drehen.' : Number.isFinite(data.total_xp) ? ` · Jetzt ${Number(data.total_xp).toLocaleString('de-DE')} XP.` : ''}`;
+        message.className = 'club-auth-status success';
+
+        if (typeof window.triggerClubEffect === 'function') {
+          window.triggerClubEffect(data.reward_class === 'xp' ? 'reward' : 'level', `🎉 ${data.reward_label}`);
+        }
+        if (Number.isFinite(data.total_xp)) {
+          if (typeof window.renderProgress === 'function') window.renderProgress(data.total_xp);
+          if (typeof window.setText === 'function') window.setText('member-xp', `${data.total_xp} XP`);
+        }
+        if (typeof window.setWheelCooldown === 'function') {
+          window.setWheelCooldown(data.test_mode ? null : data.next_free_at, data.spin_tokens);
+        }
+      } catch (error) {
+        console.error('Wheel animation fix error:', error);
+        message.textContent = error?.message || 'Das Glücksrad konnte nicht gedreht werden.';
+        message.className = 'club-auth-status error';
+      } finally {
+        freshButton.dataset.acySpinning = '0';
+        if (typeof window.loadWheelState === 'function') {
+          void window.loadWheelState();
+        } else {
+          freshButton.disabled = false;
+        }
+      }
+    };
+
+    freshButton.addEventListener('click', spin, { passive: false });
+  };
+
   const install = () => {
     lockVersionBadge();
     installStaffCenterNav();
     loadPetInteractionFix();
     void syncFeedAvailability();
+    installWheelFix();
     setTimeout(() => {
       lockVersionBadge();
       installStaffCenterNav();
       loadPetInteractionFix();
       void syncFeedAvailability();
+      installWheelFix();
     }, 1200);
 
     if (typeof window.petLifeRpc === 'function' && !window.__acyPetLifeRpcRefreshPatched) {
