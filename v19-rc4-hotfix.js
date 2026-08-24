@@ -5,6 +5,7 @@
   if (!isClub) return;
 
   const normalize = s => (s || '').replace(/\s+/g, ' ').trim().toLowerCase();
+  const STAFF_URL = '/staff-center.html?acy=20.0.1';
 
   function cleanStaffEntries() {
     const grids = document.querySelectorAll('.mobile-more-grid-v181, .mobile-more-grid, [class*="more-grid"]');
@@ -18,7 +19,7 @@
       matches.slice(1).forEach(el => el.remove());
       const first = matches[0];
       if (first) {
-        first.setAttribute('href', '/staff-center.html');
+        first.setAttribute('href', STAFF_URL);
         first.dataset.v19Rc4StaffEntry = '1';
         const strong = first.querySelector('strong');
         const small = first.querySelector('small');
