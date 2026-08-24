@@ -17,9 +17,22 @@
     return !!el && !el.hidden && !el.closest('[hidden]') && el.getClientRects().length > 0;
   }
 
+  function revealTarget(target) {
+    if (!target) return null;
+    if (target.dataset.v20MobileDeferred === '1') {
+      target.hidden = false;
+      target.dataset.v20MobileRevealed = '1';
+      delete target.dataset.v20MobileDeferred;
+      window.ACYV20Mobile?.buildMoreSheet?.();
+    }
+    return target;
+  }
+
   function findTarget(key) {
     for (const id of TARGETS[key] || []) {
       const el = $(id);
+      if (!el) continue;
+      revealTarget(el);
       if (visible(el)) return el;
     }
     const pattern = key === 'social'
@@ -85,17 +98,6 @@
       if (active) item.setAttribute('aria-current', 'page');
       else item.removeAttribute('aria-current');
     });
-  }
-
-  function revealTarget(target) {
-    if (!target) return null;
-    if (target.dataset.v20MobileDeferred === '1') {
-      target.hidden = false;
-      target.dataset.v20MobileRevealed = '1';
-      delete target.dataset.v20MobileDeferred;
-      window.ACYV20Mobile?.buildMoreSheet?.();
-    }
-    return target;
   }
 
   function scrollToTarget(target) {
