@@ -1,7 +1,8 @@
 (() => {
   'use strict';
 
-  // V18.6.4: single-source More navigation + Staff Center entry.
+  // V19 interaction cleanup: one navigation owner, bubble-phase handling.
+  // Do not intercept unrelated buttons or stop the browser's event chain.
   const $ = (id) => document.getElementById(id);
   const MOBILE_MAX = 700;
   const isPetPage = /\/pet\.html$/i.test(location.pathname);
@@ -74,12 +75,7 @@
   }
 
   function toggleMore() {
-    const sheet = ensureMoreSheet();
-    if (!sheet.hidden) {
-      closeMore();
-      return false;
-    }
-    return openMore();
+    return $('mobile-more-sheet-v181')?.hidden === false ? (closeMore(), false) : openMore();
   }
 
   function setActive(key) {
@@ -151,7 +147,6 @@
     const closeButton = event.target.closest('[data-close-more]');
     if (closeButton) {
       event.preventDefault();
-      event.stopImmediatePropagation();
       closeMore();
       return;
     }
@@ -159,7 +154,6 @@
     const hrefItem = event.target.closest('#mobile-more-sheet-v181 [data-more-href]');
     if (hrefItem) {
       event.preventDefault();
-      event.stopImmediatePropagation();
       const href = hrefItem.dataset.moreHref;
       closeMore();
       if (href) window.location.assign(href);
@@ -169,18 +163,13 @@
     const item = event.target.closest('#mobile-more-sheet-v181 [data-more-target], #mobile-more-sheet-v181 [data-target-id]');
     if (item) {
       event.preventDefault();
-      event.stopImmediatePropagation();
       const target = item.dataset.targetId ? $(item.dataset.targetId) : findMoreTarget(item.dataset.moreTarget);
       closeMore();
       if (!target) return;
       const details = target.closest('details');
       if (details) details.open = true;
       scrollToTarget(target);
-      return;
     }
-
-    const interactive = event.target.closest('#mobile-more-sheet-v181 button, #mobile-more-sheet-v181 a, #mobile-more-sheet-v181 [role="button"]');
-    if (interactive) closeMore();
   }
 
   function hardenDockMarkup() {
@@ -194,6 +183,8 @@
       item.removeAttribute('target');
       item.removeAttribute('download');
       item.removeAttribute('href');
+      item.style.touchAction = 'manipulation';
+      item.style.webkitTapHighlightColor = 'transparent';
     });
   }
 
@@ -202,11 +193,14 @@
     const style = document.createElement('style');
     style.id = 'acy-v186-navigation-style';
     style.textContent = `
+      .mobile-club-dock{touch-action:manipulation!important;-webkit-tap-highlight-color:transparent!important}
+      .mobile-club-dock [data-dock-key]{touch-action:manipulation!important;-webkit-tap-highlight-color:transparent!important;user-select:none!important}
       #mobile-more-sheet-v181{position:fixed!important;z-index:11500!important;left:12px!important;right:12px!important;bottom:calc(92px + env(safe-area-inset-bottom))!important;max-height:72dvh!important;overflow:auto!important;padding:14px!important;border:1px solid rgba(180,108,255,.28)!important;border-radius:26px!important;background:rgba(13,12,19,.98)!important;box-shadow:0 -18px 60px rgba(0,0,0,.5)!important;backdrop-filter:blur(26px)!important}
       #mobile-more-sheet-v181[hidden]{display:none!important}
       .acy-more-grid-v186{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-      .acy-more-grid-v186 button{min-height:54px;border:1px solid rgba(180,108,255,.22);border-radius:16px;background:rgba(255,255,255,.04);color:#f7f3ff;font:600 15px/1.2 system-ui,sans-serif;touch-action:manipulation}
+      .acy-more-grid-v186 button{min-height:54px;border:1px solid rgba(180,108,255,.22);border-radius:16px;background:rgba(255,255,255,.04);color:#f7f3ff;font:600 15px/1.2 system-ui,sans-serif;touch-action:manipulation!important;-webkit-tap-highlight-color:transparent!important}
       body.mobile-more-open-v181:before{content:"";position:fixed;inset:0;z-index:11490;background:rgba(0,0,0,.46);pointer-events:none}
+      @media(max-width:700px){.mobile-club-dock{padding-bottom:calc(8px + env(safe-area-inset-bottom))!important}}
       @media(min-width:701px){#mobile-more-sheet-v181{left:50%!important;right:auto!important;bottom:94px!important;transform:translateX(-50%)!important;width:min(560px,calc(100vw - 48px))!important}}
     `;
     document.head.appendChild(style);
@@ -228,12 +222,11 @@
       const dockItem = event.target.closest('.mobile-club-dock [data-dock-key]');
       if (dockItem) {
         event.preventDefault();
-        event.stopImmediatePropagation();
         navigate(dockItem.dataset.dockKey || '');
         return;
       }
       if (event.target.closest('#mobile-more-sheet-v181')) handleMoreAction(event);
-    }, true);
+    }, false);
   }
 
   function init() {
