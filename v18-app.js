@@ -29,6 +29,9 @@
     addScript('acy-v19-safe-mobile-script','/v19-mobile-ux-safe.js?v=19009');
     addScript('acy-v19-rc6-hotfix-script','/v19-rc6-mobile-hotfix.js?v=19009');
     addScript('acy-v19-pet-rc8-hotfix-script','/v19-pet-rc7-hotfix.js?v=19009');
+    // Emergency production fix: the reliable food picker/action handler was
+    // present in the repo but not loaded by the final V19 script chain.
+    addScript('acy-v19-pet-interaction-fix','/v19-pet-interaction-fix.js?v=19123');
     addScript('acy-v19-final-runtime-fix','/v19-final-runtime-fix.js?v=19002');
     addScript('acy-v19-install-portal-fix','/v19-install-portal-fix.js?v=19001');
     addScript('acy-v19-member-card-css','/v19-mobile-member-card.css?v=19014');
