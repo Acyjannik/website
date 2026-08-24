@@ -1,7 +1,7 @@
-/* ACY V19 RC11 — canonical version, Pet DB recovery, isolated mobile navigation. */
+/* ACY V19 — canonical version, Pet DB recovery, isolated mobile navigation. */
 (() => {
   'use strict';
-  const VERSION = 'V19.0.0 · RC11';
+  const VERSION = 'V19.0.0';
   const PET_PATH = /\/pet\.html$/i.test(location.pathname);
   const CLUB_PATH = /\/club-profile\.html$/i.test(location.pathname);
   const $ = (id) => document.getElementById(id);
@@ -103,7 +103,7 @@
       if (!pet) setPetStatus('', '');
       return pet || null;
     } catch (error) {
-      console.warn('[RC11] Pet DB recovery:', error);
+      console.warn('[V19] Pet DB recovery:', error);
       setPetStatus(`Tier-Datenbank konnte nicht geladen werden: ${error?.message || 'Unbekannter Fehler'}`, 'error');
       return null;
     }
@@ -118,7 +118,7 @@
       if (typeof window.renderPetLife === 'function') window.renderPetLife(data || {});
       return data || {};
     } catch (error) {
-      console.warn('[RC11] Pet Life DB recovery:', error);
+      console.warn('[V19] Pet Life DB recovery:', error);
       const status = $('pet-life-status');
       if (status) {
         status.textContent = `Pet Life konnte nicht geladen werden: ${error?.message || 'Unbekannter Fehler'}`;
