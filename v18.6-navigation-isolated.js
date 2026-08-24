@@ -225,6 +225,15 @@
     document.head.appendChild(script);
   }
 
+  function loadV20MobileLayer() {
+    if (document.getElementById('acy-v20-mobile-first-script')) return;
+    const script = document.createElement('script');
+    script.id = 'acy-v20-mobile-first-script';
+    script.src = '/v20-mobile-first.js?v=2001';
+    script.defer = true;
+    document.head.appendChild(script);
+  }
+
   function installGuard() {
     if (document.documentElement.dataset.acyNavGuard === '1864') return;
     document.documentElement.dataset.acyNavGuard = '1864';
@@ -244,6 +253,7 @@
     ensureMoreSheet();
     hardenDockMarkup();
     loadPolishLayer();
+    loadV20MobileLayer();
     installGuard();
     const observer = new MutationObserver(() => hardenDockMarkup());
     if (document.body) observer.observe(document.body, { childList: true, subtree: true });
