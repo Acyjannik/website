@@ -60,7 +60,7 @@
     if (!sheet) return false;
     const grid = sheet.querySelector('.acy-more-grid-v186,.mobile-more-grid-v181');
     if (!grid) return false;
-    if (grid.dataset.v20MoreBuilt === 'safe1' && grid.querySelector('[data-v20-more-item]')) return true;
+    if (grid.dataset.v20MoreBuilt === 'safe2' && grid.querySelector('[data-v20-more-item]')) return true;
     grid.innerHTML = '';
     MORE_GROUPS.forEach(([groupName, entries]) => {
       const label = document.createElement('div');
@@ -72,14 +72,71 @@
         item.className = 'v20-more-item';
         item.dataset.v20MoreItem = '1';
         item.setAttribute('aria-label', text.replace(/^\S+\s*/, ''));
-        if (href) { item.href = href; item.dataset.moreHref = href; }
-        else { item.type = 'button'; item.dataset.targetId = id; }
+        if (href) {
+          item.href = href;
+          item.dataset.moreHref = href;
+        } else {
+          item.type = 'button';
+          item.dataset.targetId = id;
+        }
         item.innerHTML = `<span class="v20-more-icon">${text.match(/^\S+/)?.[0] || ''}</span><span class="v20-more-text">${text.replace(/^\S+\s*/, '')}</span>`;
         grid.appendChild(item);
       });
     });
-    grid.dataset.v20MoreBuilt = 'safe1';
+    grid.dataset.v20MoreBuilt = 'safe2';
     return true;
+  }
+
+  function closeMore() {
+    const sheet = $('mobile-more-sheet-v181');
+    const toggle = $('mobile-dock-more-v18');
+    if (sheet) sheet.hidden = true;
+    document.body.classList.remove('mobile-more-open-v181');
+    toggle?.setAttribute('aria-expanded','false');
+    toggle?.classList.remove('is-open');
+  }
+
+  function scrollToTarget(target) {
+    if (!target) return false;
+    revealTarget(target.id);
+    const details = target.closest('details');
+    if (details) details.open = true;
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      const offset = isMobile() ? 112 : 96;
+      window.scrollTo({
+        top: Math.max(0, target.getBoundingClientRect().top + window.scrollY - offset),
+        behavior: 'smooth'
+      });
+    }));
+    return true;
+  }
+
+  function handleMoreItemClick(event) {
+    const item = event.target.closest('#mobile-more-sheet-v181 [data-v20-more-item]');
+    if (!item) return;
+
+    event.preventDefault();
+    event.stopImmediatePropagation();
+
+    if (item.dataset.moreHref) {
+      const href = item.dataset.moreHref;
+      closeMore();
+      window.location.assign(href);
+      return;
+    }
+
+    const target = $(item.dataset.targetId);
+    closeMore();
+    if (target) scrollToTarget(target);
+  }
+
+  function handleHashNavigation() {
+    if (!IS_CLUB_PAGE) return;
+    const hash = decodeURIComponent(location.hash.replace(/^#/,'')).trim();
+    if (!hash) return;
+    const target = $(hash);
+    if (!target) return;
+    setTimeout(() => scrollToTarget(target), 60);
   }
 
   function installStyles() {
@@ -116,27 +173,14 @@
     document.head.appendChild(style);
   }
 
-  function installHashNavigation() {
-    if (!IS_CLUB_PAGE) return;
-    const hash = decodeURIComponent(location.hash.replace(/^#/,'')).trim();
-    if (!hash) return;
-    const target = $(hash);
-    if (!target) return;
-    revealTarget(hash);
-    const details = target.closest('details');
-    if (details) details.open = true;
-    setTimeout(() => {
-      const offset = isMobile() ? 112 : 96;
-      window.scrollTo({ top: Math.max(0,target.getBoundingClientRect().top + window.scrollY - offset), behavior:'smooth' });
-    }, 80);
-  }
-
   function init() {
     labelBetaVersion();
     installStyles();
     compactSections();
     buildMoreSheet();
-    installHashNavigation();
+    document.addEventListener('click', handleMoreItemClick, true);
+    handleHashNavigation();
+    window.addEventListener('hashchange', handleHashNavigation);
     window.ACYV20Mobile = { compactSections, buildMoreSheet, revealTarget };
     window.addEventListener('resize', compactSections, { passive:true });
   }
