@@ -33,7 +33,10 @@
     addScript('acy-v19-install-portal-fix','/v19-install-portal-fix.js?v=19001');
     addScript('acy-v19-member-card-css','/v19-mobile-member-card.css?v=19014');
     addScript('acy-v19-more-navigation-stability','/v19-more-navigation-stability.js?v=19001');
-    addScript('acy-v20-quest-audit-fix','/v20-quest-audit-fix.js?v=2001');
+    // V20.0.2 stability engine: quest request coalescing, fast Pet quest refresh,
+    // and the mobile current-game picker. The old quest-audit wrapper intentionally
+    // is no longer loaded because it forced a sync RPC before every quest render.
+    addScript('acy-v20-stability-engine','/v20-stability-engine.js?v=2002');
     initNotifications();initDock();
     const mo=new MutationObserver(syncLive);['member-live-text','member-twitch-game','member-twitch-viewers','member-live-pill'].forEach(id=>{const el=$(id);el&&mo.observe(el,{childList:true,subtree:true,attributes:true,characterData:true});});
     syncLive();
