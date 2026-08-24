@@ -5,7 +5,7 @@
  * V19 RELEASE LOCK: one visible version marker, without a DOM observer loop.
  */
 (() => {
-  const VERSION = 'V19.0.0 · RC11';
+  const VERSION = 'V19.0.0';
 
   const lockVersionBadge = () => {
     const selectors = [
