@@ -3,30 +3,36 @@
 
   if (!/\/club-profile\.html$/i.test(location.pathname) && location.pathname !== '/') return;
 
-  let started = false;
+  let attempts = 0;
   let timer = null;
+  const MAX_ATTEMPTS = 8;
+
+  function hasQuestRows() {
+    return !!document.getElementById('quest-list')?.querySelector('.quest-row');
+  }
 
   function startQuestPreload() {
-    if (started || typeof window.loadQuests !== 'function') return false;
-    const list = document.getElementById('quest-list');
-    if (list?.querySelector('.quest-row')) return false;
+    if (hasQuestRows() || typeof window.loadQuests !== 'function') return true;
+    if (attempts >= MAX_ATTEMPTS) return false;
 
-    started = true;
+    attempts += 1;
     try {
       const result = window.loadQuests();
       if (result && typeof result.catch === 'function') result.catch(() => {});
     } catch (error) {
       console.warn('[V20] Quest preload skipped:', error);
     }
+
+    if (!hasQuestRows() && attempts < MAX_ATTEMPTS) schedule(450);
     return true;
   }
 
-  function schedule() {
+  function schedule(delay = 900) {
     if (timer) return;
     timer = setTimeout(() => {
       timer = null;
       startQuestPreload();
-    }, 900);
+    }, delay);
   }
 
   window.ACYV20QuestPreload = {
