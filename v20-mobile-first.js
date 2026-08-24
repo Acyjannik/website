@@ -1,10 +1,12 @@
 (() => {
   'use strict';
 
-  // V20 Beta.2: mobile-first Club presentation and a single, reliable More menu.
-  // IMPORTANT: this layer belongs to club-profile.html only. Pet stays untouched.
+  // V20 Beta.3: mobile-first Club presentation and one reliable More menu.
+  // Club gets the compact homepage treatment. Pet gets the shared More UI only.
   const MOBILE_MAX = 700;
   const IS_CLUB_PAGE = /\/club-profile\.html$/i.test(location.pathname) || location.pathname === '/';
+  const IS_PET_PAGE = /\/pet\.html$/i.test(location.pathname);
+
   const DEFERRED = [
     ['member-spotlight', '✨ Spotlight'],
     ['twitch-section', '🔴 Live'],
@@ -66,12 +68,13 @@
     ]]
   ];
 
-  if (!IS_CLUB_PAGE) return;
+  if (!IS_CLUB_PAGE && !IS_PET_PAGE) return;
 
   const isMobile = () => window.matchMedia(`(max-width:${MOBILE_MAX}px)`).matches;
   const byId = (id) => document.getElementById(id);
 
   function compactSections() {
+    if (!IS_CLUB_PAGE) return;
     const mobile = isMobile();
     DEFERRED.forEach(([id]) => {
       const el = byId(id);
@@ -109,12 +112,10 @@
   function buildMoreSheet() {
     const sheet = byId('mobile-more-sheet-v181');
     if (!sheet) return false;
-    const grid = sheet.querySelector('.acy-more-grid-v186');
+    const grid = sheet.querySelector('.acy-more-grid-v186, .mobile-more-grid-v181');
     if (!grid) return false;
 
-    // Legacy scripts may recreate the grid. Version the generated markup so it
-    // is rebuilt instead of trusting a stale data flag.
-    if (grid.dataset.v20MoreBuilt === '2' && grid.querySelector('[data-v20-more-item]')) return true;
+    if (grid.dataset.v20MoreBuilt === '3' && grid.querySelector('[data-v20-more-item]')) return true;
 
     grid.innerHTML = '';
     MORE_GROUPS.forEach(([groupName, entries]) => {
@@ -140,7 +141,7 @@
       });
     });
 
-    grid.dataset.v20MoreBuilt = '2';
+    grid.dataset.v20MoreBuilt = '3';
     return true;
   }
 
@@ -161,8 +162,6 @@
     const item = event.target.closest('#mobile-more-sheet-v181 [data-v20-more-item]');
     if (!item) return;
 
-    // The legacy V18.6 handler also listens on this sheet. Capture phase owns
-    // V20 items so the old target-pattern fallback cannot steal the click.
     event.preventDefault();
     event.stopImmediatePropagation();
 
@@ -176,18 +175,32 @@
     closeMore();
     if (target) {
       scrollToTarget(target);
-      const dock = document.querySelector('.mobile-club-dock');
-      dock?.querySelectorAll('[data-dock-key]').forEach((dockItem) => {
+      document.querySelector('.mobile-club-dock')?.querySelectorAll('[data-dock-key]').forEach((dockItem) => {
         dockItem.classList.remove('is-active');
         dockItem.removeAttribute('aria-current');
       });
     }
   }
 
-  function installMoreHandler() {
-    if (document.documentElement.dataset.acyV20MoreGuard === '2') return;
-    document.documentElement.dataset.acyV20MoreGuard = '2';
+  function handlePetMoreToggle(event) {
+    if (!IS_PET_PAGE) return;
+    const toggle = event.target.closest('#mobile-dock-more-v18');
+    if (!toggle) return;
+    event.preventDefault();
+    const sheet = byId('mobile-more-sheet-v181');
+    if (!sheet) return;
+    const shouldOpen = sheet.hidden;
+    sheet.hidden = !shouldOpen;
+    document.body.classList.toggle('mobile-more-open-v181', shouldOpen);
+    toggle.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
+    if (shouldOpen) buildMoreSheet();
+  }
+
+  function installMoreHandlers() {
+    if (document.documentElement.dataset.acyV20MoreGuard === '3') return;
+    document.documentElement.dataset.acyV20MoreGuard = '3';
     document.addEventListener('click', handleV20MoreClick, true);
+    if (IS_PET_PAGE) document.addEventListener('click', handlePetMoreToggle, false);
   }
 
   function installStyles() {
@@ -196,8 +209,6 @@
     style.id = 'acy-v20-mobile-first-style';
     style.textContent = `
       @media (max-width:700px){
-        body.club-auth-page{padding-bottom:calc(112px + env(safe-area-inset-bottom))!important}
-
         body.club-auth-page .mobile-club-dock{
           min-height:76px!important;
           padding:8px 10px calc(8px + env(safe-area-inset-bottom))!important;
@@ -234,7 +245,8 @@
           max-height:min(80dvh,720px)!important;
           padding:14px!important;border-radius:26px!important;
         }
-        body.club-auth-page .acy-more-grid-v186{grid-template-columns:1fr 1fr!important;gap:9px!important}
+        body.club-auth-page .acy-more-grid-v186,
+        body.club-auth-page .mobile-more-grid-v181{grid-template-columns:1fr 1fr!important;gap:9px!important}
         body.club-auth-page .v20-more-group-label{grid-column:1/-1;padding:10px 4px 2px;color:rgba(235,220,255,.62);font-size:10px;letter-spacing:.12em;font-weight:800}
         body.club-auth-page .v20-more-item{
           min-height:58px!important;
@@ -250,7 +262,6 @@
         body.club-auth-page .v20-more-icon{font-size:21px;line-height:1;flex:0 0 24px;text-align:center}
         body.club-auth-page .v20-more-text{min-width:0}
 
-        /* V20 layout polish is intentionally scoped to Club only. */
         body.club-auth-page .member-dashboard{gap:14px!important}
         body.club-auth-page .member-card,
         body.club-auth-page .member-hub,
@@ -260,6 +271,12 @@
         body.club-auth-page .v18-action-grid{gap:9px!important}
         body.club-auth-page .v18-action-card{min-height:70px!important;padding:12px!important;border-radius:18px!important}
         body.club-auth-page .member-quick{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+
+        /* Shared More styling on Pet, without changing the Pet layout itself. */
+        body.pet-world-page-v182 #mobile-more-sheet-v181{z-index:11500!important;position:fixed!important;overflow:auto!important}
+        body.pet-world-page-v182 .v20-more-item{min-height:58px!important;display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:9px!important;padding:10px 11px!important;border:1px solid rgba(180,108,255,.20)!important;border-radius:16px!important;background:rgba(255,255,255,.045)!important;color:#f8f4ff!important;font:700 14px/1.15 system-ui,sans-serif!important;text-align:left!important;touch-action:manipulation!important;-webkit-tap-highlight-color:transparent!important}
+        body.pet-world-page-v182 .v20-more-group-label{grid-column:1/-1;padding:10px 4px 2px;color:rgba(235,220,255,.62);font-size:10px;letter-spacing:.12em;font-weight:800}
+        body.pet-world-page-v182 .v20-more-icon{font-size:21px;line-height:1;flex:0 0 24px;text-align:center}
       }
       @media (min-width:701px){
         body.club-auth-page .v20-more-group-label,
@@ -273,12 +290,11 @@
     installStyles();
     compactSections();
     buildMoreSheet();
-    installMoreHandler();
+    installMoreHandlers();
 
     const observer = new MutationObserver(() => {
-      if (!isMobile()) return;
-      compactSections();
       buildMoreSheet();
+      compactSections();
     });
     if (document.body) observer.observe(document.body, { childList:true, subtree:true });
 
