@@ -231,7 +231,7 @@
     if (document.getElementById('acy-v20-mobile-first-script')) return;
     const script = document.createElement('script');
     script.id = 'acy-v20-mobile-first-script';
-    script.src = '/v20-mobile-first.js?v=2001';
+    script.src = '/v20-mobile-first.js?v=2002';
     script.defer = true;
     document.head.appendChild(script);
   }
