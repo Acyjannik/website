@@ -1,8 +1,8 @@
 (() => {
   'use strict';
 
-  // V19 interaction cleanup: one navigation owner, bubble-phase handling.
-  // Do not intercept unrelated buttons or stop the browser's event chain.
+  // V20 Beta: the navigation owner remains single-source and bubble-phase.
+  // Mobile compaction only changes visibility; it does not add another nav handler.
   const $ = (id) => document.getElementById(id);
   const MOBILE_MAX = 700;
   const isPetPage = /\/pet\.html$/i.test(location.pathname);
@@ -87,8 +87,20 @@
     });
   }
 
+  function revealTarget(target) {
+    if (!target) return null;
+    if (target.dataset.v20MobileDeferred === '1') {
+      target.hidden = false;
+      target.dataset.v20MobileRevealed = '1';
+      delete target.dataset.v20MobileDeferred;
+      window.ACYV20Mobile?.buildMoreSheet?.();
+    }
+    return target;
+  }
+
   function scrollToTarget(target) {
     if (!target) return false;
+    revealTarget(target);
     const details = target.closest('details');
     if (details) details.open = true;
     const offset = window.matchMedia(`(max-width:${MOBILE_MAX}px)`).matches ? 112 : 96;
@@ -166,8 +178,6 @@
       const target = item.dataset.targetId ? $(item.dataset.targetId) : findMoreTarget(item.dataset.moreTarget);
       closeMore();
       if (!target) return;
-      const details = target.closest('details');
-      if (details) details.open = true;
       scrollToTarget(target);
     }
   }
