@@ -10,6 +10,16 @@
     const archive = document.getElementById('pet-archive-panel');
     const tabs = [...document.querySelectorAll('.pet-view-tab-v183')];
 
+    const loadV20MobileLayer = () => {
+      if (document.getElementById('acy-v20-mobile-first-script')) return;
+      const script = document.createElement('script');
+      script.id = 'acy-v20-mobile-first-script';
+      script.src = '/v20-mobile-first.js?v=2003';
+      script.defer = true;
+      document.head.appendChild(script);
+    };
+
+    loadV20MobileLayer();
     if (!petSection || !tabs.length) return;
 
     const scrollToTarget = (target) => {
@@ -23,9 +33,6 @@
     };
 
     const setView = (view, updateHash = true) => {
-      // IMPORTANT: do not write data-pet-view on the main Pet section.
-      // styles.css uses that attribute as a visibility switch, which made
-      // the Games tab hide the rest of the Pet UI until a reload.
       petSection.removeAttribute('data-pet-view');
 
       tabs.forEach(tab => {
@@ -76,8 +83,5 @@
       const view = location.hash.match(/^#pet-(home|life|games|archive)$/)?.[1];
       if (view) setView(view, false);
     });
-
-    // V20 owns the mobile More interaction. This legacy module deliberately
-    // does not listen to #mobile-dock-more-v18 or the More sheet anymore.
   });
 })();
