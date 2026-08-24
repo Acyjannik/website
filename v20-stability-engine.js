@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '20.0.2';
+  const VERSION = '20.0.3';
   const root = document.documentElement;
   const $ = (id) => document.getElementById(id);
 
@@ -32,10 +32,21 @@
     document.head.appendChild(style);
   }
 
+  function getSupabaseGlobals() {
+    try {
+      const client = typeof supabaseClient !== 'undefined' ? supabaseClient : null;
+      const user = typeof currentUser !== 'undefined' ? currentUser : null;
+      return client && user ? { client, user } : null;
+    } catch {
+      return null;
+    }
+  }
+
   async function waitForClient(timeout = 8000) {
     const start = Date.now();
     while (Date.now() - start < timeout) {
-      if (window.supabaseClient && window.currentUser) return { client: window.supabaseClient, user: window.currentUser };
+      const ready = getSupabaseGlobals();
+      if (ready) return ready;
       await new Promise(resolve => setTimeout(resolve, 100));
     }
     return null;
@@ -184,6 +195,26 @@
     };
   }
 
+  function lazyLoadSectionData(details) {
+    if (!details?.open || details.dataset.acyV20Preloaded === '1') return;
+    details.dataset.acyV20Preloaded = '1';
+    if (details.id === 'club-quests-section') window.ACY_V20?.refreshQuests?.({ delay: 0 });
+    if (details.id === 'club-wheel-section') {
+      window.loadWheelState?.();
+      window.loadWheelHistory?.();
+    }
+    if (details.id === 'club-rewards-section') window.loadMyRewards?.();
+  }
+
+  function installLazySectionPreloads() {
+    document.addEventListener('toggle', event => {
+      if (event.target instanceof HTMLDetailsElement) lazyLoadSectionData(event.target);
+    }, true);
+    document.querySelectorAll('details.member-fold').forEach(details => {
+      if (details.open) lazyLoadSectionData(details);
+    });
+  }
+
   function installPetQuestRefreshBridge() {
     if (root.dataset.acyV20PetQuestBridge === '1') return;
     root.dataset.acyV20PetQuestBridge = '1';
@@ -198,6 +229,7 @@
     installStyles();
     installQuestStability();
     installPetQuestRefreshBridge();
+    installLazySectionPreloads();
     installGamePicker();
   }
 
