@@ -22,17 +22,27 @@
     });
   }
 
+  async function loadPetLifeController(){
+    if(!/\/(pet\.html|club-profile\.html)$/i.test(location.pathname)) return;
+    await loadScriptOnce('acy-v19-pet-life-controller','/v19-pet-life-controller.js?v=19200');
+  }
   async function loadPetRc8Hotfix(){ await loadScriptOnce('acy-v19-pet-rc8-script','/v19-pet-rc8-hotfix.js?v=19008'); }
   async function loadPetInteractionFix(){
     if(!/\/(pet\.html|club-profile\.html)$/i.test(location.pathname)) return;
     await loadScriptOnce('acy-v19-pet-interaction-script','/v19-pet-interaction-fix.js?v=19131');
   }
   async function loadFinalUxFix(){ await loadScriptOnce('acy-v19-final-ux-script','/v19-rc12-final-fix.js?v=19131'); }
+  async function loadPetActionsRescue(){
+    if(!/\/(pet\.html|club-profile\.html)$/i.test(location.pathname)) return;
+    await loadScriptOnce('acy-v19-pet-actions-rescue-script','/v19-pet-actions-rescue.js?v=19140');
+  }
 
   async function loadPetInteractionThenLegacy(){
+    await loadPetLifeController();
     await loadPetInteractionFix();
     await loadPetRc8Hotfix();
     await loadFinalUxFix();
+    await loadPetActionsRescue();
   }
 
   ensureAvatarInput();
