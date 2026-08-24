@@ -31,11 +31,12 @@
     addScript('acy-v19-pet-rc8-hotfix-script','/v19-pet-rc7-hotfix.js?v=19009');
     // Emergency production fix: the reliable food picker/action handler was
     // present in the repo but not loaded by the final V19 script chain.
-    addScript('acy-v19-pet-interaction-fix','/v19-pet-interaction-fix.js?v=19123');
+    addScript('acy-v19-pet-interaction-fix','/v19-pet-interaction-fix.js?v=19131');
     addScript('acy-v19-final-runtime-fix','/v19-final-runtime-fix.js?v=19002');
     addScript('acy-v19-install-portal-fix','/v19-install-portal-fix.js?v=19001');
     addScript('acy-v19-member-card-css','/v19-mobile-member-card.css?v=19014');
     addScript('acy-v19-more-navigation-stability','/v19-more-navigation-stability.js?v=19001');
+    addScript('acy-v19-pet-feed-ux-fix','/v19-pet-feed-ux-fix.js?v=1');
     initNotifications();initDock();
     const mo=new MutationObserver(syncLive);['member-live-text','member-twitch-game','member-twitch-viewers','member-live-pill'].forEach(id=>{const el=$(id);el&&mo.observe(el,{childList:true,subtree:true,attributes:true,characterData:true});});
     syncLive();
