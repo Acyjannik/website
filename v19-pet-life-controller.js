@@ -11,7 +11,6 @@
   document.documentElement.dataset.acyPetLifeController = '1';
 
   const $ = id => document.getElementById(id);
-  const ACTIONS = new Set(['feed','play','pet','groom','sleep','train','explore']);
   let clientPromise = null;
   let busy = false;
 
@@ -39,9 +38,15 @@
     return clientPromise;
   }
 
-  async function refresh() {
-    try { await window.loadPet?.(); } catch {}
-    try { await window.loadPetLife?.(); } catch {}
+  // Refresh is deliberately non-blocking. The action result updates the UI first;
+  // background reloads reconcile Pet/Quest data afterwards without making buttons
+  // look stuck while secondary reads are still running.
+  function refresh() {
+    const jobs = [
+      typeof window.loadPet === 'function' ? window.loadPet() : Promise.resolve(),
+      typeof window.loadPetLife === 'function' ? window.loadPetLife() : Promise.resolve()
+    ];
+    return Promise.allSettled(jobs);
   }
 
   async function rpc(name, args = {}) {
@@ -62,19 +67,17 @@
     busy = true;
     if (button) { button.disabled = true; button.setAttribute('aria-busy', 'true'); }
     try {
-      let data;
       if (action === 'feed') {
-        // Feeding is deliberately routed through the inventory picker, not club_pet_action.
         await openFoodPicker();
         return;
       }
-      data = await rpc('club_pet_action', { p_action: action });
+      const data = await rpc('club_pet_action', { p_action: action });
       applyResult(data);
       status(data?.message || 'Dein Tier freut sich. 🐾', 'success');
-      await refresh();
+      void refresh();
     } catch (error) {
       status(error?.message || 'Pet-Aktion konnte nicht ausgeführt werden.', 'error');
-      await refresh();
+      void refresh();
     } finally {
       if (button) { button.disabled = false; button.removeAttribute('aria-busy'); }
       busy = false;
@@ -118,10 +121,10 @@
       applyResult(data);
       $('acy-pet-controller-picker')?.remove();
       status(`🍖 ${data?.message || 'Futter verwendet.'}`, 'success');
-      await refresh();
+      void refresh();
     } catch (error) {
       status(`Füttern: ${error?.message || 'Futter konnte nicht verwendet werden.'}`, 'error');
-      await refresh();
+      void refresh();
     } finally {
       busy = false;
     }
@@ -130,24 +133,24 @@
   async function claimDaily(button) {
     if (busy || button.disabled) return;
     busy = true; button.disabled = true;
-    try { const data = await rpc('claim_pet_daily_supply'); applyResult(data); status(data?.message || '+2 Snacks und +10 AC Coins. 🎁', 'success'); await refresh(); }
-    catch (error) { status(error?.message || 'Tagesvorrat konnte nicht abgeholt werden.', 'error'); await refresh(); }
+    try { const data = await rpc('claim_pet_daily_supply'); applyResult(data); status(data?.message || '+2 Snacks und +10 AC Coins. 🎁', 'success'); void refresh(); }
+    catch (error) { status(error?.message || 'Tagesvorrat konnte nicht abgeholt werden.', 'error'); void refresh(); }
     finally { button.disabled = false; busy = false; }
   }
 
   async function mystery(button) {
     if (busy || button.disabled) return;
     busy = true; button.disabled = true;
-    try { const data = await rpc('open_pet_mystery_box'); applyResult(data); status(data?.reward_label ? `🎁 ${data.reward_label}` : 'Mystery Box geöffnet. 🎁', 'success'); await refresh(); }
-    catch (error) { status(error?.message || 'Mystery Box konnte nicht geöffnet werden.', 'error'); await refresh(); }
+    try { const data = await rpc('open_pet_mystery_box'); applyResult(data); status(data?.reward_label ? `🎁 ${data.reward_label}` : 'Mystery Box geöffnet. 🎁', 'success'); void refresh(); }
+    catch (error) { status(error?.message || 'Mystery Box konnte nicht geöffnet werden.', 'error'); void refresh(); }
     finally { button.disabled = false; busy = false; }
   }
 
   async function game(gameKey, button) {
     if (busy || button.disabled) return;
     busy = true; button.disabled = true;
-    try { const data = await rpc('play_pet_minigame', { p_game: gameKey }); applyResult(data); status(data?.reward_label ? `🎮 ${data.reward_label}` : 'Spiel abgeschlossen. 🎁', 'success'); await refresh(); }
-    catch (error) { status(error?.message || 'Spiel konnte nicht gestartet werden.', 'error'); await refresh(); }
+    try { const data = await rpc('play_pet_minigame', { p_game: gameKey }); applyResult(data); status(data?.reward_label ? `🎮 ${data.reward_label}` : 'Spiel abgeschlossen. 🎁', 'success'); void refresh(); }
+    catch (error) { status(error?.message || 'Spiel konnte nicht gestartet werden.', 'error'); void refresh(); }
     finally { button.disabled = false; busy = false; }
   }
 
@@ -166,8 +169,8 @@
   async function buy(itemKey, button) {
     if (busy || button.disabled) return;
     busy = true; button.disabled = true;
-    try { const data = await rpc('buy_pet_item', { p_item_key: itemKey }); applyResult(data); status(data?.message || `${itemKey} gekauft. 🛍️`, 'success'); await refresh(); await openShop(); }
-    catch (error) { status(error?.message || 'Artikel konnte nicht gekauft werden.', 'error'); await refresh(); }
+    try { const data = await rpc('buy_pet_item', { p_item_key: itemKey }); applyResult(data); status(data?.message || `${itemKey} gekauft. 🛍️`, 'success'); void refresh(); }
+    catch (error) { status(error?.message || 'Artikel konnte nicht gekauft werden.', 'error'); void refresh(); }
     finally { button.disabled = false; busy = false; }
   }
 
