@@ -38,7 +38,9 @@
   }
   function openMore(){
     const sheet = ensureMoreSheet(), toggle = $('mobile-dock-more-v18'); sheet.hidden=false; document.body.classList.add('mobile-more-open-v181');
-    toggle?.setAttribute('aria-expanded','true'); toggle?.classList.add('is-open'); window.ACYV20Mobile?.buildMoreSheet?.(); return true;
+    toggle?.setAttribute('aria-expanded','true'); toggle?.classList.add('is-open'); window.ACYV20Mobile?.buildMoreSheet?.();
+    window.ACYV20QuestPreload?.start?.();
+    return true;
   }
   function toggleMore(){ return $('mobile-more-sheet-v181')?.hidden===false ? (closeMore(),false) : openMore(); }
   function setActive(key){
@@ -99,6 +101,9 @@
   function loadV20MobileLayer(){
     if(document.getElementById('acy-v20-mobile-first-script'))return; const script=document.createElement('script');script.id='acy-v20-mobile-first-script';script.src='/v20-mobile-first-safe.js?v=2001';script.defer=true;document.head.appendChild(script);
   }
+  function loadQuestPreload(){
+    if(document.getElementById('acy-v20-quest-preload-script'))return; const script=document.createElement('script');script.id='acy-v20-quest-preload-script';script.src='/v20-quest-preload.js?v=2002';script.defer=true;document.head.appendChild(script);
+  }
   function loadSupabaseWarmup(){
     if(document.getElementById('acy-v20-supabase-warmup-script'))return; const script=document.createElement('script');script.id='acy-v20-supabase-warmup-script';script.src='/v20-supabase-warmup.js?v=2001';script.defer=true;document.head.appendChild(script);
   }
@@ -110,6 +115,6 @@
       if(event.target.closest('#mobile-more-sheet-v181'))handleMoreAction(event);
     },false);
   }
-  function init(){installStyles();ensureMoreSheet();hardenDockMarkup();loadPolishLayer();loadV20MobileLayer();loadSupabaseWarmup();installGuard();const observer=new MutationObserver(()=>hardenDockMarkup());if(document.body)observer.observe(document.body,{childList:true,subtree:true});}
+  function init(){installStyles();ensureMoreSheet();hardenDockMarkup();loadPolishLayer();loadV20MobileLayer();loadQuestPreload();loadSupabaseWarmup();installGuard();const observer=new MutationObserver(()=>hardenDockMarkup());if(document.body)observer.observe(document.body,{childList:true,subtree:true});}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
