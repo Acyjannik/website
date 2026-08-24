@@ -82,9 +82,6 @@ export default async function handler(req,res){
 
     const twitchGame=await resolveFromTwitch(gameName);
 
-    // Twitch requires exact game/category title matching for Get Games.
-    // If the exact name is not found, keep the discovery event visible to the
-    // caller without polluting the catalog with a guessed entry.
     if(!twitchGame){
       return json(res,200,{
         ok:true,
@@ -109,8 +106,10 @@ export default async function handler(req,res){
       updated_at:new Date().toISOString()
     };
 
+    // Match by Twitch ID first, then by the unique game name. This prevents
+    // duplicate-name 409s when a game was already created manually.
     const existingRes=await supabaseFetch(
-      `/rest/v1/games?twitch_game_id=eq.${encodeURIComponent(String(twitchGame.id))}&select=id,name,twitch_game_id&limit=1`
+      `/rest/v1/games?or=(twitch_game_id.eq.${encodeURIComponent(String(twitchGame.id))},name.eq.${encodeURIComponent(record.name)})&select=id,name,twitch_game_id,discovered_at&limit=1`
     );
     if(!existingRes.ok)throw new Error(`Supabase lookup ${existingRes.status}: ${await existingRes.text()}`);
     const existing=(await existingRes.json())[0];
@@ -143,9 +142,8 @@ export default async function handler(req,res){
       });
       if(!insertRes.ok){
         const txt=await insertRes.text();
-        // A race between two presence updates may create a unique twitch_game_id conflict.
         if(insertRes.status===409){
-          const retry=await supabaseFetch(`/rest/v1/games?twitch_game_id=eq.${encodeURIComponent(record.twitch_game_id)}&select=id&limit=1`);
+          const retry=await supabaseFetch(`/rest/v1/games?or=(twitch_game_id.eq.${encodeURIComponent(record.twitch_game_id)},name.eq.${encodeURIComponent(record.name)})&select=id&limit=1`);
           if(retry.ok)gameId=(await retry.json())[0]?.id||null;
         }else{
           throw new Error(`Supabase insert ${insertRes.status}: ${txt}`);
