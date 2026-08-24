@@ -4,8 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+<meta http-equiv="Pragma" content="no-cache">
 <title>ACY Club · Staff Center</title>
-<link rel="stylesheet" href="/styles.css?v=19.0.0-rc6">
+<link rel="stylesheet" href="/styles.css?v=19.0.0">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 body.staff-page{min-height:100vh;background:#09090d;color:#f7f3ff;font-family:Inter,system-ui,sans-serif}
@@ -30,18 +32,41 @@ body.staff-page{min-height:100vh;background:#09090d;color:#f7f3ff;font-family:In
   <article class="staff-card staff-card-mod" id="mod-card" hidden><div class="staff-kicker">MODERATION</div><h2>Mod Center</h2><p>Community Votes, Meldungen, Chat-/Community-Moderation, Mitglieder und Ankündigungen.</p><a class="button button-primary" href="/mod.html">Mod Center öffnen ↗</a></article>
   <article class="staff-card staff-card-streamer" id="streamer-card" hidden><div class="staff-kicker">CREATOR</div><h2>Streamer Center</h2><p>Live-Status, Stream-Werkzeuge und Creator-Funktionen für den eigenen Stream.</p><a class="button button-primary" href="/streamer.html">Streamer Center öffnen ↗</a></article>
  </section>
- <p class="staff-foot">V19.0.0 RC6 · Dieser Einstieg ersetzt keine serverseitige Berechtigungsprüfung. Jede privilegierte Aktion bleibt separat geschützt.</p>
+ <p class="staff-foot">V19.0.0 · Dieser Einstieg ersetzt keine serverseitige Berechtigungsprüfung. Jede privilegierte Aktion bleibt separat geschützt.</p>
 </main>
 <script>
 (()=>{
  const $=id=>document.getElementById(id);
- const storedToken=()=>{try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i)||'';if(!k.startsWith('sb-')||!k.endsWith('-auth-token'))continue;const raw=localStorage.getItem(k)||'{}';const p=JSON.parse(raw);const t=p?.access_token||p?.currentSession?.access_token||p?.session?.access_token||p?.data?.session?.access_token;if(t)return t;}}catch{}return null;};
- async function getSessionToken(){const t=storedToken();if(t)return t;try{const cfg=await fetch('/api/config',{cache:'no-store',signal:AbortSignal.timeout(5000)}).then(r=>r.json());if(cfg?.supabaseUrl&&cfg?.supabaseAnonKey&&window.supabase?.createClient){const sb=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseAnonKey);const {data}=await sb.auth.getSession();return data?.session?.access_token||null;}}catch{}return null;}
+ const readTokenFromStorage=storage=>{try{for(let i=0;i<storage.length;i++){const k=storage.key(i)||'';if(!k.startsWith('sb-')||!k.endsWith('-auth-token'))continue;const raw=storage.getItem(k)||'{}';const p=JSON.parse(raw);const t=p?.access_token||p?.currentSession?.access_token||p?.session?.access_token||p?.data?.session?.access_token;if(t)return t;}}catch{}return null;};
+ const storedToken=()=>readTokenFromStorage(localStorage)||readTokenFromStorage(sessionStorage);
+ async function ensureSupabase(){
+  if(window.supabase?.createClient)return true;
+  try{
+   await new Promise((resolve,reject)=>{
+    const s=document.createElement('script');s.src='https://unpkg.com/@supabase/supabase-js@2';s.async=true;
+    s.onload=resolve;s.onerror=reject;document.head.appendChild(s);
+   });
+  }catch{}
+  return Boolean(window.supabase?.createClient);
+ }
+ async function getSessionToken(){
+  const direct=storedToken();
+  if(direct)return direct;
+  try{
+   if(!await ensureSupabase())throw new Error('Supabase-Client konnte nicht geladen werden.');
+   const cfg=await fetch('/api/config',{cache:'no-store'}).then(r=>r.json());
+   if(!cfg?.supabaseUrl||!cfg?.supabaseAnonKey)throw new Error('Supabase-Konfiguration fehlt.');
+   const sb=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseAnonKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+   const {data}=await sb.auth.getSession();
+   return data?.session?.access_token||null;
+  }catch(error){console.warn('[ACY Staff] session lookup failed:',error);return null;}
+ }
  async function load(){
   $('staff-loading').hidden=false;$('staff-error').hidden=true;$('staff-grid').hidden=true;$('staff-role').textContent='Rolle wird geprüft…';
   try{
-   const access=await getSessionToken();if(!access)throw new Error('Keine aktive Anmeldung gefunden.');
-   const r=await fetch('/api/mod-auth',{headers:{Authorization:`Bearer ${access}`,Accept:'application/json'},cache:'no-store',signal:AbortSignal.timeout(8000)});
+   const access=await getSessionToken();
+   if(!access)throw new Error('Keine aktive ACY-Anmeldung gefunden. Bitte zuerst den Club öffnen und anmelden.');
+   const r=await fetch('/api/mod-auth',{headers:{Authorization:`Bearer ${access}`,Accept:'application/json'},cache:'no-store'});
    const d=await r.json().catch(()=>({}));
    if(!r.ok||!d.ok)throw new Error(d?.error||`Rollenprüfung fehlgeschlagen (${r.status}).`);
    const admin=Boolean(d.isAdmin),mod=Boolean(d.isModerator||admin),streamer=Boolean(d.isStreamer||admin),staff=Boolean(d.isStaff||admin||mod||streamer);
@@ -51,6 +76,7 @@ body.staff-page{min-height:100vh;background:#09090d;color:#f7f3ff;font-family:In
   }catch(err){$('staff-loading').hidden=true;$('staff-error').hidden=false;$('staff-role').textContent='Prüfung fehlgeschlagen';$('staff-error-text').textContent=err?.message||'Rolle konnte nicht geprüft werden.';}
  }
  $('staff-retry')?.addEventListener('click',load);
+ window.addEventListener('online',load,{passive:true});
  load();
 })();
 </script>
