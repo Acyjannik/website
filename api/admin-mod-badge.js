@@ -1,28 +1,16 @@
+import { requireAdminAAL2 } from './_admin-auth.js';
+
 export default async function handler(req,res){
   res.setHeader("Cache-Control","no-store,max-age=0");
   if(req.method!=="POST") return res.status(405).json({error:"POST only"});
 
+  const authz=await requireAdminAAL2(req);
+  if(!authz.ok) return res.status(authz.status).json({error:authz.error});
+
   const url=process.env.SUPABASE_URL;
   const key=process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if(!url||!key) return res.status(503).json({error:"Admin service is not configured."});
-
-  const auth=req.headers.authorization||"";
-  if(!auth.startsWith("Bearer ")) return res.status(401).json({error:"Nicht angemeldet."});
-
   const headers={apikey:key,Authorization:`Bearer ${key}`,"Content-Type":"application/json"};
   try{
-    const who=await fetch(`${url}/auth/v1/user`,{headers:{apikey:key,Authorization:auth}});
-    if(!who.ok) return res.status(401).json({error:"Ungültige Sitzung."});
-    const admin=await who.json();
-
-    const adminCheck=await fetch(
-      `${url}/rest/v1/admin_users?user_id=eq.${encodeURIComponent(admin.id)}&select=user_id&limit=1`,
-      {headers}
-    );
-    if(!adminCheck.ok) return res.status(500).json({error:"Admin-Rechte konnten nicht geprüft werden."});
-    const admins=await adminCheck.json();
-    if(!admins.length) return res.status(403).json({error:"Nur Admins dürfen das Mod-Badge vergeben."});
-
     const body=typeof req.body==="string"?JSON.parse(req.body||"{}"):(req.body||{});
     const userId=String(body.userId||"").trim();
     const action=body.action==="remove"?"remove":"grant";
@@ -51,13 +39,7 @@ export default async function handler(req,res){
     });
     if(!update.ok) return res.status(500).json({error:await update.text()});
 
-    return res.status(200).json({
-      ok:true,
-      action,
-      changed:true,
-      hasMod:action==="grant",
-      username:profile.username||profile.display_name||""
-    });
+    return res.status(200).json({ok:true,action,changed:true,hasMod:action==="grant",username:profile.username||profile.display_name||""});
   }catch(error){
     console.error("admin-mod-badge",error);
     return res.status(500).json({error:error?.message||"Mod-Badge konnte nicht geändert werden."});
