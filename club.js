@@ -16,13 +16,8 @@ function switchMode(mode) {
   $('club-success').hidden = true;
   $('show-register').classList.toggle('active', register);
   $('show-login').classList.toggle('active', !register);
-
-  // Keep each mode focused and avoid carrying messages from the other form.
-  if (register) {
-    $('login-status').textContent = '';
-  } else {
-    $('auth-status').textContent = '';
-  }
+  if (register) $('login-status').textContent = '';
+  else $('auth-status').textContent = '';
 }
 
 function showRegistrationSuccess(email, confirmedSession = false, pending = false) {
@@ -43,10 +38,7 @@ async function awardProgression(eventKey) {
     if (!data?.session?.access_token) return;
     await fetch('/api/club-progression', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${data.session.access_token}`
-      },
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${data.session.access_token}` },
       body: JSON.stringify({ eventKey })
     });
   } catch (error) {
@@ -70,9 +62,7 @@ async function init() {
     status('auth-status', 'Bereit. Dein ACY Club Account kann erstellt werden.', 'success');
 
     const { data } = await supabaseClient.auth.getSession();
-    if (data?.session?.user) {
-      window.location.href = '/club-profile.html';
-    }
+    if (data?.session?.user) window.location.href = '/club-profile.html';
   } catch (error) {
     console.error(error);
     status('auth-status', error.message || 'Registrierung momentan nicht verfügbar.', 'error');
@@ -83,7 +73,6 @@ $('show-register')?.addEventListener('click', () => switchMode('register'));
 $('show-login')?.addEventListener('click', () => switchMode('login'));
 
 $('username')?.addEventListener('input', (event) => {
-  // Usernames are intentionally lowercase and URL-safe.
   const input = event.currentTarget;
   const before = input.value;
   const normalized = before.toLowerCase().replace(/[^a-z0-9_]/g, '');
@@ -92,23 +81,15 @@ $('username')?.addEventListener('input', (event) => {
 
 $('register-form')?.addEventListener('submit', async (event) => {
   event.preventDefault();
-
-  if (!supabaseClient) {
-    return status('auth-status', 'Die Verbindung zum ACY Club wird noch hergestellt. Bitte kurz warten.', 'error');
-  }
+  if (!supabaseClient) return status('auth-status', 'Die Verbindung zum ACY Club wird noch hergestellt. Bitte kurz warten.', 'error');
 
   const username = $('username').value.trim().toLowerCase();
   const displayName = $('display-name').value.trim() || username;
   const email = $('register-email').value.trim();
   const password = $('register-password').value;
 
-  if (!/^[a-z0-9_]{3,24}$/.test(username)) {
-    return status('auth-status', 'Benutzername: 3–24 Zeichen. Nur Kleinbuchstaben (a–z), Zahlen und _.', 'error');
-  }
-
-  if (password.length < 10) {
-    return status('auth-status', 'Das Passwort muss mindestens 10 Zeichen lang sein.', 'error');
-  }
+  if (!/^[a-z0-9_]{3,24}$/.test(username)) return status('auth-status', 'Benutzername: 3–24 Zeichen. Nur Kleinbuchstaben (a–z), Zahlen und _.', 'error');
+  if (password.length < 10) return status('auth-status', 'Das Passwort muss mindestens 10 Zeichen lang sein.', 'error');
 
   const button = $('register-submit');
   button.disabled = true;
@@ -118,30 +99,16 @@ $('register-form')?.addEventListener('submit', async (event) => {
   const signupPromise = supabaseClient.auth.signUp({
     email,
     password,
-    options: {
-      data: { username, display_name: displayName },
-      emailRedirectTo: `${window.location.origin}/club-profile.html`
-    }
+    options: { data: { username, display_name: displayName }, emailRedirectTo: `${window.location.origin}/club-profile.html` }
   });
 
-  // Some SMTP setups can deliver the message successfully before the Auth
-  // request returns to the browser. Do not leave the user staring at a
-  // disabled button forever. Give the normal response a few seconds, then
-  // show a useful pending state while the request is allowed to finish.
-  let timedOut = false;
-  const timeout = new Promise(resolve => setTimeout(() => {
-    timedOut = true;
-    resolve({ timeout: true });
-  }, 10000));
+  const timeout = new Promise(resolve => setTimeout(() => resolve({ timeout: true }), 10000));
 
   try {
     const result = await Promise.race([signupPromise, timeout]);
-
     if (result?.timeout) {
       showRegistrationSuccess(email, false, true);
       button.textContent = 'Registrierung abgeschlossen';
-
-      // Keep observing the original request so a late real error is not lost.
       signupPromise.then(({ data, error }) => {
         if (error) {
           console.error('Late signup error:', error);
@@ -159,21 +126,12 @@ $('register-form')?.addEventListener('submit', async (event) => {
 
     const { data, error } = result;
     if (error) throw error;
-
-    if (data.session) {
-      await awardProgression('registration');
-    }
-
+    if (data.session) await awardProgression('registration');
     showRegistrationSuccess(email, !!data.session, false);
     button.textContent = 'Account erstellt';
   } catch (error) {
     const msg = String(error.message || '');
-    status('auth-status',
-      /already registered/i.test(msg)
-        ? 'Diese E-Mail ist bereits registriert.'
-        : msg || 'Registrierung fehlgeschlagen.',
-      'error'
-    );
+    status('auth-status', /already registered/i.test(msg) ? 'Diese E-Mail ist bereits registriert.' : msg || 'Registrierung fehlgeschlagen.', 'error');
     button.disabled = false;
     button.textContent = 'ACY Club beitreten';
   }
@@ -185,12 +143,23 @@ $('login-form')?.addEventListener('submit', async (event) => {
   status('login-status', 'Anmeldung läuft…');
 
   try {
-    const { data, error } = await supabaseClient.auth.signInWithPassword({
-      email: $('login-email').value.trim(),
-      password: $('login-password').value
+    const identifier = $('login-email').value.trim();
+    const password = $('login-password').value;
+    const response = await fetch('/api/club-login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ identifier, password })
     });
-    if (error) throw error;
-    if (!data.session) throw new Error('Keine gültige Sitzung erhalten.');
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(payload.error || 'Login fehlgeschlagen.');
+    if (!payload.access_token || !payload.refresh_token) throw new Error('Keine gültige Sitzung erhalten.');
+
+    const { error: sessionError } = await supabaseClient.auth.setSession({
+      access_token: payload.access_token,
+      refresh_token: payload.refresh_token
+    });
+    if (sessionError) throw sessionError;
+
     await awardProgression('registration');
     window.location.href = '/club-profile.html';
   } catch (error) {
@@ -200,25 +169,16 @@ $('login-form')?.addEventListener('submit', async (event) => {
 });
 
 $('forgot-password')?.addEventListener('click', async () => {
-  const email = $('login-email').value.trim();
-  if (!email) return status('login-status', 'Bitte zuerst deine E-Mail eingeben.', 'error');
+  const identifier = $('login-email').value.trim();
+  if (!identifier || !identifier.includes('@')) return status('login-status', 'Für den Passwort-Reset bitte deine E-Mail-Adresse eingeben.', 'error');
 
   try {
-    const origin = window.location.origin;
-    const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
-      redirectTo: `${origin}/club-reset.html`
-    });
+    const { error } = await supabaseClient.auth.resetPasswordForEmail(identifier, { redirectTo: `${window.location.origin}/club-reset.html` });
     if (error) throw error;
     status('login-status', 'Eine E-Mail zum Zurücksetzen des Passworts wurde angefordert.', 'success');
   } catch (error) {
     const msg = String(error.message || '');
-    status(
-      'login-status',
-      /rate limit|too many|email rate/i.test(msg)
-        ? 'Zu viele Reset-E-Mails wurden gerade angefordert. Bitte etwas warten und es danach erneut versuchen.'
-        : msg || 'Passwort-Reset fehlgeschlagen.',
-      'error'
-    );
+    status('login-status', /rate limit|too many|email rate/i.test(msg) ? 'Zu viele Reset-E-Mails wurden gerade angefordert. Bitte etwas warten und es danach erneut versuchen.' : msg || 'Passwort-Reset fehlgeschlagen.', 'error');
   }
 });
 
