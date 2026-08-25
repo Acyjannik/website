@@ -17,7 +17,6 @@
     button.dataset.v20WheelBound = '1';
 
     let busy = false;
-    let clientPromise = null;
 
     const setBusy = value => {
       busy = value;
@@ -29,10 +28,11 @@
 
     const getClient = async () => {
       if (window.__acySupabaseClient?.rpc) return window.__acySupabaseClient;
-      if (clientPromise) return clientPromise;
-      clientPromise = (async () => {
+      if (window.__acyV20WheelClientPromise) return window.__acyV20WheelClientPromise;
+
+      window.__acyV20WheelClientPromise = (async () => {
         if (!window.supabase?.createClient) throw new Error('Supabase-Bibliothek fehlt.');
-        const cfg = await fetch('/api/config?wheel_controller=20001', { cache: 'no-store' }).then(r => r.json());
+        const cfg = await fetch('/api/config', { cache: 'default' }).then(r => r.json());
         if (!cfg?.configured || !cfg.supabaseUrl || !cfg.supabaseAnonKey) throw new Error('Supabase-Konfiguration fehlt.');
         const client = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey, {
           auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
@@ -40,8 +40,12 @@
         window.__acySupabaseClient = client;
         return client;
       })();
-      return clientPromise;
+
+      return window.__acyV20WheelClientPromise;
     };
+
+    // Warm the client while the Club is loading, not on the first wheel click.
+    void getClient().catch(() => {});
 
     const refreshLater = () => {
       const fns = ['loadWheelState', 'loadWheelHistory', 'loadQuests', 'loadProfile'];
