@@ -54,6 +54,7 @@
 
     const { data: challenge, error: challengeError } = await client.auth.mfa.challenge({ factorId: factor.id });
     if (challengeError) throw challengeError;
+    if (!challenge?.id) throw new Error('Supabase hat keine gültige MFA-Challenge zurückgegeben.');
 
     const { error: verifyError } = await client.auth.mfa.verify({
       factorId: factor.id,
@@ -62,8 +63,17 @@
     });
     if (verifyError) throw verifyError;
 
-    await client.auth.refreshSession();
-    return true;
+    // Supabase promotes the current session to AAL2 after a successful MFA
+    // verification and refreshes the session automatically. Do NOT call
+    // refreshSession() here: that can replace the freshly promoted MFA
+    // session with a plain AAL1 refresh-token session before the gate checks it.
+    const { data: aal, error: aalError } = await client.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (aalError) throw aalError;
+    if (aal?.currentLevel !== 'aal2') {
+      throw new Error('MFA wurde bestätigt, aber Supabase hat die Sitzung noch nicht auf AAL2 hochgestuft.');
+    }
+
+    return aal;
   }
 
   window.ACYAuthSecurity = {
