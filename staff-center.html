@@ -9,13 +9,14 @@
 <title>ACY Club · Staff Center</title>
 <link rel="stylesheet" href="/styles.css?v=20.0.1">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/v20-auth-security.js?v=1.0.4" defer></script>
 <style>
 body.staff-page{min-height:100vh;background:#09090d;color:#f7f3ff;font-family:Inter,system-ui,sans-serif}
 .staff-shell{max-width:1120px;margin:0 auto;padding:32px 20px 80px}
-.staff-head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:24px}.staff-kicker{letter-spacing:.22em;color:#bd82ff;font-weight:800;font-size:13px}.staff-head h1{margin:6px 0 8px;font-size:clamp(32px,5vw,52px);line-height:1}.staff-head p{margin:0;color:#aaa6b3;max-width:720px;line-height:1.5}.staff-meta{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:flex-end}.staff-chip{padding:9px 12px;border:1px solid rgba(180,108,255,.28);border-radius:999px;background:rgba(168,85,247,.08);font-weight:800;white-space:nowrap}.staff-card{padding:22px;border:1px solid rgba(255,255,255,.08);border-radius:22px;background:linear-gradient(145deg,rgba(20,17,29,.96),rgba(12,12,18,.98));box-shadow:0 18px 50px rgba(0,0,0,.18)}.staff-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.staff-card h2{margin:8px 0 8px;font-size:24px}.staff-card p{color:#aaa6b3;line-height:1.5;min-height:74px}.staff-card .button{width:100%;margin-top:12px;min-height:52px}.staff-loading{display:flex;align-items:center;gap:10px;color:#cfc8d8}.staff-error{border-color:rgba(248,113,113,.24);background:rgba(80,20,30,.18)}.staff-foot{margin-top:22px;color:#807b88;font-size:13px;line-height:1.5}
+.staff-head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:24px}.staff-kicker{letter-spacing:.22em;color:#bd82ff;font-weight:800;font-size:13px}.staff-head h1{margin:6px 0 8px;font-size:clamp(32px,5vw,52px);line-height:1}.staff-head p{margin:0;color:#aaa6b3;max-width:720px;line-height:1.5}.staff-meta{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:flex-end}.staff-chip{padding:9px 12px;border:1px solid rgba(180,108,255,.28);border-radius:999px;background:rgba(168,85,247,.08);font-weight:800;white-space:nowrap}.staff-card{padding:22px;border:1px solid rgba(255,255,255,.08);border-radius:22px;background:linear-gradient(145deg,rgba(20,17,29,.96),rgba(12,12,18,.98));box-shadow:0 18px 50px rgba(0,0,0,.18)}.staff-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.staff-card h2{margin:8px 0 8px;font-size:24px}.staff-card p{color:#aaa6b3;line-height:1.5;min-height:74px}.staff-card .button{width:100%;margin-top:12px;min-height:52px}.staff-loading{display:flex;align-items:center;gap:10px;color:#cfc8d8}.staff-error{border-color:rgba(248,113,113,.24);background:rgba(80,20,30,.18)}.staff-foot{margin-top:22px;color:#807b88;font-size:13px;line-height:1.5}.staff-gate{margin-bottom:18px;border-color:rgba(189,130,255,.28);background:linear-gradient(145deg,rgba(35,22,50,.96),rgba(16,13,24,.98))}.staff-gate h2{margin-top:8px}.staff-gate p{min-height:0;margin-bottom:8px}.staff-gate-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}.staff-gate-actions .button{width:auto;min-width:180px}.staff-mfa-code{width:min(280px,100%);box-sizing:border-box;padding:14px 16px;border-radius:12px;border:1px solid #363644;background:#0b0b10;color:#fff;font-size:24px;letter-spacing:.25em;text-align:center;margin-top:10px}.staff-gate-status{margin-top:12px;min-height:22px}.staff-gate-status.error{color:#ff8585}.staff-gate-status.success{color:#87e0a3}
 @media(max-width:760px){
  .staff-shell{padding:14px 12px calc(64px + env(safe-area-inset-bottom))}.staff-head{display:block;margin-bottom:16px}.staff-head h1{font-size:34px}.staff-head p{font-size:15px;line-height:1.45}.staff-meta{display:grid;grid-template-columns:1fr;gap:8px;margin-top:14px}.staff-meta>*{width:100%;min-width:0}.staff-chip{display:flex;justify-content:center;white-space:normal;text-align:center;min-height:46px;align-items:center}
- .staff-grid{grid-template-columns:1fr;gap:10px}.staff-card{padding:16px;border-radius:19px}.staff-card h2{font-size:21px;line-height:1.15}.staff-card p{min-height:0;font-size:14px;line-height:1.45}.staff-card .button{min-height:54px;font-size:16px;white-space:normal;overflow-wrap:anywhere}
+ .staff-grid{grid-template-columns:1fr;gap:10px}.staff-card{padding:16px;border-radius:19px}.staff-card h2{font-size:21px;line-height:1.15}.staff-card p{min-height:0;font-size:14px;line-height:1.45}.staff-card .button{min-height:54px;font-size:16px;white-space:normal;overflow-wrap:anywhere}.staff-gate-actions{display:grid;grid-template-columns:1fr}.staff-gate-actions .button{width:100%;min-width:0}
 }
 </style>
 </head>
@@ -27,12 +28,27 @@ body.staff-page{min-height:100vh;background:#09090d;color:#f7f3ff;font-family:In
  </header>
  <section id="staff-loading" class="staff-card staff-loading"><strong>Zugriff wird geprüft…</strong></section>
  <section id="staff-error" class="staff-card staff-error" hidden><strong id="staff-error-title">Staff-Zugriff konnte nicht geprüft werden.</strong><p id="staff-error-text">Bitte kurz neu laden.</p><button class="button button-secondary" id="staff-retry" type="button">Erneut prüfen</button></section>
+
+ <section id="admin-mfa-gate" class="staff-card staff-gate" hidden>
+  <div class="staff-kicker">ADMIN · SECURITY</div>
+  <h2 id="admin-mfa-title">Zusätzliche Admin-Bestätigung erforderlich</h2>
+  <p id="admin-mfa-text">Für den Admin-Bereich muss diese Sitzung mit deinem TOTP-Faktor auf AAL2 hochgestuft werden.</p>
+  <div id="admin-mfa-code-wrap" hidden>
+   <input id="admin-mfa-code" class="staff-mfa-code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000" aria-label="6-stelliger MFA-Code">
+  </div>
+  <div class="staff-gate-actions">
+   <button class="button button-primary" id="admin-mfa-action" type="button">MFA-Code eingeben</button>
+   <a class="button button-secondary" id="admin-mfa-setup" href="/admin-mfa.html?return=%2Fstaff-center.html" hidden>MFA jetzt einrichten</a>
+  </div>
+  <div id="admin-mfa-status" class="staff-gate-status" aria-live="polite"></div>
+ </section>
+
  <section id="staff-grid" class="staff-grid" hidden>
   <article class="staff-card staff-card-admin" id="admin-card" hidden><div class="staff-kicker">ADMIN</div><h2>Admin Control Center</h2><p>Website, Community, Rewards, XP, Pet-Administration, Medien und Systemeinstellungen.</p><a class="button button-primary" href="/admin.html">Admin Center öffnen ↗</a></article>
   <article class="staff-card staff-card-mod" id="mod-card" hidden><div class="staff-kicker">MODERATION</div><h2>Mod Center</h2><p>Community Votes, Meldungen, Chat-/Community-Moderation, Mitglieder und Ankündigungen.</p><a class="button button-primary" href="/mod.html">Mod Center öffnen ↗</a></article>
   <article class="staff-card staff-card-streamer" id="streamer-card" hidden><div class="staff-kicker">CREATOR</div><h2>Streamer Center</h2><p>Live-Status, Stream-Werkzeuge und Creator-Funktionen für den eigenen Stream.</p><a class="button button-primary" href="/streamer.html">Streamer Center öffnen ↗</a></article>
  </section>
- <p class="staff-foot">V20.0 Beta · Dieser Einstieg ersetzt keine serverseitige Berechtigungsprüfung. Jede privilegierte Aktion bleibt separat geschützt.</p>
+ <p class="staff-foot">V20.0 Beta · Dieser Einstieg ersetzt keine serverseitige Berechtigungsprüfung. Jede privilegierte Aktion bleibt separat geschützt. Admin-Zugriff erfordert zusätzlich AAL2.</p>
 </main>
 <script>
 (()=>{
@@ -49,10 +65,63 @@ body.staff-page{min-height:100vh;background:#09090d;color:#f7f3ff;font-family:In
   if(direct)return direct;
   try{if(!await ensureSupabase())throw new Error('Supabase-Client konnte nicht geladen werden.');const cfg=await fetch('/api/config',{cache:'no-store'}).then(r=>r.json());if(!cfg?.supabaseUrl||!cfg?.supabaseAnonKey)throw new Error('Supabase-Konfiguration fehlt.');const sb=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseAnonKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});const {data}=await sb.auth.getSession();return data?.session?.access_token||null;}catch(error){console.warn('[ACY Staff] session lookup failed:',error);return null;}
  }
- async function load(){
-  $('staff-loading').hidden=false;$('staff-error').hidden=true;$('staff-grid').hidden=true;$('staff-role').textContent='Rolle wird geprüft…';
-  try{const access=await getSessionToken();if(!access)throw new Error('Keine aktive ACY-Anmeldung gefunden. Bitte zuerst den Club öffnen und anmelden.');const r=await fetch('/api/mod-auth',{headers:{Authorization:`Bearer ${access}`,Accept:'application/json'},cache:'no-store'});const d=await r.json().catch(()=>({}));if(!r.ok||!d.ok)throw new Error(d?.error||`Rollenprüfung fehlgeschlagen (${r.status}).`);const admin=Boolean(d.isAdmin),mod=Boolean(d.isModerator||admin),streamer=Boolean(d.isStreamer||admin),staff=Boolean(d.isStaff||admin||mod||streamer);if(!staff)throw new Error('Dein Account besitzt keine privilegierte ACY-Rolle.');$('staff-role').textContent=admin?'Admin + Mod + Streamer':mod?(streamer?'Mod + Streamer':'Mod'):'Streamer';$('admin-card').hidden=!admin;$('mod-card').hidden=!mod;$('streamer-card').hidden=!streamer;$('staff-loading').hidden=true;$('staff-grid').hidden=false;}catch(err){$('staff-loading').hidden=true;$('staff-error').hidden=false;$('staff-role').textContent='Prüfung fehlgeschlagen';$('staff-error-text').textContent=err?.message||'Rolle konnte nicht geprüft werden.';}
+ async function getSecurityClient(){
+  if(window.ACYAuthSecurity?.getClient)return window.ACYAuthSecurity.getClient();
+  throw new Error('ACY Auth Security konnte nicht geladen werden.');
  }
+ function gateStatus(text,type=''){$('admin-mfa-status').textContent=text;$('admin-mfa-status').className=`staff-gate-status ${type}`.trim();}
+ function showAdminGate(mode){
+  $('admin-mfa-gate').hidden=false;
+  $('admin-card').hidden=true;
+  const setup=mode==='setup';
+  $('admin-mfa-title').textContent=setup?'Admin-MFA muss eingerichtet werden':'Zusätzliche Admin-Bestätigung erforderlich';
+  $('admin-mfa-text').textContent=setup?'Dein Admin-Account hat noch keinen bestätigten TOTP-Faktor. Richte MFA einmal ein, bevor du das Admin Center öffnen kannst.':'Dein Admin-Faktor ist aktiv. Gib den aktuell angezeigten 6-stelligen Code ein, um diese Sitzung auf AAL2 hochzustufen.';
+  $('admin-mfa-code-wrap').hidden=setup;
+  $('admin-mfa-setup').hidden=!setup;
+  $('admin-mfa-action').hidden=setup;
+  if(!setup){$('admin-mfa-code').value='';setTimeout(()=>$('admin-mfa-code').focus(),50);}
+  gateStatus('');
+ }
+ function showAdminReady(){
+  $('admin-mfa-gate').hidden=true;
+  $('admin-card').hidden=false;
+ }
+ async function verifyAdminMfa(){
+  const button=$('admin-mfa-action');
+  const value=String($('admin-mfa-code').value||'').replace(/\D/g,'');
+  if(value.length!==6){gateStatus('Bitte den aktuellen 6-stelligen Authenticator-Code eingeben.','error');return;}
+  button.disabled=true;button.textContent='MFA wird geprüft…';gateStatus('');
+  try{
+   const security=await getSecurityClient();
+   await security.auth.mfa.getAuthenticatorAssuranceLevel();
+   await window.ACYAuthSecurity.verifyTotp(value);
+   const aal=await security.auth.mfa.getAuthenticatorAssuranceLevel();
+   if(aal?.currentLevel!=='aal2')throw new Error('MFA wurde bestätigt, aber die Sitzung ist noch nicht auf AAL2.');
+   gateStatus('MFA bestätigt. Admin-Zugriff freigegeben.','success');
+   setTimeout(showAdminReady,250);
+  }catch(error){gateStatus(error?.message||'MFA-Code konnte nicht bestätigt werden.','error');}
+  finally{button.disabled=false;button.textContent='MFA-Code bestätigen';}
+ }
+ async function checkAdminMfa(){
+  try{
+   const security=await getSecurityClient();
+   const aal=await security.requirePrivilegedMfa();
+   if(!aal?.privileged)return true;
+   const factors=await security.getClient().then(sb=>sb.auth.mfa.listFactors());
+   if(factors.error)throw factors.error;
+   const hasVerified=(factors.data?.totp||[]).some(f=>f?.factor_type==='totp'&&f?.status==='verified');
+   if(!hasVerified){showAdminGate('setup');return false;}
+   if(aal.aal==='aal2'){showAdminReady();return true;}
+   showAdminGate('verify');
+   return false;
+  }catch(error){showAdminGate('verify');gateStatus(error?.message||'MFA-Status konnte nicht geprüft werden.','error');return false;}
+ }
+ async function load(){
+  $('staff-loading').hidden=false;$('staff-error').hidden=true;$('staff-grid').hidden=true;$('admin-mfa-gate').hidden=true;$('staff-role').textContent='Rolle wird geprüft…';
+  try{const access=await getSessionToken();if(!access)throw new Error('Keine aktive ACY-Anmeldung gefunden. Bitte zuerst den Club öffnen und anmelden.');const r=await fetch('/api/mod-auth',{headers:{Authorization:`Bearer ${access}`,Accept:'application/json'},cache:'no-store'});const d=await r.json().catch(()=>({}));if(!r.ok||!d.ok)throw new Error(d?.error||`Rollenprüfung fehlgeschlagen (${r.status}).`);const admin=Boolean(d.isAdmin),mod=Boolean(d.isModerator||admin),streamer=Boolean(d.isStreamer||admin),staff=Boolean(d.isStaff||admin||mod||streamer);if(!staff)throw new Error('Dein Account besitzt keine privilegierte ACY-Rolle.');$('staff-role').textContent=admin?'Admin + Mod + Streamer':mod?(streamer?'Mod + Streamer':'Mod'):'Streamer';$('admin-card').hidden=!admin;$('mod-card').hidden=!mod;$('streamer-card').hidden=!streamer;$('staff-loading').hidden=true;$('staff-grid').hidden=false;if(admin){await checkAdminMfa();}}catch(err){$('staff-loading').hidden=true;$('staff-error').hidden=false;$('staff-role').textContent='Prüfung fehlgeschlagen';$('staff-error-text').textContent=err?.message||'Rolle konnte nicht geprüft werden.';}
+ }
+ $('admin-mfa-action')?.addEventListener('click',verifyAdminMfa);
+ $('admin-mfa-code')?.addEventListener('keydown',event=>{if(event.key==='Enter')verifyAdminMfa();});
  $('staff-retry')?.addEventListener('click',load);window.addEventListener('online',load,{passive:true});load();
 })();
 </script>
