@@ -13,10 +13,21 @@
     const response = await fetch('/api/config', { cache: 'default' });
     const config = await response.json();
     if (!config?.configured) throw new Error('Supabase ist nicht konfiguriert.');
-    window.__acyAuthSecurityClient = supabase.createClient(config.supabaseUrl, config.supabaseAnonKey, {
+    const client = supabase.createClient(config.supabaseUrl, config.supabaseAnonKey, {
       auth: { persistSession: true, autoRefreshToken: true }
     });
-    return window.__acyAuthSecurityClient;
+
+    // Keep the freshly issued MFA JWT available to immediate AAL checks.
+    // Supabase's MFA verify response contains the new access token, whose
+    // `aal` claim is the authoritative proof that the step-up succeeded.
+    const originalGetAal = client.auth.mfa.getAuthenticatorAssuranceLevel.bind(client.auth.mfa);
+    client.auth.mfa.getAuthenticatorAssuranceLevel = async (jwt) => {
+      const verifiedJwt = window.__acyAuthSecurityAal2Token;
+      return originalGetAal(jwt || verifiedJwt || undefined);
+    };
+
+    window.__acyAuthSecurityClient = client;
+    return client;
   }
 
   async function requirePrivilegedMfa() {
@@ -45,14 +56,6 @@
     };
   }
 
-  const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
-
-  async function readAal2(client) {
-    const { data: aal, error } = await client.auth.mfa.getAuthenticatorAssuranceLevel();
-    if (error) throw error;
-    return aal;
-  }
-
   async function verifyTotp(code) {
     const client = await getClient();
     const { data: factors, error: factorError } = await client.auth.mfa.listFactors();
@@ -64,31 +67,26 @@
     if (challengeError) throw challengeError;
     if (!challenge?.id) throw new Error('Supabase hat keine gültige MFA-Challenge zurückgegeben.');
 
-    const { error: verifyError } = await client.auth.mfa.verify({
+    const { data: verification, error: verifyError } = await client.auth.mfa.verify({
       factorId: factor.id,
       challengeId: challenge.id,
       code: String(code || '').trim()
     });
     if (verifyError) throw verifyError;
 
-    // Supabase upgrades the session to AAL2 after a successful verification.
-    // The refresh is asynchronous, so do not reject a valid verification just
-    // because the local JWT still contains the previous AAL1 claim for a moment.
-    // We first allow the automatic refresh to finish, then explicitly refresh
-    // the session if the local client still has the old JWT.
-    for (let attempt = 0; attempt < 6; attempt++) {
-      const aal = await readAal2(client);
-      if (aal?.currentLevel === 'aal2') return aal;
+    // MFA verify returns a newly issued access token. Validate AAL2 directly
+    // against that token instead of racing the client's in-memory session.
+    const accessToken = verification?.access_token;
+    if (!accessToken) throw new Error('MFA wurde bestätigt, aber Supabase hat kein neues AAL2-Token zurückgegeben.');
+    window.__acyAuthSecurityAal2Token = accessToken;
 
-      await wait(250);
-
-      if (attempt === 2 || attempt === 4) {
-        const { error: refreshError } = await client.auth.refreshSession();
-        if (refreshError) throw refreshError;
-      }
+    const { data: aal, error: aalError } = await client.auth.mfa.getAuthenticatorAssuranceLevel(accessToken);
+    if (aalError) throw aalError;
+    if (aal?.currentLevel !== 'aal2') {
+      throw new Error('MFA wurde bestätigt, aber das neue Supabase-Token ist noch nicht auf AAL2.');
     }
 
-    throw new Error('MFA wurde bestätigt, aber Supabase hat die Sitzung noch nicht auf AAL2 hochgestuft.');
+    return aal;
   }
 
   window.ACYAuthSecurity = {
