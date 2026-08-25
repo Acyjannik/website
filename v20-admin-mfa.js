@@ -14,6 +14,23 @@
   const code = root.querySelector('[data-mfa-code]');
   const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
+  function getSafeReturnUrl() {
+    try {
+      const value = new URLSearchParams(window.location.search).get('return');
+      if (!value || !value.startsWith('/') || value.startsWith('//') || /[\r\n]/.test(value)) return null;
+      return value;
+    } catch {
+      return null;
+    }
+  }
+
+  function finishSetup() {
+    const returnUrl = getSafeReturnUrl();
+    if (returnUrl) {
+      window.location.assign(returnUrl);
+    }
+  }
+
   async function client() {
     if (window.ACYAuthSecurity?.getClient) return window.ACYAuthSecurity.getClient();
     throw new Error('Auth-Sicherheitsmodul fehlt.');
@@ -59,6 +76,7 @@
     if (verify) verify.hidden = true;
     root.dataset.factorId = verified.id;
     setStatus('MFA ist bereits aktiviert. Dein Admin-Zugang ist mit AAL2 geschützt.', 'success');
+    finishSetup();
     return true;
   }
 
@@ -69,8 +87,6 @@
     if (await showExistingVerifiedFactor(sb)) return;
     await cleanupUnverifiedTotp(sb);
 
-    // Do not pass a fixed friendlyName. Supabase enforces uniqueness of this
-    // name per user, so a stale factor could otherwise block a new enrollment.
     const { data, error } = await sb.auth.mfa.enroll({
       factorType: 'totp'
     });
@@ -132,6 +148,7 @@
     if (verify) verify.hidden = true;
     if (secret) secret.textContent = '';
     if (code) code.value = '';
+    finishSetup();
   }
 
   async function handleEnroll() {
