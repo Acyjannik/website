@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ACY · Admin MFA</title>
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/v20-auth-security.js?v=1.0.0" defer></script>
+  <script src="/v20-admin-mfa.js?v=1.0.0" defer></script>
+  <style>
+    :root{color-scheme:dark}body{margin:0;min-height:100vh;background:#09090d;color:#f5f5f7;font-family:Inter,system-ui,sans-serif;display:grid;place-items:center;padding:24px}.card{width:min(520px,100%);background:#14141b;border:1px solid #292936;border-radius:24px;padding:28px;box-sizing:border-box}.eyebrow{font-size:12px;letter-spacing:.14em;opacity:.65}.muted{color:#a8a8b5;line-height:1.5}.box{margin-top:18px;padding:18px;border:1px solid #2a2a35;border-radius:16px;background:#0f0f15}.qr{display:block;max-width:220px;width:100%;margin:16px auto;border-radius:12px;background:#fff;padding:10px}.secret{word-break:break-all;font-family:ui-monospace,monospace;font-size:13px}.code{width:100%;box-sizing:border-box;padding:14px;border-radius:12px;border:1px solid #363644;background:#0b0b10;color:#fff;font-size:24px;letter-spacing:.25em;text-align:center}.btn{border:0;border-radius:12px;padding:13px 16px;background:#fff;color:#08080c;font-weight:700;cursor:pointer}.status{margin-top:16px;min-height:20px}.status[data-type=error]{color:#ff8585}.status[data-type=success]{color:#87e0a3}[hidden]{display:none!important}
+  </style>
+</head>
+<body>
+  <main class="card" data-acy-mfa>
+    <div class="eyebrow">ACY SECURE AUTH</div>
+    <h1>Admin-MFA</h1>
+    <p class="muted">Dieser Bereich richtet TOTP-MFA für einen bereits eingeloggten Admin ein. Der QR-Code und das Geheimnis werden nur für die Einrichtung angezeigt.</p>
+    <button class="btn" data-mfa-enroll>MFA einrichten</button>
+    <section class="box" data-mfa-setup hidden>
+      <strong>1. Authenticator verbinden</strong>
+      <img class="qr" data-mfa-qr alt="TOTP QR-Code" hidden>
+      <p class="muted">Falls Scannen nicht möglich ist, kannst du diesen Schlüssel manuell eingeben:</p>
+      <div class="secret" data-mfa-secret></div>
+    </section>
+    <section class="box" data-mfa-verify hidden>
+      <strong>2. Einrichtung bestätigen</strong>
+      <p class="muted">Gib den aktuellen 6-stelligen Code deiner Authenticator-App ein.</p>
+      <input class="code" data-mfa-code inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000">
+      <br><br><button class="btn" data-mfa-confirm>MFA bestätigen</button>
+    </section>
+    <div class="status" data-mfa-status></div>
+  </main>
+</body>
+</html>
