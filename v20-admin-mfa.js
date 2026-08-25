@@ -13,7 +13,6 @@
   const qr = root.querySelector('[data-mfa-qr]');
   const code = root.querySelector('[data-mfa-code]');
   const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-  const FRIENDLY_NAME = 'ACY Admin Authenticator';
 
   async function client() {
     if (window.ACYAuthSecurity?.getClient) return window.ACYAuthSecurity.getClient();
@@ -67,15 +66,13 @@
     const sb = await client();
     setStatus('MFA wird vorbereitet…');
 
-    // Supabase creates an unverified factor immediately. A failed previous
-    // attempt therefore leaves an orphaned factor. Remove any unverified TOTP
-    // factor first so enrollment cannot fail because of the old friendly name.
     if (await showExistingVerifiedFactor(sb)) return;
     await cleanupUnverifiedTotp(sb);
 
+    // Do not pass a fixed friendlyName. Supabase enforces uniqueness of this
+    // name per user, so a stale factor could otherwise block a new enrollment.
     const { data, error } = await sb.auth.mfa.enroll({
-      factorType: 'totp',
-      friendlyName: FRIENDLY_NAME
+      factorType: 'totp'
     });
     if (error) throw error;
 
