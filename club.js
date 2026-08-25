@@ -46,9 +46,24 @@ async function awardProgression(eventKey) {
   }
 }
 
+async function resolveLoginIdentifier(identifier) {
+  const value = String(identifier || '').trim();
+  if (!value) throw new Error('Bitte E-Mail oder Benutzername eingeben.');
+  if (value.includes('@')) return value;
+  if (!/^[a-z0-9_]{3,24}$/.test(value.toLowerCase())) throw new Error('Ungültiger Benutzername.');
+  const response = await fetch('/api/resolve-username', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username: value })
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok || !payload.email) throw new Error('Anmeldedaten sind ungültig.');
+  return payload.email;
+}
+
 async function init() {
   try {
-    const response = await fetch('/api/config', { cache: 'no-store' });
+    const response = await fetch('/api/config', { cache: 'default' });
     const config = await response.json();
     if (!config.configured) throw new Error('Die ACY Club Registrierung ist noch nicht konfiguriert.');
     if (!window.supabase?.createClient) throw new Error('Supabase konnte nicht geladen werden.');
@@ -145,20 +160,10 @@ $('login-form')?.addEventListener('submit', async (event) => {
   try {
     const identifier = $('login-email').value.trim();
     const password = $('login-password').value;
-    const response = await fetch('/api/club-login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ identifier, password })
-    });
-    const payload = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(payload.error || 'Login fehlgeschlagen.');
-    if (!payload.access_token || !payload.refresh_token) throw new Error('Keine gültige Sitzung erhalten.');
-
-    const { error: sessionError } = await supabaseClient.auth.setSession({
-      access_token: payload.access_token,
-      refresh_token: payload.refresh_token
-    });
-    if (sessionError) throw sessionError;
+    const email = await resolveLoginIdentifier(identifier);
+    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    if (!data?.session) throw new Error('Keine gültige Sitzung erhalten.');
 
     await awardProgression('registration');
     window.location.href = '/club-profile.html';
