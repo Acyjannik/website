@@ -45,6 +45,14 @@
     };
   }
 
+  const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+  async function readAal2(client) {
+    const { data: aal, error } = await client.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (error) throw error;
+    return aal;
+  }
+
   async function verifyTotp(code) {
     const client = await getClient();
     const { data: factors, error: factorError } = await client.auth.mfa.listFactors();
@@ -63,17 +71,24 @@
     });
     if (verifyError) throw verifyError;
 
-    // Supabase promotes the current session to AAL2 after a successful MFA
-    // verification and refreshes the session automatically. Do NOT call
-    // refreshSession() here: that can replace the freshly promoted MFA
-    // session with a plain AAL1 refresh-token session before the gate checks it.
-    const { data: aal, error: aalError } = await client.auth.mfa.getAuthenticatorAssuranceLevel();
-    if (aalError) throw aalError;
-    if (aal?.currentLevel !== 'aal2') {
-      throw new Error('MFA wurde bestätigt, aber Supabase hat die Sitzung noch nicht auf AAL2 hochgestuft.');
+    // Supabase upgrades the session to AAL2 after a successful verification.
+    // The refresh is asynchronous, so do not reject a valid verification just
+    // because the local JWT still contains the previous AAL1 claim for a moment.
+    // We first allow the automatic refresh to finish, then explicitly refresh
+    // the session if the local client still has the old JWT.
+    for (let attempt = 0; attempt < 6; attempt++) {
+      const aal = await readAal2(client);
+      if (aal?.currentLevel === 'aal2') return aal;
+
+      await wait(250);
+
+      if (attempt === 2 || attempt === 4) {
+        const { error: refreshError } = await client.auth.refreshSession();
+        if (refreshError) throw refreshError;
+      }
     }
 
-    return aal;
+    throw new Error('MFA wurde bestätigt, aber Supabase hat die Sitzung noch nicht auf AAL2 hochgestuft.');
   }
 
   window.ACYAuthSecurity = {
