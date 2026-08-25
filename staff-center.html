@@ -9,7 +9,7 @@
 <title>ACY Club · Staff Center</title>
 <link rel="stylesheet" href="/styles.css?v=20.0.1">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="/v20-auth-security.js?v=1.0.4" defer></script>
+<script src="/v20-auth-security.js?v=1.0.5" defer></script>
 <style>
 body.staff-page{min-height:100vh;background:#09090d;color:#f7f3ff;font-family:Inter,system-ui,sans-serif}
 .staff-shell{max-width:1120px;margin:0 auto;padding:32px 20px 80px}
@@ -28,21 +28,14 @@ body.staff-page{min-height:100vh;background:#09090d;color:#f7f3ff;font-family:In
  </header>
  <section id="staff-loading" class="staff-card staff-loading"><strong>Zugriff wird geprüft…</strong></section>
  <section id="staff-error" class="staff-card staff-error" hidden><strong id="staff-error-title">Staff-Zugriff konnte nicht geprüft werden.</strong><p id="staff-error-text">Bitte kurz neu laden.</p><button class="button button-secondary" id="staff-retry" type="button">Erneut prüfen</button></section>
-
  <section id="admin-mfa-gate" class="staff-card staff-gate" hidden>
   <div class="staff-kicker">ADMIN · SECURITY</div>
   <h2 id="admin-mfa-title">Zusätzliche Admin-Bestätigung erforderlich</h2>
   <p id="admin-mfa-text">Für den Admin-Bereich muss diese Sitzung mit deinem TOTP-Faktor auf AAL2 hochgestuft werden.</p>
-  <div id="admin-mfa-code-wrap" hidden>
-   <input id="admin-mfa-code" class="staff-mfa-code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000" aria-label="6-stelliger MFA-Code">
-  </div>
-  <div class="staff-gate-actions">
-   <button class="button button-primary" id="admin-mfa-action" type="button">MFA-Code eingeben</button>
-   <a class="button button-secondary" id="admin-mfa-setup" href="/admin-mfa.html?return=%2Fstaff-center.html" hidden>MFA jetzt einrichten</a>
-  </div>
+  <div id="admin-mfa-code-wrap" hidden><input id="admin-mfa-code" class="staff-mfa-code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="000000" aria-label="6-stelliger MFA-Code"></div>
+  <div class="staff-gate-actions"><button class="button button-primary" id="admin-mfa-action" type="button">MFA-Code eingeben</button><a class="button button-secondary" id="admin-mfa-setup" href="/admin-mfa.html?return=%2Fstaff-center.html" hidden>MFA jetzt einrichten</a></div>
   <div id="admin-mfa-status" class="staff-gate-status" aria-live="polite"></div>
  </section>
-
  <section id="staff-grid" class="staff-grid" hidden>
   <article class="staff-card staff-card-admin" id="admin-card" hidden><div class="staff-kicker">ADMIN</div><h2>Admin Control Center</h2><p>Website, Community, Rewards, XP, Pet-Administration, Medien und Systemeinstellungen.</p><a class="button button-primary" href="/admin.html">Admin Center öffnen ↗</a></article>
   <article class="staff-card staff-card-mod" id="mod-card" hidden><div class="staff-kicker">MODERATION</div><h2>Mod Center</h2><p>Community Votes, Meldungen, Chat-/Community-Moderation, Mitglieder und Ankündigungen.</p><a class="button button-primary" href="/mod.html">Mod Center öffnen ↗</a></article>
@@ -55,62 +48,16 @@ body.staff-page{min-height:100vh;background:#09090d;color:#f7f3ff;font-family:In
  const $=id=>document.getElementById(id);
  const readTokenFromStorage=storage=>{try{for(let i=0;i<storage.length;i++){const k=storage.key(i)||'';if(!k.startsWith('sb-')||!k.endsWith('-auth-token'))continue;const raw=storage.getItem(k)||'{}';const p=JSON.parse(raw);const t=p?.access_token||p?.currentSession?.access_token||p?.session?.access_token||p?.data?.session?.access_token;if(t)return t;}}catch{}return null;};
  const storedToken=()=>readTokenFromStorage(localStorage)||readTokenFromStorage(sessionStorage);
- async function ensureSupabase(){
-  if(window.supabase?.createClient)return true;
-  try{await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='https://unpkg.com/@supabase/supabase-js@2';s.async=true;s.onload=resolve;s.onerror=reject;document.head.appendChild(s);});}catch{}
-  return Boolean(window.supabase?.createClient);
- }
- async function getSessionToken(){
-  const direct=storedToken();
-  if(direct)return direct;
-  try{if(!await ensureSupabase())throw new Error('Supabase-Client konnte nicht geladen werden.');const cfg=await fetch('/api/config',{cache:'no-store'}).then(r=>r.json());if(!cfg?.supabaseUrl||!cfg?.supabaseAnonKey)throw new Error('Supabase-Konfiguration fehlt.');const sb=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseAnonKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});const {data}=await sb.auth.getSession();return data?.session?.access_token||null;}catch(error){console.warn('[ACY Staff] session lookup failed:',error);return null;}
- }
- async function getSecurityClient(){
-  if(window.ACYAuthSecurity?.getClient)return window.ACYAuthSecurity.getClient();
-  throw new Error('ACY Auth Security konnte nicht geladen werden.');
- }
+ async function ensureSupabase(){if(window.supabase?.createClient)return true;try{await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='https://unpkg.com/@supabase/supabase-js@2';s.async=true;s.onload=resolve;s.onerror=reject;document.head.appendChild(s);});}catch{}return Boolean(window.supabase?.createClient);}
+ async function getSessionToken(){const direct=storedToken();if(direct)return direct;try{if(!await ensureSupabase())throw new Error('Supabase-Client konnte nicht geladen werden.');const cfg=await fetch('/api/config',{cache:'no-store'}).then(r=>r.json());if(!cfg?.supabaseUrl||!cfg?.supabaseAnonKey)throw new Error('Supabase-Konfiguration fehlt.');const sb=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseAnonKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});const {data}=await sb.auth.getSession();return data?.session?.access_token||null;}catch(error){console.warn('[ACY Staff] session lookup failed:',error);return null;}}
+ async function getSecurityClient(){if(window.ACYAuthSecurity?.getClient)return window.ACYAuthSecurity.getClient();throw new Error('ACY Auth Security konnte nicht geladen werden.');}
  function gateStatus(text,type=''){$('admin-mfa-status').textContent=text;$('admin-mfa-status').className=`staff-gate-status ${type}`.trim();}
- function showAdminGate(mode){
-  $('admin-mfa-gate').hidden=false;$('admin-card').hidden=true;
-  const setup=mode==='setup';
-  $('admin-mfa-title').textContent=setup?'Admin-MFA muss eingerichtet werden':'Zusätzliche Admin-Bestätigung erforderlich';
-  $('admin-mfa-text').textContent=setup?'Dein Admin-Account hat noch keinen bestätigten TOTP-Faktor. Richte MFA einmal ein, bevor du das Admin Center öffnen kannst.':'Dein Admin-Faktor ist aktiv. Gib den aktuell angezeigten 6-stelligen Code ein, um diese Sitzung auf AAL2 hochzustufen.';
-  $('admin-mfa-code-wrap').hidden=setup;$('admin-mfa-setup').hidden=!setup;$('admin-mfa-action').hidden=setup;
-  if(!setup){$('admin-mfa-code').value='';setTimeout(()=>$('admin-mfa-code').focus(),50);}
-  gateStatus('');
- }
- function showAdminReady(){$('admin-mfa-gate').hidden=true;$('admin-card').hidden=false;}
- async function verifyAdminMfa(){
-  const button=$('admin-mfa-action');const value=String($('admin-mfa-code').value||'').replace(/\D/g,'');
-  if(value.length!==6){gateStatus('Bitte den aktuellen 6-stelligen Authenticator-Code eingeben.','error');return;}
-  button.disabled=true;button.textContent='MFA wird geprüft…';gateStatus('');
-  try{
-   const sb=await getSecurityClient();
-   await window.ACYAuthSecurity.verifyTotp(value);
-   const aal=await sb.auth.mfa.getAuthenticatorAssuranceLevel();
-   if(aal?.currentLevel!=='aal2')throw new Error('MFA wurde bestätigt, aber die Sitzung ist noch nicht auf AAL2.');
-   gateStatus('MFA bestätigt. Admin-Zugriff freigegeben.','success');setTimeout(showAdminReady,250);
-  }catch(error){gateStatus(error?.message||'MFA-Code konnte nicht bestätigt werden.','error');}
-  finally{button.disabled=false;button.textContent='MFA-Code bestätigen';}
- }
- async function checkAdminMfa(){
-  try{
-   const sb=await getSecurityClient();
-   const aal=await sb.auth.mfa.getAuthenticatorAssuranceLevel();
-   const factors=await sb.auth.mfa.listFactors();
-   if(factors.error)throw factors.error;
-   const hasVerified=(factors.data?.totp||[]).some(f=>f?.factor_type==='totp'&&f?.status==='verified');
-   if(!hasVerified){showAdminGate('setup');return false;}
-   if(aal?.currentLevel==='aal2'){showAdminReady();return true;}
-   showAdminGate('verify');return false;
-  }catch(error){showAdminGate('verify');gateStatus(error?.message||'MFA-Status konnte nicht geprüft werden.','error');return false;}
- }
- async function load(){
-  $('staff-loading').hidden=false;$('staff-error').hidden=true;$('staff-grid').hidden=true;$('admin-mfa-gate').hidden=true;$('staff-role').textContent='Rolle wird geprüft…';
-  try{const access=await getSessionToken();if(!access)throw new Error('Keine aktive ACY-Anmeldung gefunden. Bitte zuerst den Club öffnen und anmelden.');const r=await fetch('/api/mod-auth',{headers:{Authorization:`Bearer ${access}`,Accept:'application/json'},cache:'no-store'});const d=await r.json().catch(()=>({}));if(!r.ok||!d.ok)throw new Error(d?.error||`Rollenprüfung fehlgeschlagen (${r.status}).`);const admin=Boolean(d.isAdmin),mod=Boolean(d.isModerator||admin),streamer=Boolean(d.isStreamer||admin),staff=Boolean(d.isStaff||admin||mod||streamer);if(!staff)throw new Error('Dein Account besitzt keine privilegierte ACY-Rolle.');$('staff-role').textContent=admin?'Admin + Mod + Streamer':mod?(streamer?'Mod + Streamer':'Mod'):'Streamer';$('admin-card').hidden=!admin;$('mod-card').hidden=!mod;$('streamer-card').hidden=!streamer;$('staff-loading').hidden=true;$('staff-grid').hidden=false;if(admin)await checkAdminMfa();}
-  catch(err){$('staff-loading').hidden=true;$('staff-error').hidden=false;$('staff-role').textContent='Prüfung fehlgeschlagen';$('staff-error-text').textContent=err?.message||'Rolle konnte nicht geprüft werden.';}
- }
- $('admin-mfa-action')?.addEventListener('click',verifyAdminMfa);$('admin-mfa-code')?.addEventListener('keydown',event=>{if(event.key==='Enter')verifyAdminMfa;});$('staff-retry')?.addEventListener('click',load);window.addEventListener('online',load,{passive:true});load();
+ function showAdminGate(mode){$('admin-mfa-gate').hidden=false;$('admin-card').hidden=true;const setup=mode==='setup';$('admin-mfa-title').textContent=setup?'Admin-MFA muss eingerichtet werden':'Zusätzliche Admin-Bestätigung erforderlich';$('admin-mfa-text').textContent=setup?'Dein Admin-Account hat noch keinen bestätigten TOTP-Faktor. Richte MFA einmal ein, bevor du das Admin Center öffnen kannst.':'Dein Admin-Faktor ist aktiv. Gib den aktuell angezeigten 6-stelligen Code ein, um diese Sitzung auf AAL2 hochzustufen.';$('admin-mfa-code-wrap').hidden=setup;$('admin-mfa-setup').hidden=!setup;$('admin-mfa-action').hidden=setup;if(!setup){$('admin-mfa-code').value='';setTimeout(()=>$('admin-mfa-code').focus(),50);}gateStatus('');}
+ function showAdminReady(){ $('admin-mfa-gate').hidden=true;$('admin-card').hidden=false; }
+ async function verifyAdminMfa(){const button=$('admin-mfa-action');const value=String($('admin-mfa-code').value||'').replace(/\D/g,'');if(value.length!==6){gateStatus('Bitte den aktuellen 6-stelligen Authenticator-Code eingeben.','error');return;}button.disabled=true;button.textContent='MFA wird geprüft…';gateStatus('');try{const sb=await getSecurityClient();await window.ACYAuthSecurity.verifyTotp(value);const aal=await sb.auth.mfa.getAuthenticatorAssuranceLevel();if(aal?.currentLevel!=='aal2')throw new Error('MFA wurde bestätigt, aber die Sitzung ist noch nicht auf AAL2.');gateStatus('MFA bestätigt. Admin-Zugriff freigegeben.','success');setTimeout(showAdminReady,250);}catch(error){gateStatus(error?.message||'MFA-Code konnte nicht bestätigt werden.','error');}finally{button.disabled=false;button.textContent='MFA-Code bestätigen';}}
+ async function checkAdminMfa(){try{const sb=await getSecurityClient();const aal=await sb.auth.mfa.getAuthenticatorAssuranceLevel();const factors=await sb.auth.mfa.listFactors();if(factors.error)throw factors.error;const hasVerified=(factors.data?.totp||[]).some(f=>f?.factor_type==='totp'&&f?.status==='verified');if(!hasVerified){showAdminGate('setup');return false;}if(aal?.currentLevel==='aal2'){showAdminReady();return true;}showAdminGate('verify');return false;}catch(error){showAdminGate('verify');gateStatus(error?.message||'MFA-Status konnte nicht geprüft werden.','error');return false;}}
+ async function load(){$('staff-loading').hidden=false;$('staff-error').hidden=true;$('staff-grid').hidden=true;$('admin-mfa-gate').hidden=true;$('staff-role').textContent='Rolle wird geprüft…';try{const access=await getSessionToken();if(!access)throw new Error('Keine aktive ACY-Anmeldung gefunden. Bitte zuerst den Club öffnen und anmelden.');const r=await fetch('/api/mod-auth',{headers:{Authorization:`Bearer ${access}`,Accept:'application/json'},cache:'no-store'});const d=await r.json().catch(()=>({}));if(!r.ok||!d.ok)throw new Error(d?.error||`Rollenprüfung fehlgeschlagen (${r.status}).`);const admin=Boolean(d.isAdmin),mod=Boolean(d.isModerator||admin),streamer=Boolean(d.isStreamer||admin),staff=Boolean(d.isStaff||admin||mod||streamer);if(!staff)throw new Error('Dein Account besitzt keine privilegierte ACY-Rolle.');$('staff-role').textContent=admin?'Admin + Mod + Streamer':mod?(streamer?'Mod + Streamer':'Mod'):'Streamer';$('admin-card').hidden=!admin;$('mod-card').hidden=!mod;$('streamer-card').hidden=!streamer;$('staff-loading').hidden=true;$('staff-grid').hidden=false;if(admin)await checkAdminMfa();}catch(err){$('staff-loading').hidden=true;$('staff-error').hidden=false;$('staff-role').textContent='Prüfung fehlgeschlagen';$('staff-error-text').textContent=err?.message||'Rolle konnte nicht geprüft werden.';}}
+ $('admin-mfa-action')?.addEventListener('click',verifyAdminMfa);$('admin-mfa-code')?.addEventListener('keydown',event=>{if(event.key==='Enter')verifyAdminMfa();});$('staff-retry')?.addEventListener('click',load);window.addEventListener('online',load,{passive:true});load();
 })();
 </script>
 </body>
