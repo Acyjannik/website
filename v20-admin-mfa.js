@@ -33,19 +33,19 @@
     return data || { totp: [], phone: [] };
   }
 
-  async function cleanupUnverifiedFriendlyName(sb) {
+  async function cleanupUnverifiedTotp(sb) {
     const factors = await listFactors(sb);
-    const all = [...(factors.totp || []), ...(factors.phone || [])];
-    const matches = all.filter(f =>
+    const unverified = (factors.totp || []).filter(f =>
       f?.factor_type === 'totp' &&
-      f?.friendly_name === FRIENDLY_NAME &&
       f?.status !== 'verified' &&
       UUID_RE.test(String(f?.id || ''))
     );
 
-    for (const factor of matches) {
+    for (const factor of unverified) {
       const { error } = await sb.auth.mfa.unenroll({ factorId: factor.id });
-      if (error) console.warn('[ACY MFA] konnte unbestätigten Faktor nicht entfernen:', error);
+      if (error) {
+        throw new Error(`Unbestätigten MFA-Faktor konnte Supabase nicht entfernen (${error.code || 'unbekannter Fehler'}).`);
+      }
     }
   }
 
@@ -67,10 +67,11 @@
     const sb = await client();
     setStatus('MFA wird vorbereitet…');
 
-    // Supabase creates an unverified factor immediately. If a previous
-    // attempt failed, that orphaned factor otherwise blocks the same name.
+    // Supabase creates an unverified factor immediately. A failed previous
+    // attempt therefore leaves an orphaned factor. Remove any unverified TOTP
+    // factor first so enrollment cannot fail because of the old friendly name.
     if (await showExistingVerifiedFactor(sb)) return;
-    await cleanupUnverifiedFriendlyName(sb);
+    await cleanupUnverifiedTotp(sb);
 
     const { data, error } = await sb.auth.mfa.enroll({
       factorType: 'totp',
@@ -78,7 +79,6 @@
     });
     if (error) throw error;
 
-    // The factor UUID is data.id. data.totp contains the QR/secret.
     const factorId = data?.id;
     const totp = data?.totp;
     if (!factorId || !UUID_RE.test(String(factorId))) {
@@ -123,8 +123,6 @@
     });
 
     if (error) {
-      // Keep the unverified factor alive so the user can simply enter the
-      // next 6-digit code. Do not create another factor on a bad code.
       if (error.code === 'mfa_verification_failed') {
         throw new Error('TOTP-Code ungültig. Bitte den aktuell angezeigten Code aus deiner Authenticator-App eingeben und erneut bestätigen.');
       }
