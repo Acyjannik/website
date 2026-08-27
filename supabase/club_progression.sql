@@ -75,7 +75,7 @@ end;
 $$;
 
 revoke all on function public.award_club_xp(uuid, text, integer) from public;
-grant execute on function public.award_club_xp(uuid, text, integer) to authenticated;
+grant execute on function public.award_club_xp(uuid, text, integer) to service_role;
 
 
 -- Remove XP for a reversible connection-state action.
@@ -123,4 +123,4 @@ end;
 $$;
 
 revoke all on function public.revoke_club_xp(uuid, text, integer) from public;
-grant execute on function public.revoke_club_xp(uuid, text, integer) to authenticated;
+grant execute on function public.revoke_club_xp(uuid, text, integer) to service_role;
