@@ -2,6 +2,8 @@
 (() => {
   'use strict';
 
+  if (!/\/(pet\.html|club-profile\.html)$/i.test(location.pathname)) return;
+
   const $ = (id) => document.getElementById(id);
 
   function petState() {

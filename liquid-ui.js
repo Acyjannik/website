@@ -43,6 +43,7 @@
   }, {passive:true});
 
   const loadAudit = () => {
+    if (!document.body?.classList.contains('club-auth-page')) return;
     if (document.getElementById('acy-v186-global-audit-script')) return;
     const script = document.createElement('script');
     script.id = 'acy-v186-global-audit-script';

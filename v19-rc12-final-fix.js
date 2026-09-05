@@ -2,6 +2,8 @@
 (() => {
   'use strict';
 
+  if (!/\/(pet\.html|club-profile\.html)$/i.test(location.pathname)) return;
+
   function ensureInstallHelp(){
     let overlay=document.getElementById('acy-pwa-install-modal');
     if(overlay) return overlay;
