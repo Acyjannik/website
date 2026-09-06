@@ -41,6 +41,7 @@ Deno.serve(async (req) => {
     const signingKey = await importPKCS8(keyPem, "ES256");
     const jwt = await new SignJWT({}).setProtectedHeader({ alg: "ES256", kid: keyId }).setIssuer(teamId).setIssuedAt().sign(signingKey);
     let sent = 0, failed = 0, removed = 0;
+    const results: number[] = [];
     for (const device of devices ?? []) {
       const host = device.environment === "sandbox" ? "https://api.sandbox.push.apple.com" : "https://api.push.apple.com";
       const response = await fetch(`${host}/3/device/${encodeURIComponent(device.device_token)}`, {
@@ -48,13 +49,14 @@ Deno.serve(async (req) => {
         headers: { authorization: `bearer ${jwt}`, "apns-topic": bundleId, "apns-push-type": "alert", "apns-priority": "10", "content-type": "application/json" },
         body: JSON.stringify({ aps: { alert: { title, body: message }, sound: "default" } }),
       });
+      results.push(response.status);
       if (response.ok) sent++;
       else if ([400, 410].includes(response.status)) {
         await fetch(`${supabaseUrl}/rest/v1/ios_push_tokens?device_token=eq.${encodeURIComponent(device.device_token)}`, { method: "DELETE", headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } });
         removed++;
       } else failed++;
     }
-    return respond(200, { ok: true, sent, failed, removed, devices: Array.isArray(devices) ? devices.length : 0 });
+    return respond(200, { ok: true, sent, failed, removed, devices: Array.isArray(devices) ? devices.length : 0, apnsStatuses: results });
   } catch (error) {
     return respond(500, { error: error instanceof Error ? error.message : "iOS-Push konnte nicht gesendet werden." });
   }
