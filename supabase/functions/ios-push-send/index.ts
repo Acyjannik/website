@@ -21,12 +21,15 @@ Deno.serve(async (req) => {
 
   const auth = req.headers.get("Authorization") ?? "";
   if (!auth.startsWith("Bearer ")) return respond(401, { error: "Nicht angemeldet." });
+  const internalCall = auth === `Bearer ${serviceKey}`;
   try {
-    const callerResponse = await fetch(`${supabaseUrl}/auth/v1/user`, { headers: { apikey: serviceKey, Authorization: auth } });
-    if (!callerResponse.ok) return respond(401, { error: "Ungültige Sitzung." });
-    const caller = await callerResponse.json();
-    const adminResponse = await fetch(`${supabaseUrl}/rest/v1/admin_users?user_id=eq.${encodeURIComponent(caller.id)}&select=user_id&limit=1`, { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } });
-    if (!adminResponse.ok || !(await adminResponse.json()).length) return respond(403, { error: "Nur Admins dürfen iOS-Push senden." });
+    if (!internalCall) {
+      const callerResponse = await fetch(`${supabaseUrl}/auth/v1/user`, { headers: { apikey: serviceKey, Authorization: auth } });
+      if (!callerResponse.ok) return respond(401, { error: "Ungültige Sitzung." });
+      const caller = await callerResponse.json();
+      const adminResponse = await fetch(`${supabaseUrl}/rest/v1/admin_users?user_id=eq.${encodeURIComponent(caller.id)}&select=user_id&limit=1`, { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } });
+      if (!adminResponse.ok || !(await adminResponse.json()).length) return respond(403, { error: "Nur Admins dürfen iOS-Push senden." });
+    }
 
     const body = await req.json().catch(() => ({}));
     const title = String(body?.title ?? "ACY Club").slice(0, 120);
