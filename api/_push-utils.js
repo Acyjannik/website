@@ -2,6 +2,12 @@ export async function sendPushToUser({supabaseUrl,serviceKey,userId,title,body,u
   const headers={apikey:serviceKey,Authorization:`Bearer ${serviceKey}`,'Content-Type':'application/json'};
   const result={sent:0,removed:0,failed:0,iosSent:0,iosFailed:0};
   try{
+    const prefResponse=await fetch(`${supabaseUrl}/rest/v1/club_notification_preferences?user_id=eq.${encodeURIComponent(userId)}&select=push_enabled&limit=1`,{headers});
+    if(prefResponse.ok){
+      const prefRows=await prefResponse.json();
+      if(prefRows?.[0] && prefRows[0].push_enabled !== true) return result;
+    }
+
     // Native iOS delivery is handled by the Supabase Edge Function. This call
     // stays server-side; the service-role key is never exposed to the browser.
     try {
@@ -14,12 +20,6 @@ export async function sendPushToUser({supabaseUrl,serviceKey,userId,title,body,u
       if (nativeResponse.ok) result.iosSent = Number(nativePayload.sent || 0);
       else result.iosFailed = 1;
     } catch { result.iosFailed = 1; }
-
-    const prefResponse=await fetch(`${supabaseUrl}/rest/v1/club_notification_preferences?user_id=eq.${encodeURIComponent(userId)}&select=push_enabled&limit=1`,{headers});
-    if(prefResponse.ok){
-      const prefRows=await prefResponse.json();
-      if(prefRows?.[0] && prefRows[0].push_enabled !== true) return result;
-    }
 
     const response=await fetch(`${supabaseUrl}/rest/v1/club_push_subscriptions?user_id=eq.${encodeURIComponent(userId)}&select=id,endpoint,p256dh,auth`,{headers});
     if(!response.ok){result.failed=1;return result;}
