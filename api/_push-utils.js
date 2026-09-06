@@ -11,10 +11,12 @@ export async function sendPushToUser({supabaseUrl,serviceKey,userId,title,body,u
     // Native iOS delivery is handled by the Supabase Edge Function. This call
     // stays server-side; the service-role key is never exposed to the browser.
     try {
+      const nativeBase = String(process.env.PUBLIC_SITE_URL || 'https://acyjannik.de').replace(/\/$/, '');
+      const nativeURL = String(url || '/club-profile.html').startsWith('http') ? String(url) : `${nativeBase}${String(url || '/club-profile.html').startsWith('/') ? '' : '/'}${String(url || '/club-profile.html')}`;
       const nativeResponse = await fetch(`${supabaseUrl}/functions/v1/ios-push-send`, {
         method: 'POST',
         headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, title, body })
+        body: JSON.stringify({ userId, title, body, url: nativeURL })
       });
       const nativePayload = await nativeResponse.json().catch(() => ({}));
       if (nativeResponse.ok) result.iosSent = Number(nativePayload.sent || 0);

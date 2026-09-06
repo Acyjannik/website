@@ -34,6 +34,7 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const title = String(body?.title ?? "ACY Club").slice(0, 120);
     const message = String(body?.body ?? "Neue Nachricht im ACY Club.").slice(0, 300);
+    const targetUrl = String(body?.url ?? "/club-profile.html").slice(0, 500);
     const targetUserId = body?.userId ? String(body.userId) : null;
     const usersResponse = targetUserId
       ? await fetch(`${supabaseUrl}/rest/v1/ios_push_tokens?user_id=eq.${encodeURIComponent(targetUserId)}&select=device_token,environment`, { headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` } })
@@ -51,7 +52,7 @@ Deno.serve(async (req) => {
       const response = await fetch(`${host}/3/device/${encodeURIComponent(device.device_token)}`, {
         method: "POST",
         headers: { authorization: `bearer ${jwt}`, "apns-topic": bundleId, "apns-push-type": "alert", "apns-priority": "10", "content-type": "application/json" },
-        body: JSON.stringify({ aps: { alert: { title, body: message }, sound: "default" } }),
+        body: JSON.stringify({ aps: { alert: { title, body: message }, sound: "default", category: "ACY_DEFAULT" }, url: targetUrl }),
       });
       results.push(response.status);
       if (!response.ok) apnsErrors.push((await response.text()).slice(0, 240));
