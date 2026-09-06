@@ -1601,7 +1601,8 @@ $('test-ios-push-btn')?.addEventListener('click', async () => {
     if (!response.ok) throw new Error(payload.error || `HTTP ${response.status}`);
     if (status) {
       const apns = Array.isArray(payload.apnsStatuses) && payload.apnsStatuses.length ? ` · APNs ${payload.apnsStatuses.join(', ')}` : '';
-      status.textContent = `iOS-Push gesendet · ${payload.sent || 0} zugestellt · ${payload.failed || 0} Fehler · ${payload.devices || 0} iOS-Gerät(e) gefunden${apns}.`;
+      const apnsError = Array.isArray(payload.apnsErrors) && payload.apnsErrors.length ? ` · ${payload.apnsErrors.join(' ')}` : '';
+      status.textContent = `iOS-Push gesendet · ${payload.sent || 0} zugestellt · ${payload.failed || 0} Fehler · ${payload.devices || 0} iOS-Gerät(e) gefunden${apns}${apnsError}.`;
       status.classList.toggle('error', Number(payload.failed || 0) > 0);
     }
   } catch (error) {
