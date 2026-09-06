@@ -54,7 +54,7 @@ Deno.serve(async (req) => {
         removed++;
       } else failed++;
     }
-    return respond(200, { ok: true, sent, failed, removed });
+    return respond(200, { ok: true, sent, failed, removed, devices: Array.isArray(devices) ? devices.length : 0 });
   } catch (error) {
     return respond(500, { error: error instanceof Error ? error.message : "iOS-Push konnte nicht gesendet werden." });
   }
