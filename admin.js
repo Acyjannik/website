@@ -1581,6 +1581,36 @@ $('test-push-all-btn')?.addEventListener('click', async () => {
   }
 });
 
+$('test-ios-push-btn')?.addEventListener('click', async () => {
+  const button = $('test-ios-push-btn');
+  const status = $('push-test-message');
+  if (!confirm('iOS-Testnachricht an alle registrierten iPhones senden?')) return;
+  button.disabled = true;
+  button.textContent = ' iOS-Push wird gesendet…';
+  try {
+    const { data } = await supabaseClient.auth.getSession();
+    const token = data?.session?.access_token;
+    const supabaseUrl = supabaseClient?.supabaseUrl;
+    if (!token || !supabaseUrl) throw new Error('Keine aktive Admin-Sitzung.');
+    const response = await fetch(`${supabaseUrl}/functions/v1/ios-push-send`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: 'ACY Club · iOS-Test 🔔', body: 'Deine iOS-Push-Benachrichtigungen funktionieren.' })
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(payload.error || `HTTP ${response.status}`);
+    if (status) {
+      status.textContent = `iOS-Push gesendet · ${payload.sent || 0} zugestellt · ${payload.failed || 0} Fehler.`;
+      status.classList.toggle('error', Number(payload.failed || 0) > 0);
+    }
+  } catch (error) {
+    if (status) { status.textContent = error.message || 'iOS-Push fehlgeschlagen.'; status.classList.add('error'); }
+  } finally {
+    button.disabled = false;
+    button.textContent = ' iOS-Push testen';
+  }
+});
+
 $('test-email-btn')?.addEventListener('click', async () => {
   const button = $('test-email-btn');
   if (button) {
